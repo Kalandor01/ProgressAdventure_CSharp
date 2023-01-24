@@ -1,0 +1,31 @@
+﻿namespace Project_Adventure_C_sharp
+{
+    public enum Items
+    {
+        Wooden_sword,
+        Stone_sword,
+        Steel_sword,
+        Wooden_bow,
+        Steel_arrow,
+        WOODEN_CLUB,
+        CLUB_WITH_TEETH,
+        WOODEN_SHIELD,
+        LEATHER_CAP,
+        LEATHER_TUNIC,
+        LEATHER_PANTs,
+        LEATHER_BOOTS,
+        BOTTLE,
+        WOOL,
+        CLOTH,
+        WOOD,
+        STONE,
+        STEEL,
+        GOLD,
+        TEETH,
+        HEALTH_POTION,
+        GOLD_COIN,
+        SILVER_COIN,
+        COPPER_COIN,
+        ROTTEN_FLESH,
+    }
+}
