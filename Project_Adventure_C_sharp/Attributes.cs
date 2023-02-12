@@ -1,4 +1,4 @@
-﻿namespace Project_Adventure_C_sharp
+﻿namespace Project_Adventure
 {
     public enum Attributes
     {
