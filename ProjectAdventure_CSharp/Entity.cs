@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Project_Adventure
+namespace ProjectAdventure
 {
     public class Entity
     {

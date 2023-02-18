@@ -1,4 +1,4 @@
-﻿namespace Project_Adventure
+﻿namespace ProjectAdventure
 {
     public enum Attributes
     {
