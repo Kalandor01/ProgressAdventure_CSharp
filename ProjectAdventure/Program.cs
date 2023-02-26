@@ -1,12 +1,5 @@
 ﻿using SaveFileManager;
-using NPrng;
-using NPrng.Generators;
 using System.Text;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using System.Numerics;
-using System.IO;
 
 namespace ProjectAdventure
 {
@@ -42,11 +35,25 @@ namespace ProjectAdventure
             //EncodeFile("hahalala\nlol");
             //DecodeFile();
 
-            fileConversion.EncodeFile(new List<string> { "testing if this makes a linebreak happen?\néáűúőüóö\n;>Ł$ß¤×÷¸¨<>##@&{@{"});
-            var lines = fileConversion.DecodeFile();
+            Console.OutputEncoding = Encoding.UTF8;
+
+            var testLines = new List<string> {
+                "testing if this makes a linebreak happen?\néáűúőüóö\n;>Ł$ß¤×÷¸¨<>##@&{@{",
+                "éá山ā人é口ŏ刀ā木ù日ì月è日女ǚ子ĭ馬马ǎ鳥鸟ǎ目ù水ǐǐì指事īī一ī二è三ā大à人天ā大小ǎ上à下à本ě木末"
+            };
+            foreach (var item in testLines)
+            {
+                Console.WriteLine(item);
+            }
+            FileConversion.EncodeFile(testLines);
+            var lines = FileConversion.DecodeFile();
             foreach (var item in lines)
             {
                 Console.WriteLine(item);
+            }
+            for (var x=0; x < lines.Count(); x++)
+            {
+                Console.WriteLine(testLines.ElementAt(x) == lines.ElementAt(x));
             }
         }
     }

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ProjectAdventure
+﻿namespace ProjectAdventure
 {
     public class Entity
     {
