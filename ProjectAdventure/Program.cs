@@ -35,6 +35,8 @@ namespace ProjectAdventure
             //EncodeFile("hahalala\nlol");
             //DecodeFile();
 
+            //Directory.CreateDirectory("file/path/deep");
+
             Console.OutputEncoding = Encoding.UTF8;
 
             var testLines = new List<string> {
