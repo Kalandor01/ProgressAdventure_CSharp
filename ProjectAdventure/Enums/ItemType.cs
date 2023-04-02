@@ -1,18 +1,18 @@
-﻿namespace ProjectAdventure
+﻿namespace ProjectAdventure.Enums
 {
-    public enum Items
+    public enum ItemType
     {
-        Wooden_sword,
-        Stone_sword,
-        Steel_sword,
-        Wooden_bow,
-        Steel_arrow,
+        WOODEN_SWORD,
+        STONE_SWORD,
+        STEEL_SWORD,
+        WOODEN_BOW,
+        STEEL_ARROW,
         WOODEN_CLUB,
         CLUB_WITH_TEETH,
         WOODEN_SHIELD,
         LEATHER_CAP,
         LEATHER_TUNIC,
-        LEATHER_PANTs,
+        LEATHER_PANTS,
         LEATHER_BOOTS,
         BOTTLE,
         WOOL,

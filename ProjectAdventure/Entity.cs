@@ -1,124 +1,183 @@
 ﻿namespace ProjectAdventure
 {
+    /// <summary>
+    /// A representation of an entity.
+    /// </summary>
     public class Entity
     {
+        #region Public fields
+        /// <summary>
+        /// The name of the <c>Entity</c>.
+        /// </summary>
         string name;
-        string full_name = "";
-        int base_hp;
+        /// <summary>
+        /// The full name of the <c>Entity</c>.
+        /// </summary>
+        string fullName = "";
+        /// <summary>
+        /// The base hp of the <c>Entity</c>.
+        /// </summary>
+        int baseHp;
+        /// <summary>
+        /// The current hp of the <c>Entity</c>.
+        /// </summary>
         int hp;
-        int base_attack;
+        /// <summary>
+        /// The base attack of the <c>Entity</c>.
+        /// </summary>
+        int baseAttack;
+        /// <summary>
+        /// The current attack of the <c>Entity</c>.
+        /// </summary>
         int attack;
-        int base_defence;
+        /// <summary>
+        /// The base defence of the <c>Entity</c>.
+        /// </summary>
+        int baseDefence;
+        /// <summary>
+        /// The current defence of the <c>Entity</c>.
+        /// </summary>
         int defence;
-        int base_speed;
+        /// <summary>
+        /// The base speed of the <c>Entity</c>.
+        /// </summary>
+        int baseSpeed;
+        /// <summary>
+        /// The current speed of the <c>Entity</c>.
+        /// </summary>
         int speed;
+        /// <summary>
+        /// The original team that the <c>Entity</c> is a part of.
+        /// </summary>
+        int originalTeam;
+        /// <summary>
+        /// The current team that the <c>Entity</c> is a part of.
+        /// </summary>
         int team;
-        bool switched;
-        List<Attributes> attributes;
-        List<(Items type, int amount)> drops;
+        /// <summary>
+        /// The list of attributes that the <c>Entity</c> has.
+        /// </summary>
+        IEnumerable<Enums.Attribute> attributes;
+        /// <summary>
+        /// The list of items that the <c>Entity</c> will drop on death.
+        /// </summary>
+        IEnumerable<Item> drops;
+        #endregion
 
-
-        public Entity()
-            : this("test")
-        {
-        }
-        public Entity(string name)
-            : this(name, 10, 10, 10, 10, 0, false, new List<Attributes>())
-        {
-        }
-        public Entity(string name, int base_hp, int base_attack, int base_defence, int base_speed, int team, bool switched, List<Attributes> attributes)
-            : this(name, base_hp, base_attack, base_defence, base_speed, team, switched, attributes, new List<(Items, int)>())
-        {
-        }
-        public Entity(string name, int base_hp, int base_attack, int base_defence, int base_speed, int team, bool switched, List<Attributes> attributes, List<(Items, int)> drops)
+        #region Constructors
+        /// <summary>
+        /// <inheritdoc cref="Entity"/>
+        /// </summary>
+        /// <param name="name"><inheritdoc cref="name" path="//summary"/></param>
+        /// <param name="baseHp"><inheritdoc cref="baseHp" path="//summary"/></param>
+        /// <param name="baseAttack"><inheritdoc cref="baseAttack" path="//summary"/></param>
+        /// <param name="baseDefence"><inheritdoc cref="baseDefence" path="//summary"/></param>
+        /// <param name="baseSpeed"><inheritdoc cref="baseSpeed" path="//summary"/></param>
+        /// <param name="originalTeam"><inheritdoc cref="originalTeam" path="//summary"/></param>
+        /// <param name="team"><inheritdoc cref="team" path="//summary"/></param>
+        /// <param name="attributes"><inheritdoc cref="attributes" path="//summary"/></param>
+        /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
+        public Entity(string name, int baseHp, int baseAttack, int baseDefence, int baseSpeed, int originalTeam = 0, int? team = null, IEnumerable<Enums.Attribute>? attributes = null, IEnumerable<Item>? drops = null)
         {
             this.name = name;
-            this.base_hp = base_hp;
-            this.base_attack = base_attack;
-            this.base_defence = base_defence;
-            this.base_speed = base_speed;
-            this.team = team;
-            this.switched = switched;
-            this.attributes = attributes;
-            this.drops = drops;
+            this.baseHp = baseHp;
+            this.baseAttack = baseAttack;
+            this.baseDefence = baseDefence;
+            this.baseSpeed = baseSpeed;
+            this.originalTeam = originalTeam;
+            this.team = (int)(team is not null ? team : this.originalTeam);
+            this.attributes = attributes is not null ? attributes : Enumerable.Empty<Enums.Attribute>();
+            this.drops = drops is not null ? drops : Enumerable.Empty<Item>();
             // adjust properties
-            this.Apply_attributes();
-            this.Update_full_name();
+            SetupAttributes();
+            UpdateFullName();
         }
+        #endregion
 
-        /// <summary>
-        /// Modifys the entity's stats acording to the entity's attributes.
-        /// </summary>
-        private void Apply_attributes()
-        {
-            this.hp = this.base_hp;
-            this.attack = this.base_attack;
-            this.defence = this.base_defence;
-            this.speed = this.base_speed;
-            if (this.attributes.Contains(Attributes.Rare))
-            {
-                this.hp *= 2;
-                this.attack *= 2;
-                this.defence *= 2;
-                this.speed *= 2;
-            }
-        }
-
+        #region Public methods
         /// <summary>
         /// Updates the full name of the entity.
         /// </summary>
-        public void Update_full_name()
+        public void UpdateFullName()
         {
-            string full_name = this.name;
-            if (this.attributes.Contains(Attributes.Rare))
+            string fullName = name;
+            if (attributes.Contains(Enums.Attribute.Rare))
             {
-                full_name = "Rare " + full_name;
+                fullName = "Rare " + fullName;
             }
-            this.full_name = full_name;
+            this.fullName = fullName;
         }
 
         /// <summary>
-        /// Returns a json representation of the `Entity`.
+        /// Returns a json representation of the <c>Entity</c>.
         /// </summary>
-        public Dictionary<string, object> To_json()
+        public Dictionary<string, object?> ToJson()
         {
             // drops
-            var drops_json = new List<Dictionary<string, object>>();
-            foreach (var item in this.drops)
-                drops_json.Add(new Dictionary<string, object> {
-                    {"type", item.type.ToString()},
-                    {"amount", item.amount}
+            var dropsJson = new List<Dictionary<string, object>>();
+            foreach (var drop in drops)
+                dropsJson.Add(new Dictionary<string, object> {
+                    {"type", drop.type.ToString()},
+                    {"amount", drop.amount}
                 });
             // attributes processing
-            var attributes_processed = new List<string>();
-            foreach (var attribute in this.attributes)
+            var attributesProcessed = new List<string>();
+            foreach (var attribute in attributes)
             {
-                attributes_processed.Add(attribute.ToString());
+                attributesProcessed.Add(attribute.ToString());
             }
             // properties
-            var entity_json = new Dictionary<string, object> {
-                {"name", this.name},
-                {"base_hp", this.base_hp},
-                {"base_attack", this.base_attack},
-                {"base_defence", this.base_defence},
-                {"base_speed", this.base_speed},
-                {"team", this.team},
-                {"switched", this.switched},
-                {"attributes", attributes_processed},
-                {"drops", drops_json}
+            var entityJson = new Dictionary<string, object?> {
+                {"name", name},
+                {"baseHp", baseHp},
+                {"baseAttack", baseAttack},
+                {"baseDefence", baseDefence},
+                {"baseSpeed", baseSpeed},
+                {"originalTeam", originalTeam},
+                {"team", team},
+                {"attributes", attributesProcessed},
+                {"drops", dropsJson}
             };
-            return entity_json;
+            return entityJson;
         }
 
+        /// <summary>
+        /// Makes the entity attack another one.
+        /// </summary>
+        /// <param name="target">The target entity.</param>
+        public void Attack(Entity target)
+        {
+            target.hp -= attack;
+        }
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Sets up the entity's stats acording to its base attributes.
+        /// </summary>
+        private void SetupAttributes()
+        {
+            hp = baseHp;
+            attack = baseAttack;
+            defence = baseDefence;
+            speed = baseSpeed;
+            if (attributes.Contains(Enums.Attribute.Rare))
+            {
+                hp *= 2;
+                attack *= 2;
+                defence *= 2;
+                speed *= 2;
+            }
+        }
+        #endregion
+
+        #region Public overrides
         public override string ToString()
         {
-            var team = this.team == 0 ? "Player" : this.team.ToString();
-            return $"Name: {this.name}\nFull name: {this.full_name}\nHp: {this.hp}\nAttack: {this.attack}\nDefence: {this.defence}\nSpeed: {this.speed}\nAttributes: {this.attributes}\nTeam: {team}\nSwitched sides: {this.switched}\nDrops: {this.drops}";
+            var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
+            var teamStr = team == 0 ? "Player" : team.ToString();
+            return $"Name: {name}\nFull name: {fullName}\nHp: {hp}\nAttack: {attack}\nDefence: {defence}\nSpeed: {speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
         }
-
-        public void attack_entity(Entity target)
-        {
-            target.hp -= this.attack;
-        }
+        #endregion
     }
 }
