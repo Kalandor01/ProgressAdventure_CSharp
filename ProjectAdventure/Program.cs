@@ -20,6 +20,8 @@ namespace ProjectAdventure
             Console.WriteLine(dec);
             Console.WriteLine(dec.Value<string>("name"));
 
+            
+
             //Logger.Log("test", "message", LogSeverity.ERROR, newLine: true);
 
             var text = "ŰŰŰŰŰŰŰ";

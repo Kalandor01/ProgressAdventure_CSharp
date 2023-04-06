@@ -1,5 +1,4 @@
-﻿using ProjectAdventure.Enums;
-using SaveFileManager;
+﻿using SaveFileManager;
 using System.Text;
 
 namespace ProjectAdventure
@@ -23,8 +22,6 @@ namespace ProjectAdventure
         public static readonly string SAVE_EXT = "sav";
 
         // logs folder
-        public static bool LOGGING = true;
-        public static int LOGGING_LEVEL = 0;
         public static readonly string LOGS_FOLDER = "logs";
         public static readonly string LOGS_FOLDER_PATH = Path.Join(ROOT_FOLDER, LOGS_FOLDER);
         public static readonly string LOG_EXT = "log";
@@ -56,19 +53,25 @@ namespace ProjectAdventure
             public static readonly (byte r, byte g, byte b) BLUE = (0, 0, 255);
         }
 
+        //logging
+        public static bool LOGGING = true;
+        public static int LOGGING_LEVEL = 0;
+        public static readonly bool LOG_MS = false;
+
+        //chunks
+        public static readonly int CHUNK_SIZE = 10;
+        public static readonly string CHUNK_FILE_NAME = "chunk";
+        public static readonly string CHUNK_FILE_NAME_SEP = "_";
+
         // other
         public static readonly bool ERROR_HANDLING = false;
-        public static readonly bool LOG_MS = false;
         public static readonly Encoding ENCODING = Encoding.UTF8;
         public static readonly int AUTO_SAVE_INTERVAL = 20;
         public static readonly int AUTO_SAVE_DELAY = 5;
         public static readonly int FILE_ENCODING_VERSION = 2;
         public static readonly string SETTINGS_FILE_NAME = "settings";
-        public static readonly int CHUNK_SIZE = 10;
-        public static readonly string CHUNK_FILE_NAME = "chunk";
-        public static readonly string CHUNK_FILE_NAME_SEP = "_";
         public static readonly string SAVE_VERSION = "2.0";
-        public static readonly char[] DOUBLE_KEYS = new char[] { '\xe0', '\x00' };
+        public static readonly char[] DOUBLE_KEYS = new[] { '\xe0', '\x00' };
         public static readonly long TILE_NOISE_RESOLUTION = 1000000000000;
     }
 }

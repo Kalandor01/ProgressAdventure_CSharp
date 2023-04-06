@@ -1,6 +1,4 @@
-﻿using ProjectAdventure.Enums;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace ProjectAdventure
 {
@@ -38,6 +36,15 @@ namespace ProjectAdventure
                 }
                 Console.WriteLine(errorText);
             }
+        }
+
+        /// <summary>
+        /// Writes out text, and then waits for a key press.
+        /// </summary>
+        /// <param name="text">The text to write out.</param>
+        public static void PressKey(string text = "")
+        {
+            SaveFileManager.Utils.PressKey(text);
         }
 
         /// <summary>
@@ -128,67 +135,75 @@ namespace ProjectAdventure
             return txt.Append($"{text}\u001b[0m").ToString();
         }
 
+        /// <summary>
+        /// string.Replace(), but replaces all strings in the list.
+        /// </summary>
+        /// <param name="originalString">The string to replace from.</param>
+        /// <param name="replacable">The list of strings to replace.</param>
+        /// <param name="replace">The string to replace the string list with.</param>
+        /// <returns></returns>
+        public static string ReplaceAll(string originalString, IEnumerable<string> replacable, string replace)
+        {
+            var bulider = new StringBuilder(originalString);
+            foreach (var rep in replacable)
+            {
+                bulider.Replace(rep, replace);
+            }
+            return bulider.ToString();
+        }
 
-        //def remove_bad_characters(save_name:str):
-        //    """
-        //    Removes all characters that can't be in file/folder names.\n
-        //    (\\\\/:*"?:<>|)
-        //    """
-        //    bad_chars = ["\\", "/", ":", "*", "\"", "?", ":", "<", ">", "|"]
-        //    for char in bad_chars:
-        //        save_name = save_name.replace(char, "")
-        //    return save_name
+        /// <inheritdoc cref="ReplaceAll(string, IEnumerable{string}, string)"/>
+        public static string ReplaceAll(string originalString, IEnumerable<char> replacable, string replace)
+        {
+            return ReplaceAll(originalString, replacable.Select(c => c.ToString()), replace);
+        }
 
+        /// <summary>
+        /// Removes all characters from the string that can't be in file/folder names.
+        /// </summary>
+        /// <param name="fileName">The file/folder name string.</param>
+        public static string RemoveInvalidFileNameCharacters(string fileName)
+        {
+            return ReplaceAll(fileName, Path.GetInvalidFileNameChars(), "");
+        }
 
-        //def enum_item_finder(name:str, enum: EnumType) -> Enum|None:
-        //    """
-        //    Gives back the enum item, from the enum item name.\n
-        //    Returns `None` if it doesn't exist.
-        //    """
-        //    try: return enum._member_map_[name]
-        //        except KeyError: return None
+        /// <summary>
+        /// Adds together two vectors.
+        /// </summary>
+        /// <param name="vector1">The 1. vector to add together.</param>
+        /// <param name="vector2">The 2. vector to add together.</param>
+        /// <param name="round">If true, it rounds the resulting values in the vector.</param>
+        /// <returns></returns>
+        public static (double x, double y) VectorAdd((double x, double y) vector1, (double x, double y) vector2, bool round = false)
+        {
+            var x = vector1.x + vector2.x;
+            var y = vector1.y + vector2.y;
+            if (round)
+            {
+                x = (int)x;
+                y = (int)y;
+            }
+            return (x, y);
+        }
 
-
-        //def vector_add(vector1:tuple[float, float], vector2:tuple[float, float], round= False) :
-        //    """
-        //    Adds together the the two vectors.\n
-        //    If `round` is True, it rounds the resoulting values in the vector.
-        //    """
-        //    x = vector1[0] + vector2[0]
-        //    if round:
-        //        x = int (x)
-        //        y = vector1[1] + vector2[1]
-        //    if round:
-        //        y = int (y)
-        //    return (x, y)
-
-
-        //def vector_multiply(vector:tuple[float, float], multiplier:tuple[float, float], round= False) :
-        //    """
-        //    Multiplies the first vector's parts with the numbers in the second "vector".\n
-        //    If `round` is True, it rounds the resoulting values in the vector.
-        //    """
-        //    x = vector[0] * multiplier[0]
-        //    if round:
-        //        x = int (x)
-        //    y = vector[1] * multiplier[1]
-        //    if round:
-        //        y = int (y)
-        //    return (x, y)
-
-
-        //def press_key(text= "", allow_buffered_inputs= False) :
-        //    """
-        //    Writes out text, and then stalls until the user presses any key.\n
-        //    If `allow_buffered_inputs` is `False`, if the user pressed some buttons before this function was called the function will not register those button presses.
-        //    """
-        //    if not allow_buffered_inputs:
-        //        while kbhit() :
-        //            getwch()
-        //    print(text, end= "", flush= True)
-        //    if getwch() in DOUBLE_KEYS:
-        //        getwch()
-        //    print()
+        /// <summary>
+        /// Multiplies the first vector's parts with the numbers in the second vector.
+        /// </summary>
+        /// <param name="vector">The vector to multiply.</param>
+        /// <param name="multiplier">The vector to multiply the first vector by.</param>
+        /// <param name="round">If true, it rounds the resulting values in the vector.</param>
+        /// <returns></returns>
+        public static (double x, double y) VectorMultiply((double x, double y) vector, (double x, double y) multiplier, bool round = false)
+        {
+            var x = vector.x * multiplier.x;
+            var y = vector.y * multiplier.y;
+            if (round)
+            {
+                x = (int)x;
+                y = (int)y;
+            }
+            return (x, y);
+        }
         #endregion
     }
 }
