@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using NPrng;
+using System.Text;
 
 namespace ProjectAdventure
 {
@@ -203,6 +204,30 @@ namespace ProjectAdventure
                 y = (int)y;
             }
             return (x, y);
+        }
+
+        /// <summary>
+        /// Modulo. (not %)
+        /// </summary>
+        /// <param name="x">The number to modulo.</param>
+        /// <param name="m">The modulo number.</param>
+        public static int Mod(int x, int m)
+        {
+            var r = x % m;
+            return r < 0 ? r + m : r;
+        }
+
+        /// <summary>
+        /// Fills the elements of a specified array of bytes with random numbers using an <c>NPrng</c> generator.
+        /// </summary>
+        /// <param name="generator">The <c>NPrng</c> generator to use.</param>
+        /// <param name="array">The byte array to fill.</param>
+        public static void NextBytes(IPseudoRandomGenerator generator, byte[] array)
+        {
+            for (int x = 0; x < array.Length; x++)
+            {
+                array[x] = (byte)generator.GenerateInRange(0, 255);
+            }
         }
         #endregion
     }

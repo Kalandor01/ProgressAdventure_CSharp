@@ -71,7 +71,6 @@ namespace ProjectAdventure
         public static readonly int FILE_ENCODING_VERSION = 2;
         public static readonly string SETTINGS_FILE_NAME = "settings";
         public static readonly string SAVE_VERSION = "2.0";
-        public static readonly char[] DOUBLE_KEYS = new[] { '\xe0', '\x00' };
         public static readonly long TILE_NOISE_RESOLUTION = 1000000000000;
     }
 }
