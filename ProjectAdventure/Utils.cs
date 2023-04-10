@@ -1,4 +1,5 @@
 ﻿using NPrng;
+using System.Collections;
 using System.Text;
 
 namespace ProjectAdventure
@@ -37,6 +38,25 @@ namespace ProjectAdventure
                 }
                 Console.WriteLine(errorText);
             }
+        }
+
+        /// <summary>
+        /// Writes out text, and then returns what the user inputed.
+        /// </summary>
+        /// <param name="text">The text to write out.</param>
+        public static string? Input(string text)
+        {
+            return SaveFileManager.Utils.Input(text);
+        }
+
+        /// <summary>
+        /// Returns if the Nth bit in a number is 1.
+        /// </summary>
+        /// <param name="value">The number to get the bit from</param>
+        /// <param name="place">The 0 based index of the bit.</param>
+        public static bool GetBit(int value, int place)
+        {
+            return (value & (1 << place)) != 0;
         }
 
         /// <summary>
@@ -227,6 +247,39 @@ namespace ProjectAdventure
             for (int x = 0; x < array.Length; x++)
             {
                 array[x] = (byte)generator.GenerateInRange(0, 255);
+            }
+        }
+
+        /// <summary>
+        /// Recursively writes out lists and dictionaries.
+        /// </summary>
+        /// <param name="writable">The object to write out</param>
+        /// <param name="recursionNum">Recursion number. Should not be modified.</param>
+        public static void RecursiveWrite(object? writable, int recursionNum = 0)
+        {
+            if (writable is null)
+            {
+                Console.WriteLine("[NULL]");
+            }
+            else if (writable is not string && typeof(IDictionary).IsAssignableFrom(writable.GetType()))
+            {
+                foreach (var item in ((IDictionary)writable).Keys)
+                {
+                    Console.WriteLine(new string('\t', recursionNum) + item.ToString() + ":");
+                    RecursiveWrite(((IDictionary)writable)[item], recursionNum + 1);
+                }
+            }
+            else if (writable is not string && typeof(IEnumerable).IsAssignableFrom(writable.GetType()))
+            {
+                recursionNum++;
+                foreach (var item in (IEnumerable)writable)
+                {
+                    RecursiveWrite(item, recursionNum);
+                }
+            }
+            else
+            {
+                Console.WriteLine(new string('\t', recursionNum) + writable);
             }
         }
         #endregion
