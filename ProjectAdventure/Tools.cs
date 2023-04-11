@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using ProjectAdventure.Enums;
 using SaveFileManager;
+using System.Collections;
 
 namespace ProjectAdventure
 {
@@ -12,10 +13,10 @@ namespace ProjectAdventure
     {
         #region Public functions
         /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
-        /// <inheritdoc cref="EncodeSaveShort(IEnumerable{IDictionary{string, object?}}, string, long?, string?)"/>
-        public static void EncodeSaveShort(IDictionary<string, object?> data, string filePath, long? seed = null, string? extension = null)
+        /// <inheritdoc cref="EncodeSaveShort(IEnumerable{IDictionary}, string, long?, string?)"/>
+        public static void EncodeSaveShort(IDictionary data, string filePath, long? seed = null, string? extension = null)
         {
-            EncodeSaveShort(new List<IDictionary<string, object?>> { data }, filePath, seed, extension);
+            EncodeSaveShort(new List<IDictionary> { data }, filePath, seed, extension);
         }
 
         /// <summary>
@@ -26,7 +27,7 @@ namespace ProjectAdventure
         /// If the path contains a *, it will be replaced with the seed.</param>
         /// <param name="seed">The seed for encoding the file.</param>
         /// <param name="extension">The extension of the file that will be created.</param>
-        public static void EncodeSaveShort(IEnumerable<IDictionary<string, object?>> dataList, string filePath, long? seed = null, string? extension = null)
+        public static void EncodeSaveShort(IEnumerable<IDictionary> dataList, string filePath, long? seed = null, string? extension = null)
         {
             seed ??= Constants.SAVE_SEED;
             extension ??= Constants.SAVE_EXT;

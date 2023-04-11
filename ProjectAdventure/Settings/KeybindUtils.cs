@@ -1,6 +1,6 @@
-﻿using ProjectAdventure.Enums;
+﻿using Newtonsoft.Json.Linq;
+using ProjectAdventure.Enums;
 using SaveFileManager;
-using System;
 
 namespace ProjectAdventure.Settings
 {
@@ -114,10 +114,10 @@ namespace ProjectAdventure.Settings
         {
             return new List<ActionKey> {
                 new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) }),
-                new ActionKey(ActionType.UP, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.UpArrow, ConsoleKey.UpArrow, false, false, false) }),
-                new ActionKey(ActionType.DOWN, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.DownArrow, ConsoleKey.DownArrow, false, false, false) }),
-                new ActionKey(ActionType.LEFT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.LeftArrow, ConsoleKey.LeftArrow, false, false, false) }),
-                new ActionKey(ActionType.RIGHT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.RightArrow, ConsoleKey.RightArrow, false, false, false) }),
+                new ActionKey(ActionType.UP, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, false, false, false) }),
+                new ActionKey(ActionType.DOWN, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, false, false, false) }),
+                new ActionKey(ActionType.LEFT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, false) }),
+                new ActionKey(ActionType.RIGHT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, false) }),
                 new ActionKey(ActionType.ENTER, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) })
             };
         }
@@ -126,25 +126,24 @@ namespace ProjectAdventure.Settings
         /// Turns the settings part of the settings file into an <c>Keybinds</c> object.
         /// </summary>
         /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.</param>
-        public static Keybinds KeybindsFromJson(IDictionary<string, IEnumerable<IDictionary<string, object>>> keybindsJson)
+        public static Keybinds KeybindsFromJson(JToken keybindsJson)
         {
             var actions = new List<ActionKey>();
-            foreach (var actionTypeStr in keybindsJson.Keys)
+            foreach (var actionJson in keybindsJson)
             {
-                if (Enum.TryParse(typeof(ActionType), actionTypeStr, out object? res))
+                if (
+                    actionJson.Type == JTokenType.Property &&
+                    Enum.TryParse(typeof(ActionType), ((JProperty)actionJson).Name, out object? res)
+                    )
                 {
                     var actionType = (ActionType)res;
-                    var keyList = keybindsJson[actionTypeStr];
                     var keys = new List<ConsoleKeyInfo>();
-                    foreach (var key in keyList)
+                    foreach (var key in ((JProperty)actionJson).Value)
                     {
                         if (
-                            key.ContainsKey("key") &&
-                            key.ContainsKey("keyChar") &&
-                            key.ContainsKey("modifiers") &&
-                            Enum.TryParse(typeof(ConsoleKey), key["key"].ToString(), out object? keyEnum) &&
-                            char.TryParse(key["keyChar"].ToString(), out char keyChar) &&
-                            int.TryParse(key["modifiers"].ToString(), out int keyMods)
+                            Enum.TryParse(typeof(ConsoleKey), Utils.GetJTokenValue(key, "key"), out object? keyEnum) &&
+                            char.TryParse(Utils.GetJTokenValue(key, "keyChar"), out char keyChar) &&
+                            int.TryParse(Utils.GetJTokenValue(key, "modifiers"), out int keyMods)
                             )
                         {
                             var alt = Utils.GetBit(keyMods, 0);

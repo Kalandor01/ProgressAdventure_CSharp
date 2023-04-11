@@ -3,6 +3,7 @@ using System.Text;
 using System.Drawing;
 using ProjectAdventure.Settings;
 using System.Collections;
+using SaveFileManager;
 
 namespace ProjectAdventure
 {
@@ -55,18 +56,23 @@ namespace ProjectAdventure
             //var text = "ŰŰŰŰŰŰŰ";
             //Console.WriteLine(Utils.StylizedText(text, Constants.Colors.RED, Constants.Colors.BLUE));
 
-            var ck = new List<ActionKey>();
-            foreach (var aType in Enum.GetValues(typeof(ActionType)))
-            {
-                var key1 = Console.ReadKey(true);
-                var key2 = Console.ReadKey(true);
-                ck.Add(new ActionKey((ActionType)aType, new List<ConsoleKeyInfo> { key1, key2 }));
-            }
-            var kb = new Keybinds(ck);
+            //var ck = new List<ActionKey>();
+            //foreach (var aType in Enum.GetValues(typeof(ActionType)))
+            //{
+            //    var key1 = Console.ReadKey(true);
+            //    var key2 = Console.ReadKey(true);
+            //    ck.Add(new ActionKey((ActionType)aType, new List<ConsoleKeyInfo> { key1, key2 }));
+            //}
+            var kb = new Keybinds(KeybindUtils.GetDefaultKeybindList());
 
             Utils.RecursiveWrite(kb.ToJson());
-            var kb2 = KeybindUtils.KeybindsFromJson(kb.ToJson());
-            Utils.RecursiveWrite(kb2.ToJson());
+
+            Tools.EncodeSaveShort((IDictionary)kb.ToJson(), "kbsave");
+            var kbJson = Tools.DecodeSaveShort("kbsave");
+
+            var kb2 = KeybindUtils.KeybindsFromJson(kbJson.Root);
+            SaveFileManager.Utils.OptionsUI(new List<BaseUI?> { new Slider(1, 10), new Slider(5, 15) }, keybinds:kb2.keybinds);
+            //Utils.RecursiveWrite(kb2.ToJson());
         }
 
         static void ErrorHandler()
