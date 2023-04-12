@@ -121,42 +121,6 @@ namespace ProjectAdventure.Settings
                 new ActionKey(ActionType.ENTER, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) })
             };
         }
-
-        /// <summary>
-        /// Turns the settings part of the settings file into an <c>Keybinds</c> object.
-        /// </summary>
-        /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.</param>
-        public static Keybinds KeybindsFromJson(JToken keybindsJson)
-        {
-            var actions = new List<ActionKey>();
-            foreach (var actionJson in keybindsJson)
-            {
-                if (
-                    actionJson.Type == JTokenType.Property &&
-                    Enum.TryParse(typeof(ActionType), ((JProperty)actionJson).Name, out object? res)
-                    )
-                {
-                    var actionType = (ActionType)res;
-                    var keys = new List<ConsoleKeyInfo>();
-                    foreach (var key in ((JProperty)actionJson).Value)
-                    {
-                        if (
-                            Enum.TryParse(typeof(ConsoleKey), Utils.GetJTokenValue(key, "key"), out object? keyEnum) &&
-                            char.TryParse(Utils.GetJTokenValue(key, "keyChar"), out char keyChar) &&
-                            int.TryParse(Utils.GetJTokenValue(key, "modifiers"), out int keyMods)
-                            )
-                        {
-                            var alt = Utils.GetBit(keyMods, 0);
-                            var shift = Utils.GetBit(keyMods, 1);
-                            var ctrl = Utils.GetBit(keyMods, 2);
-                            keys.Add(new ConsoleKeyInfo(keyChar, (ConsoleKey)keyEnum, shift, alt, ctrl));
-                        }
-                    }
-                    actions.Add(new ActionKey(actionType, keys));
-                }
-            }
-            return new Keybinds(actions);
-        }
         #endregion
     }
 }

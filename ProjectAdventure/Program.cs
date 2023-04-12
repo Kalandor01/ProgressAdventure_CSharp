@@ -70,9 +70,8 @@ namespace ProjectAdventure
             Tools.EncodeSaveShort((IDictionary)kb.ToJson(), "kbsave");
             var kbJson = Tools.DecodeSaveShort("kbsave");
 
-            var kb2 = KeybindUtils.KeybindsFromJson(kbJson.Root);
-            SaveFileManager.Utils.OptionsUI(new List<BaseUI?> { new Slider(1, 10), new Slider(5, 15) }, keybinds:kb2.keybinds);
-            //Utils.RecursiveWrite(kb2.ToJson());
+            var kb2 = Keybinds.KeybindsFromJson(kbJson.Root);
+            Utils.RecursiveWrite(kb2.ToJson());
         }
 
         static void ErrorHandler()
