@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
-using ProjectAdventure.Enums;
+using ProgressAdventure.Enums;
 
-namespace ProjectAdventure.Settings
+namespace ProgressAdventure.Settings
 {
     /// <summary>
     /// Class for storing the keybinds list.

@@ -1,6 +1,6 @@
-﻿using ProjectAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     public class Item
     {

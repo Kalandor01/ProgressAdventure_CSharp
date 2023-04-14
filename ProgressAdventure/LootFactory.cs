@@ -1,6 +1,6 @@
-﻿using ProjectAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     /// <summary>
     /// Object for assembling the loot, an entity will drop.

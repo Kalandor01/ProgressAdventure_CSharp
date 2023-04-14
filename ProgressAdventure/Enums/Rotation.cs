@@ -1,4 +1,4 @@
-﻿namespace ProjectAdventure.Enums
+﻿namespace ProgressAdventure.Enums
 {
     public enum Rotation : int
     {

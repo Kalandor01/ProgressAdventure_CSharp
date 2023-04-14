@@ -1,11 +1,11 @@
-﻿using ProjectAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using System.Text;
 using System.Drawing;
-using ProjectAdventure.Settings;
+using ProgressAdventure.Settings;
 using System.Collections;
 using SaveFileManager;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     internal class Program
     {

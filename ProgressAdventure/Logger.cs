@@ -1,6 +1,6 @@
-﻿using ProjectAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     /// <summary>
     /// Contains functions for logging.

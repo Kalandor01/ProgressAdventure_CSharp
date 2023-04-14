@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ProjectAdventure.Enums;
+using ProgressAdventure.Enums;
 using SaveFileManager;
 using System.Collections;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     /// <summary>
     /// Contains project specific useful functions.

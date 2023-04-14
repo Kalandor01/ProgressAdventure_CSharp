@@ -1,7 +1,7 @@
 ﻿using SaveFileManager;
 using System.Text;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     public class Constants
     {
@@ -19,7 +19,7 @@ namespace ProjectAdventure
         public static readonly string SAVES_FOLDER = "saves";
         public static readonly string SAVES_FOLDER_PATH = Path.Join(ROOT_FOLDER, SAVES_FOLDER);
         public static readonly string OLD_SAVE_NAME = "save*";
-        public static readonly string SAVE_EXT = "sav";
+        public static readonly string SAVE_EXT = "savc";
 
         // logs folder
         public static readonly string LOGS_FOLDER = "logs";

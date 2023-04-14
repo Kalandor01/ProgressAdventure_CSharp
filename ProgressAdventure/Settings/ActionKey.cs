@@ -1,7 +1,7 @@
-﻿using ProjectAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using SaveFileManager;
 
-namespace ProjectAdventure.Settings
+namespace ProgressAdventure.Settings
 {
     /// <summary>
     /// Class for storing a key for keybinds.

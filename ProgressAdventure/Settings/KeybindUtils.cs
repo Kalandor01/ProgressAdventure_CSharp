@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
-using ProjectAdventure.Enums;
+using ProgressAdventure.Enums;
 using SaveFileManager;
 
-namespace ProjectAdventure.Settings
+namespace ProgressAdventure.Settings
 {
     public static class KeybindUtils
     {

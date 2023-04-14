@@ -1,7 +1,7 @@
 ﻿using NPrng;
 using NPrng.Generators;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     public static class SaveData
     {

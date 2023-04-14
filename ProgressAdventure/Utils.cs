@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
 using NPrng;
-using ProjectAdventure.Enums;
+using ProgressAdventure.Enums;
 using System.Collections;
 using System.Text;
 
-namespace ProjectAdventure
+namespace ProgressAdventure
 {
     /// <summary>
     /// Contains general usefull functions.

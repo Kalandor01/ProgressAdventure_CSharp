@@ -1,4 +1,4 @@
-﻿namespace ProjectAdventure
+﻿namespace ProgressAdventure
 {
     /// <summary>
     /// A representation of an entity.
