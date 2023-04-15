@@ -117,7 +117,7 @@
             var dropsJson = new List<Dictionary<string, object>>();
             foreach (var drop in drops)
                 dropsJson.Add(new Dictionary<string, object> {
-                    {"type", drop.type.ToString()},
+                    {"type", drop.Type.ToString()},
                     {"amount", drop.amount}
                 });
             // attributes processing

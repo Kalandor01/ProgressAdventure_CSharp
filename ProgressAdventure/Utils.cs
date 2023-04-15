@@ -284,27 +284,6 @@ namespace ProgressAdventure
                 Console.WriteLine(new string('\t', recursionNum) + writable);
             }
         }
-
-        /// <summary>
-        /// Returns the string representation of the JToken's value at a specified key, or null, if the key doesn't exist.
-        /// </summary>
-        /// <param name="jToken">The JToken where the key will be searced for.</param>
-        /// <param name="key">The key to search for.</param>
-        public static string? GetJTokenValue(JToken jToken, string key)
-        {
-            if (
-                jToken.Type == JTokenType.Property &&
-                ((JProperty)jToken).Name == key
-            )
-            {
-                return ((JProperty)jToken).Value.ToString();
-            }
-            else if (jToken[key] is not null)
-            {
-                return jToken.Value<string?>(key);
-            }
-            return null;
-        }
         #endregion
     }
 }

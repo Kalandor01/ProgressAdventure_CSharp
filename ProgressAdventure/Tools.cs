@@ -9,7 +9,7 @@ namespace ProgressAdventure
     /// <summary>
     /// Contains project specific useful functions.
     /// </summary>
-    public class Tools
+    public static class Tools
     {
         #region Public functions
         /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
@@ -48,26 +48,36 @@ namespace ProgressAdventure
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
         /// <param name="seed">The seed for decoding the file.</param>
         /// <param name="extension">The extension of the file that will be decoded.</param>
-        /// <returns></returns>
-        public static JObject DecodeSaveShort(string filePath, int lineNum = 0, long? seed = null, string? extension = null)
+        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
+        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
+        public static Dictionary<string, object?>? DecodeSaveShort(string filePath, int lineNum = 0, long? seed = null, string? extension = null)
         {
             seed ??= Constants.SAVE_SEED;
             extension ??= Constants.SAVE_EXT;
+            var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
+
+            string decodedLine;
             try
             {
-                var decodedLines = FileConversion.DecodeFile((long)seed, filePath, extension, lineNum + 1, Constants.ENCODING);
-                return (JObject)JsonConvert.DeserializeObject(decodedLines.Last());
+                decodedLine = FileConversion.DecodeFile((long)seed, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
             }
             catch (FormatException)
             {
-                var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
                 Logger.Log("Decode error", $"file name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
                 throw;
             }
             catch (FileNotFoundException)
             {
-                var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
                 Logger.Log("File not found", $"file name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
+                throw;
+            }
+            try
+            {
+                return DeserializeJson(decodedLine);
+            }
+            catch (Exception)
+            {
+                Logger.Log("Json decode error", $"file name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
                 throw;
             }
         }
@@ -119,6 +129,123 @@ namespace ProgressAdventure
         public static bool RecreateLogsFolder()
         {
             return RecreateFolder(Constants.LOGS_FOLDER);
+        }
+
+        /// <summary>
+        /// Turns the json string into a dictionary.
+        /// </summary>
+        /// <param name="jsonString">The json string.</param>
+        public static Dictionary<string, object?>? DeserializeJson(string jsonString)
+        {
+            var partialDict = JsonConvert.DeserializeObject<Dictionary<string, object?>>(jsonString);
+            return partialDict is not null ? DeserializePartialJTokenDict(partialDict) : null;
+        }
+
+        /// <summary>
+        /// Returns the value of the JToken
+        /// </summary>
+        /// <param name="token">The JToken to deserialize.</param>
+        public static object? DeserializeJToken(JToken token)
+        {
+            switch (token.Type)
+            {
+                case JTokenType.None:
+                    return null;
+                case JTokenType.Object:
+                    var partialDict = token.ToObject<Dictionary<string, object?>>();
+                    return partialDict is not null ? DeserializePartialJTokenDict(partialDict) : null;
+                case JTokenType.Array:
+                    var partialList = token.ToObject<List<object?>>();
+                    return partialList is not null ? DeserializePartialJTokenList(partialList) : null;
+                case JTokenType.Constructor:
+                    return ((JConstructor)token).ToString();
+                case JTokenType.Property:
+                    var prop = (JProperty)token;
+                    return DeserializeJToken(prop.Value);
+                case JTokenType.Comment:
+                    return token.ToString();
+                case JTokenType.Integer:
+                    return (int)token;
+                case JTokenType.Float:
+                    return (float)token;
+                case JTokenType.String:
+                    return token.ToString();
+                case JTokenType.Boolean:
+                    return (bool)token;
+                case JTokenType.Null:
+                    return null;
+                case JTokenType.Undefined:
+                    Logger.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
+                    return null;
+                case JTokenType.Date:
+                    return (DateTime)token;
+                case JTokenType.Raw:
+                    return token.ToString();
+                case JTokenType.Bytes:
+                    return (byte)token;
+                case JTokenType.Guid:
+                    return (Guid)token;
+                case JTokenType.Uri:
+                    return token.ToString();
+                case JTokenType.TimeSpan:
+                    return (TimeSpan)token;
+                default:
+                    return token;
+            }
+        }
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// Turns the JTokens in a dictionary into the value of the JToken. 
+        /// </summary>
+        /// <param name="partialJsonDict">The dictionary containing values, including JTokens.</param>
+        private static Dictionary<string, object?> DeserializePartialJTokenDict(IDictionary<string, object?> partialJsonDict)
+        {
+            var jsonDict = new Dictionary<string, object?>();
+            foreach (var kvPair in partialJsonDict)
+            {
+                object? kvValue;
+                if (
+                    kvPair.Value is not null &&
+                    typeof(JToken).IsAssignableFrom(kvPair.Value.GetType())
+                )
+                {
+                    kvValue = DeserializeJToken((JToken)kvPair.Value);
+                }
+                else
+                {
+                    kvValue = kvPair.Value;
+                }
+                jsonDict.Add(kvPair.Key, kvValue);
+            }
+            return jsonDict;
+        }
+
+        /// <summary>
+        /// Turns the JTokens in a list into the value of the JToken. 
+        /// </summary>
+        /// <param name="partialJsonList">The list containing values, including JTokens.</param>
+        private static List<object?> DeserializePartialJTokenList(IEnumerable<object?> partialJsonList)
+        {
+            var jsonList = new List<object?>();
+            foreach (var element in partialJsonList)
+            {
+                object? value;
+                if (
+                    element is not null &&
+                    typeof(JToken).IsAssignableFrom(element.GetType())
+                )
+                {
+                    value = DeserializeJToken((JToken)element);
+                }
+                else
+                {
+                    value = element;
+                }
+                jsonList.Add(value);
+            }
+            return jsonList;
         }
         #endregion
     }

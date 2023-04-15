@@ -6,40 +6,40 @@ namespace ProgressAdventure
     public class Constants
     {
         // thread names
-        public static readonly string MAIN_THREAD_NAME = "Main";
-        public static readonly string AUTO_SAVE_THREAD_NAME = "Auto saver";
-        public static readonly string MANUAL_SAVE_THREAD_NAME = "Quit manager";
-        public static readonly string TEST_THREAD_NAME = "Test";
-        public static readonly string VISUALIZER_THREAD_NAME = "Visualizer";
+        public const string MAIN_THREAD_NAME = "Main";
+        public const string AUTO_SAVE_THREAD_NAME = "Auto saver";
+        public const string MANUAL_SAVE_THREAD_NAME = "Quit manager";
+        public const string TEST_THREAD_NAME = "Test";
+        public const string VISUALIZER_THREAD_NAME = "Visualizer";
 
         // paths/folders/file names
         public static readonly string ROOT_FOLDER = Directory.GetCurrentDirectory();
 
         // saves folder
-        public static readonly string SAVES_FOLDER = "saves";
+        public const string SAVES_FOLDER = "saves";
         public static readonly string SAVES_FOLDER_PATH = Path.Join(ROOT_FOLDER, SAVES_FOLDER);
-        public static readonly string OLD_SAVE_NAME = "save*";
-        public static readonly string SAVE_EXT = "savc";
+        public const string OLD_SAVE_NAME = "save*";
+        public const string SAVE_EXT = "savc";
 
         // logs folder
-        public static readonly string LOGS_FOLDER = "logs";
+        public const string LOGS_FOLDER = "logs";
         public static readonly string LOGS_FOLDER_PATH = Path.Join(ROOT_FOLDER, LOGS_FOLDER);
-        public static readonly string LOG_EXT = "log";
+        public const string LOG_EXT = "log";
 
         // backups folder
-        public static readonly string BACKUPS_FOLDER = "backups";
+        public const string BACKUPS_FOLDER = "backups";
         public static readonly string BACKUPS_FOLDER_PATH = Path.Join(ROOT_FOLDER, BACKUPS_FOLDER);
-        public static readonly string OLD_BACKUP_EXT = SAVE_EXT + ".bak";
-        public static readonly string BACKUP_EXT = "zip";
+        public const string OLD_BACKUP_EXT = SAVE_EXT + ".bak";
+        public const string BACKUP_EXT = "zip";
 
         // save folder structure
-        public static readonly string SAVE_FILE_NAME_DATA = "data";
-        public static readonly string SAVE_FILE_NAME_POIS = "POIs";
-        public static readonly string SAVE_FOLDER_NAME_CHUNKS = "chunks";
+        public const string SAVE_FILE_NAME_DATA = "data";
+        public const string SAVE_FILE_NAME_POIS = "POIs";
+        public const string SAVE_FOLDER_NAME_CHUNKS = "chunks";
 
         // seeds
-        public static readonly long SAVE_SEED = 87531;
-        public static readonly long SETTINGS_SEED = 1;
+        public const long SAVE_SEED = 87531;
+        public const long SETTINGS_SEED = 1;
 
         // cursor types
         public static readonly CursorIcon STANDARD_CURSOR_ICONS = new CursorIcon(">", "", " ", "");
@@ -56,21 +56,21 @@ namespace ProgressAdventure
         //logging
         public static bool LOGGING = true;
         public static int LOGGING_LEVEL = 0;
-        public static readonly bool LOG_MS = false;
+        public const bool LOG_MS = false;
 
         //chunks
-        public static readonly int CHUNK_SIZE = 10;
-        public static readonly string CHUNK_FILE_NAME = "chunk";
-        public static readonly string CHUNK_FILE_NAME_SEP = "_";
+        public const int CHUNK_SIZE = 10;
+        public const string CHUNK_FILE_NAME = "chunk";
+        public const string CHUNK_FILE_NAME_SEP = "_";
 
         // other
-        public static readonly bool ERROR_HANDLING = false;
+        public const bool ERROR_HANDLING = false;
         public static readonly Encoding ENCODING = Encoding.UTF8;
-        public static readonly int AUTO_SAVE_INTERVAL = 20;
-        public static readonly int AUTO_SAVE_DELAY = 5;
-        public static readonly int FILE_ENCODING_VERSION = 2;
-        public static readonly string SETTINGS_FILE_NAME = "settings";
-        public static readonly string SAVE_VERSION = "2.0";
-        public static readonly long TILE_NOISE_RESOLUTION = 1000000000000;
+        public const int AUTO_SAVE_INTERVAL = 20;
+        public const int AUTO_SAVE_DELAY = 5;
+        public const int FILE_ENCODING_VERSION = 2;
+        public const string SETTINGS_FILE_NAME = "settings";
+        public const string SAVE_VERSION = "2.0";
+        public const long TILE_NOISE_RESOLUTION = 1000000000000;
     }
 }

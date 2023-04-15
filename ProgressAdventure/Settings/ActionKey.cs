@@ -47,9 +47,9 @@ namespace ProgressAdventure.Settings
         /// <exception cref="ArgumentException"></exception>
         public ActionKey(ActionType actionType, IEnumerable<ConsoleKeyInfo> keys)
             : base(
-                  KeybindUtils.actionTypeResponseMapping[actionType],
+                  SettingsUtils.actionTypeResponseMapping[actionType],
                   keys,
-                  KeybindUtils.actionTypeIgnoreMapping[actionType]
+                  SettingsUtils.actionTypeIgnoreMapping[actionType]
             )
         {
             if (!keys.Any())
@@ -69,7 +69,7 @@ namespace ProgressAdventure.Settings
         /// </summary>
         public void UpdateName()
         {
-            Name = KeybindUtils.GetKeyName(Keys.ElementAt(0));
+            Name = SettingsUtils.GetKeyName(Keys.ElementAt(0));
         }
 
         /// <summary>

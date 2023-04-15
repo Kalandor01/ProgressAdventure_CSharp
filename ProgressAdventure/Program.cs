@@ -1,9 +1,5 @@
 ﻿using ProgressAdventure.Enums;
 using System.Text;
-using System.Drawing;
-using ProgressAdventure.Settings;
-using System.Collections;
-using SaveFileManager;
 
 namespace ProgressAdventure
 {
@@ -11,6 +7,10 @@ namespace ProgressAdventure
     {
         static void MainFunction()
         {
+            //initialize
+            Settings.Settings.Initialize();
+
+
             //var attributes = new List<Enums.Attribute>() { Enums.Attribute.Rare };
             //var drops = new List<Item>() { new Item(ItemType.STEEL_ARROW, 5) };
             //var entity = new Entity("you", 12, 1, 1515, 69, 0, null, attributes, drops);
@@ -63,15 +63,9 @@ namespace ProgressAdventure
             //    var key2 = Console.ReadKey(true);
             //    ck.Add(new ActionKey((ActionType)aType, new List<ConsoleKeyInfo> { key1, key2 }));
             //}
-            var kb = new Keybinds(KeybindUtils.GetDefaultKeybindList());
+            //var kb = new Keybinds(SettingsUtils.GetDefaultKeybindList());
 
-            Utils.RecursiveWrite(kb.ToJson());
-
-            Tools.EncodeSaveShort((IDictionary)kb.ToJson(), "kbsave");
-            var kbJson = Tools.DecodeSaveShort("kbsave");
-
-            var kb2 = Keybinds.KeybindsFromJson(kbJson.Root);
-            Utils.RecursiveWrite(kb2.ToJson());
+            //Utils.RecursiveWrite(kb.ToJson());
         }
 
         static void ErrorHandler()
