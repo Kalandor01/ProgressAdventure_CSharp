@@ -1,16 +1,16 @@
-﻿using ProgressAdventure.Enums;
+﻿using NPrng.Generators;
+using ProgressAdventure.Enums;
 using System.Text;
 
 namespace ProgressAdventure
 {
     internal class Program
     {
+        /// <summary>
+        /// The main function for the program.
+        /// </summary>
         static void MainFunction()
         {
-            //initialize
-            Settings.Settings.Initialize();
-
-
             //var attributes = new List<Enums.Attribute>() { Enums.Attribute.Rare };
             //var drops = new List<Item>() { new Item(ItemType.STEEL_ARROW, 5) };
             //var entity = new Entity("you", 12, 1, 1515, 69, 0, null, attributes, drops);
@@ -66,9 +66,50 @@ namespace ProgressAdventure
             //var kb = new Keybinds(SettingsUtils.GetDefaultKeybindList());
 
             //Utils.RecursiveWrite(kb.ToJson());
+
+            
         }
 
-        static void ErrorHandler()
+        /// <summary>
+        /// Function for setting up the enviorment, and initialising global variables.
+        /// </summary>
+        static void Preloading()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+
+            Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
+            Logger.LogNewLine();
+            Console.WriteLine("Loading...");
+            Logger.Log("Preloading global variables");
+            // GLOBAL VARIABLES
+            Settings.Settings.Initialise();
+            Globals.Initialise();
+        }
+
+        /// <summary>
+        /// The error handler, for the preloading.
+        /// </summary>
+        static void PreloadingErrorHandler()
+        {
+            try
+            {
+                Preloading();
+            }
+            catch (Exception e)
+            {
+                Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
+                if (Constants.ERROR_HANDLING)
+                {
+                    Utils.PressKey("ERROR: " + e.Message);
+                }
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// The error handler, for the main function.
+        /// </summary>
+        static void MainErrorHandler()
         {
             // general crash handler (release only)
 
@@ -78,18 +119,17 @@ namespace ProgressAdventure
                 exitGame = true;
                 try
                 {
-                    Logger.LogNewLine();
                     Logger.Log("Beginning new instance");
                     MainFunction();
                     //exit
                     Logger.Log("Instance ended succesfuly");
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    Logger.Log("Instance crashed", ex.ToString(), LogSeverity.FATAL);
+                    Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
                     if (Constants.ERROR_HANDLING)
                     {
-                        Console.WriteLine("ERROR: " + ex.Message);
+                        Console.WriteLine("ERROR: " + e.Message);
                         var ans = Utils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
@@ -108,11 +148,8 @@ namespace ProgressAdventure
 
         static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8;
-
-            Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
-
-            ErrorHandler();
+            PreloadingErrorHandler();
+            MainErrorHandler();
         }
     }
 }

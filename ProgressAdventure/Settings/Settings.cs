@@ -2,6 +2,9 @@
 
 namespace ProgressAdventure.Settings
 {
+    /// <summary>
+    /// Object for managing the data in the settings file.
+    /// </summary>
     public static class Settings
     {
         #region Private Fields
@@ -97,7 +100,7 @@ namespace ProgressAdventure.Settings
         /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
         /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
-        public static void Initialize(
+        public static void Initialise(
             bool? autoSave = null,
             int? loggingLevel = null,
             Keybinds? keybinds = null,
@@ -184,7 +187,7 @@ namespace ProgressAdventure.Settings
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
         public static void UpdateLoggingLevel(int loggingLevel)
         {
-            SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevel);
+            SettingsManager(SettingsKey.LOGGING_LEVEL, (long)loggingLevel);
             _loggingLevel = GetLoggingLevel();
 
             Logger.ChangeLoggingLevel(_loggingLevel);
@@ -226,7 +229,7 @@ namespace ProgressAdventure.Settings
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
         public static void UpdateDefBackupAction(int defBackupAction)
         {
-            SettingsManager(SettingsKey.DEF_BACKUP_ACTION, defBackupAction);
+            SettingsManager(SettingsKey.DEF_BACKUP_ACTION, (long)defBackupAction);
             _defBackupAction = GetDefBackupAction();
         }
         #endregion
@@ -298,7 +301,7 @@ namespace ProgressAdventure.Settings
             var settingsKeyName = SettingsUtils.settingsKeyNames[settingsKey];
             if (settings.ContainsKey(settingsKeyName))
             {
-                if (!Equals(settings[settingsKeyName], value))
+                if (!value.Equals(settings[settingsKeyName]))
                 {
                     Logger.Log("Changed settings", $"{settingsKey}: {settings[settingsKeyName]} -> {value}", LogSeverity.DEBUG);
                     settings[settingsKeyName] = value;

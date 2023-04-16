@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using NPrng;
-using ProgressAdventure.Enums;
+﻿using NPrng;
 using System.Collections;
 using System.Text;
 
@@ -80,23 +78,6 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Turns a list into a formated date string.
-        /// </summary>
-        /// <param name="dateList">The list of ints.</param>
-        /// <param name="separation">The separation string.</param>
-        public static string MakeDate(IEnumerable<int> dateList, string separation = "-")
-        {
-            if (dateList.Count() > 2)
-            {
-                return MakeDate(new DateTime(dateList.ElementAt(0), dateList.ElementAt(1), dateList.ElementAt(2)), separation);
-            }
-            else
-            {
-                return "[date list error]";
-            }
-        }
-
-        /// <summary>
         /// Turns a datetime object's date into a formated date string.
         /// </summary>
         /// <param name="dateTime">The DateTime object.</param>
@@ -104,25 +85,6 @@ namespace ProgressAdventure
         public static string MakeDate(DateTime dateTime, string separation = "-")
         {
             return dateTime.ToString($"{dateTime.Year}{separation}MM{separation}dd");
-        }
-
-        /// <summary>
-        /// Turns a list into a formated time string.
-        /// </summary>
-        /// <param name="dateTimeList">The list of ints.</param>
-        /// <param name="separation">The separation string.</param>
-        /// <param name="writeMs">Whether to write out the microsecond part of the time or not.</param>
-        /// <param name="msSeparation">The microsecond separation string.</param>
-        public static string MakeTime(IEnumerable<int> dateTimeList, string separation = ":", bool writeMs = false, string msSeparation = ".")
-        {
-            if (dateTimeList.Count() > 5)
-            {
-                return MakeTime(new DateTime(dateTimeList.ElementAt(0), dateTimeList.ElementAt(1), dateTimeList.ElementAt(2), dateTimeList.ElementAt(3), dateTimeList.ElementAt(4), dateTimeList.ElementAt(5), dateTimeList.ElementAt(6)), separation, writeMs, msSeparation);
-            }
-            else
-            {
-                return "[time list error]";
-            }
         }
 
         /// <summary>

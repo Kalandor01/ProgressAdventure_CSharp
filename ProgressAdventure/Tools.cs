@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NPrng;
+using NPrng.Generators;
+using NPrng.Serializers;
 using ProgressAdventure.Enums;
 using SaveFileManager;
 using System.Collections;
@@ -12,6 +15,7 @@ namespace ProgressAdventure
     public static class Tools
     {
         #region Public functions
+        #region Short
         /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
         /// <inheritdoc cref="EncodeSaveShort(IEnumerable{IDictionary}, string, long?, string?)"/>
         public static void EncodeSaveShort(IDictionary data, string filePath, long? seed = null, string? extension = null)
@@ -81,7 +85,9 @@ namespace ProgressAdventure
                 throw;
             }
         }
+        #endregion
 
+        #region Recreate folder
         /// <summary>
         /// Recreates the folder, if it doesn't exist.
         /// </summary>
@@ -130,7 +136,9 @@ namespace ProgressAdventure
         {
             return RecreateFolder(Constants.LOGS_FOLDER);
         }
+        #endregion
 
+        #region Deserialize data
         /// <summary>
         /// Turns the json string into a dictionary.
         /// </summary>
@@ -165,9 +173,9 @@ namespace ProgressAdventure
                 case JTokenType.Comment:
                     return token.ToString();
                 case JTokenType.Integer:
-                    return (int)token;
+                    return (long)token;
                 case JTokenType.Float:
-                    return (float)token;
+                    return (double)token;
                 case JTokenType.String:
                     return token.ToString();
                 case JTokenType.Boolean:
@@ -193,6 +201,36 @@ namespace ProgressAdventure
                     return token;
             }
         }
+        #endregion
+
+        #region Random
+        /// <summary>
+        /// Turns a Splittable random into its string representation.
+        /// </summary>
+        /// <param name="randomGenerator">The random generator.</param>
+        public static string SerializeRandom(SplittableRandom randomGenerator)
+        {
+            return new SplittableRandomSerializer().WriteToString(randomGenerator);
+        }
+
+        /// <summary>
+        /// Turns the string representation of a Splittable random into an object.
+        /// </summary>
+        /// <param name="randomString">The random generator's string representation.</param>
+        public static SplittableRandom DeserializeRandom(string randomString)
+        {
+            return (SplittableRandom)new SplittableRandomSerializer().ReadFromString(randomString);
+        }
+
+        /// <summary>
+        /// Returns a new <c>SplittableRandom</c> from another <c>SplittableRandom</c>.
+        /// </summary>
+        /// <param name="parrentRandom">The random generator to use, to generate the other generator.</param>
+        public static SplittableRandom MakeRandomGenerator(SplittableRandom parrentRandom)
+        {
+            return parrentRandom.Split();
+        }
+        #endregion
         #endregion
 
         #region Private functions

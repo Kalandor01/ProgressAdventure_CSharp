@@ -1,6 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 
-namespace ProgressAdventure
+namespace ProgressAdventure.Entity
 {
     /// <summary>
     /// Object for assembling the loot, an entity will drop.
@@ -65,7 +65,7 @@ namespace ProgressAdventure
                     var num = 0L;
                     for (var x = 0; x < drop.rolls; x++)
                     {
-                        num += SaveData.mainSeed.GenerateDouble() <= drop.chance ? SaveData.mainSeed.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
+                        num += SaveData.MainRandom.GenerateDouble() <= drop.chance ? SaveData.MainRandom.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
                     }
                     if (num > 0)
                     {

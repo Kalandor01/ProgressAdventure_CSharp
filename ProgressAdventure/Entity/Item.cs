@@ -1,6 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 
-namespace ProgressAdventure
+namespace ProgressAdventure.Entity
 {
     public class Item
     {
@@ -26,7 +26,7 @@ namespace ProgressAdventure
         /// <param name="amount"><inheritdoc cref="amount" path="//summary"/></param>
         public Item(ItemType type, long amount = 1)
         {
-            this.Type = type;
+            Type = type;
             this.amount = amount;
         }
         #endregion

@@ -1,5 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 using SaveFileManager;
+using System;
 
 namespace ProgressAdventure.Settings
 {
@@ -70,6 +71,14 @@ namespace ProgressAdventure.Settings
         public void UpdateName()
         {
             Name = SettingsUtils.GetKeyName(Keys.ElementAt(0));
+        }
+
+        /// <summary>
+        /// Waits for a keypress, and returns, if it matches the <c>ActionKey</c>.
+        /// </summary>
+        public bool IsKey()
+        {
+            return Keys.Contains(Console.ReadKey(true));
         }
 
         /// <summary>

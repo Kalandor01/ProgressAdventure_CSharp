@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure
+﻿namespace ProgressAdventure.Entity
 {
     /// <summary>
     /// A representation of an entity.
@@ -9,59 +9,59 @@
         /// <summary>
         /// The name of the <c>Entity</c>.
         /// </summary>
-        string name;
+        public string name;
         /// <summary>
         /// The full name of the <c>Entity</c>.
         /// </summary>
-        string fullName = "";
+        public string fullName = "";
         /// <summary>
         /// The base hp of the <c>Entity</c>.
         /// </summary>
-        int baseHp;
+        public int baseHp;
         /// <summary>
         /// The current hp of the <c>Entity</c>.
         /// </summary>
-        int hp;
+        public int hp;
         /// <summary>
         /// The base attack of the <c>Entity</c>.
         /// </summary>
-        int baseAttack;
+        public int baseAttack;
         /// <summary>
         /// The current attack of the <c>Entity</c>.
         /// </summary>
-        int attack;
+        public int attack;
         /// <summary>
         /// The base defence of the <c>Entity</c>.
         /// </summary>
-        int baseDefence;
+        public int baseDefence;
         /// <summary>
         /// The current defence of the <c>Entity</c>.
         /// </summary>
-        int defence;
+        public int defence;
         /// <summary>
         /// The base speed of the <c>Entity</c>.
         /// </summary>
-        int baseSpeed;
+        public int baseSpeed;
         /// <summary>
         /// The current speed of the <c>Entity</c>.
         /// </summary>
-        int speed;
+        public int speed;
         /// <summary>
         /// The original team that the <c>Entity</c> is a part of.
         /// </summary>
-        int originalTeam;
+        public int originalTeam;
         /// <summary>
         /// The current team that the <c>Entity</c> is a part of.
         /// </summary>
-        int team;
+        public int team;
         /// <summary>
         /// The list of attributes that the <c>Entity</c> has.
         /// </summary>
-        IEnumerable<Enums.Attribute> attributes;
+        public IEnumerable<Enums.Attribute> attributes;
         /// <summary>
         /// The list of items that the <c>Entity</c> will drop on death.
         /// </summary>
-        IEnumerable<Item> drops;
+        public IEnumerable<Item> drops;
         #endregion
 
         #region Constructors
