@@ -6,6 +6,7 @@ using NPrng.Serializers;
 using ProgressAdventure.Enums;
 using SaveFileManager;
 using System.Collections;
+using System.IO.Compression;
 
 namespace ProgressAdventure
 {
@@ -116,6 +117,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the saves folder.
         /// </summary>
+        /// <returns>If the folder needed to be recreated.</returns>
         public static bool RecreateSavesFolder()
         {
             return RecreateFolder(Constants.SAVES_FOLDER);
@@ -124,6 +126,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the backups folder.
         /// </summary>
+        /// <returns>If the folder needed to be recreated.</returns>
         public static bool RecreateBackupsFolder()
         {
             return RecreateFolder(Constants.BACKUPS_FOLDER);
@@ -132,6 +135,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the logs folder.
         /// </summary>
+        /// <returns>If the folder needed to be recreated.</returns>
         public static bool RecreateLogsFolder()
         {
             return RecreateFolder(Constants.LOGS_FOLDER);
@@ -229,6 +233,87 @@ namespace ProgressAdventure
         public static SplittableRandom MakeRandomGenerator(SplittableRandom parrentRandom)
         {
             return parrentRandom.Split();
+        }
+        #endregion
+
+        #region Misc
+        /// <summary>
+        /// Makes a backup of a save folder, into the backups folder (as a zip file).
+        /// </summary>
+        /// <param name="saveFolderName">The name of the save folder.</param>
+        /// <param name="isTemporary">If the backup is supposed to be temporary.</param>
+        /// <returns>The full backup path, and a version of it, that doesn't contain the root directory.</returns>
+        public static (string? backupPath, string? relativeBackupPath) CreateBackup(string saveFolderName, bool isTemporary = false)
+        {
+            // recreate folders
+            RecreateSavesFolder();
+            RecreateBackupsFolder();
+
+            var now = DateTime.Now;
+            var saveFolderPath = Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName);
+            if (Directory.Exists(saveFolderPath))
+            {
+                // make more variables
+                var backupNameEnd = $"{saveFolderName};{Utils.MakeDate(now)};{Utils.MakeTime(now, "-", isTemporary, "-")}.{Constants.BACKUP_EXT}";
+                var backupPath = Path.Join(Constants.BACKUPS_FOLDER_PATH, backupNameEnd);
+                var displayBackupPath = Path.Join(Constants.BACKUPS_FOLDER, backupNameEnd);
+                // make zip
+                ZipFile.CreateFromDirectory(saveFolderPath, backupPath);
+                Logger.Log($"Made {(isTemporary ? "temporary " : "")}backup", displayBackupPath, isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
+                return (backupPath, displayBackupPath);
+            }
+            else
+            {
+                var displaySavePath = Path.Join(Constants.SAVES_FOLDER, saveFolderName);
+                Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}(.{Constants.SAVE_EXT})", LogSeverity.WARN);
+                return (null, null);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the file name exists in the saves directory.
+        /// </summary>
+        /// <param name="saveFolderName">The name of the save folder.</param>
+        private static bool CheckSaveFolderExists(string saveFolderName)
+        {
+            return !RecreateSavesFolder() && Directory.Exists(Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName));
+        }
+
+        /// <summary>
+        /// Returns a variant of thr save name, that can be a folder name, and doesn't exist yet.
+        /// </summary>
+        /// <param name="rawSaveName">The save folder name to correct.</param>
+        public static string CorrectSaveName(string rawSaveName)
+        {
+            var saveName = Utils.RemoveInvalidFileNameCharacters(rawSaveName);
+            if (string.IsNullOrWhiteSpace(saveName))
+            {
+                saveName = "new save";
+            }
+            if (CheckSaveFolderExists(saveName))
+            {
+                var extraNum = 1;
+                while (CheckSaveFolderExists(saveName + "_" + extraNum))
+                {
+                    extraNum++;
+                }
+                saveName += "_" + extraNum;
+            }
+            return saveName;
+        }
+
+        /// <summary>
+        /// Deletes the save folder, if it exists.
+        /// </summary>
+        /// <param name="saveFolderName">The name of the save folder.</param>
+        public static void DeleteSave(string saveFolderName)
+        {
+            var saveFolderPath = Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName);
+            if (Directory.Exists(saveFolderPath))
+            {
+                Directory.Delete(saveFolderPath);
+                Logger.Log("Deleted save", $"save name: {saveFolderName}");
+            }
         }
         #endregion
         #endregion
