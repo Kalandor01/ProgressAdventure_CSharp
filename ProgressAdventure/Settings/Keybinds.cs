@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace ProgressAdventure.Settings
 {
@@ -14,7 +12,7 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// The list of actions(/keybinds).
         /// </summary>
-        private IEnumerable<ActionKey> keybinds;
+        private IEnumerable<ActionKey> _keybinds;
         #endregion
 
         #region Public properties
@@ -23,10 +21,10 @@ namespace ProgressAdventure.Settings
         /// </summary>
         public IEnumerable<ActionKey> KeybindList
         {
-            get => keybinds;
+            get => _keybinds;
             set
             {
-                keybinds = value;
+                _keybinds = value;
                 UpdateKeybindConflicts();
             }
         }
@@ -100,12 +98,12 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// Turns the <c>Keybinds</c> objest into a json object for the settings file.
         /// </summary>
-        public Dictionary<string, IEnumerable<IDictionary<string, object>>> ToJson()
+        public Dictionary<string, List<Dictionary<string, object>>> ToJson()
         {
-            var keybindsJson = new Dictionary<string, IEnumerable<IDictionary<string, object>>>();
+            var keybindsJson = new Dictionary<string, List<Dictionary<string, object>>>();
             foreach (var keybind in KeybindList)
             {
-                (string key, IEnumerable<IDictionary<string, object>> value) = keybind.ToJson();
+                (string key, List<Dictionary<string, object>> value) = keybind.ToJson();
                 keybindsJson.Add(key, value);
             }
             return keybindsJson;
@@ -147,6 +145,37 @@ namespace ProgressAdventure.Settings
                 }
             }
             return new Keybinds(actions);
+        }
+        #endregion
+
+        #region Public overrides
+        public override bool Equals(object? obj)
+        {
+            if (obj is null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            if (base.Equals(obj))
+            {
+                return true;
+            }
+            var kbObj = (Keybinds)obj;
+            if (_keybinds.Equals(kbObj._keybinds))
+            {
+                return true;
+            }
+            if (_keybinds.Count() != kbObj._keybinds.Count())
+            {
+                return false;
+            }
+            for (var x = 0; x < _keybinds.Count(); x++)
+            {
+                if (!_keybinds.ElementAt(x).Equals(kbObj._keybinds.ElementAt(x)))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
         #endregion
     }

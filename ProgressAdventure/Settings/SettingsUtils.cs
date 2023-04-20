@@ -78,6 +78,10 @@ namespace ProgressAdventure.Settings
         #endregion
 
         #region Public functions
+        /// <summary>
+        /// Returns the string representation of the key, that the <c>ConsoleKeyInfo</c> represents.
+        /// </summary>
+        /// <param name="key">The key.</param>
         public static string GetKeyName(ConsoleKeyInfo key)
         {
             var keyMods = new List<string>();
@@ -121,6 +125,9 @@ namespace ProgressAdventure.Settings
             return keyName + keyModsStr;
         }
 
+        /// <summary>
+        /// Returns the default keybind list, for a Keybinds object.
+        /// </summary>
         public static List<ActionKey> GetDefaultKeybindList()
         {
             return new List<ActionKey>
@@ -134,6 +141,9 @@ namespace ProgressAdventure.Settings
             };
         }
 
+        /// <summary>
+        /// Returns the "json" representation of the default settings file.
+        /// </summary>
         public static Dictionary<string, object?> GetDefaultSettings()
         {
             return new Dictionary<string, object?>

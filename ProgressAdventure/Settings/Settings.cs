@@ -141,8 +141,19 @@ namespace ProgressAdventure.Settings
         /// </summary>
         public static Keybinds GetKeybins()
         {
-            var keybinds = SettingsManager(SettingsKey.KEYBINDS);
-            return Keybinds.KeybindsFromJson((IDictionary<string, object>)keybinds);
+            var keybindsDict = SettingsManager(SettingsKey.KEYBINDS);
+            Keybinds keybinds;
+            try
+            {
+                keybinds = Keybinds.KeybindsFromJson((IDictionary<string, object>)keybindsDict);
+            }
+            catch (Exception e)
+            {
+                Logger.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + e.ToString(), LogSeverity.ERROR);
+                keybinds = new Keybinds(SettingsUtils.GetDefaultKeybindList());
+                SettingsManager(SettingsKey.KEYBINDS, keybinds.ToJson());
+            }
+            return keybinds;
         }
 
         /// <summary>
@@ -199,7 +210,7 @@ namespace ProgressAdventure.Settings
         /// <param name="keybinds"><inheritdoc cref="_keybinds" path="//summary"/></param>
         public static void UpdateKeybinds(Keybinds keybinds)
         {
-            SettingsManager(SettingsKey.KEYBINDS, keybinds.ToJson());
+            SettingsManager(SettingsKey.KEYBINDS, keybinds);
             _keybinds = GetKeybins();
         }
 
@@ -301,9 +312,33 @@ namespace ProgressAdventure.Settings
             var settingsKeyName = SettingsUtils.settingsKeyNames[settingsKey];
             if (settings.ContainsKey(settingsKeyName))
             {
-                if (!value.Equals(settings[settingsKeyName]))
+                var settingValue = settings[settingsKeyName];
+                var keybindsEqual = false;
+                if (settingsKey == SettingsKey.KEYBINDS && settingValue is not null)
                 {
-                    Logger.Log("Changed settings", $"{settingsKey}: {settings[settingsKeyName]} -> {value}", LogSeverity.DEBUG);
+                    var kbConverError = false;
+                    Keybinds oldKb = null;
+                    try
+                    {
+                        oldKb = Keybinds.KeybindsFromJson((IDictionary<string, object>)settingValue);
+                    }
+                    catch (Exception e)
+                    {
+                        kbConverError = true;
+                        Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
+                    }
+                    if (!kbConverError)
+                    {
+                        keybindsEqual = ((Keybinds)value).Equals(oldKb);
+                        if (!keybindsEqual)
+                        {
+                            value = ((Keybinds)value).ToJson();
+                        }
+                    }
+                }
+                if (!(keybindsEqual || value.Equals(settingValue)))
+                {
+                    Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
                     settings[settingsKeyName] = value;
                     Tools.EncodeSaveShort(settings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
                 }

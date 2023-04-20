@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.Settings;
 using System.Text;
 
 namespace ProgressAdventure
@@ -10,14 +11,6 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            //var attributes = new List<Enums.Attribute>() { Enums.Attribute.Rare };
-            //var drops = new List<Item>() { new Item(ItemType.STEEL_ARROW, 5) };
-            //var entity = new Entity("you", 12, 1, 1515, 69, 0, null, attributes, drops);
-            //Tools.EncodeSaveShort(entity.ToJson(), "save");
-            //var dec = Tools.DecodeSaveShort("save");
-            //Console.WriteLine(dec);
-            //Console.WriteLine(dec.Value<string>("name"));
-
             //ulong seed = 10;
             //var baseDivision = 200;
 
@@ -50,19 +43,6 @@ namespace ProgressAdventure
 
 
 
-            //Logger.Log("test", "message", LogSeverity.ERROR, newLine: true);
-
-            //var text = "ŰŰŰŰŰŰŰ";
-            //Console.WriteLine(Utils.StylizedText(text, Constants.Colors.RED, Constants.Colors.BLUE));
-
-            //var ck = new List<ActionKey>();
-            //foreach (var aType in Enum.GetValues(typeof(ActionType)))
-            //{
-            //    var key1 = Console.ReadKey(true);
-            //    var key2 = Console.ReadKey(true);
-            //    ck.Add(new ActionKey((ActionType)aType, new List<ConsoleKeyInfo> { key1, key2 }));
-            //}
-            //var kb = new Keybinds(SettingsUtils.GetDefaultKeybindList());
 
             //Utils.RecursiveWrite(kb.ToJson());
 

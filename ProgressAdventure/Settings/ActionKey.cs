@@ -84,9 +84,9 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// Turns the <c>ActionKey</c> objest into a json object for the settings file.
         /// </summary>
-        public (string key, IEnumerable<IDictionary<string, object>> value) ToJson()
+        public (string key, List<Dictionary<string, object>> value) ToJson()
         {
-            var keyList = new List<IDictionary<string, object>>();
+            var keyList = new List<Dictionary<string, object>>();
             foreach (var key in Keys)
             {
                 var keyJson = new Dictionary<string, object>()
@@ -98,6 +98,44 @@ namespace ProgressAdventure.Settings
                 keyList.Add(keyJson);
             }
             return (actionType.ToString(), keyList);
+        }
+        #endregion
+
+        #region Public overrides
+        public override bool Equals(object? obj)
+        {
+            if (obj is null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            if (base.Equals(obj))
+            {
+                return true;
+            }
+            var akObj = (ActionKey)obj;
+            if (actionType != akObj.actionType || !response.Equals(akObj.response))
+            {
+                return false;
+            }
+            if (Keys.Count() != akObj.Keys.Count() || ignoreModes.Count() != akObj.ignoreModes.Count())
+            {
+                return false;
+            }
+            for (var x = 0; x < Keys.Count(); x++)
+            {
+                if (!Keys.ElementAt(x).Equals(akObj.Keys.ElementAt(x)))
+                {
+                    return false;
+                }
+            }
+            for (var x = 0; x < ignoreModes.Count(); x++)
+            {
+                if (!ignoreModes.ElementAt(x).Equals(akObj.ignoreModes.ElementAt(x)))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
         #endregion
     }
