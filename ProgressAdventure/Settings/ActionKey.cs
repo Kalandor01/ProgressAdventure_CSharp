@@ -84,9 +84,9 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// Turns the <c>ActionKey</c> objest into a json object for the settings file.
         /// </summary>
-        public (string key, List<Dictionary<string, object>> value) ToJson()
+        public KeyValuePair<string, List<Dictionary<string, object>>> ToJson()
         {
-            var keyList = new List<Dictionary<string, object>>();
+            var keyListJson = new List<Dictionary<string, object>>();
             foreach (var key in Keys)
             {
                 var keyJson = new Dictionary<string, object>()
@@ -95,9 +95,9 @@ namespace ProgressAdventure.Settings
                     ["keyChar"] = key.KeyChar,
                     ["modifiers"] = (int)key.Modifiers
                 };
-                keyList.Add(keyJson);
+                keyListJson.Add(keyJson);
             }
-            return (actionType.ToString(), keyList);
+            return new KeyValuePair<string, List<Dictionary<string, object>>>(actionType.ToString(), keyListJson);
         }
         #endregion
 

@@ -1,6 +1,6 @@
 ﻿namespace ProgressAdventure.Enums
 {
-    public enum Rotation : int
+    public enum Facing : int
     {
         NORTH = 0,
         SOUTH = 1,

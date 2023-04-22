@@ -320,7 +320,7 @@ namespace ProgressAdventure
 
         #region Private functions
         /// <summary>
-        /// Turns the JTokens in a dictionary into the value of the JToken. 
+        /// Turns the JTokens in a dictionary into the value of the JToken.
         /// </summary>
         /// <param name="partialJsonDict">The dictionary containing values, including JTokens.</param>
         private static Dictionary<string, object?> DeserializePartialJTokenDict(IDictionary<string, object?> partialJsonDict)

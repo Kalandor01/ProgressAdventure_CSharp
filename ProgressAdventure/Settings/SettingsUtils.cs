@@ -11,7 +11,8 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// The dictionary pairing up action types, to their ignore modes.
         /// </summary>
-        public static readonly IDictionary<ActionType, IEnumerable<GetKeyMode>> actionTypeIgnoreMapping = new Dictionary<ActionType, IEnumerable<GetKeyMode>> {
+        public static readonly Dictionary<ActionType, List<GetKeyMode>> actionTypeIgnoreMapping = new()
+        {
             [ActionType.ESCAPE] = new List<GetKeyMode> { GetKeyMode.IGNORE_ESCAPE },
             [ActionType.UP] = new List<GetKeyMode> { GetKeyMode.IGNORE_VERTICAL },
             [ActionType.DOWN] = new List<GetKeyMode> { GetKeyMode.IGNORE_VERTICAL },
@@ -23,7 +24,8 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// The dictionary pairing up action types, to responses.
         /// </summary>
-        public static readonly IDictionary<ActionType, Key> actionTypeResponseMapping = new Dictionary<ActionType, Key> {
+        public static readonly Dictionary<ActionType, Key> actionTypeResponseMapping = new()
+        {
             [ActionType.ESCAPE] = Key.ESCAPE,
             [ActionType.UP] = Key.UP,
             [ActionType.DOWN] = Key.DOWN,
@@ -35,7 +37,7 @@ namespace ProgressAdventure.Settings
         /// <summary>
         /// The dictionary for the name of some keys that normaly don't display anything.
         /// </summary>
-        public static readonly IDictionary<ConsoleKey, string> specialKeyNameMap = new Dictionary<ConsoleKey, string>
+        public static readonly Dictionary<ConsoleKey, string> specialKeyNameMap = new()
         {
             [ConsoleKey.Enter] = "enter",
             [ConsoleKey.Escape] = "escape",
@@ -66,7 +68,7 @@ namespace ProgressAdventure.Settings
             [ConsoleKey.PageUp] = "page up"
         };
 
-        public static readonly IDictionary<SettingsKey, string> settingsKeyNames = new Dictionary<SettingsKey, string>
+        public static readonly Dictionary<SettingsKey, string> settingsKeyNames = new()
         {
             [SettingsKey.AUTO_SAVE] = "autoSave",
             [SettingsKey.LOGGING_LEVEL] = "loggingLevel",

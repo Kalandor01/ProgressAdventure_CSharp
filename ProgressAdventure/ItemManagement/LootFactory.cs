@@ -1,6 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
     /// Object for assembling the loot, an entity will drop.
@@ -11,23 +11,23 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The type of the item.
         /// </summary>
-        ItemType itemType;
+        public ItemType itemType;
         /// <summary>
         /// The chance for the entity to drop this item per roll.
         /// </summary>
-        double chance;
+        public double chance;
         /// <summary>
         /// The minimum amount of items to add per successfull roll.
         /// </summary>
-        int amountMin;
+        public int amountMin;
         /// <summary>
         /// The maximum amount of items to add per successfull roll.
         /// </summary>
-        int amountMax;
+        public int amountMax;
         /// <summary>
         /// The number of rolls to do.
         /// </summary>
-        int rolls;
+        public int rolls;
         #endregion
 
         #region Constructors
@@ -55,9 +55,9 @@ namespace ProgressAdventure.Entity
         /// </summary>
         /// <param name="drops">A list of <c>LootFactory</c>s.</param>
         /// <returns></returns>
-        public static IEnumerable<Item> LootManager(IEnumerable<LootFactory>? drops = null)
+        public static List<Item> LootManager(IEnumerable<LootFactory>? drops = null)
         {
-            var loot = Enumerable.Empty<Item>();
+            var loot = new List<Item>();
             if (drops is not null)
             {
                 foreach (var drop in drops)
@@ -69,7 +69,7 @@ namespace ProgressAdventure.Entity
                     }
                     if (num > 0)
                     {
-                        loot.Append(new Item(drop.itemType, num));
+                        loot.Add(new Item(drop.itemType, num));
                     }
                 }
             }

@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.Entity
+﻿using ProgressAdventure.ItemManagement;
+
+namespace ProgressAdventure.Entity
 {
     /// <summary>
     /// A representation of an entity.
@@ -57,11 +59,11 @@
         /// <summary>
         /// The list of attributes that the <c>Entity</c> has.
         /// </summary>
-        public IEnumerable<Enums.Attribute> attributes;
+        public List<Enums.Attribute> attributes;
         /// <summary>
         /// The list of items that the <c>Entity</c> will drop on death.
         /// </summary>
-        public IEnumerable<Item> drops;
+        public List<Item> drops;
         #endregion
 
         #region Constructors
@@ -77,7 +79,7 @@
         /// <param name="team"><inheritdoc cref="team" path="//summary"/></param>
         /// <param name="attributes"><inheritdoc cref="attributes" path="//summary"/></param>
         /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
-        public Entity(string name, int baseHp, int baseAttack, int baseDefence, int baseSpeed, int originalTeam = 0, int? team = null, IEnumerable<Enums.Attribute>? attributes = null, IEnumerable<Item>? drops = null)
+        public Entity(string name, int baseHp, int baseAttack, int baseDefence, int baseSpeed, int originalTeam = 0, int? team = null, List<Enums.Attribute>? attributes = null, List<Item>? drops = null)
         {
             this.name = name;
             this.baseHp = baseHp;
@@ -86,12 +88,20 @@
             this.baseSpeed = baseSpeed;
             this.originalTeam = originalTeam;
             this.team = (int)(team is not null ? team : this.originalTeam);
-            this.attributes = attributes is not null ? attributes : Enumerable.Empty<Enums.Attribute>();
-            this.drops = drops is not null ? drops : Enumerable.Empty<Item>();
+            this.attributes = attributes is not null ? attributes : new List<Enums.Attribute>();
+            this.drops = drops is not null ? drops : new List<Item>();
             // adjust properties
             SetupAttributes();
             UpdateFullName();
         }
+
+        /// <summary>
+        /// <inheritdoc cref="Entity"/>
+        /// </summary>
+        /// <param name="stats">The tuple of stats, representin all other values from the other constructor, other than drops.</param>
+        /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
+        public Entity((string name, int baseHp, int baseAttack, int baseDefence, int baseSpeed, int originalTeam, int? team, List<Enums.Attribute>? attributes) stats, List<Item>? drops = null)
+            :this(stats.name, stats.baseHp, stats.baseAttack, stats.baseDefence, stats.baseSpeed, stats.originalTeam, stats.team, stats.attributes, drops) { }
         #endregion
 
         #region Public methods
@@ -101,7 +111,7 @@
         public void UpdateFullName()
         {
             string fullName = name;
-            if (attributes.Contains(Enums.Attribute.Rare))
+            if (attributes.Contains(Enums.Attribute.RARE))
             {
                 fullName = "Rare " + fullName;
             }
@@ -113,19 +123,13 @@
         /// </summary>
         public Dictionary<string, object?> ToJson()
         {
+            // attributes
+            var attributesProcessed = attributes.Select(a => a.ToString()).ToList();
             // drops
-            var dropsJson = new List<Dictionary<string, object>>();
-            foreach (var drop in drops)
-                dropsJson.Add(new Dictionary<string, object> {
+            var dropsJson = drops.Select(drop => new Dictionary<string, object> {
                     {"type", drop.Type.ToString()},
                     {"amount", drop.amount}
-                });
-            // attributes processing
-            var attributesProcessed = new List<string>();
-            foreach (var attribute in attributes)
-            {
-                attributesProcessed.Add(attribute.ToString());
-            }
+                }).ToList();
             // properties
             var entityJson = new Dictionary<string, object?> {
                 {"name", name},
@@ -161,7 +165,7 @@
             attack = baseAttack;
             defence = baseDefence;
             speed = baseSpeed;
-            if (attributes.Contains(Enums.Attribute.Rare))
+            if (attributes.Contains(Enums.Attribute.RARE))
             {
                 hp *= 2;
                 attack *= 2;

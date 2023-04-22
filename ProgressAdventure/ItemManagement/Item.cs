@@ -1,6 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.ItemManagement
 {
     public class Item
     {

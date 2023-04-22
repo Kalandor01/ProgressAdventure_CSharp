@@ -2,6 +2,9 @@
 {
     public enum Attribute
     {
-        Rare
+        /// <summary>
+        /// Doubles all of the entity's stats.
+        /// </summary>
+        RARE
     }
 }

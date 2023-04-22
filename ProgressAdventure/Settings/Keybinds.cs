@@ -103,8 +103,8 @@ namespace ProgressAdventure.Settings
             var keybindsJson = new Dictionary<string, List<Dictionary<string, object>>>();
             foreach (var keybind in KeybindList)
             {
-                (string key, List<Dictionary<string, object>> value) = keybind.ToJson();
-                keybindsJson.Add(key, value);
+                var kbJson = keybind.ToJson();
+                keybindsJson.Add(kbJson.Key, kbJson.Value);
             }
             return keybindsJson;
         }
