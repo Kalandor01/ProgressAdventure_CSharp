@@ -176,17 +176,10 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="vector">The vector to multiply.</param>
         /// <param name="multiplier">The vector to multiply the first vector by.</param>
-        /// <param name="round">If true, it rounds the resulting values in the vector.</param>
-        /// <returns></returns>
-        public static (double x, double y) VectorMultiply((double x, double y) vector, (double x, double y) multiplier, bool round = false)
+        public static (double x, double y) VectorMultiply((double x, double y) vector, (double x, double y) multiplier)
         {
             var x = vector.x * multiplier.x;
             var y = vector.y * multiplier.y;
-            if (round)
-            {
-                x = (int)x;
-                y = (int)y;
-            }
             return (x, y);
         }
 

@@ -87,7 +87,6 @@ namespace ProgressAdventure
             SaveData.saveName = saveName;
             SaveData.displaySaveName = displaySaveName ?? saveName;
             SaveData.lastAccess = lastAccess ?? DateTime.Now;
-            SaveData.player = player ?? new Player();
 
             var tempMainRandom = mainRandom ?? new SplittableRandom();
             var tempWorldRandom = worldRandom ?? Tools.MakeRandomGenerator(tempMainRandom);
@@ -96,6 +95,8 @@ namespace ProgressAdventure
                 tempWorldRandom,
                 tileTypeNoiseSeeds ?? RecalculateTileTypeNoiseSeeds(tempWorldRandom)
             );
+
+            SaveData.player = player ?? new Player();
         }
         #endregion
 

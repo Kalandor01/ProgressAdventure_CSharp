@@ -1,7 +1,4 @@
-﻿using ProgressAdventure.Entity;
-using ProgressAdventure.Enums;
-using ProgressAdventure.Settings;
-using System;
+﻿using ProgressAdventure.Enums;
 using System.Text;
 
 namespace ProgressAdventure
@@ -44,14 +41,12 @@ namespace ProgressAdventure
             //bitmap.Save("test_image.png");
 
 
+
             SaveData.Initialise("test");
             
+
+
             Console.WriteLine();
-
-
-
-            new Caveman();
-
 
             //Utils.RecursiveWrite(kb.ToJson());
 

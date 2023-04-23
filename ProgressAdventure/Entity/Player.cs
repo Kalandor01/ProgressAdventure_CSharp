@@ -6,9 +6,16 @@ namespace ProgressAdventure.Entity
 {
     public class Player : Entity
     {
+        #region Public fields
+        public Inventory inventory;
+        public (int x, int y) position;
+        public Facing facing;
+        #endregion
+
         #region Public constructors
         public Player(string name = "You", Inventory? inventory = null, (int x, int y)? position = null, Facing? facing = null)
-            :this(EntityUtils.EntityManager(
+            :this(
+                EntityUtils.EntityManager(
                     (14, 20, 26),
                     (7, 10, 13),
                     (7, 10, 13),
@@ -17,7 +24,10 @@ namespace ProgressAdventure.Entity
                     0,
                     0,
                     name
-                )
+                ),
+                inventory,
+                position,
+                facing
             )
         { }
 
@@ -31,24 +41,12 @@ namespace ProgressAdventure.Entity
             (int x, int y)? position = null,
             Facing? facing = null
         )
-            :base(name, baseHp, baseAttack, baseDefence, baseSpeed, 0, 0, new List<Attribute>(), new List<Item>())
+            : base(name ?? "You", baseHp, baseAttack, baseDefence, baseSpeed)
         {
-            //if string.IsNullOrWhiteSpace(name):
-            //    name = "You"
-            //if base_hp is None or base_attack is None or base_defence is None or base_speed is None:
-            //    super().__init__(*entity_master(range(14, 26), range(7, 13), range(7, 13), range(1, 20), 0, 0, 0, 0, 0, name))
-            //else:
-            //    super().__init__(name, base_hp, base_attack, base_defence, base_speed)
-            //if inventory is None:
-            //    inventory = Inventory()
-            //if position is None:
-            //    position = (0, 0)
-            //if rotation is None:
-            //    rotation = Rotation.NORTH
-            //self.inventory = inventory
-            //self.pos:tuple[int, int] = (int(position[0]), int(position[1]))
-            //self.rotation:Rotation = rotation
-            //self.update_full_name()
+            this.inventory = inventory ?? new Inventory();
+            this.position = position is not null ? (position.Value.x,  position.Value.y) : (0, 0);
+            this.facing = facing ?? Facing.NORTH;
+            UpdateFullName();
         }
         #endregion
 
@@ -72,53 +70,105 @@ namespace ProgressAdventure.Entity
         { }
         #endregion
 
+        #region Public methods
+        /// <summary>
+        /// Turns the player in a random direction, that is weighted in the direction that it's already going towards.
+        /// </summary>
+        public void WeightedTurn()
+        {
+            // turn
+            if (SaveData.MainRandom.GenerateDouble() < 0.2)
+            {
+                var oldFacing = facing;
+                var movementVector = EntityUtils.facingToMovementVectorMapping[facing];
+                Facing? newFacing;
+                // back
+                if (SaveData.MainRandom.GenerateDouble() < 0.2)
+                {
+                    var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
+                    newFacing = EntityUtils.MovementVectorToFacing(((int)x, (int)y));
+                }
+                // side / diagonal
+                else
+                {
+                    // side
+                    if (SaveData.MainRandom.GenerateDouble() < 0.2)
+                    {
+                        if (SaveData.MainRandom.GenerateDouble() < 0.5)
+                        {
+                            newFacing = EntityUtils.MovementVectorToFacing((movementVector.y, movementVector.x));
+                        }
+                        else
+                        {
+                            var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
+                            newFacing = EntityUtils.MovementVectorToFacing(((int)y, (int)x));
+                        }
+                    }
+                    // diagonal
+                    else
+                    {
+                        // straight to diagonal
+                        if (movementVector.x == 0 || movementVector.y == 0)
+                        {
+                            var diagonalDir = SaveData.MainRandom.GenerateDouble() < 0.5 ? 1 : -1;
+                            newFacing = EntityUtils.MovementVectorToFacing((
+                                movementVector.x == 0 ? diagonalDir : movementVector.x,
+                                movementVector.y == 0 ? diagonalDir : movementVector.y
+                            ));
+                        }
+                        // diagonal to straight
+                        else
+                        {
+                            var resetX = SaveData.MainRandom.GenerateDouble() < 0.5;
+                            newFacing = EntityUtils.MovementVectorToFacing((
+                                resetX ? 0 : movementVector.x,
+                                !resetX ? 0 : movementVector.y
+                            ));
+                        }
+                    }
+                    
+                }
+                if (newFacing is not null)
+                {
+                    facing = (Facing)newFacing;
+                    Logger.Log("Player turned", $"{oldFacing} -> {facing}", LogSeverity.DEBUG);
+                }
+            }
+        }
 
-        //def weighted_turn(self):
-        //    """Turns the player in a random direction, that is weighted in the direction that it's already going towards."""
-        //    # turn
-        //    if main_seed.rand() > 0.75:
-        //        old_rot = self.rotation
-        //        move_vec = _facing_to_movement_vector(self.rotation)
-        //        # back
-        //        if main_seed.rand() > 0.75:
-        //            new_dir = _movement_vector_to_facing(vector_multiply(move_vec, (-1, -1), True))
-        //        else:
-        //            new_dir = _movement_vector_to_facing((move_vec[1], move_vec[0]))
-        //            new_dir = _movement_vector_to_facing((move_vec[1], move_vec[0]))
+        /// <summary>
+        /// Moves the player in the direction it's facing.
+        /// </summary>
+        /// <param name="multiplierVector">The multiplier to move the player by.</param>
+        /// <param name="facing">If not null, it will move in that direction instead.</param>
+        public void Move((double x, double y)? multiplierVector = null, Facing? facing = null)
+        {
+            var oldPosition = position;
+            var moveRaw = EntityUtils.facingToMovementVectorMapping[facing ?? this.facing];
+            var move = Utils.VectorMultiply(moveRaw, multiplierVector ?? (1, 1));
+            position = ((int x, int y))Utils.VectorAdd(position, move, true);
+            Logger.Log("Player moved", $"{oldPosition} -> {position}", LogSeverity.DEBUG);
+        }
 
-        //        if new_dir is not None:
-        //            self.rotation = new_dir
-        //            logger("Player turned", f"{old_rot} -> {self.rotation}", Log_type.DEBUG)
+        /// <summary>
+        /// Returns a json representation of the <c>Entity</c>.
+        /// </summary>
+        public new Dictionary<string, object?> ToJson()
+        {
+            var playerJson = base.ToJson();
+            playerJson["x_pos"] = position.x;
+            playerJson["y_pos"] = position.y;
+            playerJson["rotation"] = (int)facing;
+            playerJson["inventory"] = inventory.ToJson();
+            return playerJson;
+        }
+        #endregion
 
-
-        //def move(self, amount:tuple[int, int]|None= None, direction:Rotation|None= None):
-        //    """
-        //    Moves the player in the direction it's facing.\n
-        //    If `direction` is specified, it will move in that direction instead.\n
-        //    the amount the player is moved in the x and y direction is specified by the `amount` tuple.
-        //    """
-        //    old_pos = self.pos
-        //    if direction is None:
-        //        direction = self.rotation
-        //    if amount is None:
-        //        amount = (1, 1)
-        //    move_raw = _facing_to_movement_vector(direction)
-        //    move = vector_multiply(move_raw, amount)
-        //    self.pos = vector_add(self.pos, move, True)
-        //    logger("Player moved", f"{old_pos} -> {self.pos}", Log_type.DEBUG)
-
-
-        //def to_json(self):
-        //    """Returns a json representation of the `Entity`."""
-        //    player_json = super().to_json()
-        //    player_json["x_pos"] = self.pos[0]
-        //    player_json["y_pos"] = self.pos[1]
-        //    player_json["rotation"] = self.rotation.value
-        //    player_json["inventory"] = self.inventory.to_json()
-        //    return player_json
-
-
-        //def __str__(self) :
-        //    return f"{super().__str__()}\n{self.inventory}\nPosition: {self.pos}\nRotation: {self.rotation}"
+        #region Public overrides
+        public override string ToString()
+        {
+            return $"{base.ToString()}\n{this.inventory}\nPosition: {this.position}\nRotation: {this.facing}";
+        }
+        #endregion
     }
 }
