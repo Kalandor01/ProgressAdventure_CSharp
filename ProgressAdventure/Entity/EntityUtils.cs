@@ -4,11 +4,14 @@ using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
 {
+    /// <summary>
+    /// Utils for entities.
+    /// </summary>
     public static class EntityUtils
     {
         #region Config dictionaries
         /// <summary>
-        /// The dictionary pairing up facing types, to their vaector equivalents.
+        /// The dictionary pairing up facing types, to their vector equivalents.
         /// </summary>
         public static readonly Dictionary<Facing, (int x, int y)> facingToMovementVectorMapping = new()
         {

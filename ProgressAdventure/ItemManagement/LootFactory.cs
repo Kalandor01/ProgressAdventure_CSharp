@@ -1,6 +1,4 @@
-﻿using ProgressAdventure.Enums;
-
-namespace ProgressAdventure.ItemManagement
+﻿namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
     /// Object for assembling the loot, an entity will drop.
@@ -11,7 +9,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The type of the item.
         /// </summary>
-        public ItemType itemType;
+        public ItemTypeID itemType;
         /// <summary>
         /// The chance for the entity to drop this item per roll.
         /// </summary>
@@ -39,7 +37,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amountMin"><inheritdoc cref="amountMin" path="//summary"/></param>
         /// <param name="amountMax"><inheritdoc cref="amountMax" path="//summary"/></param>
         /// <param name="rolls"><inheritdoc cref="rolls" path="//summary"/></param>
-        public LootFactory(ItemType itemType, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
+        public LootFactory(ItemTypeID itemType, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
         {
             this.itemType = itemType;
             this.chance = chance;
