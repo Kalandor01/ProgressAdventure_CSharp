@@ -351,24 +351,6 @@ namespace ProgressAdventure
 
             return classFieldValues;
         }
-
-        /// <summary>
-        /// Returs the item type, if the item type ID is an id for an item type.
-        /// </summary>
-        /// <param name="itemTypeID"></param>
-        public static ItemTypeID? ToItemType(int itemTypeID)
-        {
-            var newItemType = (ItemTypeID)itemTypeID;
-            var itemTypes = GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
-            foreach (var itemType in itemTypes)
-            {
-                if (newItemType == itemType)
-                {
-                    return itemType;
-                }
-            }
-            return null;
-        }
         #endregion
         #endregion
 
