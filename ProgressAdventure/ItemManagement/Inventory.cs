@@ -1,10 +1,147 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Text;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
+
+namespace ProgressAdventure.ItemManagement
 {
     public class Inventory
     {
-        public Dictionary<string, object?> ToJson()
+        #region Public fields
+        public List<Item> items;
+        #endregion
+
+        #region Constructors
+        public Inventory(List<Item>? items = null)
         {
-            return null;
+            this.items = items ?? new List<Item>();
         }
-    }
+        #endregion
+
+        #region Public methods
+        /// <summary>
+        /// Adds an item to the inventory. If the item already exists, it adds to the amount.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        /// <returns>If the item already exists in the inventory.</returns>
+        public bool Add(Item item)
+        {
+            foreach (var currItem in items)
+            {
+                if (currItem.Type == item.Type)
+                {
+                    currItem.amount += item.amount;
+                    return true;
+                }
+            }
+            items.Add(item);
+            return false;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Add(Item)"/>
+        /// </summary>
+        /// <param name="itemType">The type of the item to add.</param>
+        /// <param name="amount">The amount of the items to add.</param>
+        /// <returns><inheritdoc cref="Add(Item)"/></returns>
+        public bool Add(ItemTypeID itemType, int amount = 1)
+        {
+            foreach (var item in items)
+            {
+                if (item.Type == itemType)
+                {
+                    item.amount += amount;
+                    return true;
+                }
+            }
+            items.Add(new Item(itemType, amount));
+            return false;
+        }
+
+        /// <summary>
+        /// Removes some number of items, from the inventory, based on the type.
+        /// </summary>
+        /// <param name="itemType">The type of the item to remove.</param>
+        /// <param name="amount">The amount of the items to remove. If its null, it removes all items of the type.</param>
+        /// <returns>If the item existed in the inventory.</returns>
+        public bool Remove(ItemTypeID itemType, uint? amount = null)
+        {
+            for (var x = 0; x < items.Count; x++)
+            {
+                if (items.ElementAt(x).Type == itemType)
+                {
+                    if (amount is null || items.ElementAt(x).amount - amount <= 0)
+                    {
+                        items.RemoveAt(x);
+                    }
+                    else
+                    {
+                        items.ElementAt(x).amount -= (int)amount;
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Adds a list of items to the inventory.
+        /// </summary>
+        /// <param name="loot">The list of items to add.</param>
+        public void Loot(IEnumerable<Item> loot)
+        {
+            foreach (var item in loot)
+            {
+                Add(item);
+            }
+        }
+
+
+        public bool Use(ItemTypeID itemType)
+        {
+            for (int x = 0; x < items.Count; x++)
+            {
+                if (items.ElementAt(x).Type == itemType)
+                {
+                    items.ElementAt(x).Use();
+                    if (items.ElementAt(x).amount <= 0)
+                    {
+                        items.RemoveAt(x);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Convert the items in the inventory into a list for a json format.
+        /// </summary>
+        public List<Dictionary<string, object>> ToJson()
+        {
+            var itemsJson = new List<Dictionary<string, object>>();
+            foreach (var item in items)
+            {
+                itemsJson.Add(new Dictionary<string, object> {
+                    ["type"] = item.Type,
+                    ["amount"] = item.amount
+                });
+            }
+            return itemsJson;
+        }
+        #endregion
+
+        #region Public overrides
+        public override string ToString()
+        {
+            var txt = new StringBuilder("Inventory:");
+            foreach (var item in items)
+            {
+                txt.Append($"\n\t{item.DisplayName}{" x" + (item.amount > 1 ? item.amount.ToString() : "")}");
+            }
+            return txt.ToString();
+        }
+        #endregion
+}
 }
