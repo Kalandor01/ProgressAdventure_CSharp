@@ -112,25 +112,28 @@ namespace ProgressAdventure.Settings
 
         #region Public functions
         /// <summary>
-        /// Turns json representing a <c>Keybinds</c> object into a <c>Keybinds</c> object.
+        /// Converts the <c>Keybinds</c> json to object format.
         /// </summary>
-        /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.</param>
-        public static Keybinds KeybindsFromJson(IDictionary<string, object> keybindsJson)
+        /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.<br/>
+        /// Its actual type should be IDictionary{string, IEnumerable{IDictionary{string, object}}}</param>
+        public static Keybinds FromJson(IDictionary<string, object> keybindsJson)
         {
             var actions = new List<ActionKey>();
             foreach (var actionJson in keybindsJson)
             {
                 if (
-                    Enum.TryParse(typeof(ActionType), actionJson.Key, out object? res)
-                    )
+                    Enum.TryParse(typeof(ActionType), actionJson.Key, out object? res) &&
+                    Enum.IsDefined(typeof(ActionType), (ActionType)res)
+                )
                 {
                     var actionType = (ActionType)res;
                     var keys = new List<ConsoleKeyInfo>();
-                    foreach (var action in (IEnumerable)actionJson.Value)
+                    foreach (var actionKey in (IEnumerable)actionJson.Value)
                     {
-                        var actionDict = (IDictionary<string, object>)action;
+                        var actionDict = (IDictionary<string, object>)actionKey;
                         if (
                             Enum.TryParse(typeof(ConsoleKey), actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out object? keyEnum) &&
+                            Enum.IsDefined(typeof(ConsoleKey), (ConsoleKey)keyEnum) &&
                             char.TryParse(actionDict.TryGetValue("keyChar", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
                             int.TryParse(actionDict.TryGetValue("modifiers", out var modValue) ? modValue.ToString() : null, out int keyMods)
                             )
@@ -140,8 +143,16 @@ namespace ProgressAdventure.Settings
                             var ctrl = Utils.GetBit(keyMods, 2);
                             keys.Add(new ConsoleKeyInfo(keyChar, (ConsoleKey)keyEnum, shift, alt, ctrl));
                         }
+                        else
+                        {
+                            Logger.Log("Couldn't parse key from action JSON", actionKey.ToString(), LogSeverity.WARN);
+                        }
                     }
                     actions.Add(new ActionKey(actionType, keys));
+                }
+                else
+                {
+                    Logger.Log("Couldn't parse action from Keybinds JSON", actionJson.ToString(), LogSeverity.WARN);
                 }
             }
             return new Keybinds(actions);

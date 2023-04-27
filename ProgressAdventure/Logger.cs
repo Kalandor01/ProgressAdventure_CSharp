@@ -16,7 +16,7 @@ namespace ProgressAdventure
         /// <param name="severity">The type of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
         /// <param name="newLine">Whether to write a new line before the message. or not.</param>
-        public static void Log(string message, string detail = "", LogSeverity severity = LogSeverity.INFO, bool writeOut = false, bool newLine = false)
+        public static void Log(string message, string? detail = "", LogSeverity severity = LogSeverity.INFO, bool writeOut = false, bool newLine = false)
         {
             try
             {

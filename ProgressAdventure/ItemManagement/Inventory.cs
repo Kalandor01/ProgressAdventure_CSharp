@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
+﻿using ProgressAdventure.Enums;
 using System.Text;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -124,11 +121,44 @@ namespace ProgressAdventure.ItemManagement
             foreach (var item in items)
             {
                 itemsJson.Add(new Dictionary<string, object> {
-                    ["type"] = item.Type,
+                    ["type"] = item.Type.GetHashCode(),
                     ["amount"] = item.amount
                 });
             }
             return itemsJson;
+        }
+        #endregion
+
+        #region Public functions
+        /// <summary>
+        /// Converts the <c>Inventory</c> json to object format.
+        /// </summary>
+        /// <param name="itemList">The json representation of the <c>Keybinds</c> object.<br/>
+        /// Its actual type should be IEnumerable{IDictionary{string, object}}</param>
+        public static Inventory FromJson(IEnumerable<object> itemList)
+        {
+            var items = new List<Item>();
+            foreach (var item in itemList)
+            {
+                var itemDict = (IDictionary<string, object>)item;
+                if (
+                    int.TryParse(itemDict.TryGetValue("type", out var typeIDValue) ? typeIDValue.ToString() : null, out int itemTypeID) &&
+                    int.TryParse(itemDict.TryGetValue("amount", out var amountValue) ? amountValue.ToString() : null, out int itemAmount)
+                )
+                {
+                    var itemType = ItemUtils.ToItemType(itemTypeID);
+                    if (itemType is not null)
+                    {
+                        items.Add(new Item((ItemTypeID)itemType, itemAmount));
+                    }
+                }
+                else
+                {
+                    Logger.Log("Couldn't parse item from Inventory JSON", item.ToString(), LogSeverity.WARN);
+                }
+            }
+            var inventory = new Inventory(items);
+            return inventory;
         }
         #endregion
 
@@ -138,7 +168,7 @@ namespace ProgressAdventure.ItemManagement
             var txt = new StringBuilder("Inventory:");
             foreach (var item in items)
             {
-                txt.Append($"\n\t{item.DisplayName}{" x" + (item.amount > 1 ? item.amount.ToString() : "")}");
+                txt.Append($"\n\t{item.DisplayName}{(item.amount > 1 ? " x" + item.amount.ToString() : "")}");
             }
             return txt.ToString();
         }
