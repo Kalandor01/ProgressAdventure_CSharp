@@ -2,7 +2,7 @@
 using SaveFileManager;
 using System;
 
-namespace ProgressAdventure.Settings
+namespace ProgressAdventure.SettingsManagement
 {
     /// <summary>
     /// Class for storing a key for keybinds.

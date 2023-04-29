@@ -4,16 +4,35 @@ using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
 {
+    /// <summary>
+    /// The player entity.
+    /// </summary>
     public class Player : Entity
     {
         #region Public fields
+        /// <summary>
+        /// The inventory of the palyer.
+        /// </summary>
         public Inventory inventory;
-        public (int x, int y) position;
+        /// <summary>
+        /// The position of the player in the world.
+        /// </summary>
+        public (long x, long y) position;
+        /// <summary>
+        /// The facing direction of the player.
+        /// </summary>
         public Facing facing;
         #endregion
 
         #region Public constructors
-        public Player(string name = "You", Inventory? inventory = null, (int x, int y)? position = null, Facing? facing = null)
+        /// <summary>
+        /// <inheritdoc cref="Player"/>
+        /// </summary>
+        /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
+        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
+        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
+        /// <inheritdoc cref="Entity(string, int, int, int , int , int , int? , List{Attribute}?, List{Item}?)"/>
+        public Player(string? name = null, Inventory? inventory = null, (long x, long y)? position = null, Facing? facing = null)
             :this(
                 EntityUtils.EntityManager(
                     (14, 20, 26),
@@ -23,7 +42,7 @@ namespace ProgressAdventure.Entity
                     0,
                     0,
                     0,
-                    name
+                    string.IsNullOrWhiteSpace(name) ? "You" : name
                 ),
                 inventory,
                 position,
@@ -31,17 +50,24 @@ namespace ProgressAdventure.Entity
             )
         { }
 
+        /// <summary>
+        /// <inheritdoc cref="Player"/>
+        /// </summary>
+        /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
+        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
+        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
+        /// <inheritdoc cref="Entity(string, int, int, int , int , int , int? , List{Attribute}?, List{Item}?)"/>
         public Player(
-            string name,
+            string? name,
             int baseHp,
             int baseAttack,
             int baseDefence,
             int baseSpeed,
             Inventory? inventory = null,
-            (int x, int y)? position = null,
+            (long x, long y)? position = null,
             Facing? facing = null
         )
-            : base(name ?? "You", baseHp, baseAttack, baseDefence, baseSpeed)
+            : base(string.IsNullOrWhiteSpace(name) ? "You" : name, baseHp, baseAttack, baseDefence, baseSpeed)
         {
             this.inventory = inventory ?? new Inventory();
             this.position = position is not null ? (position.Value.x,  position.Value.y) : (0, 0);
@@ -51,10 +77,17 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region Private constructors
+        /// <summary>
+        /// <inheritdoc cref="Player"/>
+        /// </summary>
+        /// <param name="stats">The tuple of stats, representin all stat values.</param>
+        /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
+        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
+        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         private Player(
             (string name, int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) stats,
             Inventory? inventory = null,
-            (int x, int y)? position = null,
+            (long x, long y)? position = null,
             Facing? facing = null
         )
             : this(
@@ -146,7 +179,7 @@ namespace ProgressAdventure.Entity
             var oldPosition = position;
             var moveRaw = EntityUtils.facingToMovementVectorMapping[facing ?? this.facing];
             var move = Utils.VectorMultiply(moveRaw, multiplierVector ?? (1, 1));
-            position = ((int x, int y))Utils.VectorAdd(position, move, true);
+            position = ((long x, long y))Utils.VectorAdd(position, move, true);
             Logger.Log("Player moved", $"{oldPosition} -> {position}", LogSeverity.DEBUG);
         }
 
@@ -198,10 +231,10 @@ namespace ProgressAdventure.Entity
                 Logger.Log("Couldn't parse player inventory from Player JSON", severity: LogSeverity.WARN);
             }
             // position
-            (int x, int y)? position = null;
+            (long x, long y)? position = null;
             if (
-                int.TryParse(playerJson.TryGetValue("xPos", out var xPositionValue) ? xPositionValue.ToString() : null, out int xPosition) &&
-                int.TryParse(playerJson.TryGetValue("yPos", out var yPositionValue) ? yPositionValue.ToString() : null, out int yPosition)
+                long.TryParse(playerJson.TryGetValue("xPos", out var xPositionValue) ? xPositionValue.ToString() : null, out long xPosition) &&
+                long.TryParse(playerJson.TryGetValue("yPos", out var yPositionValue) ? yPositionValue.ToString() : null, out long yPosition)
             )
             {
                 position = (xPosition, yPosition);

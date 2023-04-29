@@ -93,7 +93,7 @@ namespace ProgressAdventure
             UpdateSeedValues(
                 tempMainRandom,
                 tempWorldRandom,
-                tileTypeNoiseSeeds ?? RecalculateTileTypeNoiseSeeds(tempWorldRandom)
+                tileTypeNoiseSeeds is not null ? RecalculateTileTypeNoiseSeeds(tileTypeNoiseSeeds, tempWorldRandom) : RecalculateTileTypeNoiseSeeds(tempWorldRandom)
             );
 
             SaveData.player = player ?? new Player();
@@ -122,7 +122,7 @@ namespace ProgressAdventure
             return new Dictionary<string, object?> {
                 ["mainRandom"] = Tools.SerializeRandom(MainRandom),
                 ["worldRandom"] = Tools.SerializeRandom(WorldRandom),
-                ["tileTypeNoiseReeds"] = TileTypeNoiseSeeds
+                ["tileTypeNoiseSeeds"] = TileTypeNoiseSeeds
             };
         }
 
@@ -143,7 +143,7 @@ namespace ProgressAdventure
 
         #region Private functions
         /// <summary>
-        /// Recalculate seeds for perlin noise generators.
+        /// Recalculates ALL seeds for perlin noise generators.
         /// </summary>
         /// <param name="parrentRandom">The random generator to use, to generate the noise seeds.</param>
         public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(SplittableRandom? parrentRandom = null)
@@ -157,6 +157,24 @@ namespace ProgressAdventure
                 [TileNoiseType.HOSTILITY] = (ulong)parrentRandom.Generate(),
                 [TileNoiseType.POPULATION] = (ulong)parrentRandom.Generate(),
             };
+        }
+
+        /// <summary>
+        /// Recalculates seeds for perlin noise generators that are missing from the partial tile type seed dictionary.
+        /// </summary>
+        /// <param name="parrentRandom">The random generator to use, to generate the missing noise seeds.</param>
+        /// <param name="partialTileTypeNoiseDict">A dictionary that might not contain noise seeds for all tile types.</param>
+        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(Dictionary<TileNoiseType, ulong> partialTileTypeNoiseDict, SplittableRandom? parrentRandom = null)
+        {
+            parrentRandom ??= _worldRandom;
+            foreach (TileNoiseType noiseType in Enum.GetValues(typeof(TileNoiseType)))
+            {
+                if (!partialTileTypeNoiseDict.ContainsKey(noiseType))
+                {
+                    partialTileTypeNoiseDict.Add(noiseType, (ulong)parrentRandom.Generate());
+                }
+            }
+            return partialTileTypeNoiseDict;
         }
 
         /// <summary>

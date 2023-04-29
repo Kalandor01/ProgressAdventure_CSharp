@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
 using System.Text;
 
 namespace ProgressAdventure
@@ -66,7 +67,7 @@ namespace ProgressAdventure
             Console.WriteLine("Loading...");
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
-            Settings.Settings.Initialise();
+            SettingsManagement.Settings.Initialise();
             Globals.Initialise();
         }
 

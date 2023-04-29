@@ -1,9 +1,7 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using SaveFileManager;
 
-namespace ProgressAdventure.Settings
+namespace ProgressAdventure.SettingsManagement
 {
     public static class SettingsUtils
     {

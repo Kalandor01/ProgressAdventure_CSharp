@@ -1,7 +1,7 @@
 ﻿using ProgressAdventure.Enums;
 using System.Collections;
 
-namespace ProgressAdventure.Settings
+namespace ProgressAdventure.SettingsManagement
 {
     /// <summary>
     /// Class for storing the keybinds list.

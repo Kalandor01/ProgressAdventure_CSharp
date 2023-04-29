@@ -1,6 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 
-namespace ProgressAdventure.Settings
+namespace ProgressAdventure.SettingsManagement
 {
     /// <summary>
     /// Object for managing the data in the settings file.

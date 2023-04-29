@@ -118,7 +118,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the saves folder.
         /// </summary>
-        /// <returns>If the folder needed to be recreated.</returns>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateSavesFolder()
         {
             return RecreateFolder(Constants.SAVES_FOLDER);
@@ -127,7 +127,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the backups folder.
         /// </summary>
-        /// <returns>If the folder needed to be recreated.</returns>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateBackupsFolder()
         {
             return RecreateFolder(Constants.BACKUPS_FOLDER);
@@ -136,10 +136,50 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the logs folder.
         /// </summary>
-        /// <returns>If the folder needed to be recreated.</returns>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateLogsFolder()
         {
             return RecreateFolder(Constants.LOGS_FOLDER);
+        }
+
+        /// <summary>
+        /// <c>RecreateFolder</c> for a save folder, and all previous folders up to root.
+        /// </summary>
+        /// <param name="saveFolderName">The save name.</param>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        public static bool RecreateSaveFileFolder(string saveFolderName)
+        {
+            RecreateSavesFolder();
+            return RecreateFolder(saveFolderName, Constants.SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
+        }
+
+        /// <summary>
+        /// <c>RecreateFolder</c> for the currently loaded save folder, and all previous folders up to root.
+        /// </summary>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        public static bool RecreateSaveFileFolder()
+        {
+            return RecreateSaveFileFolder(SaveData.saveName);
+        }
+
+        /// <summary>
+        /// <c>RecreateFolder</c> for a save's chunk folder, and all previous folders up to root.
+        /// </summary>
+        /// <param name="saveFolderName">The save name.</param>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        public static bool RecreateChunksFolder(string saveFolderName)
+        {
+            RecreateSaveFileFolder();
+            return RecreateFolder(Constants.SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
+        }
+
+        /// <summary>
+        /// <c>RecreateFolder</c> for the currently loaded save's chunk folder, and all previous folders up to root.
+        /// </summary>
+        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        public static bool RecreateChunksFolder()
+        {
+            return RecreateChunksFolder(SaveData.saveName);
         }
         #endregion
 
@@ -239,19 +279,36 @@ namespace ProgressAdventure
 
         #region Misc
         /// <summary>
+        /// Returns what the save's folder path should be.
+        /// </summary>
+        /// <param name="saveFolderName">The save name.</param>
+        public static string? GetSaveFolderPath(string saveFolderName)
+        {
+            return Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName);
+        }
+
+        /// <summary>
+        /// Returns what the currently loaded save's folder path should be.
+        /// </summary>
+        public static string? GetSaveFolderPath()
+        {
+            return GetSaveFolderPath(SaveData.saveName);
+        }
+
+        /// <summary>
         /// Makes a backup of a save folder, into the backups folder (as a zip file).
         /// </summary>
         /// <param name="saveFolderName">The name of the save folder.</param>
         /// <param name="isTemporary">If the backup is supposed to be temporary.</param>
         /// <returns>The full backup path, and a version of it, that doesn't contain the root directory.</returns>
-        public static (string? backupPath, string? relativeBackupPath) CreateBackup(string saveFolderName, bool isTemporary = false)
+        public static (string backupPath, string relativeBackupPath)? CreateBackup(string saveFolderName, bool isTemporary = false)
         {
             // recreate folders
             RecreateSavesFolder();
             RecreateBackupsFolder();
 
             var now = DateTime.Now;
-            var saveFolderPath = Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName);
+            var saveFolderPath = GetSaveFolderPath(saveFolderName);
             if (Directory.Exists(saveFolderPath))
             {
                 // make more variables
@@ -266,8 +323,8 @@ namespace ProgressAdventure
             else
             {
                 var displaySavePath = Path.Join(Constants.SAVES_FOLDER, saveFolderName);
-                Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}(.{Constants.SAVE_EXT})", LogSeverity.WARN);
-                return (null, null);
+                Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}", LogSeverity.WARN);
+                return null;
             }
         }
 
@@ -284,8 +341,12 @@ namespace ProgressAdventure
         /// Returns a variant of thr save name, that can be a folder name, and doesn't exist yet.
         /// </summary>
         /// <param name="rawSaveName">The save folder name to correct.</param>
-        public static string CorrectSaveName(string rawSaveName)
+        public static string CorrectSaveName(string? rawSaveName)
         {
+            if (string.IsNullOrWhiteSpace(rawSaveName))
+            {
+                rawSaveName = "new save";
+            }
             var saveName = Utils.RemoveInvalidFileNameCharacters(rawSaveName);
             if (string.IsNullOrWhiteSpace(saveName))
             {
@@ -309,7 +370,7 @@ namespace ProgressAdventure
         /// <param name="saveFolderName">The name of the save folder.</param>
         public static void DeleteSave(string saveFolderName)
         {
-            var saveFolderPath = Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName);
+            var saveFolderPath = GetSaveFolderPath(saveFolderName);
             if (Directory.Exists(saveFolderPath))
             {
                 Directory.Delete(saveFolderPath);
@@ -349,6 +410,51 @@ namespace ProgressAdventure
             classFieldValues.AddRange(subClassFieldValues);
 
             return classFieldValues;
+        }
+
+        /// <summary>
+        /// Returns if the current version string is equal or higher than the minimum version.<br/>
+        /// If the version number string has a letter in it, it only checks if the min version string also has one.
+        /// </summary>
+        /// <param name="minimumVersion">The minimum version number to qualify for being up to date.</param>
+        /// <param name="currentVersion">The version number to check.</param>
+        public static bool IsUpToDate(string minimumVersion, string currentVersion)
+        {
+            var version = currentVersion.Split(".");
+            var minVersion = minimumVersion.Split(".");
+
+            for (int x = 0; x < version.Length; x++)
+            {
+                // min v. shorter
+                if (minVersion.Length < (x + 1))
+                {
+                    return true;
+                }
+                var vIsNum = int.TryParse(version[x], out int vInt);
+                var minIsNum = int.TryParse(minVersion[x], out int minInt);
+                if (vIsNum && minIsNum)
+                {
+                    // v. > min v. ?
+                    if (vInt > minInt)
+                    {
+                        return true;
+                    }
+                    // v. < min v. ?
+                    else if (vInt < minInt)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (vIsNum != minIsNum)
+                    {
+                        return !vIsNum;
+                    }
+                }
+            }
+            // v. shorter
+            return true;
         }
         #endregion
         #endregion
