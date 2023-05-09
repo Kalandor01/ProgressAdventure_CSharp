@@ -53,7 +53,7 @@
         /// <param name="tile">The parrent tile.</param>
         public virtual void Visit(Tile tile)
         {
-            Logger.Log($"Player visited \"{type}\": \"{subtype}\"{(name is not null ? $" ({name})" : "")}", $"x: {tile.x}, y: {tile.y}, visits: {tile.visited}");
+            Logger.Log($"Player visited \"{type}\": \"{subtype}\"{(name is not null ? $" ({name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
 
         /// <summary>

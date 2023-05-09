@@ -71,8 +71,8 @@ namespace ProgressAdventure
             var s = (x + y) * F2;
             var xs = x + s;
             var ys = y + s;
-            var i = FastFloor(xs);
-            var j = FastFloor(ys);
+            var i = (int)Math.Floor(xs);
+            var j = (int)Math.Floor(ys);
 
             var t = (i + j) * G2;
             var X0 = i - t;
@@ -138,11 +138,6 @@ namespace ProgressAdventure
         #endregion
 
         #region Private functions
-        private static int FastFloor(double x)
-        {
-            return (x > 0) ? ((int)x) : (((int)x) - 1);
-        }
-
         private static double Grad(int hash, double x, double y)
         {
             var h = hash & 7;

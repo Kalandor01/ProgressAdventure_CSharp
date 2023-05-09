@@ -1,14 +1,20 @@
-﻿namespace ProgressAdventure.WorldManagement.Content
+﻿namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
+    /// <summary>
+    /// Class for mountain terrain content layer, for a tile.
+    /// </summary>
     public class MountainTerrain : TerrainContent
     {
         #region Public fields
+        /// <summary>
+        /// The height of the mountain.
+        /// </summary>
         public readonly long height;
         #endregion
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="FieldTerrain"/>
+        /// <inheritdoc cref="MountainTerrain"/>
         /// </summary>
         /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
         public MountainTerrain(string? name, IDictionary<string, object?>? data = null)

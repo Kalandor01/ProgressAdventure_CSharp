@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.WorldManagement.Content
+﻿namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
     /// <summary>
     /// Class for filed terrain content layer, for a tile.

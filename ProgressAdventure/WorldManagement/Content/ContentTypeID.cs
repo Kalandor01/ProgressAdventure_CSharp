@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace ProgressAdventure.WorldManagement
+namespace ProgressAdventure.WorldManagement.Content
 {
     /// <summary>
     /// Struct for creating enum-like behaviour, for the content types.<br/>

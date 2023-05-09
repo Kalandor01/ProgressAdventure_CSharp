@@ -186,12 +186,23 @@ namespace ProgressAdventure
         /// <summary>
         /// Modulo. (not %)
         /// </summary>
-        /// <param name="x">The number to modulo.</param>
-        /// <param name="m">The modulo number.</param>
-        public static int Mod(int x, int m)
+        /// <param name="number">The number to modulo.</param>
+        /// <param name="mod">The modulo number.</param>
+        public static int Mod(int number, int mod)
         {
-            var r = x % m;
-            return r < 0 ? r + m : r;
+            var r = number % mod;
+            return r < 0 ? r + mod : r;
+        }
+
+        /// <summary>
+        /// Modulo. (not %)
+        /// </summary>
+        /// <param name="number">The number to modulo.</param>
+        /// <param name="mod">The modulo number.</param>
+        public static long Mod(long number, long mod)
+        {
+            var r = number % mod;
+            return r < 0 ? r + mod : r;
         }
 
         /// <summary>

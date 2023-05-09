@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.WorldManagement
+﻿namespace ProgressAdventure.WorldManagement.Content
 {
     public static class ContentType
     {
