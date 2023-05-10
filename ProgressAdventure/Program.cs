@@ -1,6 +1,4 @@
-﻿using ProgressAdventure.Entity;
-using ProgressAdventure.Enums;
-using System.Drawing;
+﻿using ProgressAdventure.Enums;
 using System.Text;
 
 namespace ProgressAdventure
@@ -12,37 +10,11 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            ulong seed = 10;
-            var baseDivision = 200;
-
-            var sampleSize = 2048;
-
-            var noise = new PerlinNoise(seed);
-
-            var bitmap = new Bitmap(sampleSize, sampleSize);
-
-            for (var x = -1000; x < bitmap.Width - 1000; x++)
-            {
-                for (var y = -1000; y < bitmap.Height - 1000; y++)
-                {
-                    var point = noise.Generate(x, y, 16.0 / baseDivision) * 1;
-                    point += noise.Generate(x, y, 8.0 / baseDivision) * 2;
-                    point += noise.Generate(x, y, 4.0 / baseDivision) * 4;
-                    point += noise.Generate(x, y, 2.0 / baseDivision) * 8;
-                    point += noise.Generate(x, y, 1.0 / baseDivision) * 16;
-                    point /= 31;
-                    point = point * 128 + 128;
-                    bitmap.SetPixel(x + 1000, y + 1000, Color.FromArgb(255, (int)point, (int)point, (int)point));
-                }
-            }
-
-            bitmap.Save("test_image.png");
-
-
-
             SaveData.Initialise("test");
 
 
+
+            
             
 
             Console.WriteLine();

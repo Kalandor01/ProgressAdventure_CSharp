@@ -10,7 +10,7 @@
         /// <inheritdoc cref="FieldTerrain"/>
         /// </summary>
         /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public FieldTerrain(string? name, IDictionary<string, object?>? data = null)
+        public FieldTerrain(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Terrain.FIELD, name, data) { }
         #endregion
 

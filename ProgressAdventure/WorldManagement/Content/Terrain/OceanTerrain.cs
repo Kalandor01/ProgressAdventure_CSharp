@@ -17,7 +17,7 @@
         /// <inheritdoc cref="OceanTerrain"/>
         /// </summary>
         /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public OceanTerrain(string? name, IDictionary<string, object?>? data = null)
+        public OceanTerrain(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Terrain.OCEAN, name, data)
         {
             depth = GetLongValueFromData("depth", data, (100, 20000));

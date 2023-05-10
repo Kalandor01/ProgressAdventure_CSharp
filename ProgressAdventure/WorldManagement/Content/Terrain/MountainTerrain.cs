@@ -17,7 +17,7 @@
         /// <inheritdoc cref="MountainTerrain"/>
         /// </summary>
         /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public MountainTerrain(string? name, IDictionary<string, object?>? data = null)
+        public MountainTerrain(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Terrain.MOUNTAIN, name, data)
         {
             height = GetLongValueFromData("height", data, (500, 10000));

@@ -10,7 +10,7 @@
         /// <inheritdoc cref="HumanPopulation"/>
         /// </summary>
         /// <inheritdoc cref="PopulationContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public HumanPopulation(string? name, IDictionary<string, object?>? data = null)
+        public HumanPopulation(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Population.HUMAN, name, data) { }
         #endregion
     }

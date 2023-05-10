@@ -1,5 +1,4 @@
-﻿using NPrng;
-using System.Collections;
+﻿using System.Collections;
 using System.Text;
 
 namespace ProgressAdventure
@@ -203,19 +202,6 @@ namespace ProgressAdventure
         {
             var r = number % mod;
             return r < 0 ? r + mod : r;
-        }
-
-        /// <summary>
-        /// Fills the elements of a specified array of bytes with random numbers using an <c>NPrng</c> generator.
-        /// </summary>
-        /// <param name="generator">The <c>NPrng</c> generator to use.</param>
-        /// <param name="array">The byte array to fill.</param>
-        public static void NextBytes(IPseudoRandomGenerator generator, byte[] array)
-        {
-            for (int x = 0; x < array.Length; x++)
-            {
-                array[x] = (byte)generator.GenerateInRange(0, 255);
-            }
         }
 
         /// <summary>

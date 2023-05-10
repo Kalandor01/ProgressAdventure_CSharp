@@ -10,7 +10,7 @@
         /// <inheritdoc cref="BanditCampStructure"/>
         /// </summary>
         /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public BanditCampStructure(string? name, IDictionary<string, object?>? data = null)
+        public BanditCampStructure(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Structure.BANDIT_CAMP, name, data) { }
         #endregion
 

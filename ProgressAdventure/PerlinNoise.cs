@@ -20,7 +20,7 @@ namespace ProgressAdventure
             get => _generator;
             set
             {
-                Utils.NextBytes(value, _perm);
+                GeneratePermBytes(value);
                 _generator = value;
             }
         }
@@ -144,6 +144,22 @@ namespace ProgressAdventure
             var u = h < 4 ? x : y;
             var v = h < 4 ? y : x;
             return ((h & 1) != 0 ? -u : u) + ((h & 2) != 0 ? -2.0 * v : 2.0 * v);
+        }
+
+        /// <summary>
+        /// Fills the elements of the perm array with ramdom bytes, using an <c>NPrng</c> generator.
+        /// </summary>
+        /// <param name="generator">The <c>NPrng</c> generator to use.</param>
+        private void GeneratePermBytes(IPseudoRandomGenerator generator)
+        {
+            var halfArray = new byte[256];
+            
+            for (int x = 0; x < halfArray.Length; x++)
+            {
+                halfArray[x] = (byte)generator.GenerateInRange(0, 255);
+            }
+            halfArray.CopyTo(_perm, 0);
+            halfArray.CopyTo(_perm, 256);
         }
         #endregion
     }

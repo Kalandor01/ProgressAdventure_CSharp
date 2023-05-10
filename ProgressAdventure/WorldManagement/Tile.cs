@@ -1,6 +1,6 @@
-﻿using System.Data;
+﻿using ProgressAdventure.WorldManagement.Content;
 
-namespace ProgressAdventure.WorldManagement.Content
+namespace ProgressAdventure.WorldManagement
 {
     /// <summary>
     /// Object, representing a tile in a chunk.
@@ -73,26 +73,32 @@ namespace ProgressAdventure.WorldManagement.Content
             Visited = visited ?? 0;
             if (terrain is null || structure is null || population is null)
             {
-                //var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
-                //terrain ??= CalculateClosestContent(noiseValues, terrainProperties);
-                //if structure is None:
-                //    # less structures on water
-                //    reset_no_sdl = _no_structure_difference_limit
-                //    if terrain.subtype == Terrain_types.OCEAN:
-                //        _no_structure_difference_limit -= 0.1
-                //    elif terrain.subtype == Terrain_types.SHORE:
-                //        _no_structure_difference_limit -= 0.05
-                //    gen_structure: Structure_content = _calculate_closest(noise_values, _structure_properties)
-                //    structure = gen_structure
-                //    _no_structure_difference_limit = reset_no_sdl
-                //if population is None:
-                //    # less population on not structures
-                //    reset_no_pdl = _no_population_difference_limit
-                //    if structure.subtype == Structure_types.NONE:
-                //        _no_population_difference_limit -= 0.1
-                //    gen_population: Population_content = _calculate_closest(noise_values, _population_properties)
-                //    population = gen_population
-                //    _no_population_difference_limit = reset_no_pdl
+                var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
+                terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(noiseValues);
+                if (structure is null)
+                {
+                    // less structures on water
+                    var noStructureDL = WorldUtils.noStructureDifferenceLimit;
+                    if (terrain.subtype == ContentType.Terrain.OCEAN)
+                    {
+                        noStructureDL -= 0.1;
+                    }
+                    else if (terrain.subtype == ContentType.Terrain.SHORE)
+                    {
+                        noStructureDL -= 0.05;
+                    }
+                    structure = WorldUtils.CalculateClosestContent<StructureContent>(noiseValues, noStructureDL);
+                }
+                if (population is null)
+                {
+                    // less population on not structures
+                    var noPopulationDL = WorldUtils.noPopulationDifferenceLimit;
+                    if (structure.subtype == ContentType.Structure.NONE)
+                    {
+                        noPopulationDL -= 0.1;
+                    }
+                    population = WorldUtils.CalculateClosestContent<PopulationContent>(noiseValues, noPopulationDL);
+                }
             }
             this.terrain = terrain;
             this.structure = structure;
@@ -131,6 +137,77 @@ namespace ProgressAdventure.WorldManagement.Content
                 ["population"] = populationJson,
             };
             return tileJson;
+        }
+        #endregion
+
+        #region Public functions
+        /// <summary>
+        /// Converts the json representation of the tile into a tile object.
+        /// </summary>
+        /// <param name="tileJson">The json representation of the tile.</param>
+        public static Tile FromJson(IDictionary<string, object?> tileJson)
+        {
+            // x and y
+            if (!(
+                tileJson.TryGetValue("xPos", out object? xPosValue) &&
+                long.TryParse(xPosValue?.ToString(), out long xPos) &&
+                tileJson.TryGetValue("yPos", out object? yPosValue) &&
+                long.TryParse(yPosValue?.ToString(), out long yPos)
+            ))
+            {
+                Logger.Log("Tile parse error", "tile coordinates cannot be parsed", Enums.LogSeverity.FATAL);
+                throw new ArgumentException("Tile coordinates cannot be parsed");
+            }
+            // visited
+            int? visited = null;
+            if (
+                tileJson.TryGetValue("visited", out object? visitedValueStr) &&
+                int.TryParse(visitedValueStr?.ToString(), out int visitedValue)
+            )
+            {
+                visited = visitedValue;
+            }
+            else
+            {
+                Logger.Log("Tile decode error", "couldn't decode visited from json", Enums.LogSeverity.WARN);
+            }
+            // terrain
+            TerrainContent? terrain = null;
+            if (
+                tileJson.TryGetValue("terrain", out object? terrainJson)
+            )
+            {
+                terrain = TerrainContent.FromJson((IDictionary<string, object?>?)terrainJson);
+            }
+            else
+            {
+                Logger.Log("Tile decode error", "couldn't decode terrain from json", Enums.LogSeverity.WARN);
+            }
+            // structure
+            StructureContent? structure = null;
+            if (
+                tileJson.TryGetValue("structure", out object? structureJson)
+            )
+            {
+                structure = StructureContent.FromJson((IDictionary<string, object?>?)structureJson);
+            }
+            else
+            {
+                Logger.Log("Tile decode error", "couldn't decode structure from json", Enums.LogSeverity.WARN);
+            }
+            // population
+            PopulationContent? population = null;
+            if (
+                tileJson.TryGetValue("population", out object? populationJson)
+            )
+            {
+                population = PopulationContent.FromJson((IDictionary<string, object?>?)populationJson);
+            }
+            else
+            {
+                Logger.Log("Tile decode error", "couldn't decode population from json", Enums.LogSeverity.WARN);
+            }
+            return new Tile(xPos, yPos, visited, terrain, structure, population);
         }
         #endregion
     }

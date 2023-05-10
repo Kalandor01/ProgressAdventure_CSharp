@@ -21,7 +21,7 @@
         }
         #endregion
 
-        #region Protected methods
+        #region Public methods
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
@@ -56,6 +56,14 @@
             var populationJson = base.ToJson();
             populationJson.Add("amount", amount);
             return populationJson;
+        }
+        #endregion
+
+        #region Public functions
+        /// <inheritdoc cref="BaseContent.LoadContent{T}(IDictionary{string, object?}?)"/>
+        public static PopulationContent FromJson(IDictionary<string, object?>? contentJson)
+        {
+            return LoadContent<PopulationContent>(contentJson);
         }
         #endregion
     }

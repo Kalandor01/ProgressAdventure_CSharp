@@ -10,7 +10,7 @@
         /// <inheritdoc cref="ElfPopulation"/>
         /// </summary>
         /// <inheritdoc cref="PopulationContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public ElfPopulation(string? name, IDictionary<string, object?>? data = null)
+        public ElfPopulation(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Population.ELF, name, data) { }
         #endregion
     }

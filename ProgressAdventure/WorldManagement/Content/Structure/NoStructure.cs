@@ -10,7 +10,7 @@
         /// <inheritdoc cref="NoStructure"/>
         /// </summary>
         /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public NoStructure(string? name, IDictionary<string, object?>? data = null)
+        public NoStructure(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Structure.NONE, name, data) { }
         #endregion
 

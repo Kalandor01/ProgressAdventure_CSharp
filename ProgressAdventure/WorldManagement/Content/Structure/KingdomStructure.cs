@@ -17,7 +17,7 @@
         /// <inheritdoc cref="KingdomStructure"/>
         /// </summary>
         /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public KingdomStructure(string? name, IDictionary<string, object?>? data = null)
+        public KingdomStructure(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Structure.KINGDOM, name, data)
         {
             population = GetLongValueFromData("population", data, (10000, 10000000));

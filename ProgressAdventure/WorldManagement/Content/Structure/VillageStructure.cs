@@ -17,7 +17,7 @@
         /// <inheritdoc cref="VillageStructure"/>
         /// </summary>
         /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public VillageStructure(string? name, IDictionary<string, object?>? data = null)
+        public VillageStructure(string? name = null, IDictionary<string, object?>? data = null)
             : base(ContentType.Structure.VILLAGE, name, data)
         {
             population = GetLongValueFromData("population", data, (50, 10000));

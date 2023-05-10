@@ -142,15 +142,14 @@ namespace ProgressAdventure.ItemManagement
             {
                 var itemDict = (IDictionary<string, object>)item;
                 if (
-                    int.TryParse(itemDict.TryGetValue("type", out var typeIDValue) ? typeIDValue.ToString() : null, out int itemTypeID) &&
-                    int.TryParse(itemDict.TryGetValue("amount", out var amountValue) ? amountValue.ToString() : null, out int itemAmount)
+                    itemDict.TryGetValue("type", out var typeIDValue) &&
+                    int.TryParse(typeIDValue.ToString(), out int itemTypeID) &&
+                    ItemUtils.TryParseItemType(itemTypeID, out ItemTypeID itemType) &&
+                    itemDict.TryGetValue("amount", out var amountValue) &&
+                    int.TryParse(amountValue.ToString(), out int itemAmount)
                 )
                 {
-                    var itemType = ItemUtils.ToItemType(itemTypeID);
-                    if (itemType is not null)
-                    {
-                        items.Add(new Item((ItemTypeID)itemType, itemAmount));
-                    }
+                    items.Add(new Item(itemType, itemAmount));
                 }
                 else
                 {
@@ -173,5 +172,5 @@ namespace ProgressAdventure.ItemManagement
             return txt.ToString();
         }
         #endregion
-}
+    }
 }
