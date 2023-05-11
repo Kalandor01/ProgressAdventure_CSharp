@@ -56,6 +56,7 @@ namespace ProgressAdventure
         /// <param name="extension">The extension of the file that will be decoded.</param>
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
         /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
+        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
         public static Dictionary<string, object?>? DecodeSaveShort(string filePath, int lineNum = 0, long? seed = null, string? extension = null)
         {
             seed ??= Constants.SAVE_SEED;
@@ -75,6 +76,11 @@ namespace ProgressAdventure
             catch (FileNotFoundException)
             {
                 Logger.Log("File not found", $"file name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
+                throw;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                Logger.Log("Folder containing file not found", $"folder name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
                 throw;
             }
             try

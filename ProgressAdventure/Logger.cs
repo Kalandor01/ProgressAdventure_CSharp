@@ -20,7 +20,7 @@ namespace ProgressAdventure
         {
             try
             {
-                if (Constants.LOGGING && Constants.LOGGING_LEVEL <= (int)severity)
+                if (Constants.LOGGING_ENABLED && Constants.LOGGING_LEVEL <= (int)severity)
                 {
                     var lType = severity.ToString();
                     var now = DateTime.Now;
@@ -47,7 +47,7 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                if (Constants.LOGGING)
+                if (Constants.LOGGING_ENABLED)
                 {
                     using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
                     f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{e}|\n");
@@ -68,11 +68,11 @@ namespace ProgressAdventure
                 Constants.LOGGING_LEVEL = value;
                 Log("Logging level changed", $"{oldLoggingLevel} -> {Constants.LOGGING_LEVEL}");
                 // logging
-                var oldLogging = Constants.LOGGING;
-                Constants.LOGGING = value != -1;
-                if (Constants.LOGGING != oldLogging)
+                var oldLogging = Constants.LOGGING_ENABLED;
+                Constants.LOGGING_ENABLED = value != -1;
+                if (Constants.LOGGING_ENABLED != oldLogging)
                 {
-                    Log($"Logging {(Constants.LOGGING ? "enabled" : "disabled")}");
+                    Log($"Logging {(Constants.LOGGING_ENABLED ? "enabled" : "disabled")}");
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace ProgressAdventure
         {
             try
             {
-                if (Constants.LOGGING)
+                if (Constants.LOGGING_ENABLED)
                 {
                     Tools.RecreateLogsFolder();
                     using var f = File.AppendText(Path.Join(Constants.LOGS_FOLDER_PATH, $"{Utils.MakeDate(DateTime.Now)}.{Constants.LOG_EXT}"));
@@ -93,7 +93,7 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                if (Constants.LOGGING)
+                if (Constants.LOGGING_ENABLED)
                 {
                     using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
                     f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOG NEW LINE CRASHED]\t: |{e}|\n");

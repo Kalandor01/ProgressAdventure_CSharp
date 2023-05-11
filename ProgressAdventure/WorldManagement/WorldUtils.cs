@@ -188,11 +188,11 @@ namespace ProgressAdventure.WorldManagement
             {
                 var noiseKey = noiseGeneratorEntry.Key;
                 var noiseGenerator = noiseGeneratorEntry.Value;
-                noiseValues[noiseKey] = noiseGenerator.Generate(absoluteX, absoluteY, 16.0 / Constants.TILE_NOISE_RESOLUTION) * 1;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 8.0 / Constants.TILE_NOISE_RESOLUTION) * 2;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 4.0 / Constants.TILE_NOISE_RESOLUTION) * 4;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 2.0 / Constants.TILE_NOISE_RESOLUTION) * 8;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 1.0 / Constants.TILE_NOISE_RESOLUTION) * 16;
+                noiseValues[noiseKey] = noiseGenerator.Generate(absoluteX, absoluteY, 16.0 / Constants.TILE_NOISE_DIVISION) * 1;
+                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 8.0 / Constants.TILE_NOISE_DIVISION) * 2;
+                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 4.0 / Constants.TILE_NOISE_DIVISION) * 4;
+                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 2.0 / Constants.TILE_NOISE_DIVISION) * 8;
+                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 1.0 / Constants.TILE_NOISE_DIVISION) * 16;
                 noiseValues[noiseKey] /= 31;
             }
             return noiseValues;

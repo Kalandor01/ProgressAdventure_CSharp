@@ -38,22 +38,22 @@ namespace ProgressAdventure.WorldManagement
         /// <inheritdoc cref="Tile"/><br/>
         /// Creates a new Tile object.
         /// </summary>
-        /// <param name="positionX">The x position of the tile.</param>
-        /// <param name="positionY">The y position of the tile.</param>
-        public Tile(long positionX, long positionY)
-            : this(positionX, positionY, null) { }
+        /// <param name="absoluteX">The absolute x position of the tile.</param>
+        /// <param name="absoluteY">The absolute y position of the tile.</param>
+        public Tile(long absoluteX, long absoluteY)
+            : this(absoluteX, absoluteY, null) { }
 
         /// <summary>
         /// <inheritdoc cref="Tile"/><br/>
         /// Load an existing Tile object, from json.
         /// </summary>
-        /// <param name="absolutePosition">The absolute position of the Tile.</param>
+        /// <param name="position">The position of the Tile.</param>
         /// <param name="visited"><inheritdoc cref="Visited" path="//summary"/></param>
         /// <param name="terrain"><inheritdoc cref="terrain" path="//summary"/></param>
         /// <param name="structure"><inheritdoc cref="structure" path="//summary"/></param>
         /// <param name="population"><inheritdoc cref="structure" path="//summary"/></param>
-        public Tile((long x, long y) absolutePosition, int? visited, TerrainContent terrain, StructureContent structure, PopulationContent population)
-            : this(absolutePosition.x, absolutePosition.y, visited, terrain, structure, population) { }
+        public Tile((long x, long y) position, int? visited, TerrainContent terrain, StructureContent structure, PopulationContent population)
+            : this(position.x, position.y, visited, terrain, structure, population) { }
         #endregion
 
         #region Private constructors
@@ -145,6 +145,7 @@ namespace ProgressAdventure.WorldManagement
         /// Converts the json representation of the tile into a tile object.
         /// </summary>
         /// <param name="tileJson">The json representation of the tile.</param>
+        /// <exception cref="ArgumentException"></exception>
         public static Tile FromJson(IDictionary<string, object?> tileJson)
         {
             // x and y
@@ -169,7 +170,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode visited from json", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode visited from json. Recreacting...", Enums.LogSeverity.WARN);
             }
             // terrain
             TerrainContent? terrain = null;
@@ -181,7 +182,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode terrain from json", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode terrain from json. Recreacting...", Enums.LogSeverity.WARN);
             }
             // structure
             StructureContent? structure = null;
@@ -193,7 +194,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode structure from json", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode structure from json. Recreacting...", Enums.LogSeverity.WARN);
             }
             // population
             PopulationContent? population = null;
@@ -205,7 +206,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode population from json", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode population from json. Recreacting...", Enums.LogSeverity.WARN);
             }
             return new Tile(xPos, yPos, visited, terrain, structure, population);
         }

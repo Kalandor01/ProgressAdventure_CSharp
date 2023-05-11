@@ -205,6 +205,16 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Rounds down a number, until it is divisible by another number.
+        /// </summary>
+        /// <param name="num">The number to round down.</param>
+        /// <param name="round">The number to round to.</param>
+        public static long FloorRound(long num, long round)
+        {
+            return num - Mod(num, round);
+        }
+
+        /// <summary>
         /// Recursively writes out lists and dictionaries.
         /// </summary>
         /// <param name="writable">The object to write out</param>

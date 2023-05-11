@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.WorldManagement;
 using System.Text;
 
 namespace ProgressAdventure
@@ -12,16 +13,9 @@ namespace ProgressAdventure
         {
             SaveData.Initialise("test");
 
-
-
-            
             
 
             Console.WriteLine();
-
-            //Utils.RecursiveWrite(kb.ToJson());
-
-
         }
 
         /// <summary>
