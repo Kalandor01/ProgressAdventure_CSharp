@@ -63,7 +63,7 @@
                     var num = 0L;
                     for (var x = 0; x < drop.rolls; x++)
                     {
-                        num += SaveData.MainRandom.GenerateDouble() <= drop.chance ? SaveData.MainRandom.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
+                        num += RandomStates.MainRandom.GenerateDouble() <= drop.chance ? RandomStates.MainRandom.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
                     }
                     if (num > 0)
                     {

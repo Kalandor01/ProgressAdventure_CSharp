@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Enums;
+﻿using NPrng.Generators;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.WorldManagement.Content
 {
@@ -22,16 +23,24 @@ namespace ProgressAdventure.WorldManagement.Content
         public string? Name { get; private set; }
         #endregion
 
+        #region Protected fields
+        /// <summary>
+        /// A referance to the chunk's random generator, that this content is in.
+        /// </summary>
+        protected readonly SplittableRandom chunkRandom;
+        #endregion
+
         #region Constructors
         /// <summary>
         /// <inheritdoc cref="BaseContent"/>
         /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="type"><inheritdoc cref="type" path="//summary"/></param>
         /// <param name="subtype"><inheritdoc cref="subtype" path="//summary"/></param>
         /// <param name="name"><inheritdoc cref="Name" path="//summary"/></param>
         /// <param name="data">The extra data for this content. Specific to each content subtype.</param>
         /// <exception cref="ArgumentException">Thrown, if the type is not a base type, and the subtype is not the child of that type.</exception>
-        protected BaseContent(ContentTypeID type, ContentTypeID subtype, string? name = null, IDictionary<string, object?>? data = null)
+        protected BaseContent(SplittableRandom chunkRandom, ContentTypeID type, ContentTypeID subtype, string? name = null, IDictionary<string, object?>? data = null)
         {
             if (
                 subtype.Super != type ||
@@ -42,9 +51,10 @@ namespace ProgressAdventure.WorldManagement.Content
                 throw new ArgumentException("Content types are missmached.");
             }
 
+            this.chunkRandom = chunkRandom;
             this.type = type;
             this.subtype = subtype;
-            this.Name = name;
+            Name = name;
         }
         #endregion
 
@@ -74,7 +84,7 @@ namespace ProgressAdventure.WorldManagement.Content
         #region Protected methods
         protected virtual void GenContentName()
         {
-            Name ??= subtype.ToString() + " " + SaveData.WorldRandom.GenerateInRange(0, 100000).ToString();
+            Name ??= subtype.ToString() + " " + RandomStates.MiscRandom.GenerateInRange(0, 100000).ToString();
         }
         #endregion
 
@@ -82,14 +92,15 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <summary>
         /// Returns a value, from a range, using the world random.
         /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="valueRange">The range, the value can have.</param>
-        protected static long GetContentValueRange((long min, long max)? valueRange = null)
+        protected static long GetContentValueRange(SplittableRandom chunkRandom, (long min, long max)? valueRange = null)
         {
             if (valueRange is not null)
             {
                 if (valueRange.Value.min != valueRange.Value.max)
                 {
-                    return SaveData.WorldRandom.GenerateInRange(valueRange.Value.min, valueRange.Value.max);
+                    return chunkRandom.GenerateInRange(valueRange.Value.min, valueRange.Value.max);
                 }
                 else
                 {
@@ -98,17 +109,18 @@ namespace ProgressAdventure.WorldManagement.Content
             }
             else
             {
-                return SaveData.WorldRandom.GenerateInRange(1, 1000);
+                return chunkRandom.GenerateInRange(1, 1000);
             }
         }
 
         /// <summary>
         /// Rturns the value of the long, at the given key, or makes a new value.
         /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="key">The key to use.</param>
         /// <param name="data">The dictionary to search in.</param>
         /// <param name="defaultRange">The dafult range to use, if the value doesn't exist.</param>
-        protected static long GetLongValueFromData(string key, IDictionary<string, object?>? data, (long min, long max)? defaultRange = null)
+        protected static long GetLongValueFromData(SplittableRandom chunkRandom, string key, IDictionary<string, object?>? data, (long min, long max)? defaultRange = null)
         {
             long value;
             if (data is not null && data.ContainsKey(key) && data[key] is not null)
@@ -117,7 +129,7 @@ namespace ProgressAdventure.WorldManagement.Content
             }
             else
             {
-                value = GetContentValueRange(defaultRange);
+                value = GetContentValueRange(chunkRandom, defaultRange);
             }
             return value;
         }
@@ -126,9 +138,10 @@ namespace ProgressAdventure.WorldManagement.Content
         /// Load a content object from the content json.
         /// </summary>
         /// <typeparam name="T">The content type to return.</typeparam>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="contentJson">The json representation of the content.</param>
         /// <exception cref="ArgumentException">Thrown if the content type cannot be created.</exception>
-        protected static T LoadContent<T>(IDictionary<string, object?>? contentJson)
+        protected static T LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
             where T : BaseContent
         {
             var contentTypeMap = WorldUtils.contentTypeMap[typeof(T)];
@@ -136,20 +149,6 @@ namespace ProgressAdventure.WorldManagement.Content
             string? contentName = null;
             if (contentJson is not null)
             {
-                if (contentJson.TryGetValue("subtype", out object? contentTypeIDValue2))
-                {
-                    if (int.TryParse(contentTypeIDValue2?.ToString(), out int contentTypeID2))
-                    {
-                        if (WorldUtils.TryParseContentType(contentTypeID2, out ContentTypeID contentTypeValue2))
-                        {
-                            if (contentTypeMap.ContainsKey(contentTypeValue2))
-                            {
-
-                            }
-                        }
-                    }
-                }
-
                 // get content type
                 if (
                     contentJson.TryGetValue("subtype", out object? contentTypeIDValue) &&
@@ -183,7 +182,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 contentType = contentTypeMap.First().Value;
             }
             // get content
-            var content = Activator.CreateInstance(contentType, new object?[] { contentName, contentJson }) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
+            var content = Activator.CreateInstance(contentType, new object?[] {chunkRandom, contentName, contentJson}) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
             return (T)content;
         }
         #endregion

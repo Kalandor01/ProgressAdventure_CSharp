@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Structure
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Structure
 {
     /// <summary>
     /// Class for no structure content layer, for a tile.
@@ -9,9 +11,9 @@
         /// <summary>
         /// <inheritdoc cref="NoStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public NoStructure(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Structure.NONE, name, data) { }
+        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public NoStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Structure.NONE, name, data) { }
         #endregion
 
         #region Public overrides

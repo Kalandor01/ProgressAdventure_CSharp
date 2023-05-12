@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Terrain
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
     /// <summary>
     /// Class for mountain terrain content layer, for a tile.
@@ -16,11 +18,11 @@
         /// <summary>
         /// <inheritdoc cref="MountainTerrain"/>
         /// </summary>
-        /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public MountainTerrain(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Terrain.MOUNTAIN, name, data)
+        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public MountainTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Terrain.MOUNTAIN, name, data)
         {
-            height = GetLongValueFromData("height", data, (500, 10000));
+            height = GetLongValueFromData(base.chunkRandom, "height", data, (500, 10000));
         }
         #endregion
 

@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.WorldManagement.Content;
+﻿using NPrng.Generators;
+using ProgressAdventure.WorldManagement.Content;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -47,13 +48,14 @@ namespace ProgressAdventure.WorldManagement
         /// <inheritdoc cref="Tile"/><br/>
         /// Load an existing Tile object, from json.
         /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="position">The position of the Tile.</param>
         /// <param name="visited"><inheritdoc cref="Visited" path="//summary"/></param>
         /// <param name="terrain"><inheritdoc cref="terrain" path="//summary"/></param>
         /// <param name="structure"><inheritdoc cref="structure" path="//summary"/></param>
         /// <param name="population"><inheritdoc cref="structure" path="//summary"/></param>
-        public Tile((long x, long y) position, int? visited, TerrainContent terrain, StructureContent structure, PopulationContent population)
-            : this(position.x, position.y, visited, terrain, structure, population) { }
+        public Tile(SplittableRandom chunkRandom, (long x, long y) position, int? visited, TerrainContent terrain, StructureContent structure, PopulationContent population)
+            : this(position.x, position.y, chunkRandom, visited, terrain, structure, population) { }
         #endregion
 
         #region Private constructors
@@ -63,18 +65,20 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="absoluteX">The absolute x coordinate of the Tile.</param>
         /// <param name="absoluteY">The absolute y coordinate of the Tile.</param>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="visited"><inheritdoc cref="Visited" path="//summary"/></param>
         /// <param name="terrain"><inheritdoc cref="terrain" path="//summary"/></param>
         /// <param name="structure"><inheritdoc cref="structure" path="//summary"/></param>
         /// <param name="population"><inheritdoc cref="population" path="//summary"/></param>
-        private Tile(long absoluteX, long absoluteY, int? visited = null, TerrainContent? terrain = null, StructureContent? structure = null, PopulationContent? population = null)
+        private Tile(long absoluteX, long absoluteY, SplittableRandom? chunkRandom = null, int? visited = null, TerrainContent? terrain = null, StructureContent? structure = null, PopulationContent? population = null)
         {
             relativePosition = (Utils.Mod(absoluteX, Constants.CHUNK_SIZE), Utils.Mod(absoluteY, Constants.CHUNK_SIZE));
             Visited = visited ?? 0;
             if (terrain is null || structure is null || population is null)
             {
+                chunkRandom ??= Chunk.GetChunkRandom((absoluteX, absoluteY));
                 var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
-                terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(noiseValues);
+                terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(chunkRandom, noiseValues);
                 if (structure is null)
                 {
                     // less structures on water
@@ -87,7 +91,7 @@ namespace ProgressAdventure.WorldManagement
                     {
                         noStructureDL -= 0.05;
                     }
-                    structure = WorldUtils.CalculateClosestContent<StructureContent>(noiseValues, noStructureDL);
+                    structure = WorldUtils.CalculateClosestContent<StructureContent>(chunkRandom, noiseValues, noStructureDL);
                 }
                 if (population is null)
                 {
@@ -97,7 +101,7 @@ namespace ProgressAdventure.WorldManagement
                     {
                         noPopulationDL -= 0.1;
                     }
-                    population = WorldUtils.CalculateClosestContent<PopulationContent>(noiseValues, noPopulationDL);
+                    population = WorldUtils.CalculateClosestContent<PopulationContent>(chunkRandom, noiseValues, noPopulationDL);
                 }
             }
             this.terrain = terrain;
@@ -144,9 +148,10 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Converts the json representation of the tile into a tile object.
         /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="tileJson">The json representation of the tile.</param>
         /// <exception cref="ArgumentException"></exception>
-        public static Tile FromJson(IDictionary<string, object?> tileJson)
+        public static Tile FromJson(SplittableRandom chunkRandom, IDictionary<string, object?> tileJson)
         {
             // x and y
             if (!(
@@ -178,7 +183,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("terrain", out object? terrainJson)
             )
             {
-                terrain = TerrainContent.FromJson((IDictionary<string, object?>?)terrainJson);
+                terrain = TerrainContent.FromJson(chunkRandom, (IDictionary<string, object?>?)terrainJson);
             }
             else
             {
@@ -190,7 +195,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("structure", out object? structureJson)
             )
             {
-                structure = StructureContent.FromJson((IDictionary<string, object?>?)structureJson);
+                structure = StructureContent.FromJson(chunkRandom, (IDictionary<string, object?>?)structureJson);
             }
             else
             {
@@ -202,13 +207,13 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("population", out object? populationJson)
             )
             {
-                population = PopulationContent.FromJson((IDictionary<string, object?>?)populationJson);
+                population = PopulationContent.FromJson(chunkRandom, (IDictionary<string, object?>?)populationJson);
             }
             else
             {
                 Logger.Log("Tile decode error", "couldn't decode population from json. Recreacting...", Enums.LogSeverity.WARN);
             }
-            return new Tile(xPos, yPos, visited, terrain, structure, population);
+            return new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);
         }
         #endregion
     }

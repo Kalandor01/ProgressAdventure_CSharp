@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Terrain
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
     /// <summary>
     /// Class for ocean terrain content layer, for a tile.
@@ -16,11 +18,11 @@
         /// <summary>
         /// <inheritdoc cref="OceanTerrain"/>
         /// </summary>
-        /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public OceanTerrain(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Terrain.OCEAN, name, data)
+        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public OceanTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Terrain.OCEAN, name, data)
         {
-            depth = GetLongValueFromData("depth", data, (100, 20000));
+            depth = GetLongValueFromData(base.chunkRandom, "depth", data, (100, 20000));
         }
         #endregion
 

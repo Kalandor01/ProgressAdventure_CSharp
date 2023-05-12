@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Enums;
+﻿using NPrng.Generators;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 using ProgressAdventure.WorldManagement.Content.Population;
 using ProgressAdventure.WorldManagement.Content.Structure;
@@ -173,6 +174,16 @@ namespace ProgressAdventure.WorldManagement
             [typeof(StructureContent)] = _structureContentTypeMap,
             [typeof(PopulationContent)] = _populationContentTypeMap,
         };
+
+        /// <summary>
+        /// Dictionary to map content types to their content subtype text maps.
+        /// </summary>
+        public static readonly Dictionary<ContentTypeID, Dictionary<ContentTypeID, string>> contentTypeIDTextMap = new()
+        {
+            //[ContentType.TerrainContentType] = _terraincontentTypeIDTextMap,
+            //[ContentType.StructureContentType] = _structurecontentTypeIDTextMap,
+            //[ContentType.PopulationContentType] = _populationcontentTypeIDTextMap,
+        };
         #endregion
 
         #region Public functions
@@ -184,16 +195,17 @@ namespace ProgressAdventure.WorldManagement
         public static Dictionary<TileNoiseType, double> GetNoiseValues(long absoluteX, long absoluteY)
         {
             var noiseValues = new Dictionary<TileNoiseType, double>();
-            foreach (var noiseGeneratorEntry in SaveData.TileTypeNoiseGenerators)
+            foreach (var noiseGeneratorEntry in RandomStates.TileTypeNoiseGenerators)
             {
                 var noiseKey = noiseGeneratorEntry.Key;
                 var noiseGenerator = noiseGeneratorEntry.Value;
-                noiseValues[noiseKey] = noiseGenerator.Generate(absoluteX, absoluteY, 16.0 / Constants.TILE_NOISE_DIVISION) * 1;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 8.0 / Constants.TILE_NOISE_DIVISION) * 2;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 4.0 / Constants.TILE_NOISE_DIVISION) * 4;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 2.0 / Constants.TILE_NOISE_DIVISION) * 8;
-                noiseValues[noiseKey] += noiseGenerator.Generate(absoluteX, absoluteY, 1.0 / Constants.TILE_NOISE_DIVISION) * 16;
-                noiseValues[noiseKey] /= 31;
+                var noiseValue = noiseGenerator.Generate(absoluteX, absoluteY, 16.0 / Constants.TILE_NOISE_DIVISION) * 1;
+                noiseValue += noiseGenerator.Generate(absoluteX, absoluteY, 8.0 / Constants.TILE_NOISE_DIVISION) * 2;
+                noiseValue += noiseGenerator.Generate(absoluteX, absoluteY, 4.0 / Constants.TILE_NOISE_DIVISION) * 4;
+                noiseValue += noiseGenerator.Generate(absoluteX, absoluteY, 2.0 / Constants.TILE_NOISE_DIVISION) * 8;
+                noiseValue += noiseGenerator.Generate(absoluteX, absoluteY, 1.0 / Constants.TILE_NOISE_DIVISION) * 16;
+                noiseValue /= 31;
+                noiseValues[noiseKey] = noiseValue;
             }
             return noiseValues;
         }
@@ -214,11 +226,12 @@ namespace ProgressAdventure.WorldManagement
         /// Calculates the best tile type for the space depending on the perlin noise values.
         /// </summary>
         /// <typeparam name="T">The content type to reurn.</typeparam>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
         /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
         /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
         /// <exception cref="ArgumentNullException">Thrown if the content type cannot be created.</exception>
-        public static T CalculateClosestContent<T>(IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
+        public static T CalculateClosestContent<T>(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
             where T : BaseContent
         {
             noStructureDLOverride ??= noStructureDifferenceLimit;
@@ -255,7 +268,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 minDiffContentType = typeof(NoPopulation);
             }
-            var contentObj = Activator.CreateInstance(minDiffContentType, new object?[] { null, null }) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
+            var contentObj = Activator.CreateInstance(minDiffContentType, new object?[] {chunkRandom, null, null}) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
             return (T)contentObj;
         }
 

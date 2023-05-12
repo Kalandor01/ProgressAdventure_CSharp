@@ -26,7 +26,7 @@ namespace ProgressAdventure
             // CHUNKS/WORLD
             Tools.RecreateChunksFolder();
             Logger.Log("Saving chunks");
-            World.SaveAllChunksToFiles(Tools.GetSaveFolderPath(), clearChunks, showProgressText);
+            World.SaveAllChunksToFiles(null, clearChunks, showProgressText);
             // remove backup
             if (backupStatus is not null)
             {
@@ -38,19 +38,31 @@ namespace ProgressAdventure
         /// <summary>
         /// Creates the data for a new save file.
         /// </summary>
-        public static void CreateSaveData()
+        /// <param name="displaySaveName">The display name of the save file.</param>
+        /// <param name="playerName">The name of the player.</param>
+        public static void CreateSaveData(string? displaySaveName, string? playerName)
         {
             Logger.Log("Preparing game data");
             // make save name
-            var displaySaveName = Utils.Input("Name your save: ");
             var saveName = Tools.CorrectSaveName(displaySaveName);
-            // make player
-            var playerName = Utils.Input("What is your name?: ");
+            // random generators
+            RandomStates.Initialise();
+            // player
             var player = new Player(playerName);
             // load to class
-            SaveData.Initialise(saveName, displaySaveName, player: player);
+            SaveData.Initialise(saveName, displaySaveName, null, player, false);
             World.Initialise();
-            World.GenerateTile(SaveData.player.position.x, SaveData.player.position.y);
+            World.GenerateTile((SaveData.player.position.x, SaveData.player.position.y));
+        }
+
+        /// <summary>
+        /// Creates the data for a new save file, using user input.
+        /// </summary>
+        public static void CreateSaveData()
+        {
+            var displaySaveName = Utils.Input("Name your save: ");
+            var playerName = Utils.Input("What is your name?: ");
+            CreateSaveData(displaySaveName, playerName);
         }
 
         /// <summary>
@@ -115,25 +127,23 @@ namespace ProgressAdventure
                 // correct
                 CorrectSaveData(data, saveVersion);
             }
+            // load random states
+            var randomStates = (IDictionary<string, object?>?)data["randomStates"];
+            RandomStates.FromJson(randomStates);
             // display_name
-            var displayName = (string)data["displayName"];
+            var displayName = (string?)data["displayName"];
             // last access
-            var lastAccess = (DateTime)data["lastAccess"];
+            var lastAccess = (DateTime?)data["lastAccess"];
             // player
-            var playerData = (IDictionary<string, object>)data["player"];
+            var playerData = (IDictionary<string, object?>?)data["player"];
             var player = Player.FromJson(playerData);
-            Logger.Log("Loaded save", $"save name: {saveName}, player name: \"{player.fullName}\", last saved: {Utils.MakeDate(lastAccess)} {Utils.MakeTime(lastAccess)}");
+            Logger.Log("Loaded save data from json", $"save name: {saveName}");
 
             // PREPARING
             Logger.Log("Preparing game data");
-            // load seeds
-            var seeds = (IDictionary<string, object?>)data["seeds"];
-            var mainSeed = Tools.DeserializeRandom((string)seeds["mainRandom"]);
-            var worldSeed = Tools.DeserializeRandom((string)seeds["worldRandom"]);
-            var tileTypeNoiseSeeds = seeds["tileTypeNoiseSeeds"];
-            var deserialisedNoiseSeeds = DeserialiseTileNoiseSeeds((IDictionary<string, object?>)tileTypeNoiseSeeds);
             // load to class
-            SaveData.Initialise(saveName, displayName, lastAccess, player, mainSeed, worldSeed, deserialisedNoiseSeeds);
+            SaveData.Initialise(saveName, displayName, lastAccess, player, false);
+            Logger.Log("Game data loaded", $"save name: {saveName}, player name: \"{SaveData.player.fullName}\", last saved: {Utils.MakeDate(SaveData.lastAccess)} {Utils.MakeTime(SaveData.lastAccess)}");
             World.Initialise();
         }
 
@@ -201,29 +211,6 @@ namespace ProgressAdventure
                 saveVersion = "2.0";
                 Logger.Log("Corrected save data", "1.5.3 -> 2.0", LogSeverity.DEBUG);
             }
-        }
-
-        /// <summary>
-        /// Deserialises the json representation of the tile type noise seeds, into a potentialy partial dictionary.
-        /// </summary>
-        /// <param name="tileTypeNoiseSeeds">The json representation of the tile type noise seeds.</param>
-        private static Dictionary<TileNoiseType, ulong> DeserialiseTileNoiseSeeds(IDictionary<string, object?> tileTypeNoiseSeeds)
-        {
-            var noiseSeedDict = new Dictionary<TileNoiseType, ulong>();
-            foreach (var tileTypeNoiseSeed in tileTypeNoiseSeeds)
-            {
-                if (
-                    tileTypeNoiseSeed.Value is not null &&
-                    Enum.TryParse(typeof(TileNoiseType), tileTypeNoiseSeed.Key.ToString(), out object? noiseTypeValue) &&
-                    noiseTypeValue is not null &&
-                    Enum.IsDefined(typeof(TileNoiseType), noiseTypeValue) &&
-                    uint.TryParse(tileTypeNoiseSeed.Value.ToString(), out uint noiseSeed)
-                )
-                {
-                    noiseSeedDict.Add((TileNoiseType)noiseTypeValue, noiseSeed);
-                }
-            }
-            return noiseSeedDict;
         }
 
         /// <summary>

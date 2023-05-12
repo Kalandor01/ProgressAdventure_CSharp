@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Terrain
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
     /// <summary>
     /// Class for shore terrain content layer, for a tile.
@@ -16,11 +18,11 @@
         /// <summary>
         /// <inheritdoc cref="ShoreTerrain"/>
         /// </summary>
-        /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public ShoreTerrain(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Terrain.SHORE, name, data)
+        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public ShoreTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Terrain.SHORE, name, data)
         {
-            depth = GetLongValueFromData("depth", data, (1, 100));
+            depth = GetLongValueFromData(base.chunkRandom, "depth", data, (1, 100));
         }
         #endregion
 

@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Structure
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Structure
 {
     /// <summary>
     /// Class for bandit camp structure content layer, for a tile.
@@ -9,9 +11,9 @@
         /// <summary>
         /// <inheritdoc cref="BanditCampStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public BanditCampStructure(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Structure.BANDIT_CAMP, name, data) { }
+        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public BanditCampStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Structure.BANDIT_CAMP, name, data) { }
         #endregion
 
         #region Public overrides

@@ -110,13 +110,13 @@ namespace ProgressAdventure.Entity
         public void WeightedTurn()
         {
             // turn
-            if (SaveData.MainRandom.GenerateDouble() < 0.2)
+            if (RandomStates.MainRandom.GenerateDouble() < 0.2)
             {
                 var oldFacing = facing;
                 var movementVector = EntityUtils.facingToMovementVectorMapping[facing];
                 Facing? newFacing;
                 // back
-                if (SaveData.MainRandom.GenerateDouble() < 0.2)
+                if (RandomStates.MainRandom.GenerateDouble() < 0.2)
                 {
                     var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
                     newFacing = EntityUtils.MovementVectorToFacing(((int)x, (int)y));
@@ -125,9 +125,9 @@ namespace ProgressAdventure.Entity
                 else
                 {
                     // side
-                    if (SaveData.MainRandom.GenerateDouble() < 0.2)
+                    if (RandomStates.MainRandom.GenerateDouble() < 0.2)
                     {
-                        if (SaveData.MainRandom.GenerateDouble() < 0.5)
+                        if (RandomStates.MainRandom.GenerateDouble() < 0.5)
                         {
                             newFacing = EntityUtils.MovementVectorToFacing((movementVector.y, movementVector.x));
                         }
@@ -143,7 +143,7 @@ namespace ProgressAdventure.Entity
                         // straight to diagonal
                         if (movementVector.x == 0 || movementVector.y == 0)
                         {
-                            var diagonalDir = SaveData.MainRandom.GenerateDouble() < 0.5 ? 1 : -1;
+                            var diagonalDir = RandomStates.MainRandom.GenerateDouble() < 0.5 ? 1 : -1;
                             newFacing = EntityUtils.MovementVectorToFacing((
                                 movementVector.x == 0 ? diagonalDir : movementVector.x,
                                 movementVector.y == 0 ? diagonalDir : movementVector.y
@@ -152,7 +152,7 @@ namespace ProgressAdventure.Entity
                         // diagonal to straight
                         else
                         {
-                            var resetX = SaveData.MainRandom.GenerateDouble() < 0.5;
+                            var resetX = RandomStates.MainRandom.GenerateDouble() < 0.5;
                             newFacing = EntityUtils.MovementVectorToFacing((
                                 resetX ? 0 : movementVector.x,
                                 !resetX ? 0 : movementVector.y
@@ -202,8 +202,13 @@ namespace ProgressAdventure.Entity
         /// Converts the <c>Player</c> json to object format.
         /// </summary>
         /// <param name="playerJson">The json representation of the <c>Player</c> object.</param>
-        public static Player FromJson(IDictionary<string, object> playerJson)
+        public static Player? FromJson(IDictionary<string, object?>? playerJson)
         {
+            if (playerJson is null)
+            {
+                Logger.Log("Player parse error", "player json is null", LogSeverity.ERROR);
+                return null;
+            }
             // name
             string name;
             if (playerJson.TryGetValue("name", out var playerName) &&
@@ -215,7 +220,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Couldn't parse player name from Player JSON", severity:LogSeverity.WARN);
+                Logger.Log("Player parse error", "couldn't parse player name", LogSeverity.WARN);
                 name = "You";
             }
             // inventory
@@ -228,7 +233,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Couldn't parse player inventory from Player JSON", severity: LogSeverity.WARN);
+                Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
             }
             // position
             (long x, long y)? position = null;

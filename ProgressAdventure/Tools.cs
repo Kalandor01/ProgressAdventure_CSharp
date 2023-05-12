@@ -151,41 +151,27 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for a save folder, and all previous folders up to root.
         /// </summary>
-        /// <param name="saveFolderName">The save name.</param>
+        /// <param name="saveFolderName">The name of the save folder.<br/>
+        /// If null, it uses the save name of <c>SaveData</c> instead.</param>
         /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
-        public static bool RecreateSaveFileFolder(string saveFolderName)
+        public static bool RecreateSaveFileFolder(string? saveFolderName = null)
         {
+            saveFolderName ??= SaveData.saveName;
             RecreateSavesFolder();
             return RecreateFolder(saveFolderName, Constants.SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
         }
 
         /// <summary>
-        /// <c>RecreateFolder</c> for the currently loaded save folder, and all previous folders up to root.
-        /// </summary>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
-        public static bool RecreateSaveFileFolder()
-        {
-            return RecreateSaveFileFolder(SaveData.saveName);
-        }
-
-        /// <summary>
         /// <c>RecreateFolder</c> for a save's chunk folder, and all previous folders up to root.
         /// </summary>
-        /// <param name="saveFolderName">The save name.</param>
+        /// <param name="saveFolderName">The save name.<br/>
+        /// If null, it uses the save name of <c>SaveData</c> instead.</param>
         /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
-        public static bool RecreateChunksFolder(string saveFolderName)
+        public static bool RecreateChunksFolder(string? saveFolderName = null)
         {
-            RecreateSaveFileFolder();
+            saveFolderName ??= SaveData.saveName;
+            RecreateSaveFileFolder(saveFolderName);
             return RecreateFolder(Constants.SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
-        }
-
-        /// <summary>
-        /// <c>RecreateFolder</c> for the currently loaded save's chunk folder, and all previous folders up to root.
-        /// </summary>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
-        public static bool RecreateChunksFolder()
-        {
-            return RecreateChunksFolder(SaveData.saveName);
         }
         #endregion
 
@@ -268,9 +254,29 @@ namespace ProgressAdventure
         /// Turns the string representation of a Splittable random into an object.
         /// </summary>
         /// <param name="randomString">The random generator's string representation.</param>
-        public static SplittableRandom DeserializeRandom(string randomString)
+        public static SplittableRandom? DeserializeRandom(string? randomString)
         {
-            return (SplittableRandom)new SplittableRandomSerializer().ReadFromString(randomString);
+            if (randomString is null)
+            {
+                Logger.Log("Random parse error", "random seed is null", LogSeverity.WARN);
+                return null;
+            }
+            try
+            {
+                return (SplittableRandom)new SplittableRandomSerializer().ReadFromString(randomString);
+            }
+            catch (Exception e)
+            {
+                if (e is ArgumentNullException || e is FormatException)
+                {
+                    Logger.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         /// <summary>

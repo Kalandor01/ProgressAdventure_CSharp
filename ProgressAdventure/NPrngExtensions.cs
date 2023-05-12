@@ -2,6 +2,9 @@
 
 namespace ProgressAdventure
 {
+    /// <summary>
+    /// Object for storing extensions for <c>NPrng</c>.
+    /// </summary>
     public static class NPrngExtensions
     {
         public static double Triangular(this AbstractPseudoRandomGenerator generator,

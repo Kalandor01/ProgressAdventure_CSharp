@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content
 {
     /// <summary>
     /// Abstract class for the structure content layer, for a tile.
@@ -9,16 +11,16 @@
         /// <summary>
         /// <inheritdoc cref="StructureContent"/>
         /// </summary>
-        /// <inheritdoc cref="BaseContent(ContentTypeID, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        protected StructureContent(ContentTypeID subtype, string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.StructureContentType, subtype, name, data) { }
+        /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        protected StructureContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.StructureContentType, subtype, name, data) { }
         #endregion
 
         #region Public functions
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(IDictionary{string, object?}?)"/>
-        public static StructureContent FromJson(IDictionary<string, object?>? contentJson)
+        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?)"/>
+        public static StructureContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
         {
-            return LoadContent<StructureContent>(contentJson);
+            return LoadContent<StructureContent>(chunkRandom, contentJson);
         }
         #endregion
     }

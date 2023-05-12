@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Population
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Population
 {
     /// <summary>
     /// Class for elf population content layer, for a tile.
@@ -9,9 +11,9 @@
         /// <summary>
         /// <inheritdoc cref="ElfPopulation"/>
         /// </summary>
-        /// <inheritdoc cref="PopulationContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public ElfPopulation(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Population.ELF, name, data) { }
+        /// <inheritdoc cref="PopulationContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public ElfPopulation(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Population.ELF, name, data) { }
         #endregion
     }
 }

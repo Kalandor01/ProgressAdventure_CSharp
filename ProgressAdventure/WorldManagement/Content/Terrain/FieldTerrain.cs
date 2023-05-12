@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Terrain
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
     /// <summary>
     /// Class for filed terrain content layer, for a tile.
@@ -9,9 +11,9 @@
         /// <summary>
         /// <inheritdoc cref="FieldTerrain"/>
         /// </summary>
-        /// <inheritdoc cref="TerrainContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public FieldTerrain(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Terrain.FIELD, name, data) { }
+        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public FieldTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Terrain.FIELD, name, data) { }
         #endregion
 
         #region Public overrides

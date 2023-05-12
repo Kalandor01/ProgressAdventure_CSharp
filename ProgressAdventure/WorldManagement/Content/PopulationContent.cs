@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content
 {
     /// <summary>
     /// Abstract class for the population content layer, for a tile.
@@ -13,11 +15,11 @@
         /// <summary>
         /// <inheritdoc cref="PopulationContent"/>
         /// </summary>
-        /// <inheritdoc cref="BaseContent(ContentTypeID, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        protected PopulationContent(ContentTypeID subtype, string? name, IDictionary<string, object?>? data = null)
-            : base(ContentType.PopulationContentType, subtype, name, data)
+        /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.PopulationContentType, subtype, name, data)
         {
-            amount = GetLongValueFromData("amount", data, (1, 1000));
+            amount = GetLongValueFromData(base.chunkRandom, "amount", data, (1, 1000));
         }
         #endregion
 
@@ -33,7 +35,7 @@
             {
                 if (tile.structure.subtype == ContentType.Structure.BANDIT_CAMP)
                 {
-                    if (SaveData.WorldRandom.GenerateDouble() < 0.75)
+                    if (chunkRandom.GenerateDouble() < 0.75)
                     {
                         Console.WriteLine("fight");
                     }
@@ -43,7 +45,7 @@
                     tile.structure.subtype == ContentType.Structure.KINGDOM
                 )
                 {
-                    if (SaveData.WorldRandom.GenerateDouble() < 0.01)
+                    if (chunkRandom.GenerateDouble() < 0.01)
                     {
                         Console.WriteLine("fight");
                     }
@@ -60,10 +62,10 @@
         #endregion
 
         #region Public functions
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(IDictionary{string, object?}?)"/>
-        public static PopulationContent FromJson(IDictionary<string, object?>? contentJson)
+        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?)"/>
+        public static PopulationContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
         {
-            return LoadContent<PopulationContent>(contentJson);
+            return LoadContent<PopulationContent>(chunkRandom, contentJson);
         }
         #endregion
     }

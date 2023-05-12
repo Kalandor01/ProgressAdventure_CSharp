@@ -1,5 +1,5 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.ItemManagement;
+﻿using NPrng.Generators;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -8,6 +8,7 @@ namespace ProgressAdventure.WorldManagement
     /// </summary>
     public class Chunk
     {
+        #region Public fields
         /// <summary>
         /// The absolute position of the base of the chunk.
         /// </summary>
@@ -16,6 +17,14 @@ namespace ProgressAdventure.WorldManagement
         /// The list of tiles in the chunk.
         /// </summary>
         public readonly Dictionary<string, Tile> tiles;
+        #endregion
+
+        #region Public properties
+        /// <summary>
+        /// This chunk's random generator.
+        /// </summary>
+        public SplittableRandom ChunkRandomGenerator { get; private set; }
+        #endregion
 
         #region Constructors
         /// <summary>
@@ -29,6 +38,7 @@ namespace ProgressAdventure.WorldManagement
             var baseY = Utils.FloorRound(basePosition.y, Constants.CHUNK_SIZE);
             this.basePosition = (baseX, baseY);
             Logger.Log("Creating chunk", $"baseX: {this.basePosition.x} , baseY: {this.basePosition.y}");
+            ChunkRandomGenerator = GetChunkRandom(basePosition);
             this.tiles = tiles ?? new Dictionary<string, Tile>();
             FillChunk(tiles is not null);
         }
@@ -38,7 +48,6 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Returns a json representation of the <c>Chunk</c>.
         /// </summary>
-        /// <returns></returns>
         public Dictionary<string, object> ToJson()
         {
             var tilesJson = new List<Dictionary<string, object?>>();
@@ -61,7 +70,7 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Generates a new tile at a specific position.
+        /// Generates a new <c>Tile</c> at a specific position.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the tile.</param>
         public Tile GenerateTile((long x, long y) absolutePosition)
@@ -71,7 +80,7 @@ namespace ProgressAdventure.WorldManagement
             tiles[tileKey] = tile;
             var posX = Utils.Mod(absolutePosition.x, Constants.CHUNK_SIZE);
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
-            Logger.Log("Created tile", $"x: {posX} , y: {posY}", Enums.LogSeverity.DEBUG);
+            Logger.Log("Created tile", $"x: {posX} , y: {posY}", LogSeverity.DEBUG);
             return tile;
         }
 
@@ -79,7 +88,7 @@ namespace ProgressAdventure.WorldManagement
         /// Tries to find a tile at a specific location, and creates one, if doesn't exist.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the tile.</param>
-        /// <param name="tile">The tile that was found or created</param>
+        /// <param name="tile">The tile that was found or created.</param>
         public bool TryGetTile((long x, long y) absolutePosition, out Tile tile)
         {
             var res = FindTile(absolutePosition);
@@ -90,7 +99,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Saves the chunk's data into a file in the save folder.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will make one using the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         public void SaveToFile(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.saveName;
@@ -114,13 +123,13 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Loads a Chunk object from a chunk file, or null if the file is not found.
         /// </summary>
-        /// <param name="absolutePosition">The absolute position of the chunk.</param>
+        /// <param name="position">The position of the chunk.</param>
         /// <param name="saveFolderName">The name of the save folder.<br/>
         /// If null, it will make one using the save name in <c>SaveData</c>.</param>
-        public static Chunk? FromFile((long x, long y) absolutePosition, string? saveFolderName = null)
+        public static Chunk? FromFile((long x, long y) position, string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.saveName;
-            var chunkFileName = GetChunkFileName(absolutePosition);
+            var chunkFileName = GetChunkFileName(position);
             Dictionary<string, object?>? chunkJson;
             try
             {
@@ -153,9 +162,31 @@ namespace ProgressAdventure.WorldManagement
             {
                 return null;
             }
-            var chunk = FromJson(absolutePosition, (IEnumerable<object?>)tilesList);
+            var chunk = FromJson(position, (IEnumerable<object?>)tilesList);
             Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
             return chunk;
+        }
+
+        /// <summary>
+        /// Generates the chunk random genrator for a chunk.
+        /// </summary>
+        /// <param name="absolutePosition">The absolute position of the chunk.</param>
+        public static SplittableRandom GetChunkRandom((long x, long y) absolutePosition)
+        {
+            var posX = Utils.FloorRound(absolutePosition.x, Constants.CHUNK_SIZE);
+            var posY = Utils.FloorRound(absolutePosition.y, Constants.CHUNK_SIZE);
+            var noiseValues = WorldUtils.GetNoiseValues(posX, posY);
+            var noiseNum = noiseValues.Count;
+            var seedNumSize = 19.0;
+            var noiseTenMulti = (int)Math.Floor(seedNumSize / noiseNum);
+            var noiseMulti = Math.Pow(10, noiseTenMulti);
+            ulong seed = 1;
+            for (int x = 0; x < noiseValues.Count; x++)
+            {
+                var noiseVal = noiseValues.ElementAt(x).Value;
+                seed *= (ulong)(noiseVal * noiseMulti);
+            }
+            return new SplittableRandom(seed);
         }
         #endregion
 
@@ -208,7 +239,7 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="chunkFileName">The name of the chunk file.</param>
         /// <param name="saveFolderName">The name of the save folder.</param>
-        private static string GetChunkFilePath(string chunkFileName, string saveFolderName)
+        public static string GetChunkFilePath(string chunkFileName, string saveFolderName)
         {
             var saveFolderPath = Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName);
             return Path.Join(saveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS, chunkFileName);
@@ -218,7 +249,7 @@ namespace ProgressAdventure.WorldManagement
         /// Gets the name of the chunk file.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
-        private static string GetChunkFileName((long x, long y) absolutePosition)
+        public static string GetChunkFileName((long x, long y) absolutePosition)
         {
             var baseX = Utils.FloorRound(absolutePosition.x, Constants.CHUNK_SIZE);
             var baseY = Utils.FloorRound(absolutePosition.y, Constants.CHUNK_SIZE);
@@ -240,7 +271,7 @@ namespace ProgressAdventure.WorldManagement
                     Tile? tile = null;
                     try
                     {
-                        tile = Tile.FromJson(tileDict);
+                        tile = Tile.FromJson(GetChunkRandom(absolutePosition), tileDict);
                     }
                     catch (ArgumentException)
                     {

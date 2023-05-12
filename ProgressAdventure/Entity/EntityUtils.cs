@@ -123,7 +123,7 @@ namespace ProgressAdventure.Entity
             var baseDefenceValue = ConfigureStat(baseDefence);
             var baseSpeedValue = ConfigureStat(baseSpeed);
             var attributes = new List<Attribute>();
-            if (SaveData.MainRandom.GenerateDouble() < rareChance)
+            if (RandomStates.MainRandom.GenerateDouble() < rareChance)
             {
                 attributes.Add(Attribute.RARE);
             }
@@ -133,7 +133,7 @@ namespace ProgressAdventure.Entity
             }
             // team
             int currentTeam = originalTeam;
-            if (SaveData.MainRandom.GenerateDouble() < teamChangeChange)
+            if (RandomStates.MainRandom.GenerateDouble() < teamChangeChange)
             {
                 currentTeam = 0;
             }
@@ -171,7 +171,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                statValue = (int)Math.Round(SaveData.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
+                statValue = (int)Math.Round(RandomStates.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
             }
             if (statValue < 0)
             {

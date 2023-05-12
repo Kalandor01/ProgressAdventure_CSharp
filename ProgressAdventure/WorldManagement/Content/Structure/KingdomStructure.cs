@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.WorldManagement.Content.Structure
+﻿using NPrng.Generators;
+
+namespace ProgressAdventure.WorldManagement.Content.Structure
 {
     /// <summary>
     /// Class for kingdom structure content layer, for a tile.
@@ -16,11 +18,11 @@
         /// <summary>
         /// <inheritdoc cref="KingdomStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public KingdomStructure(string? name = null, IDictionary<string, object?>? data = null)
-            : base(ContentType.Structure.KINGDOM, name, data)
+        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
+        public KingdomStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+            : base(chunkRandom, ContentType.Structure.KINGDOM, name, data)
         {
-            population = GetLongValueFromData("population", data, (10000, 10000000));
+            population = GetLongValueFromData(base.chunkRandom, "population", data, (10000, 10000000));
         }
         #endregion
 

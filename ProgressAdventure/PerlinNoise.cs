@@ -54,7 +54,7 @@ namespace ProgressAdventure
 
         #region Public methods
         /// <summary>
-        /// Generates a perlin noise value, ranging from -1 to 1.
+        /// Generates a perlin noise value, ranging from 0 to 1.
         /// </summary>
         /// <param name="x">The X coordinate of the value.</param>
         /// <param name="y">The Y coordinate of the value.</param>
@@ -133,7 +133,7 @@ namespace ProgressAdventure
                 n2 = t2 * t2 * Grad(_perm[ii + 1 + _perm[jj + 1]], x2, y2);
             }
 
-            return 40.0 * (n0 + n1 + n2);
+            return ((40.0 * (n0 + n1 + n2)) + 1) / 2;
         }
         #endregion
 
