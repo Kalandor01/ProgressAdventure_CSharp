@@ -19,7 +19,7 @@ namespace ProgressAdventure.WorldManagement.Content
         protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, IDictionary<string, object?>? data = null)
             : base(chunkRandom, ContentType.PopulationContentType, subtype, name, data)
         {
-            amount = GetLongValueFromData(base.chunkRandom, "amount", data, (1, 1000));
+            amount = GetLongValueFromData(this.chunkRandom, "amount", data, (1, 1000));
         }
         #endregion
 

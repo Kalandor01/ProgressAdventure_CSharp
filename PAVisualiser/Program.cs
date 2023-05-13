@@ -1,8 +1,10 @@
 ﻿using ProgressAdventure.Enums;
-using ProgressAdventure.WorldManagement;
 using System.Text;
+using PAConstants = ProgressAdventure.Constants;
+using PAUtils = ProgressAdventure.Utils;
+using Logger = ProgressAdventure.Logger;
 
-namespace ProgressAdventure
+namespace PAVisualiser
 {
     internal class Program
     {
@@ -11,9 +13,7 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            SaveManager.CreateSaveData("test", "me");
             
-
 
 
             Console.WriteLine();
@@ -26,13 +26,13 @@ namespace ProgressAdventure
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
+            Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
-            SettingsManagement.Settings.Initialise();
-            Globals.Initialise();
+            ProgressAdventure.SettingsManagement.Settings.Initialise();
+            ProgressAdventure.Globals.Initialise();
         }
 
         /// <summary>
@@ -47,9 +47,9 @@ namespace ProgressAdventure
             catch (Exception e)
             {
                 Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
-                if (Constants.ERROR_HANDLING)
+                if (PAConstants.ERROR_HANDLING)
                 {
-                    Utils.PressKey("ERROR: " + e.Message);
+                    PAUtils.PressKey("ERROR: " + e.Message);
                 }
                 throw;
             }
@@ -76,10 +76,10 @@ namespace ProgressAdventure
                 catch (Exception e)
                 {
                     Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
-                    if (Constants.ERROR_HANDLING)
+                    if (PAConstants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
-                        var ans = Utils.Input("Restart?(Y/N): ");
+                        var ans = PAUtils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
                             Logger.Log("Restarting instance");

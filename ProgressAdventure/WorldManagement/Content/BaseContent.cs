@@ -74,8 +74,8 @@ namespace ProgressAdventure.WorldManagement.Content
         public virtual Dictionary<string, object?> ToJson()
         {
             return new Dictionary<string, object?> {
-                ["type"] = type.GetHashCode(),
-                ["subtype"] = subtype.GetHashCode(),
+                ["type"] = WorldUtils.contentTypeIDTextMap[type],
+                ["subtype"] = WorldUtils.contentTypeIDSubtypeTextMap[type][subtype],
                 ["name"] = Name
             };
         }
@@ -145,19 +145,19 @@ namespace ProgressAdventure.WorldManagement.Content
             where T : BaseContent
         {
             var contentTypeMap = WorldUtils.contentTypeMap[typeof(T)];
+            var contentTypeID = contentTypeMap.First().Key.Super;
             Type contentType;
             string? contentName = null;
             if (contentJson is not null)
             {
-                // get content type
+                // get content subtype
                 if (
-                    contentJson.TryGetValue("subtype", out object? contentTypeIDValue) &&
-                    int.TryParse(contentTypeIDValue?.ToString(), out int contentTypeID) &&
-                    WorldUtils.TryParseContentType(contentTypeID, out ContentTypeID contentTypeValue) &&
-                    contentTypeMap.ContainsKey(contentTypeValue)
+                    contentJson.TryGetValue("subtype", out object? contentSubtypeString) &&
+                    WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString?.ToString(), out ContentTypeID contentSubtype) &&
+                    contentTypeMap.ContainsKey(contentSubtype)
                 )
                 {
-                    contentType = contentTypeMap[contentTypeValue];
+                    contentType = contentTypeMap[contentSubtype];
                 }
                 else
                 {

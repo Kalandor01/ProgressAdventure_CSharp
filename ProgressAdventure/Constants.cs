@@ -21,14 +21,6 @@ namespace ProgressAdventure
         /// The display name of the manual save thread.
         /// </summary>
         public const string MANUAL_SAVE_THREAD_NAME = "Quit manager";
-        /// <summary>
-        /// The display name of the testing thread.
-        /// </summary>
-        public const string TEST_THREAD_NAME = "Test";
-        /// <summary>
-        /// The display name of the save visualiser thread.
-        /// </summary>
-        public const string VISUALIZER_THREAD_NAME = "Visualizer";
         #endregion
 
         #region Paths/folders/file names

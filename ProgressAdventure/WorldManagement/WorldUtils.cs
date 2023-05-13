@@ -168,7 +168,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map content types to their object type maps.
         /// </summary>
-        public static readonly Dictionary<Type, Dictionary<ContentTypeID, Type>> contentTypeMap = new()
+        internal static readonly Dictionary<Type, Dictionary<ContentTypeID, Type>> contentTypeMap = new()
         {
             [typeof(TerrainContent)] = _terrainContentTypeMap,
             [typeof(StructureContent)] = _structureContentTypeMap,
@@ -176,13 +176,57 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
+        /// Dictionary to map terrain content types to their text representation.
+        /// </summary>
+        internal static readonly Dictionary<ContentTypeID, string> terrainContentTypeIDTextMap = new()
+        {
+            [ContentType.Terrain.FIELD] = "field",
+            [ContentType.Terrain.MOUNTAIN] = "mountain",
+            [ContentType.Terrain.OCEAN] = "ocean",
+            [ContentType.Terrain.SHORE] = "shore",
+        };
+
+        /// <summary>
+        /// Dictionary to map structure content types to their text representation.
+        /// </summary>
+        internal static readonly Dictionary<ContentTypeID, string> structureContentSubtypeIDTextMap = new()
+        {
+            [ContentType.Structure.NONE] = "none",
+            [ContentType.Structure.BANDIT_CAMP] = "bandit_camp",
+            [ContentType.Structure.VILLAGE] = "village",
+            [ContentType.Structure.KINGDOM] = "kingdom",
+        };
+
+        /// <summary>
+        /// Dictionary to map population content types to their text representation.
+        /// </summary>
+        internal static readonly Dictionary<ContentTypeID, string> populationContentSubtypeIDTextMap = new()
+        {
+            [ContentType.Population.NONE] = "none",
+            [ContentType.Population.HUMAN] = "human",
+            [ContentType.Population.ELF] = "elf",
+            [ContentType.Population.DWARF] = "dwarf",
+            [ContentType.Population.DEMON] = "demon",
+        };
+
+        /// <summary>
+        /// Dictionary to map content types to their text representation.
+        /// </summary>
+        internal static readonly Dictionary<ContentTypeID, string> contentTypeIDTextMap = new()
+        {
+            [ContentType.TerrainContentType] = "terrain",
+            [ContentType.StructureContentType] = "content",
+            [ContentType.PopulationContentType] = "population",
+        };
+
+        /// <summary>
         /// Dictionary to map content types to their content subtype text maps.
         /// </summary>
-        public static readonly Dictionary<ContentTypeID, Dictionary<ContentTypeID, string>> contentTypeIDTextMap = new()
+        internal static readonly Dictionary<ContentTypeID, Dictionary<ContentTypeID, string>> contentTypeIDSubtypeTextMap = new()
         {
-            //[ContentType.TerrainContentType] = _terraincontentTypeIDTextMap,
-            //[ContentType.StructureContentType] = _structurecontentTypeIDTextMap,
-            //[ContentType.PopulationContentType] = _populationcontentTypeIDTextMap,
+            [ContentType.TerrainContentType] = terrainContentTypeIDTextMap,
+            [ContentType.StructureContentType] = structureContentSubtypeIDTextMap,
+            [ContentType.PopulationContentType] = populationContentSubtypeIDTextMap,
         };
         #endregion
 
@@ -273,7 +317,7 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Returs the content type, if the content type ID is an id for an content type.
+        /// Returs the content type, if the content type ID is an ID for an content type.
         /// </summary>
         /// <param name="contentTypeID">The int representation of the content's ID.</param>
         public static ContentTypeID? ToContentType(int contentTypeID)
@@ -291,13 +335,44 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Tries to converts the int representation of the content ID to a content ID, and returns the success.
+        /// Returs the content type, if the string is the ttring representation of a content subtype.
+        /// </summary>
+        /// <param name="parrentContentType">The parrent content type ID.</param>
+        /// <param name="contentSubtypeString">The string representation of the subtype content.</param>
+        public static ContentTypeID? ToContentType(ContentTypeID parrentContentType, string? contentSubtypeString)
+        {
+            if (
+                contentSubtypeString is not null &&
+                contentTypeIDSubtypeTextMap.TryGetValue(parrentContentType, out Dictionary<ContentTypeID, string>? subtypeTextMap) &&
+                subtypeTextMap.ContainsValue(contentSubtypeString)
+            )
+            {
+                return subtypeTextMap.First(subT => subT.Value == contentSubtypeString).Key;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Tries to convert the int representation of the content ID to a content ID, and returns the success.
         /// </summary>
         /// <param name="contentTypeID">The int representation of the content's ID.</param>
         /// <param name="contentType">The resulting content, or a default content.</param>
         public static bool TryParseContentType(int contentTypeID, out ContentTypeID contentType)
         {
             var resultContent = ToContentType(contentTypeID);
+            contentType = resultContent ?? ContentType.Terrain.FIELD;
+            return resultContent is not null;
+        }
+
+        /// <summary>
+        /// Tries to convert the string representation of the subtype content to a content ID, and returns the success.
+        /// </summary>
+        /// <param name="parrentContentType">The parrent content type ID.</param>
+        /// <param name="contentSubtypeString">The string representation of the subtype content.</param>
+        /// <param name="contentType">The resulting content, or a default content.</param>
+        public static bool TryParseContentType(ContentTypeID parrentContentType, string? contentSubtypeString, out ContentTypeID contentType)
+        {
+            var resultContent = ToContentType(parrentContentType, contentSubtypeString);
             contentType = resultContent ?? ContentType.Terrain.FIELD;
             return resultContent is not null;
         }

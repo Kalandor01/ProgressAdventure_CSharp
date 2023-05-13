@@ -41,8 +41,9 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="absoluteX">The absolute x position of the tile.</param>
         /// <param name="absoluteY">The absolute y position of the tile.</param>
-        public Tile(long absoluteX, long absoluteY)
-            : this(absoluteX, absoluteY, null) { }
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
+        public Tile(long absoluteX, long absoluteY, SplittableRandom? chunkRandom)
+            : this(absoluteX, absoluteY, chunkRandom, null) { }
 
         /// <summary>
         /// <inheritdoc cref="Tile"/><br/>

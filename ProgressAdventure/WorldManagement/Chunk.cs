@@ -32,13 +32,14 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="basePosition">The absolute position of the chunk.</param>
         /// <param name="tiles"><inheritdoc cref="tiles" path="//summary"/></param>
-        public Chunk((long x, long y) basePosition, Dictionary<string, Tile>? tiles = null)
+        /// <param name="chunkRandom">The chunk's random generator.</param>
+        public Chunk((long x, long y) basePosition, Dictionary<string, Tile>? tiles = null, SplittableRandom? chunkRandom = null)
         {
             var baseX = Utils.FloorRound(basePosition.x, Constants.CHUNK_SIZE);
             var baseY = Utils.FloorRound(basePosition.y, Constants.CHUNK_SIZE);
             this.basePosition = (baseX, baseY);
             Logger.Log("Creating chunk", $"baseX: {this.basePosition.x} , baseY: {this.basePosition.y}");
-            ChunkRandomGenerator = GetChunkRandom(basePosition);
+            ChunkRandomGenerator = chunkRandom ?? GetChunkRandom(basePosition);
             this.tiles = tiles ?? new Dictionary<string, Tile>();
             FillChunk(tiles is not null);
         }
@@ -56,6 +57,7 @@ namespace ProgressAdventure.WorldManagement
                 tilesJson.Add(tile.Value.ToJson());
             }
             return new Dictionary<string, object> {
+                ["chunkRandom"] = Tools.SerializeRandom(ChunkRandomGenerator),
                 ["tiles"] = tilesJson,
             };
         }
@@ -76,11 +78,11 @@ namespace ProgressAdventure.WorldManagement
         public Tile GenerateTile((long x, long y) absolutePosition)
         {
             var tileKey = GetTileDictName(absolutePosition);
-            var tile = new Tile(absolutePosition.x, absolutePosition.y);
+            var tile = new Tile(absolutePosition.x, absolutePosition.y, ChunkRandomGenerator);
             tiles[tileKey] = tile;
             var posX = Utils.Mod(absolutePosition.x, Constants.CHUNK_SIZE);
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
-            Logger.Log("Created tile", $"x: {posX} , y: {posY}", LogSeverity.DEBUG);
+            Logger.Log("Created tile", $"x: {posX}, y: {posY}, terrain: {WorldUtils.terrainContentTypeIDTextMap[tile.terrain.subtype]}, structure: {WorldUtils.structureContentSubtypeIDTextMap[tile.structure.subtype]}, population: {WorldUtils.populationContentSubtypeIDTextMap[tile.population.subtype]}", LogSeverity.DEBUG);
             return tile;
         }
 
@@ -139,7 +141,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 if (e is FormatException)
                 {
-                    Logger.Log("Chunk parse error", "Chunk couldn't be parsed", LogSeverity.ERROR);
+                    Logger.Log("Chunk parse error", "chunk couldn't be parsed", LogSeverity.ERROR);
                     return null;
                 }
                 else if (e is FileNotFoundException)
@@ -154,17 +156,37 @@ namespace ProgressAdventure.WorldManagement
                 }
                 throw;
             }
+            // chunk seed
+            SplittableRandom? chunkRandomGenerator = null;
+            if (!(
+                chunkJson is not null &&
+                chunkJson.TryGetValue("chunkRandom", out object? chunkRandom)
+            ))
+            {
+                Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
+            }
+            else
+            {
+                chunkRandomGenerator = Tools.DeserializeRandom(chunkRandom?.ToString());
+                if (chunkRandomGenerator is null)
+                {
+                    Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
+                }
+            }
+            chunkRandomGenerator ??= GetChunkRandom(position);
+            // tiles
             if (!(
                 chunkJson is not null &&
                 chunkJson.TryGetValue("tiles", out object? tilesList) &&
                 tilesList is not null
             ))
             {
+                Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
                 return null;
             }
-            var chunk = FromJson(position, (IEnumerable<object?>)tilesList);
+            var tiles = TilesFromJson(chunkRandomGenerator, position, (IEnumerable<object?>)tilesList);
             Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
-            return chunk;
+            return new Chunk(position, tiles, chunkRandomGenerator);
         }
 
         /// <summary>
@@ -257,11 +279,14 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Loads a Chunk object from a chunk file's json.
+        /// Loads the list of tiles, from a chunk file's json.
         /// </summary>
-        /// <param name="tileListJson">The json representation of the chunk.</param>
-        private static Chunk FromJson((long x, long y) absolutePosition, IEnumerable<object?> tileListJson)
+        /// <param name="chunkRandom">The chunk's random generator.</param>
+        /// <param name="absolutePosition">The absolute position of the chunk.</param>
+        /// <param name="tileListJson">The json representation of the list of tiles.</param>
+        private static Dictionary<string, Tile> TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable<object?> tileListJson)
         {
+            chunkRandom ??= GetChunkRandom(absolutePosition);
             var tiles = new Dictionary<string, Tile>();
             foreach (var tileJson in tileListJson)
             {
@@ -271,7 +296,7 @@ namespace ProgressAdventure.WorldManagement
                     Tile? tile = null;
                     try
                     {
-                        tile = Tile.FromJson(GetChunkRandom(absolutePosition), tileDict);
+                        tile = Tile.FromJson(chunkRandom, tileDict);
                     }
                     catch (ArgumentException)
                     {
@@ -284,8 +309,8 @@ namespace ProgressAdventure.WorldManagement
                 }
             }
             var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
-            Logger.Log("Loaded chunk from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
-            return new Chunk(absolutePosition, tiles);
+            Logger.Log("Loaded chunk tiles from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
+            return tiles;
         }
         #endregion
     }
