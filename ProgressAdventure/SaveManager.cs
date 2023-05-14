@@ -50,7 +50,7 @@ namespace ProgressAdventure
             // player
             var player = new Player(playerName);
             // load to class
-            SaveData.Initialise(saveName, displaySaveName, null, player, false);
+            SaveData.Initialise(saveName, displaySaveName, null, null, player, false);
             World.Initialise();
             World.GenerateTile((SaveData.player.position.x, SaveData.player.position.y));
         }
@@ -132,8 +132,10 @@ namespace ProgressAdventure
             RandomStates.FromJson(randomStates);
             // display_name
             var displayName = (string?)data["displayName"];
-            // last access
-            var lastAccess = (DateTime?)data["lastAccess"];
+            // last save
+            var lastSave = (DateTime?)data["lastSave"];
+            // playtime
+            TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
             // player
             var playerData = (IDictionary<string, object?>?)data["player"];
             var player = Player.FromJson(playerData);
@@ -142,8 +144,8 @@ namespace ProgressAdventure
             // PREPARING
             Logger.Log("Preparing game data");
             // load to class
-            SaveData.Initialise(saveName, displayName, lastAccess, player, false);
-            Logger.Log("Game data loaded", $"save name: {saveName}, player name: \"{SaveData.player.fullName}\", last saved: {Utils.MakeDate(SaveData.lastAccess)} {Utils.MakeTime(SaveData.lastAccess)}");
+            SaveData.Initialise(saveName, displayName, lastSave, playtime, player, false);
+            Logger.Log("Game data loaded", $"save name: {saveName}, player name: \"{SaveData.player.FullName}\", last saved: {Utils.MakeDate(SaveData.LastSave)} {Utils.MakeTime(SaveData.LastSave)}, playtime: {SaveData.Playtime}");
             World.Initialise();
         }
 
@@ -188,10 +190,9 @@ namespace ProgressAdventure
             Tools.RecreateSaveFileFolder();
             var saveFolderPath = Tools.GetSaveFolderPath();
             // DATA FILE
-            var displayDataJson = SaveData.DisplayDataToJson();
-            var saveDataJson = SaveData.MainDataToJson();
+            var (displayData, mainData) = SaveData.MakeSaveData();
             // create new save
-            Tools.EncodeSaveShort(new List<IDictionary> { displayDataJson, saveDataJson }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
+            Tools.EncodeSaveShort(new List<IDictionary> { displayData, mainData }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
         }
 
         /// <summary>

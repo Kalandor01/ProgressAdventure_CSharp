@@ -11,9 +11,11 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// <inheritdoc cref="Caveman"/>
         /// </summary>
-        public Caveman()
+        /// <param name="team">The team of the entity.</param>
+        public Caveman(int team = 1)
             : base(
-                EntityUtils.EntityManager(7, 7, 7, 7),
+                EntityUtils.GetEntityNameFromClass(),
+                EntityUtils.EntityManager(7, 7, 7, 7, originalTeam: team),
                 LootFactory.LootManager(new List<LootFactory> {
                     new LootFactory(ItemType.Weapon.WOODEN_CLUB, 0.3),
                     new LootFactory(ItemType.Material.CLOTH, 0.15, 0, 1, 3),
@@ -31,9 +33,11 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// <inheritdoc cref="Ghoul"/>
         /// </summary>
-        public Ghoul()
+        /// <param name="team">The team of the entity.</param>
+        public Ghoul(int team = 1)
             : base(
-                EntityUtils.EntityManager(11, 9, 9, 9),
+                EntityUtils.GetEntityNameFromClass(),
+                EntityUtils.EntityManager(11, 9, 9, 9, originalTeam: team),
                 LootFactory.LootManager(new List<LootFactory> {
                     new LootFactory(ItemType.Weapon.STONE_SWORD, 0.2),
                     new LootFactory(ItemType.Misc.ROTTEN_FLESH, 0.55, 0, 3),
@@ -51,9 +55,11 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// <inheritdoc cref="Troll"/>
         /// </summary>
-        public Troll()
+        /// <param name="team">The team of the entity.</param>
+        public Troll(int team = 1)
             : base(
-                EntityUtils.EntityManager(13, 11, 11, 5),
+                EntityUtils.GetEntityNameFromClass(),
+                EntityUtils.EntityManager(13, 11, 11, 5, originalTeam: team),
                 LootFactory.LootManager(new List<LootFactory> {
                     new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, 0.25),
                     new LootFactory(ItemType.Material.CLOTH, 0.25, 1, 3, 2),

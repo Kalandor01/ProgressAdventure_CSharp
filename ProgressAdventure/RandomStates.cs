@@ -8,65 +8,48 @@ namespace ProgressAdventure
     /// </summary>
     public static class RandomStates
     {
-        #region Private fields
+        #region Public properties
         /// <summary>
         /// The main random generator.
         /// </summary>
-        private static SplittableRandom _mainRandom;
+        public static SplittableRandom MainRandom { get; private set; }
         /// <summary>
         /// The world random generator.
         /// </summary>
-        private static SplittableRandom _worldRandom;
+        public static SplittableRandom WorldRandom { get; private set; }
         /// <summary>
         /// The misc random generator.
         /// </summary>
-        private static SplittableRandom _miscRandom;
+        public static SplittableRandom MiscRandom { get; private set; }
         /// <summary>
         /// The tile type noise generator seeds.
         /// </summary>
-        private static Dictionary<TileNoiseType, ulong> _tileTypeNoiseSeeds;
+        public static Dictionary<TileNoiseType, ulong> TileTypeNoiseSeeds { get; private set; }
         /// <summary>
-        /// The tile type noise generators.
+        /// The modifier used when creating a chunk random generator.
         /// </summary>
-        private static Dictionary<TileNoiseType, PerlinNoise> _tileTypeNoiseGenerators;
-        #endregion
-
-        #region Public properties
+        public static Dictionary<TileNoiseType, PerlinNoise> TileTypeNoiseGenerators { get; private set; }
         /// <summary>
-        /// <inheritdoc cref="_mainRandom" path="//summary"/>
+        /// The modifier used when creating a chunk random generator.
         /// </summary>
-        public static SplittableRandom MainRandom { get => _mainRandom; }
-        /// <summary>
-        /// <inheritdoc cref="_worldRandom" path="//summary"/>
-        /// </summary>
-        public static SplittableRandom WorldRandom { get => _worldRandom; }
-        /// <summary>
-        /// <inheritdoc cref="_miscRandom" path="//summary"/>
-        /// </summary>
-        public static SplittableRandom MiscRandom { get => _miscRandom; }
-        /// <summary>
-        /// <inheritdoc cref="_tileTypeNoiseSeeds" path="//summary"/>
-        /// </summary>
-        public static Dictionary<TileNoiseType, ulong> TileTypeNoiseSeeds { get => _tileTypeNoiseSeeds; }
-        /// <summary>
-        /// <inheritdoc cref="_tileTypeNoiseGenerators" path="//summary"/>
-        /// </summary>
-        public static Dictionary<TileNoiseType, PerlinNoise> TileTypeNoiseGenerators { get => _tileTypeNoiseGenerators; }
+        public static double ChunkSeedModifier { get; private set; }
         #endregion
 
         #region "Constructors"
         /// <summary>
         /// Initialises the object's values.
         /// </summary>
-        /// <param name="mainRandom"><inheritdoc cref="_mainRandom" path="//summary"/></param>
-        /// <param name="worldRandom"><inheritdoc cref="_worldRandom" path="//summary"/></param>
-        /// <param name="miscRandom"><inheritdoc cref="_miscRandom" path="//summary"/></param>
-        /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="_tileTypeNoiseSeeds" path="//summary"/></param>
+        /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
+        /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
+        /// <param name="miscRandom"><inheritdoc cref="MiscRandom" path="//summary"/></param>
+        /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
+        /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
         public static void Initialise(
             SplittableRandom? mainRandom = null,
             SplittableRandom? worldRandom = null,
             SplittableRandom? miscRandom = null,
-            Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null
+            Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null,
+            double? chunkSeedModifier = null
         )
         {
             var tempMainRandom = mainRandom ?? new SplittableRandom();
@@ -76,7 +59,8 @@ namespace ProgressAdventure
                 tempMainRandom,
                 tempWorldRandom,
                 tempMiscRandom,
-                tileTypeNoiseSeeds is not null ? RecalculateTileTypeNoiseSeeds(tileTypeNoiseSeeds, tempWorldRandom) : RecalculateTileTypeNoiseSeeds(tempWorldRandom)
+                tileTypeNoiseSeeds is not null ? RecalculateTileTypeNoiseSeeds(tileTypeNoiseSeeds, tempWorldRandom) : RecalculateTileTypeNoiseSeeds(tempWorldRandom),
+                chunkSeedModifier ?? tempWorldRandom.GenerateDouble()
             );
         }
 
@@ -90,29 +74,75 @@ namespace ProgressAdventure
                 ["mainRandom"] = Tools.SerializeRandom(MainRandom),
                 ["worldRandom"] = Tools.SerializeRandom(WorldRandom),
                 ["miscRandom"] = Tools.SerializeRandom(MiscRandom),
-                ["tileTypeNoiseSeeds"] = TileTypeNoiseSeeds
+                ["tileTypeNoiseSeeds"] = TileTypeNoiseSeeds,
+                ["chunkSeedModifier"] = ChunkSeedModifier,
             };
         }
 
         public static void FromJson(IDictionary<string, object?>? randomStatesJson)
         {
+            // main random
             SplittableRandom? mainRandom = null;
             SplittableRandom? worldRandom = null;
             SplittableRandom? miscRandom = null;
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
+            double? chunkSeedModifier = null;
             if (randomStatesJson is not null)
             {
-                mainRandom = Tools.DeserializeRandom(randomStatesJson["mainRandom"]?.ToString());
-                worldRandom = Tools.DeserializeRandom(randomStatesJson["worldRandom"]?.ToString());
-                miscRandom = Tools.DeserializeRandom(randomStatesJson["miscRandom"]?.ToString());
-                var tileTypeNoiseSeedsJson = randomStatesJson["tileTypeNoiseSeeds"];
-                tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds((IDictionary<string, object?>?)tileTypeNoiseSeedsJson);
+                // main random
+                if (randomStatesJson.TryGetValue("mainRandom", out object? mainRandomValue))
+                {
+                    mainRandom = Tools.DeserializeRandom(mainRandomValue?.ToString());
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
+                }
+                // world random
+                if (randomStatesJson.TryGetValue("worldRandom", out object? worldRandomValue))
+                {
+                    worldRandom = Tools.DeserializeRandom(worldRandomValue?.ToString());
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
+                }
+                // misc random
+                if (randomStatesJson.TryGetValue("miscRandom", out object? miscRandomValue))
+                {
+                    miscRandom = Tools.DeserializeRandom(miscRandomValue?.ToString());
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                }
+                // tile type noise seeds
+                if (randomStatesJson.TryGetValue("tileTypeNoiseSeeds", out object? tileTypeNoiseSeedsJson))
+                {
+                    tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds((IDictionary<string, object?>?)tileTypeNoiseSeedsJson);
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                }
+                // chunk seed modifier
+                if (
+                    randomStatesJson.TryGetValue("chunkSeedModifier", out object? chunkSeedModifierStrValue) &&
+                    double.TryParse(chunkSeedModifierStrValue?.ToString(), out double chunkSeedValue)
+                )
+                {
+                    chunkSeedModifier = chunkSeedValue;
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
+                }
             }
             else
             {
                 Logger.Log("Random states parse error", "random states json is null", LogSeverity.WARN);
             }
-            Initialise(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds);
+            Initialise(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
         }
         
         /// <summary>
@@ -121,7 +151,7 @@ namespace ProgressAdventure
         /// <param name="parrentRandom">The random generator to use, to generate the noise seeds.</param>
         public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(SplittableRandom? parrentRandom = null)
         {
-            parrentRandom ??= _worldRandom;
+            parrentRandom ??= WorldRandom;
             return new Dictionary<TileNoiseType, ulong>
             {
                 [TileNoiseType.HEIGHT] = (ulong)parrentRandom.Generate(),
@@ -139,7 +169,7 @@ namespace ProgressAdventure
         /// <param name="partialTileTypeNoiseDict">A dictionary that might not contain noise seeds for all tile types.</param>
         public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(Dictionary<TileNoiseType, ulong> partialTileTypeNoiseDict, SplittableRandom? parrentRandom = null)
         {
-            parrentRandom ??= _worldRandom;
+            parrentRandom ??= WorldRandom;
             foreach (TileNoiseType noiseType in Enum.GetValues(typeof(TileNoiseType)))
             {
                 if (!partialTileTypeNoiseDict.ContainsKey(noiseType))
@@ -155,20 +185,22 @@ namespace ProgressAdventure
         /// <summary>
         /// Updates the values for all seed, and tile noise generators.
         /// </summary>
-        /// <param name="mainRandom"><inheritdoc cref="_mainRandom" path="//summary"/></param>
-        /// <param name="worldRandom"><inheritdoc cref="_worldRandom" path="//summary"/></param>
-        /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="_tileTypeNoiseSeeds" path="//summary"/></param>
+        /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
+        /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
+        /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
         private static void UpdateSeedValues(
             SplittableRandom mainRandom,
             SplittableRandom worldRandom,
             SplittableRandom miscRandom,
-            Dictionary<TileNoiseType, ulong> tileTypeNoiseSeeds
+            Dictionary<TileNoiseType, ulong> tileTypeNoiseSeeds,
+            double chunkSeedModifier
         )
         {
-            _mainRandom = mainRandom;
-            _worldRandom = worldRandom;
-            _miscRandom = miscRandom;
-            _tileTypeNoiseSeeds = tileTypeNoiseSeeds;
+            MainRandom = mainRandom;
+            WorldRandom = worldRandom;
+            MiscRandom = miscRandom;
+            TileTypeNoiseSeeds = tileTypeNoiseSeeds;
+            ChunkSeedModifier = chunkSeedModifier;
             RecalculateNoiseGenerators();
         }
 
@@ -177,13 +209,13 @@ namespace ProgressAdventure
         /// </summary>
         private static void RecalculateNoiseGenerators()
         {
-            _tileTypeNoiseGenerators = new Dictionary<TileNoiseType, PerlinNoise>
+            TileTypeNoiseGenerators = new Dictionary<TileNoiseType, PerlinNoise>
             {
-                [TileNoiseType.HEIGHT] = new PerlinNoise(_tileTypeNoiseSeeds[TileNoiseType.HEIGHT]),
-                [TileNoiseType.TEMPERATURE] = new PerlinNoise(_tileTypeNoiseSeeds[TileNoiseType.TEMPERATURE]),
-                [TileNoiseType.HUMIDITY] = new PerlinNoise(_tileTypeNoiseSeeds[TileNoiseType.HUMIDITY]),
-                [TileNoiseType.HOSTILITY] = new PerlinNoise(_tileTypeNoiseSeeds[TileNoiseType.HOSTILITY]),
-                [TileNoiseType.POPULATION] = new PerlinNoise(_tileTypeNoiseSeeds[TileNoiseType.POPULATION])
+                [TileNoiseType.HEIGHT] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.HEIGHT]),
+                [TileNoiseType.TEMPERATURE] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.TEMPERATURE]),
+                [TileNoiseType.HUMIDITY] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.HUMIDITY]),
+                [TileNoiseType.HOSTILITY] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.HOSTILITY]),
+                [TileNoiseType.POPULATION] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.POPULATION])
             };
         }
 

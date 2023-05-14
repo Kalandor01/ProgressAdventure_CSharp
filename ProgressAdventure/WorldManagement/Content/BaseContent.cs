@@ -65,7 +65,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="tile">The parrent tile.</param>
         public virtual void Visit(Tile tile)
         {
-            Logger.Log($"Player visited \"{type}\": \"{subtype}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
+            Logger.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
 
         /// <summary>

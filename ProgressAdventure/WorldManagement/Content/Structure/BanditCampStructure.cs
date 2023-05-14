@@ -20,7 +20,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.player.fullName} entered a bandit camp.");
+            Console.WriteLine($"{SaveData.player.FullName} entered a bandit camp.");
         }
         #endregion
     }

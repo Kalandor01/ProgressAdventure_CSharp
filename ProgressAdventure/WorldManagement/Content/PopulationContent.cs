@@ -29,7 +29,7 @@ namespace ProgressAdventure.WorldManagement.Content
             base.Visit(tile);
             if (subtype != ContentType.Population.NONE && amount > 0)
             {
-                Console.WriteLine($"There {(amount == 1 ? "is" : "are")} {amount} {subtype}{(amount == 1 ? "" : "s")} here.");
+                Console.WriteLine($"There {(amount == 1 ? "is" : "are")} {amount} {WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}{(amount == 1 ? "" : "s")} here.");
             }
             if (subtype != ContentType.Population.NONE && tile.structure.subtype != ContentType.Structure.NONE)
             {

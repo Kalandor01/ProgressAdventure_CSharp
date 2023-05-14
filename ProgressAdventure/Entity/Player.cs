@@ -1,5 +1,6 @@
 ﻿using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
+using ProgressAdventure.WorldManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
@@ -14,14 +15,6 @@ namespace ProgressAdventure.Entity
         /// The inventory of the palyer.
         /// </summary>
         public Inventory inventory;
-        /// <summary>
-        /// The position of the player in the world.
-        /// </summary>
-        public (long x, long y) position;
-        /// <summary>
-        /// The facing direction of the player.
-        /// </summary>
-        public Facing facing;
         #endregion
 
         #region Public constructors
@@ -29,11 +22,15 @@ namespace ProgressAdventure.Entity
         /// <inheritdoc cref="Player"/>
         /// </summary>
         /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
-        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
-        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         /// <inheritdoc cref="Entity(string, int, int, int , int , int , int? , List{Attribute}?, List{Item}?)"/>
-        public Player(string? name = null, Inventory? inventory = null, (long x, long y)? position = null, Facing? facing = null)
+        public Player(
+            string? name = null,
+            Inventory? inventory = null,
+            (long x, long y)? position = null,
+            Facing? facing = null
+        )
             :this(
+                string.IsNullOrWhiteSpace(name) ? "You" : name,
                 EntityUtils.EntityManager(
                     (14, 20, 26),
                     (7, 10, 13),
@@ -41,8 +38,7 @@ namespace ProgressAdventure.Entity
                     (1, 10, 20),
                     0,
                     0,
-                    0,
-                    string.IsNullOrWhiteSpace(name) ? "You" : name
+                    0
                 ),
                 inventory,
                 position,
@@ -85,13 +81,14 @@ namespace ProgressAdventure.Entity
         /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         private Player(
-            (string name, int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) stats,
+            string? name,
+            (int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) stats,
             Inventory? inventory = null,
             (long x, long y)? position = null,
             Facing? facing = null
         )
             : this(
-                  stats.name,
+                  name,
                   stats.baseHpValue,
                   stats.baseAttackValue,
                   stats.baseDefenceValue,
@@ -104,83 +101,19 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region Public methods
-        /// <summary>
-        /// Turns the player in a random direction, that is weighted in the direction that it's already going towards.
-        /// </summary>
-        public void WeightedTurn()
+        public override void SetPosition((long x, long y) position)
         {
-            // turn
-            if (RandomStates.MainRandom.GenerateDouble() < 0.2)
-            {
-                var oldFacing = facing;
-                var movementVector = EntityUtils.facingToMovementVectorMapping[facing];
-                Facing? newFacing;
-                // back
-                if (RandomStates.MainRandom.GenerateDouble() < 0.2)
-                {
-                    var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
-                    newFacing = EntityUtils.MovementVectorToFacing(((int)x, (int)y));
-                }
-                // side / diagonal
-                else
-                {
-                    // side
-                    if (RandomStates.MainRandom.GenerateDouble() < 0.2)
-                    {
-                        if (RandomStates.MainRandom.GenerateDouble() < 0.5)
-                        {
-                            newFacing = EntityUtils.MovementVectorToFacing((movementVector.y, movementVector.x));
-                        }
-                        else
-                        {
-                            var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
-                            newFacing = EntityUtils.MovementVectorToFacing(((int)y, (int)x));
-                        }
-                    }
-                    // diagonal
-                    else
-                    {
-                        // straight to diagonal
-                        if (movementVector.x == 0 || movementVector.y == 0)
-                        {
-                            var diagonalDir = RandomStates.MainRandom.GenerateDouble() < 0.5 ? 1 : -1;
-                            newFacing = EntityUtils.MovementVectorToFacing((
-                                movementVector.x == 0 ? diagonalDir : movementVector.x,
-                                movementVector.y == 0 ? diagonalDir : movementVector.y
-                            ));
-                        }
-                        // diagonal to straight
-                        else
-                        {
-                            var resetX = RandomStates.MainRandom.GenerateDouble() < 0.5;
-                            newFacing = EntityUtils.MovementVectorToFacing((
-                                resetX ? 0 : movementVector.x,
-                                !resetX ? 0 : movementVector.y
-                            ));
-                        }
-                    }
-                    
-                }
-                if (newFacing is not null)
-                {
-                    facing = (Facing)newFacing;
-                    Logger.Log("Player turned", $"{oldFacing} -> {facing}", LogSeverity.DEBUG);
-                }
-            }
+            SetPosition(position, true);
         }
 
-        /// <summary>
-        /// Moves the player in the direction it's facing.
-        /// </summary>
-        /// <param name="multiplierVector">The multiplier to move the player by.</param>
-        /// <param name="facing">If not null, it will move in that direction instead.</param>
-        public void Move((double x, double y)? multiplierVector = null, Facing? facing = null)
+        public override void SetPosition((long x, long y) position, bool updateWorld)
         {
-            var oldPosition = position;
-            var moveRaw = EntityUtils.facingToMovementVectorMapping[facing ?? this.facing];
-            var move = Utils.VectorMultiply(moveRaw, multiplierVector ?? (1, 1));
-            position = ((long x, long y))Utils.VectorAdd(position, move, true);
-            Logger.Log("Player moved", $"{oldPosition} -> {position}", LogSeverity.DEBUG);
+            base.SetPosition(position, updateWorld);
+            if (updateWorld )
+            {
+                World.TryGetTileAll(position, out var tile);
+                tile.Visit();
+            }
         }
 
         /// <summary>
@@ -189,9 +122,6 @@ namespace ProgressAdventure.Entity
         public new Dictionary<string, object?> ToJson()
         {
             var playerJson = base.ToJson();
-            playerJson["xPos"] = position.x;
-            playerJson["yPos"] = position.y;
-            playerJson["facing"] = (int)facing;
             playerJson["inventory"] = inventory.ToJson();
             return playerJson;
         }
@@ -209,73 +139,47 @@ namespace ProgressAdventure.Entity
                 Logger.Log("Player parse error", "player json is null", LogSeverity.ERROR);
                 return null;
             }
-            // name
-            string name;
-            if (playerJson.TryGetValue("name", out var playerName) &&
-                playerName is not null &&
-                playerName.ToString() is not null
-            )
+            var entityDataRaw = FromJsonInternal(playerJson);
+            if (entityDataRaw is null)
             {
-                name = playerName.ToString();
+                return null;
             }
-            else
-            {
-                Logger.Log("Player parse error", "couldn't parse player name", LogSeverity.WARN);
-                name = "You";
-            }
-            // inventory
+            var entityData = entityDataRaw.Value;
+            entityData.name ??= "You";
             Inventory? inventory = null;
             if (
                 playerJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                inventory = Inventory.FromJson((IEnumerable<object>)inventoryValue);
+                inventory = Inventory.FromJson((IEnumerable<object?>?)inventoryValue);
             }
             else
             {
                 Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
             }
-            // position
-            (long x, long y)? position = null;
-            if (
-                long.TryParse(playerJson.TryGetValue("xPos", out var xPositionValue) ? xPositionValue.ToString() : null, out long xPosition) &&
-                long.TryParse(playerJson.TryGetValue("yPos", out var yPositionValue) ? yPositionValue.ToString() : null, out long yPosition)
-            )
-            {
-                position = (xPosition, yPosition);
-            }
-            else
-            {
-                Logger.Log("Couldn't parse player position from Player JSON", severity: LogSeverity.WARN);
-            }
-            // facing
-            Facing? facing = null;
-            if (
-                Enum.TryParse(typeof(Facing), playerJson.TryGetValue("facing", out var facingValue) ? facingValue.ToString() : null, out object? facingEnum) &&
-                Enum.IsDefined(typeof(Facing), (Facing)facingEnum)
-            )
-            {
-                facing = (Facing)facingEnum;
-            }
-            else
-            {
-                Logger.Log("Couldn't parse player facing from Player JSON", severity: LogSeverity.WARN);
-            }
+            // player
             Player player;
-            // stats
             if (
-                int.TryParse(playerJson.TryGetValue("baseHp", out var baseHpValue) ? baseHpValue.ToString() : null, out int baseHp) &&
-                int.TryParse(playerJson.TryGetValue("baseAttack", out var baseAttackValue) ? baseAttackValue.ToString() : null, out int baseAttack) &&
-                int.TryParse(playerJson.TryGetValue("baseDefence", out var baseDefenceValue) ? baseDefenceValue.ToString() : null, out int baseDefence) &&
-                int.TryParse(playerJson.TryGetValue("baseSpeed", out var baseSpeedValue) ? baseSpeedValue.ToString() : null, out int baseSpeed)
+                entityData.baseHp is not null &&
+                entityData.baseAttack is not null &&
+                entityData.baseDefence is not null &&
+                entityData.baseSpeed is not null
             )
             {
-                player = new Player(name, baseHp, baseAttack, baseDefence, baseSpeed, inventory, position, facing);
+                player = new Player(
+                    entityData.name,
+                    (int)entityData.baseHp,
+                    (int)entityData.baseAttack,
+                    (int)entityData.baseDefence,
+                    (int)entityData.baseSpeed,
+                    inventory,
+                    entityData.position,
+                    entityData.facing
+                );
             }
             else
             {
-                Logger.Log("Couldn't parse player stats from Player JSON", severity: LogSeverity.WARN);
-                player = new Player(name, inventory, position, facing);
+                player = new Player(entityData.name, inventory, entityData.position, entityData.facing);
             }
             return player;
         }

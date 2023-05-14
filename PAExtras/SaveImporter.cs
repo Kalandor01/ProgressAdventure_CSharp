@@ -107,16 +107,16 @@ namespace PAExtras
             displayLine["saveVersion"] = Constants.IMPORT_SAVE_VERSION;
             var displayName = (string)dataFileData["display_name"];
             displayLine["displayName"] = displayName;
-            var lastAccessRaw = (IEnumerable<object>)dataFileData["last_access"];
-            var lastAccess = new DateTime(
-                (int)(long)lastAccessRaw.ElementAt(0),
-                (int)(long)lastAccessRaw.ElementAt(1),
-                (int)(long)lastAccessRaw.ElementAt(2),
-                (int)(long)lastAccessRaw.ElementAt(3),
-                (int)(long)lastAccessRaw.ElementAt(4),
-                (int)(long)lastAccessRaw.ElementAt(5)
+            var lastSaveRaw = (IEnumerable<object>)dataFileData["last_access"];
+            var lastSaved = new DateTime(
+                (int)(long)lastSaveRaw.ElementAt(0),
+                (int)(long)lastSaveRaw.ElementAt(1),
+                (int)(long)lastSaveRaw.ElementAt(2),
+                (int)(long)lastSaveRaw.ElementAt(3),
+                (int)(long)lastSaveRaw.ElementAt(4),
+                (int)(long)lastSaveRaw.ElementAt(5)
             );
-            displayLine["lastAccess"] = lastAccess;
+            displayLine["lastSaved"] = lastSaved;
 
             // normal data
             var dataLine = displayLine.DeepCopy();
@@ -142,7 +142,7 @@ namespace PAExtras
                 ["baseAttack"] = (int)(long)playerData["base_attack"],
                 ["baseDefence"] = (int)(long)playerData["base_defence"],
                 ["baseSpeed"] = (int)(long)playerData["base_speed"],
-                ["team"] = (int)(long)playerData["team"],
+                ["currentTeam"] = (int)(long)playerData["team"],
                 ["originalTeam"] = (bool)playerData["switched"] ? 1 : (int)(long)playerData["team"],
                 ["attributes"] = (IEnumerable<object>)playerData["attributes"],
                 ["drops"] = (IEnumerable<object>)playerData["drops"],

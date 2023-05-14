@@ -135,18 +135,28 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="itemList">The json representation of the <c>Keybinds</c> object.<br/>
         /// Its actual type should be IEnumerable{IDictionary{string, object}}</param>
-        public static Inventory FromJson(IEnumerable<object> itemList)
+        public static Inventory? FromJson(IEnumerable<object?>? itemList)
         {
+            if (itemList is null)
+            {
+                Logger.Log("Inventory parse error", "inventory json is null", LogSeverity.ERROR);
+                return null;
+            }
             var items = new List<Item>();
             foreach (var item in itemList)
             {
-                var itemDict = (IDictionary<string, object>)item;
+                if (item is null)
+                {
+                    Logger.Log("Inventory parse error", "item json is null", LogSeverity.WARN);
+                    continue;
+                }
+                var itemDict = (IDictionary<string, object?>)item;
                 if (
                     itemDict.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue.ToString(), out int itemTypeID) &&
+                    int.TryParse(typeIDValue?.ToString(), out int itemTypeID) &&
                     ItemUtils.TryParseItemType(itemTypeID, out ItemTypeID itemType) &&
                     itemDict.TryGetValue("amount", out var amountValue) &&
-                    int.TryParse(amountValue.ToString(), out int itemAmount)
+                    int.TryParse(amountValue?.ToString(), out int itemAmount)
                 )
                 {
                     items.Add(new Item(itemType, itemAmount));

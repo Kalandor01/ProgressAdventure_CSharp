@@ -280,6 +280,18 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Tries to turn the string representation of a Splittable random into an object, and returns the success.
+        /// </summary>
+        /// <param name="randomString">The random generator's string representation.</param>
+        /// <param name="random">The random generator, that got deserialised, or created.</param>
+        public static bool TryDeserializeRandom(string? randomString, out SplittableRandom random)
+        {
+            var rand = DeserializeRandom(randomString);
+            random = rand ?? new SplittableRandom();
+            return rand is not null;
+        }
+
+        /// <summary>
         /// Returns a new <c>SplittableRandom</c> from another <c>SplittableRandom</c>.
         /// </summary>
         /// <param name="parrentRandom">The random generator to use, to generate the other generator.</param>

@@ -1,5 +1,7 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.WorldManagement;
 using System.Diagnostics;
+using System.Xml.Linq;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
@@ -13,7 +15,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The dictionary pairing up facing types, to their vector equivalents.
         /// </summary>
-        public static readonly Dictionary<Facing, (int x, int y)> facingToMovementVectorMapping = new()
+        internal static readonly Dictionary<Facing, (int x, int y)> facingToMovementVectorMapping = new()
         {
             [Facing.NORTH] = (0, 1),
             [Facing.SOUTH] = (0, -1),
@@ -40,8 +42,7 @@ namespace ProgressAdventure.Entity
         /// <param name="rareChance">The chance of the entitiy having the rare attribute. (1 = 100%)</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        /// <param name="name">The name of the entity. If its null, the name of the calling class will be used, as the name.</param>
-        public static (string name, int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
+        public static (int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
             int baseHp,
             int baseAttack,
             int baseDefence,
@@ -50,24 +51,9 @@ namespace ProgressAdventure.Entity
             int positiveFluctuation = 3,
             double rareChance = 0.02,
             int originalTeam = 1,
-            double teamChangeChange = 0.005,
-            string? name = null
+            double teamChangeChange = 0.005
         )
         {
-            if (name == null)
-            {
-                try
-                {
-                    var frame = new StackTrace().GetFrame(1);
-                    var method = frame.GetMethod();
-                    name = method.ReflectedType.Name;
-                }
-                catch (NullReferenceException)
-                {
-                    Logger.Log("Trying to create entity with no known name", "Using default name", LogSeverity.WARN);
-                    name = "[Unknown entity]";
-                }
-            }
             return EntityManager(
                 (baseHp - negativeFluctuation, baseHp, baseHp + positiveFluctuation),
                 (baseAttack - negativeFluctuation, baseAttack, baseAttack + positiveFluctuation),
@@ -75,8 +61,7 @@ namespace ProgressAdventure.Entity
                 (baseSpeed - negativeFluctuation, baseSpeed, baseSpeed + positiveFluctuation),
                 rareChance,
                 originalTeam,
-                teamChangeChange,
-                name
+                teamChangeChange
             );
         }
 
@@ -91,33 +76,16 @@ namespace ProgressAdventure.Entity
         /// <param name="rareChance">The chance of the entitiy having the rare attribute. (1 = 100%)</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        /// <param name="name">The name of the entity. If its null, the name of the calling class will be used, as the name.</param>
-        public static (string name, int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
+        public static (int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
             (int lower, int middle, int upper) baseHp,
             (int lower, int middle, int upper) baseAttack,
             (int lower, int middle, int upper) baseDefence,
             (int lower, int middle, int upper) baseSpeed,
             double rareChance = 0.02,
             int originalTeam = 1,
-            double teamChangeChange = 0.005,
-            string? name = null
+            double teamChangeChange = 0.005
         )
         {
-            if (name is null)
-            {
-                try
-                {
-                    var frame = new StackTrace().GetFrame(1);
-                    var method = frame.GetMethod();
-                    name = method.ReflectedType.Name;
-                }
-                catch (NullReferenceException)
-                {
-                    Logger.Log("Trying to create entity with no known name", "Using default name", LogSeverity.WARN);
-                    name = "[Unknown entity]";
-                }
-            }
-            name = name.Replace("_", " ");
             var baseHpValue = ConfigureStat(baseHp);
             var baseAttackValue = ConfigureStat(baseAttack);
             var baseDefenceValue = ConfigureStat(baseDefence);
@@ -137,7 +105,28 @@ namespace ProgressAdventure.Entity
             {
                 currentTeam = 0;
             }
-            return (name, baseHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
+            return (baseHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
+        }
+
+        /// <summary>
+        /// Gets the name of the entity from the name of the calling class.
+        /// </summary>
+        public static string GetEntityNameFromClass()
+        {
+            string name;
+            try
+            {
+                var frame = new StackTrace().GetFrame(1);
+                var method = frame.GetMethod();
+                name = method.ReflectedType.Name;
+                name = name.Replace("_", " ");
+            }
+            catch (NullReferenceException)
+            {
+                Logger.Log("Trying to create entity with no known name", "Using default name", LogSeverity.WARN);
+                name = "[Unknown entity]";
+            }
+            return name;
         }
 
         /// <summary>
@@ -178,6 +167,44 @@ namespace ProgressAdventure.Entity
                 statValue = 0;
             }
             return statValue;
+        }
+
+        public static void EntityMover(Entity entity, (long x, long y) relativeMovementVector, bool? updateWorld = null, (long x, long y)? startingPosition = null)
+        {
+            if (startingPosition is not null)
+            {
+                if (updateWorld is not null)
+                {
+                    entity.SetPosition(((long x, long y))startingPosition, (bool)updateWorld);
+                }
+                else
+                {
+                    entity.SetPosition(((long x, long y))startingPosition);
+                }
+            }
+            (long x, long y) endPosition = (entity.position.x + relativeMovementVector.x, entity.position.y + relativeMovementVector.y);
+            while (entity.position != endPosition)
+            {
+                var xPosDif = entity.position.x - endPosition.x;
+                var yPosDif = entity.position.y - endPosition.y;
+                var newPos = entity.position;
+                if (Math.Abs(xPosDif) > Math.Abs(yPosDif) && xPosDif != 0)
+                {
+                    newPos.x += xPosDif > 0 ? -1 : 1;
+                }
+                else if (yPosDif != 0)
+                {
+                    newPos.y += yPosDif > 0 ? -1 : 1;
+                }
+                if (updateWorld is not null)
+                {
+                    entity.SetPosition(newPos, (bool)updateWorld);
+                }
+                else
+                {
+                    entity.SetPosition(newPos);
+                }
+            }
         }
         #endregion
     }
