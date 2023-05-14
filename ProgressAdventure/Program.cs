@@ -15,6 +15,7 @@ namespace ProgressAdventure
         {
             SaveManager.CreateSaveData("test", "me");
 
+            
 
             Console.WriteLine();
         }

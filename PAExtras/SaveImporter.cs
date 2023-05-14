@@ -117,6 +117,7 @@ namespace PAExtras
                 (int)(long)lastSaveRaw.ElementAt(5)
             );
             displayLine["lastSaved"] = lastSaved;
+            displayLine["playtime"] = TimeSpan.Zero;
 
             // normal data
             var dataLine = displayLine.DeepCopy();

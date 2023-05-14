@@ -135,7 +135,7 @@ namespace ProgressAdventure
             // last save
             var lastSave = (DateTime?)data["lastSave"];
             // playtime
-            TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
+            _ = TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
             // player
             var playerData = (IDictionary<string, object?>?)data["player"];
             var player = Player.FromJson(playerData);
@@ -227,8 +227,14 @@ namespace ProgressAdventure
                     var displayText = new StringBuilder();
                     var displayName = data.data["displayName"] ?? data.folderName;
                     displayText.Append($"{displayName}: {data.data["playerName"]}\n");
-                    var lastAccess = (DateTime)(data.data["lastAccess"] ?? DateTime.Now);
-                    displayText.Append($"Last opened: {Utils.MakeDate(lastAccess, ".")} {Utils.MakeTime(lastAccess)}");
+                    var lastSave = (DateTime)(data.data["lastSave"] ?? DateTime.Now);
+                    var res = TimeSpan.TryParse(data.data["playtime"]?.ToString(), out var playtime);
+                    if (!res)
+                    {
+                        playtime = TimeSpan.Zero;
+                    }
+                    displayText.Append($"Last saved: {Utils.MakeDate(lastSave, ".")} {Utils.MakeTime(lastSave)}");
+                    displayText.Append($"Playtime: {playtime}");
                     // check version
                     var saveVersion = (string)(data.data["saveVersion"] ?? "[UNKNOWN VERSION]");
                     displayText.Append(Utils.StylizedText($" v.{saveVersion}", saveVersion == Constants.SAVE_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED));

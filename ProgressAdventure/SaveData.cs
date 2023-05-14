@@ -77,6 +77,7 @@ namespace ProgressAdventure
                 ["saveVersion"] = Constants.SAVE_VERSION,
                 ["displayName"] = displaySaveName,
                 ["lastSave"] = LastSave,
+                ["playtime"] = GetPlaytime(),
                 ["playerName"] = player.name
             };
         }
