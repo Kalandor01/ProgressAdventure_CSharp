@@ -9,9 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NPrng" Version="1.0.0.1" />
-    <PackageReference Include="RandomSentence" Version="1.1.1" />
-    <PackageReference Include="SaveFileManager" Version="1.1.5.1" />
+    <PackageReference Include="NPrng" Version="1.0.0.2" />
+    <PackageReference Include="RandomSentence" Version="1.1.1.1" />
+    <PackageReference Include="SaveFileManager" Version="1.1.5.2" />
   </ItemGroup>
 
 </Project>
