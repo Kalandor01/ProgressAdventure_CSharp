@@ -20,9 +20,12 @@ namespace ProgressAdventure.Entity
         #region Public constructors
         /// <summary>
         /// <inheritdoc cref="Player"/>
+        /// Can be used for creating a new <c>Player</c>.
         /// </summary>
+        /// <param name="name"><inheritdoc cref="Entity.name" path="//summary"/></param>
         /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
-        /// <inheritdoc cref="Entity(string, int, int, int , int , int , int? , List{Attribute}?, List{Item}?)"/>
+        /// <param name="position"><inheritdoc cref="Entity.position" path="//summary"/></param>
+        /// <param name="facing"><inheritdoc cref="Entity.facing" path="//summary"/></param>
         public Player(
             string? name = null,
             Inventory? inventory = null,
@@ -47,15 +50,22 @@ namespace ProgressAdventure.Entity
         { }
 
         /// <summary>
-        /// <inheritdoc cref="Player"/>
+        /// <inheritdoc cref="Player"/><br/>
+        /// Can be used for loading the <c>Player</c> from json.
         /// </summary>
+        /// <param name="name"><inheritdoc cref="Entity.name" path="//summary"/></param>
+        /// <param name="baseMaxHp"><inheritdoc cref="Entity.baseMaxHp" path="//summary"/></param>
+        /// <param name="currentHp"><inheritdoc cref="Entity.CurrentHp" path="//summary"/></param>
+        /// <param name="baseAttack"><inheritdoc cref="Entity.baseAttack" path="//summary"/></param>
+        /// <param name="baseDefence"><inheritdoc cref="Entity.baseDefence" path="//summary"/></param>
+        /// <param name="baseSpeed"><inheritdoc cref="Entity.baseSpeed" path="//summary"/></param>
         /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
-        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
-        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
-        /// <inheritdoc cref="Entity(string, int, int, int , int , int , int? , List{Attribute}?, List{Item}?)"/>
+        /// <param name="position"><inheritdoc cref="Entity.position" path="//summary"/></param>
+        /// <param name="facing"><inheritdoc cref="Entity.facing" path="//summary"/></param>
         public Player(
             string? name,
-            int baseHp,
+            int baseMaxHp,
+            int currentHp,
             int baseAttack,
             int baseDefence,
             int baseSpeed,
@@ -63,18 +73,16 @@ namespace ProgressAdventure.Entity
             (long x, long y)? position = null,
             Facing? facing = null
         )
-            : base(string.IsNullOrWhiteSpace(name) ? "You" : name, baseHp, baseAttack, baseDefence, baseSpeed)
+            : base(string.IsNullOrWhiteSpace(name) ? "You" : name, baseMaxHp, baseAttack, baseDefence, baseSpeed, currentHp, position:position, facing:facing)
         {
             this.inventory = inventory ?? new Inventory();
-            this.position = position is not null ? (position.Value.x,  position.Value.y) : (0, 0);
-            this.facing = facing ?? Facing.NORTH;
-            UpdateFullName();
         }
         #endregion
 
         #region Private constructors
         /// <summary>
-        /// <inheritdoc cref="Player"/>
+        /// <inheritdoc cref="Player"/><br/>
+        /// Can be used for creating a new <c>Player</c>, from the result of the EntityManager function.
         /// </summary>
         /// <param name="stats">The tuple of stats, representin all stat values.</param>
         /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
@@ -82,14 +90,15 @@ namespace ProgressAdventure.Entity
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         private Player(
             string? name,
-            (int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) stats,
+            (int baseMaxHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) stats,
             Inventory? inventory = null,
             (long x, long y)? position = null,
             Facing? facing = null
         )
             : this(
                   name,
-                  stats.baseHpValue,
+                  stats.baseMaxHpValue,
+                  stats.baseMaxHpValue,
                   stats.baseAttackValue,
                   stats.baseDefenceValue,
                   stats.baseSpeedValue,
@@ -160,7 +169,8 @@ namespace ProgressAdventure.Entity
             // player
             Player player;
             if (
-                entityData.baseHp is not null &&
+                entityData.baseMaxHp is not null &&
+                entityData.currentHp is not null &&
                 entityData.baseAttack is not null &&
                 entityData.baseDefence is not null &&
                 entityData.baseSpeed is not null
@@ -168,7 +178,8 @@ namespace ProgressAdventure.Entity
             {
                 player = new Player(
                     entityData.name,
-                    (int)entityData.baseHp,
+                    (int)entityData.baseMaxHp,
+                    (int)entityData.currentHp,
                     (int)entityData.baseAttack,
                     (int)entityData.baseDefence,
                     (int)entityData.baseSpeed,

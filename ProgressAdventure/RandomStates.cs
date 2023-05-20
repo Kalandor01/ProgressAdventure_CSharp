@@ -238,10 +238,14 @@ namespace ProgressAdventure
                     Enum.TryParse(typeof(TileNoiseType), tileTypeNoiseSeed.Key.ToString(), out object? noiseTypeValue) &&
                     noiseTypeValue is not null &&
                     Enum.IsDefined(typeof(TileNoiseType), noiseTypeValue) &&
-                    uint.TryParse(tileTypeNoiseSeed.Value.ToString(), out uint noiseSeed)
+                    ulong.TryParse(tileTypeNoiseSeed.Value.ToString(), out ulong noiseSeed)
                 )
                 {
                     noiseSeedDict.Add((TileNoiseType)noiseTypeValue, noiseSeed);
+                }
+                else
+                {
+                    Logger.Log("Tile noise seed parse error", "tile noise seed value is incorrect", LogSeverity.WARN);
                 }
             }
             return noiseSeedDict;

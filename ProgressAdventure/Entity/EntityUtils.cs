@@ -24,7 +24,14 @@ namespace ProgressAdventure.Entity
             [Facing.NORTH_WEST] = (-1, 1),
             [Facing.NORTH_EAST] = (1, 1),
             [Facing.SOUTH_WEST] = (-1, -1),
-            [Facing.SOUTH_EAST] = (1, -1)
+            [Facing.SOUTH_EAST] = (1, -1),
+        };
+        /// <summary>
+        /// The dictionary pairing up attribute types, to stat modifiers.
+        /// </summary>
+        internal static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double speed)> attributeStatChangeMap = new()
+        {
+            [Attribute.RARE] = (2, 2, 2, 2),
         };
         #endregion
 
@@ -33,7 +40,7 @@ namespace ProgressAdventure.Entity
         /// Function to create the stats for an entity object.<br/>
         /// All values calculated from ranges will be calcualted with a trangular distribution. 
         /// </summary>
-        /// <param name="baseHp">The base HP of the entity.</param>
+        /// <param name="baseMaxHp">The base max HP of the entity.</param>
         /// <param name="baseAttack">The base attack damage of the entity.</param>
         /// <param name="baseDefence">The base defence value of the entity.</param>
         /// <param name="baseSpeed">The base speed of the entity.</param>
@@ -42,8 +49,8 @@ namespace ProgressAdventure.Entity
         /// <param name="rareChance">The chance of the entitiy having the rare attribute. (1 = 100%)</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        public static (int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
-            int baseHp,
+        public static (int baseMaxHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
+            int baseMaxHp,
             int baseAttack,
             int baseDefence,
             int baseSpeed,
@@ -55,7 +62,7 @@ namespace ProgressAdventure.Entity
         )
         {
             return EntityManager(
-                (baseHp - negativeFluctuation, baseHp, baseHp + positiveFluctuation),
+                (baseMaxHp - negativeFluctuation, baseMaxHp, baseMaxHp + positiveFluctuation),
                 (baseAttack - negativeFluctuation, baseAttack, baseAttack + positiveFluctuation),
                 (baseDefence - negativeFluctuation, baseDefence, baseDefence + positiveFluctuation),
                 (baseSpeed - negativeFluctuation, baseSpeed, baseSpeed + positiveFluctuation),
@@ -69,15 +76,15 @@ namespace ProgressAdventure.Entity
         /// Function to create the stats for an entity object.<br/>
         /// All values calculated from ranges will be calcualted with a trangular distribution. 
         /// </summary>
-        /// <param name="baseHp">The base HP range of the entity.</param>
+        /// <param name="baseMaxHp">The base max HP range of the entity.</param>
         /// <param name="baseAttack">The base attack damage range of the entity.</param>
         /// <param name="baseDefence">The base defence value range of the entity.</param>
         /// <param name="baseSpeed">The base speed range of the entity.</param>
         /// <param name="rareChance">The chance of the entitiy having the rare attribute. (1 = 100%)</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        public static (int baseHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
-            (int lower, int middle, int upper) baseHp,
+        public static (int baseMaxHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) EntityManager(
+            (int lower, int middle, int upper) baseMaxHp,
             (int lower, int middle, int upper) baseAttack,
             (int lower, int middle, int upper) baseDefence,
             (int lower, int middle, int upper) baseSpeed,
@@ -86,7 +93,7 @@ namespace ProgressAdventure.Entity
             double teamChangeChange = 0.005
         )
         {
-            var baseHpValue = ConfigureStat(baseHp);
+            var baseMaxHpValue = ConfigureStat(baseMaxHp);
             var baseAttackValue = ConfigureStat(baseAttack);
             var baseDefenceValue = ConfigureStat(baseDefence);
             var baseSpeedValue = ConfigureStat(baseSpeed);
@@ -95,9 +102,9 @@ namespace ProgressAdventure.Entity
             {
                 attributes.Add(Attribute.RARE);
             }
-            if (baseHpValue <= 0)
+            if (baseMaxHpValue <= 0)
             {
-                baseHpValue = 1;
+                baseMaxHpValue = 1;
             }
             // team
             int currentTeam = originalTeam;
@@ -105,7 +112,7 @@ namespace ProgressAdventure.Entity
             {
                 currentTeam = 0;
             }
-            return (baseHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
+            return (baseMaxHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
         }
 
         /// <summary>

@@ -1,9 +1,11 @@
-﻿using ProgressAdventure.Enums;
-using SaveFileManager;
+﻿using NPrng.Generators;
+using ProgressAdventure.Enums;
+using ProgressAdventure.ItemManagement;
+using System.Collections;
+using System.Text;
+using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
-using Logger = ProgressAdventure.Logger;
-using ProgressAdventure.ItemManagement;
 
 namespace PAExtras
 {
@@ -47,24 +49,32 @@ namespace PAExtras
         #endregion
 
         #region Public functions
+        /// <summary>
+        /// Converts the json representation of an exproted python save file into a C# version save file.
+        /// </summary>
+        /// <param name="saveFolderName">The name of the save folder to import.</param>
         public static void ImportSave(string saveFolderName)
         {
             // get folder
             var exprotedSaveFolderPath = Path.Join(Constants.EXPORTED_FOLDER_PATH, saveFolderName);
             var correctedSaveFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveFolderName);
 
-            // get data file
-            var dataFilePath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FILE_NAME_DATA);
-            var dataFileData = ReadJsonLine(dataFilePath, 1);
-
             PATools.RecreateChunksFolder(saveFolderName);
-            var correctDataFileLines = CorrectDataFileData(dataFileData);
-            PATools.EncodeSaveShort(correctDataFileLines, correctedSaveFolderPath);
+
+            // data file
+            CorrectDataFile(exprotedSaveFolderPath, correctedSaveFolderPath);
+            // chunks
+            CorrectChunkFiles(exprotedSaveFolderPath, correctedSaveFolderPath);
         }
         #endregion
 
         #region Private functions
-        public static Dictionary<string, object?>? ReadJsonLine(string filePath, int lineNum = 0)
+        /// <summary>
+        /// Reads 1 line from a plain json file.
+        /// </summary>
+        /// <param name="filePath">The path to the file.</param>
+        /// <param name="lineNum">The line number to read.</param>
+        private static Dictionary<string, object?>? ReadJsonLine(string filePath, int lineNum = 0)
         {
             // get folder
             var fullFilePath = filePath + "." + Constants.EXPORTED_SAVE_EXT;
@@ -94,6 +104,26 @@ namespace PAExtras
             }
         }
 
+        /// <summary>
+        /// Corrects the data file.
+        /// </summary>
+        /// <param name="exprotedSaveFolderPath">The path to the exported save folder.</param>
+        /// <param name="correctedSaveFolderPath">The path to the save folder for the corrected data.</param>
+        private static void CorrectDataFile(string exprotedSaveFolderPath, string correctedSaveFolderPath)
+        {
+            var dataFilePath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FILE_NAME_DATA);
+            var dataFileData = ReadJsonLine(dataFilePath, 1);
+
+            var correctDataFileLines = CorrectDataFileData(dataFileData);
+            var correctDataFilePath = Path.Join(correctedSaveFolderPath, PAConstants.SAVE_FILE_NAME_DATA);
+            PATools.EncodeSaveShort(correctDataFileLines, correctDataFilePath);
+        }
+
+        /// <summary>
+        /// Converts the data file part of the exported save into the correct format.
+        /// </summary>
+        /// <param name="dataFileData">The json data from the exported save.</param>
+        /// <exception cref="Exception"></exception>
         private static List<Dictionary<string, object>> CorrectDataFileData(Dictionary<string, object?>? dataFileData)
         {
             if (dataFileData is null || dataFileData["save_version"]?.ToString() != Constants.NEWEST_PYTHON_SAVE_VERSION)
@@ -116,13 +146,13 @@ namespace PAExtras
                 (int)(long)lastSaveRaw.ElementAt(4),
                 (int)(long)lastSaveRaw.ElementAt(5)
             );
-            displayLine["lastSaved"] = lastSaved;
+            displayLine["lastSave"] = lastSaved;
             displayLine["playtime"] = TimeSpan.Zero;
 
             // normal data
             var dataLine = displayLine.DeepCopy();
 
-
+            //player data
             var playerData = (IDictionary<string, object>)dataFileData["player"];
 
             var inventoryJson = new List<Dictionary<string, object>>();
@@ -131,7 +161,7 @@ namespace PAExtras
                 var itemJson = item as IDictionary<string, object>;
                 inventoryJson.Add(new Dictionary<string, object>
                 {
-                    ["type"] = itemTypeMap[(string)itemJson["type"]],
+                    ["type"] = itemTypeMap[(string)itemJson["type"]].GetHashCode(),
                     ["amount"] = (int)(long)itemJson["amount"],
                 });
             }
@@ -139,7 +169,8 @@ namespace PAExtras
             dataLine["player"] = new Dictionary<string, object>
             {
                 ["name"] = (string)playerData["name"],
-                ["baseHp"] = (int)(long)playerData["base_hp"],
+                ["baseMaxHp"] = (int)(long)playerData["base_hp"],
+                ["currentHp"] = (int)(long)playerData["base_hp"],
                 ["baseAttack"] = (int)(long)playerData["base_attack"],
                 ["baseDefence"] = (int)(long)playerData["base_defence"],
                 ["baseSpeed"] = (int)(long)playerData["base_speed"],
@@ -153,7 +184,89 @@ namespace PAExtras
                 ["inventory"] = inventoryJson,
             };
 
+            // random states
+            var seedData = (IDictionary<string, object>)dataFileData["seeds"];
+            var mainRandom = ParseRandomFromExprotedRandom((Dictionary<string, object>)seedData["main_seed"]);
+            var worldRandom = ParseRandomFromExprotedRandom((Dictionary<string, object>)seedData["world_seed"]);
+            var miscRandom = mainRandom.Split();
+            var ttnsData = (Dictionary<string, object>)seedData["tile_type_noise_seeds"];
+            var ttnSeeds = new Dictionary<string, ulong>
+            {
+                ["HEIGHT"] = (ulong)(long)ttnsData["height"],
+                ["TEMPERATURE"] = (ulong)(long)ttnsData["temperature"],
+                ["HUMIDITY"] = (ulong)(long)ttnsData["humidity"],
+                ["HOSTILITY"] = (ulong)(long)ttnsData["hostility"],
+                ["POPULATION"] = (ulong)(long)ttnsData["population"],
+            };
+            var chunkSeedModifier = worldRandom.GenerateDouble();
+
+            dataLine["randomStates"] = new Dictionary<string, object>
+            {
+                ["mainRandom"] = PATools.SerializeRandom(mainRandom),
+                ["worldRandom"] = PATools.SerializeRandom(worldRandom),
+                ["miscRandom"] = PATools.SerializeRandom(miscRandom),
+                ["tileTypeNoiseSeeds"] = ttnSeeds,
+                ["chunkSeedModifier"] = chunkSeedModifier,
+            };
+
             return new List<Dictionary<string, object>> { displayLine, dataLine };
+        }
+
+        /// <summary>
+        /// Creates a new random from any string.
+        /// </summary>
+        /// <param name="rawString">The raw string.</param>
+        private static SplittableRandom? ParseRandomFromString(string rawString)
+        {
+            var randomState = Convert.ToBase64String(Encoding.UTF8.GetBytes(rawString));
+            return PATools.DeserializeRandom(randomState);
+        }
+
+        /// <summary>
+        /// Creates a new random from the json representation of an exported random.
+        /// </summary>
+        /// <param name="exportedRandom">The json representation of an exported random.</param>
+        private static SplittableRandom ParseRandomFromExprotedRandom(Dictionary<string, object> exportedRandom)
+        {
+            var randomString = new StringBuilder();
+            randomString.Append(exportedRandom["type"].ToString());
+            randomString.Append(exportedRandom["pos"].ToString());
+            randomString.Append(exportedRandom["has_gauss"].ToString());
+            randomString.Append(exportedRandom["cached_gaussian"].ToString());
+            var state = (IEnumerable)exportedRandom["state"];
+            randomString.Append(state.GetHashCode());
+            return ParseRandomFromString(randomString.ToString());
+        }
+
+        /// <summary>
+        /// Corrects all chunk files.
+        /// </summary>
+        /// <param name="exprotedSaveFolderPath">The path to the exported save folder.</param>
+        /// <param name="correctedSaveFolderPath">The path to the save folder for the corrected data.</param>
+        private static void CorrectChunkFiles(string exprotedSaveFolderPath, string correctedSaveFolderPath)
+        {
+            var chunksFolderPath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
+            var correctedChunksFolderPath = Path.Join(correctedSaveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
+
+            var chunks = Directory.GetFiles(chunksFolderPath);
+            foreach ( var chunkPath in chunks)
+            {
+                var chunkFileName = Path.GetFileNameWithoutExtension(chunkPath);
+                var correctChunkFilePath = Path.Join(correctedChunksFolderPath, chunkFileName);
+
+                var chunkFileData = ReadJsonLine(Path.Join(chunksFolderPath, chunkFileName), 0);
+                var chunkPosition = (0, 0);
+
+                var correctChunkFileLines = CorrectChunkFileData(chunkPosition, chunkFileData);
+                PATools.EncodeSaveShort(correctChunkFileLines, correctChunkFilePath);
+            }
+        }
+
+        private static Dictionary<string, object> CorrectChunkFileData((long x, long y) basePosition, Dictionary<string, object> chunkFileData)
+        {
+            var correctedChunkData = new Dictionary<string, object>();
+
+            return correctedChunkData;
         }
         #endregion
     }

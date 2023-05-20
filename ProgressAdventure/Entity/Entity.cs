@@ -17,7 +17,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The base hp of the <c>Entity</c>.
         /// </summary>
-        public int baseHp;
+        public int baseMaxHp;
         /// <summary>
         /// The base attack of the <c>Entity</c>.
         /// </summary>
@@ -62,9 +62,13 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public string FullName { get; private set; }
         /// <summary>
+        /// The maximum hp of the <c>Entity</c>.
+        /// </summary>
+        public int MaxHp { get; private set; }
+        /// <summary>
         /// The current hp of the <c>Entity</c>.
         /// </summary>
-        public int Hp { get; private set; }
+        public int CurrentHp { get; private set; }
         /// <summary>
         /// The current attack of the <c>Entity</c>.
         /// </summary>
@@ -81,10 +85,11 @@ namespace ProgressAdventure.Entity
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="Entity"/>
+        /// <inheritdoc cref="Entity"/><br/>
+        /// Can be used for loading the <c>Entity</c> from json.
         /// </summary>
         /// <param name="name"><inheritdoc cref="name" path="//summary"/></param>
-        /// <param name="baseHp"><inheritdoc cref="baseHp" path="//summary"/></param>
+        /// <param name="baseMaxHp"><inheritdoc cref="baseMaxHp" path="//summary"/></param>
         /// <param name="baseAttack"><inheritdoc cref="baseAttack" path="//summary"/></param>
         /// <param name="baseDefence"><inheritdoc cref="baseDefence" path="//summary"/></param>
         /// <param name="baseSpeed"><inheritdoc cref="baseSpeed" path="//summary"/></param>
@@ -96,10 +101,11 @@ namespace ProgressAdventure.Entity
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         public Entity(
             string name,
-            int baseHp,
+            int baseMaxHp,
             int baseAttack,
             int baseDefence,
             int baseSpeed,
+            int? currentHp = null,
             int originalTeam = 0,
             int? currentTeam = null,
             List<Enums.Attribute>? attributes = null,
@@ -109,7 +115,7 @@ namespace ProgressAdventure.Entity
         )
         {
             this.name = name;
-            this.baseHp = baseHp;
+            this.baseMaxHp = baseMaxHp;
             this.baseAttack = baseAttack;
             this.baseDefence = baseDefence;
             this.baseSpeed = baseSpeed;
@@ -120,19 +126,20 @@ namespace ProgressAdventure.Entity
             this.position = position ?? (0, 0);
             this.facing = facing ?? Facing.NORTH;
             // adjust properties
-            SetupAttributes();
+            SetupAttributes(currentHp);
             UpdateFullName();
         }
 
         /// <summary>
-        /// <inheritdoc cref="Entity"/>
+        /// <inheritdoc cref="Entity"/><br/>
+        /// Can be used for creating a new <c>Entity</c>, from the result of the EntityManager function.
         /// </summary>
         /// <param name="stats">The tuple of stats, representin all other values from the other constructor, other than drops.</param>
         /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
         public Entity(
             string name,
             (
-                int baseHp,
+                int baseMaxHp,
                 int baseAttack,
                 int baseDefence,
                 int baseSpeed,
@@ -144,10 +151,11 @@ namespace ProgressAdventure.Entity
         )
             :this(
                  name,
-                 stats.baseHp,
+                 stats.baseMaxHp,
                  stats.baseAttack,
                  stats.baseDefence,
                  stats.baseSpeed,
+                 null,
                  stats.originalTeam,
                  stats.team,
                  stats.attributes,
@@ -288,7 +296,8 @@ namespace ProgressAdventure.Entity
             var entityJson = new Dictionary<string, object?>
             {
                 ["name"] = name,
-                ["baseHp"] = baseHp,
+                ["baseMaxHp"] = baseMaxHp,
+                ["currentHp"] = CurrentHp,
                 ["baseAttack"] = baseAttack,
                 ["baseDefence"] = baseDefence,
                 ["baseSpeed"] = baseSpeed,
@@ -309,12 +318,16 @@ namespace ProgressAdventure.Entity
         /// <param name="target">The target entity.</param>
         public void AttackEntity(Entity target)
         {
-            target.Hp -= Attack;
+            target.CurrentHp -= Attack;
+            if (target.CurrentHp < 0)
+            {
+                CurrentHp = 0;
+            }
         }
         #endregion
 
         #region Protected functions
-        protected static (string? name, (long x, long y)? position, Facing? facing, int? baseHp, int? baseAttack, int? baseDefence, int? baseSpeed)? FromJsonInternal(IDictionary<string, object?>? entityJson)
+        protected static (string? name, (long x, long y)? position, Facing? facing, int? currentHp, int? baseMaxHp, int? baseAttack, int? baseDefence, int? baseSpeed)? FromJsonInternal(IDictionary<string, object?>? entityJson)
         {
             if (entityJson is null)
             {
@@ -364,18 +377,31 @@ namespace ProgressAdventure.Entity
                 Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
             }
             // stats
-            // hp
-            int? baseHp = null;
+            // max hp
+            int? baseMaxHp = null;
             if (
-                entityJson.TryGetValue("baseHp", out var baseHpValue) &&
-                int.TryParse(baseHpValue?.ToString(), out int hpValue)
+                entityJson.TryGetValue("baseMaxHp", out var baseMaxHpValue) &&
+                int.TryParse(baseMaxHpValue?.ToString(), out int maxHpValue)
             )
             {
-                baseHp = hpValue;
+                baseMaxHp = maxHpValue;
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity base hp", LogSeverity.WARN);
+                Logger.Log("Entity parse error", "couldn't parse entity base max hp", LogSeverity.WARN);
+            }
+            // current hp
+            int? currentHp = null;
+            if (
+                entityJson.TryGetValue("currentHp", out var currentHpValueStr) &&
+                int.TryParse(currentHpValueStr?.ToString(), out int currentHpValue)
+            )
+            {
+                currentHp = currentHpValue;
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "couldn't parse entity current hp", LogSeverity.WARN);
             }
             // attack
             int? baseAttack = null;
@@ -416,7 +442,7 @@ namespace ProgressAdventure.Entity
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base speed", LogSeverity.WARN);
             }
-            return (name, position, facing, baseHp, baseAttack, baseDefence, baseSpeed);
+            return (name, position, facing, currentHp, baseMaxHp, baseAttack, baseDefence, baseSpeed);
         }
         #endregion
 
@@ -424,19 +450,27 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Sets up the entity's stats acording to its base attributes.
         /// </summary>
-        private void SetupAttributes()
+        private void SetupAttributes(int? currentHp = null)
         {
-            Hp = baseHp;
-            Attack = baseAttack;
-            Defence = baseDefence;
-            Speed = baseSpeed;
-            if (attributes.Contains(Enums.Attribute.RARE))
+            double tempMaxHp = baseMaxHp;
+            double tempAttack = baseAttack;
+            double tempDefence = baseDefence;
+            double tempSpeed = baseSpeed;
+
+            foreach (var attribute in attributes)
             {
-                Hp *= 2;
-                Attack *= 2;
-                Defence *= 2;
-                Speed *= 2;
+                var (maxHp, attack, defence, speed) = EntityUtils.attributeStatChangeMap[attribute];
+                tempMaxHp *= maxHp;
+                tempAttack *= attack;
+                tempDefence *= defence;
+                tempSpeed *= speed;
             }
+            MaxHp = (int)Math.Clamp(tempMaxHp, int.MinValue, int.MaxValue);
+            CurrentHp = currentHp ?? MaxHp;
+            CurrentHp = Math.Clamp(CurrentHp, 0, MaxHp);
+            Attack = (int)Math.Clamp(tempAttack, int.MinValue, int.MaxValue);
+            Defence = (int)Math.Clamp(tempDefence, int.MinValue, int.MaxValue);
+            Speed = (int)Math.Clamp(tempSpeed, int.MinValue, int.MaxValue);
         }
         #endregion
 
@@ -445,7 +479,7 @@ namespace ProgressAdventure.Entity
         {
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
-            return $"Name: {name}\nFull name: {FullName}\nHp: {Hp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
+            return $"Name: {name}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
         }
         #endregion
     }

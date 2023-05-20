@@ -1,6 +1,4 @@
-﻿using NPrng.Generators;
-using ProgressAdventure.Entity;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using System.Text;
 
@@ -14,8 +12,9 @@ namespace ProgressAdventure
         static void MainFunction()
         {
             SaveManager.CreateSaveData("test", "me");
+            World.TryGetTileAll((0, 0), out _);
 
-            
+            SaveManager.MakeSave();
 
             Console.WriteLine();
         }
