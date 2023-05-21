@@ -130,7 +130,7 @@ namespace ProgressAdventure
             // load random states
             var randomStates = (IDictionary<string, object?>?)data["randomStates"];
             RandomStates.FromJson(randomStates);
-            // display_name
+            // display name
             var displayName = (string?)data["displayName"];
             // last save
             var lastSave = (DateTime?)data["lastSave"];

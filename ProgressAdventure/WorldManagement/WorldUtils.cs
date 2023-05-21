@@ -192,7 +192,7 @@ namespace ProgressAdventure.WorldManagement
         internal static readonly Dictionary<ContentTypeID, string> structureContentSubtypeIDTextMap = new()
         {
             [ContentType.Structure.NONE] = "none",
-            [ContentType.Structure.BANDIT_CAMP] = "bandit_camp",
+            [ContentType.Structure.BANDIT_CAMP] = "banditCamp",
             [ContentType.Structure.VILLAGE] = "village",
             [ContentType.Structure.KINGDOM] = "kingdom",
         };

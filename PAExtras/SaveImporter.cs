@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using System.Collections;
@@ -53,8 +54,11 @@ namespace PAExtras
         /// Converts the json representation of an exproted python save file into a C# version save file.
         /// </summary>
         /// <param name="saveFolderName">The name of the save folder to import.</param>
-        public static void ImportSave(string saveFolderName)
+        /// <param name="showProggress">Whether to show the conversion proggress text.</param>
+        public static void ImportSave(string saveFolderName, bool showProggress = true)
         {
+            Logger.Log("Correcting save file", $"save folder name: {saveFolderName}");
+            Console.WriteLine($"Correcting save file ({saveFolderName})");
             // get folder
             var exprotedSaveFolderPath = Path.Join(Constants.EXPORTED_FOLDER_PATH, saveFolderName);
             var correctedSaveFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveFolderName);
@@ -62,9 +66,11 @@ namespace PAExtras
             PATools.RecreateChunksFolder(saveFolderName);
 
             // data file
-            CorrectDataFile(exprotedSaveFolderPath, correctedSaveFolderPath);
+            var (chunkSeedMod, tileNoiseSeeds) = CorrectDataFile(exprotedSaveFolderPath, correctedSaveFolderPath);
             // chunks
-            CorrectChunkFiles(exprotedSaveFolderPath, correctedSaveFolderPath);
+            CorrectChunkFiles(exprotedSaveFolderPath, correctedSaveFolderPath, chunkSeedMod, tileNoiseSeeds, showProggress);
+            Logger.Log("Corrected save file", $"save folder name: {saveFolderName}");
+            Console.WriteLine($"Corrected save file ({saveFolderName})");
         }
         #endregion
 
@@ -109,14 +115,15 @@ namespace PAExtras
         /// </summary>
         /// <param name="exprotedSaveFolderPath">The path to the exported save folder.</param>
         /// <param name="correctedSaveFolderPath">The path to the save folder for the corrected data.</param>
-        private static void CorrectDataFile(string exprotedSaveFolderPath, string correctedSaveFolderPath)
+        private static (double chunkSeedMod, Dictionary<string, ulong> tileNoiseSeeds) CorrectDataFile(string exprotedSaveFolderPath, string correctedSaveFolderPath)
         {
             var dataFilePath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FILE_NAME_DATA);
             var dataFileData = ReadJsonLine(dataFilePath, 1);
 
-            var correctDataFileLines = CorrectDataFileData(dataFileData);
+            var (correctDataFileLines, chunkSeedMod, tileNoiseSeeds) = CorrectDataFileData(dataFileData);
             var correctDataFilePath = Path.Join(correctedSaveFolderPath, PAConstants.SAVE_FILE_NAME_DATA);
             PATools.EncodeSaveShort(correctDataFileLines, correctDataFilePath);
+            return (chunkSeedMod, tileNoiseSeeds);
         }
 
         /// <summary>
@@ -124,7 +131,7 @@ namespace PAExtras
         /// </summary>
         /// <param name="dataFileData">The json data from the exported save.</param>
         /// <exception cref="Exception"></exception>
-        private static List<Dictionary<string, object>> CorrectDataFileData(Dictionary<string, object?>? dataFileData)
+        private static (List<Dictionary<string, object>> dataFileLines, double chunkSeedMod, Dictionary<string, ulong> tileNoiseSeeds) CorrectDataFileData(Dictionary<string, object?>? dataFileData)
         {
             if (dataFileData is null || dataFileData["save_version"]?.ToString() != Constants.NEWEST_PYTHON_SAVE_VERSION)
             {
@@ -209,7 +216,7 @@ namespace PAExtras
                 ["chunkSeedModifier"] = chunkSeedModifier,
             };
 
-            return new List<Dictionary<string, object>> { displayLine, dataLine };
+            return (new List<Dictionary<string, object>> { displayLine, dataLine }, chunkSeedModifier, ttnSeeds);
         }
 
         /// <summary>
@@ -243,30 +250,182 @@ namespace PAExtras
         /// </summary>
         /// <param name="exprotedSaveFolderPath">The path to the exported save folder.</param>
         /// <param name="correctedSaveFolderPath">The path to the save folder for the corrected data.</param>
-        private static void CorrectChunkFiles(string exprotedSaveFolderPath, string correctedSaveFolderPath)
+        /// <param name="chunkSeedMod">The chunk seed modifier.</param>
+        /// <param name="tileNoiseSeeds">The tile noise seeds.</param>
+        /// <param name="showProggress">Whether to show the conversion proggress text.</param>
+        private static void CorrectChunkFiles(
+            string exprotedSaveFolderPath,
+            string correctedSaveFolderPath,
+            double chunkSeedMod,
+            Dictionary<string, ulong> tileNoiseSeeds,
+            bool showProggress = true
+        )
         {
+            Logger.Log("Correcting chunks...");
+            var correctText = "Correcting chunk files...";
+            if (showProggress)
+            {
+                Console.Write(correctText);
+            }
             var chunksFolderPath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
             var correctedChunksFolderPath = Path.Join(correctedSaveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
 
-            var chunks = Directory.GetFiles(chunksFolderPath);
-            foreach ( var chunkPath in chunks)
+            var tileNoiseGenerators = CalculateNoiseGenerators(tileNoiseSeeds);
+            var chunkPaths = Directory.GetFiles(chunksFolderPath);
+            for (var x = 0; x < chunkPaths.Length; x++)
             {
-                var chunkFileName = Path.GetFileNameWithoutExtension(chunkPath);
+                var chunkFileName = Path.GetFileNameWithoutExtension(chunkPaths[x]);
                 var correctChunkFilePath = Path.Join(correctedChunksFolderPath, chunkFileName);
 
                 var chunkFileData = ReadJsonLine(Path.Join(chunksFolderPath, chunkFileName), 0);
-                var chunkPosition = (0, 0);
+                var chunkCoordinatesSplit = chunkFileName.Split(Constants.CHUNK_FILE_NAME_SEP);
+                var chunkX = long.Parse(chunkCoordinatesSplit[1]);
+                var chunkY = long.Parse(chunkCoordinatesSplit[2]);
+                var chunkPosition = (chunkX, chunkY);
 
-                var correctChunkFileLines = CorrectChunkFileData(chunkPosition, chunkFileData);
+                var correctChunkFileLines = CorrectChunkFileData(chunkPosition, chunkSeedMod, tileNoiseGenerators, chunkFileData);
                 PATools.EncodeSaveShort(correctChunkFileLines, correctChunkFilePath);
+                if (showProggress)
+                {
+                    Console.Write($"\r{correctText}{Math.Round((x + 1) * 1.0 / chunkPaths.Length * 100, 3)}%                ");
+                }
+            }
+            if (showProggress)
+            {
+                Console.WriteLine($"\r{correctText}DONE!                        ");
             }
         }
 
-        private static Dictionary<string, object> CorrectChunkFileData((long x, long y) basePosition, Dictionary<string, object> chunkFileData)
+        /// <summary>
+        /// Generates the chunk random genrator for a chunk.
+        /// </summary>
+        /// <param name="absolutePosition">The absolute position of the chunk.</param>
+        /// <param name="chunkSeedMod">The chunk seed modifier.</param>
+        /// <param name="tileNoiseGenerators">The tile noise generators.</param>
+        private static SplittableRandom GetChunkRandom((long x, long y) absolutePosition, double chunkSeedMod, Dictionary<string, PerlinNoise> tileNoiseGenerators)
         {
-            var correctedChunkData = new Dictionary<string, object>();
+            var posX = Utils.FloorRound(absolutePosition.x, Constants.CHUNK_SIZE);
+            var posY = Utils.FloorRound(absolutePosition.y, Constants.CHUNK_SIZE);
+            var noiseValues = GetNoiseValues((posX, posY), tileNoiseGenerators);
+            var noiseNum = noiseValues.Count;
+            var seedNumSize = 19.0;
+            var noiseTenMulti = (int)Math.Floor(seedNumSize / noiseNum);
+            var noiseMulti = Math.Pow(10, noiseTenMulti);
+            ulong seed = 1;
+            for (int x = 0; x < noiseValues.Count; x++)
+            {
+                var noiseVal = noiseValues.ElementAt(x).Value;
+                seed *= (ulong)(noiseVal * noiseMulti);
+            }
+            seed = (ulong)(seed * chunkSeedMod);
+            return new SplittableRandom(seed);
+        }
 
-            return correctedChunkData;
+        /// <summary>
+        /// Calculates the perlin noise generators.
+        /// </summary>
+        /// <param name="tileNoiseSeeds">The tile noise seeds.</param>
+        private static Dictionary<string, PerlinNoise> CalculateNoiseGenerators(Dictionary<string, ulong> tileNoiseSeeds)
+        {
+            return new Dictionary<string, PerlinNoise>
+            {
+                ["height"] = new PerlinNoise(tileNoiseSeeds["HEIGHT"]),
+                ["temperature"] = new PerlinNoise(tileNoiseSeeds["TEMPERATURE"]),
+                ["humidity"] = new PerlinNoise(tileNoiseSeeds["HUMIDITY"]),
+                ["hostility"] = new PerlinNoise(tileNoiseSeeds["HOSTILITY"]),
+                ["population"] = new PerlinNoise(tileNoiseSeeds["POPULATION"])
+            };
+        }
+
+        /// <summary>
+        /// Calculates the noise values for each perlin noise generator at a specific point, and normalises it between 0 and 1.
+        /// </summary>
+        /// <param name="absolutePosition">The absolute coordinate of the chunk.</param>
+        /// <param name="tileNoiseGenerators">The tile noise generators.</param>
+        private static Dictionary<string, double> GetNoiseValues((long x, long y) absolutePosition, Dictionary<string, PerlinNoise> tileNoiseGenerators)
+        {
+            var x = absolutePosition.x;
+            var y = absolutePosition.y;
+            var noiseValues = new Dictionary<string, double>();
+            foreach (var noiseGeneratorEntry in tileNoiseGenerators)
+            {
+                var noiseKey = noiseGeneratorEntry.Key;
+                var noiseGenerator = noiseGeneratorEntry.Value;
+                var noiseValue = noiseGenerator.Generate(x, y, 16.0 / Constants.TILE_NOISE_DIVISION) * 1;
+                noiseValue += noiseGenerator.Generate(x, y, 8.0 / Constants.TILE_NOISE_DIVISION) * 2;
+                noiseValue += noiseGenerator.Generate(x, y, 4.0 / Constants.TILE_NOISE_DIVISION) * 4;
+                noiseValue += noiseGenerator.Generate(x, y, 2.0 / Constants.TILE_NOISE_DIVISION) * 8;
+                noiseValue += noiseGenerator.Generate(x, y, 1.0 / Constants.TILE_NOISE_DIVISION) * 16;
+                noiseValue /= 31;
+                noiseValues[noiseKey] = noiseValue;
+            }
+            return noiseValues;
+        }
+
+        /// <summary>
+        /// Corrects a chunk file's data.
+        /// </summary>
+        /// <param name="basePosition">The base position of the chunk.</param>
+        /// <param name="chunkSeedMod">The chunk seed modifier.</param>
+        /// <param name="tileNoiseGenerators">The tile noise generators.</param>
+        /// <param name="chunkFileData">The data from the chunk file.</param>
+        private static Dictionary<string, object> CorrectChunkFileData(
+            (long x, long y) basePosition,
+            double chunkSeedMod,
+            Dictionary<string, PerlinNoise> tileNoiseGenerators,
+            Dictionary<string, object> chunkFileData)
+        {
+            var correctedTiles = new List<Dictionary<string, object?>>();
+            var tilesData = (IEnumerable)chunkFileData["tiles"];
+            foreach (var tileData in tilesData)
+            {
+                correctedTiles.Add(CorrectTileData((Dictionary<string, object?>)tileData));
+            }
+
+            return new Dictionary<string, object>
+            {
+                ["chunkRandom"] = PATools.SerializeRandom(GetChunkRandom(basePosition, chunkSeedMod, tileNoiseGenerators)),
+                ["tiles"] = correctedTiles,
+            };
+        }
+
+        /// <summary>
+        /// Corrects a tile's data.
+        /// </summary>
+        /// <param name="tileData">The tile data.</param>
+        private static Dictionary<string, object?> CorrectTileData(Dictionary<string, object?> tileData)
+        {
+            return new Dictionary<string, object?>
+            {
+                ["xPos"] = (long)tileData["x"],
+                ["yPos"] = (long)tileData["y"],
+                ["visited"] = (long)tileData["visited"],
+                ["terrain"] = CorrectContentData((Dictionary<string, object?>)tileData["terrain"]),
+                ["structure"] = CorrectContentData((Dictionary<string, object?>)tileData["structure"]),
+                ["population"] = CorrectContentData((Dictionary<string, object?>)tileData["population"]),
+            };
+        }
+
+        /// <summary>
+        /// Corrects the content's data.
+        /// </summary>
+        /// <param name="contentData">The content data.</param>
+        private static Dictionary<string, object?> CorrectContentData(Dictionary<string, object?> contentData)
+        {
+            var correctedContent = contentData.DeepCopy();
+            correctedContent["type"] = correctedContent["type"].ToString();
+            correctedContent["subtype"] = correctedContent["subtype"].ToString();
+            if (correctedContent["subtype"]?.ToString() == "bandit_camp")
+            {
+                correctedContent["subtype"] = "banditCamp";
+            }
+            correctedContent["name"] = correctedContent["name"]?.ToString();
+            if (correctedContent["name"]?.ToString() == "None")
+            {
+                correctedContent["name"] = null;
+            }
+
+            return correctedContent;
         }
         #endregion
     }

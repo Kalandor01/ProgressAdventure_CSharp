@@ -165,9 +165,9 @@ namespace ProgressAdventure.WorldManagement
                         existingChunks.Add((posX, posY));
                         continue;
                     }
-                    Logger.Log("Chunk file parse error", "chunk positions couldn' be extracted from chunk file name.", Enums.LogSeverity.WARN);
+                    Logger.Log("Chunk file parse error", $"chunk positions couldn' be extracted from chunk file name: {chunkFileName}", Enums.LogSeverity.WARN);
                 }
-                Logger.Log("Chunk file parse error", "file name is not chunk file name.", Enums.LogSeverity.WARN);
+                Logger.Log("Chunk file parse error", $"file name is not chunk file name", Enums.LogSeverity.WARN);
             }
             // load chunks
             if (showProgressText is not null)

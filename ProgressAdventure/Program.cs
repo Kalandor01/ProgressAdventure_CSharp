@@ -1,4 +1,6 @@
-﻿using ProgressAdventure.Enums;
+﻿using NPrng.Generators;
+using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using System.Text;
 
@@ -12,9 +14,29 @@ namespace ProgressAdventure
         static void MainFunction()
         {
             SaveManager.CreateSaveData("test", "me");
-            World.TryGetTileAll((0, 0), out _);
 
-            SaveManager.MakeSave();
+
+            var entities = new List<Entity.Entity>
+            {
+                SaveData.player,
+                new Troll(0),
+                new Troll(0),
+                new Troll(0),
+
+                new Caveman(1),
+                new Ghoul(1),
+                new Troll(1),
+
+                new Caveman(2),
+                new Troll(2),
+                new Ghoul(2),
+
+                new Caveman(3),
+                new Ghoul(3),
+                new Troll(3),
+            };
+
+            EntityUtils.Fight(entities);
 
             Console.WriteLine();
         }

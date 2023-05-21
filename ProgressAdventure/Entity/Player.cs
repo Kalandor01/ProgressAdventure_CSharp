@@ -134,6 +134,16 @@ namespace ProgressAdventure.Entity
             playerJson["inventory"] = inventory.ToJson();
             return playerJson;
         }
+
+        /// <summary>
+        /// Displays the player's stats.
+        /// </summary>
+        public void Stats()
+        {
+            Console.WriteLine($"\nName: {FullName}\n\nSTATS:");
+            Console.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\n");
+            Console.WriteLine(inventory);
+        }
         #endregion
 
         #region Public functions

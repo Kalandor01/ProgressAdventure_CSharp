@@ -45,6 +45,14 @@ namespace PAExtras
         /// The separation string used in the name of the chunk file name.
         /// </summary>
         public const string CHUNK_FILE_NAME_SEP = "_";
+        /// <summary>
+        /// The size of the grid, containing the tile in a chunk.
+        /// </summary>
+        public const int CHUNK_SIZE = 10;
+        /// <summary>
+        /// The division to use in tile noises.
+        /// </summary>
+        public const long TILE_NOISE_DIVISION = 200;
         #endregion
 
         #region Other

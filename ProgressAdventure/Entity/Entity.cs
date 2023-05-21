@@ -60,27 +60,27 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The full name of the <c>Entity</c>.
         /// </summary>
-        public string FullName { get; private set; }
+        public string FullName { get; protected set; }
         /// <summary>
         /// The maximum hp of the <c>Entity</c>.
         /// </summary>
-        public int MaxHp { get; private set; }
+        public int MaxHp { get; protected set; }
         /// <summary>
         /// The current hp of the <c>Entity</c>.
         /// </summary>
-        public int CurrentHp { get; private set; }
+        public int CurrentHp { get; protected set; }
         /// <summary>
         /// The current attack of the <c>Entity</c>.
         /// </summary>
-        public int Attack { get; private set; }
+        public int Attack { get; protected set; }
         /// <summary>
         /// The current defence of the <c>Entity</c>.
         /// </summary>
-        public int Defence { get; private set; }
+        public int Defence { get; protected set; }
         /// <summary>
         /// The current speed of the <c>Entity</c>.
         /// </summary>
-        public int Speed { get; private set; }
+        public int Speed { get; protected set; }
         #endregion
 
         #region Constructors
@@ -316,10 +316,62 @@ namespace ProgressAdventure.Entity
         /// Makes the entity attack another one.
         /// </summary>
         /// <param name="target">The target entity.</param>
-        public void AttackEntity(Entity target)
+        public AttackResponse AttackEntity(Entity target)
         {
-            target.CurrentHp -= Attack;
-            if (target.CurrentHp < 0)
+            Logger.Log("Attack log", $"{FullName} attacked {target.FullName}");
+            // attacker dead
+            if (CurrentHp <= 0)
+            {
+                Logger.Log("Attack log", $"{FullName}(attacker) is dead");
+                return AttackResponse.ATTACKER_DEAD;
+            }
+            // enemy dead
+            else if (target.CurrentHp <= 0)
+            {
+                Logger.Log("Attack log", $"{FullName}(attacked) is already dead");
+                return AttackResponse.ENEMY_DEAD;
+            }
+            // enemy dodge
+            else if (RandomStates.MiscRandom.GenerateDouble() > Speed * 1.0 / target.Speed - 0.1)
+            {
+                Logger.Log("Attack log", $"{target.FullName} dodged");
+                return AttackResponse.ENEMY_DOGDED;
+            }            
+            // attack
+            else
+            {
+                var attack = (int)RandomStates.MiscRandom.GenerateInRange(1, 7) + Attack;
+                var damage = attack - target.Defence;
+                // block
+                if (damage <= 0)
+                {
+                    Logger.Log("Attack log", $"{target.FullName} blocked attack");
+                    return AttackResponse.ENEMY_BLOCKED;
+                }
+                // hit
+                else
+                {
+                    target.DamageEntity(damage);
+                    Logger.Log("Attack log", $"{target.FullName} took {damage} damage ({target.CurrentHp})");
+                    // kill
+                    if (target.CurrentHp == 0)
+                    {
+                        Logger.Log("Attack log", $"{FullName} defeated {target.FullName}");
+                        return AttackResponse.KILLED;
+                    }
+                    return AttackResponse.HIT;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Makes the entity take damage.
+        /// </summary>
+        /// <param name="damage">The amount of damage to take.</param>
+        public void DamageEntity(int damage)
+        {
+            CurrentHp -= damage;
+            if (CurrentHp < 0)
             {
                 CurrentHp = 0;
             }

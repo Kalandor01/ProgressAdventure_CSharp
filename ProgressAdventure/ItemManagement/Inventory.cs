@@ -86,12 +86,32 @@ namespace ProgressAdventure.ItemManagement
         /// Adds a list of items to the inventory.
         /// </summary>
         /// <param name="loot">The list of items to add.</param>
-        public void Loot(IEnumerable<Item> loot)
+        /// <param name="looterName">Wether to write out what was picked up by who.</param>
+        public void Loot(IEnumerable<Item> loot, string? looterName = null)
         {
             foreach (var item in loot)
             {
                 Add(item);
+                if (looterName is not null)
+                {
+                    Console.WriteLine($"{looterName} picked up {item}");
+                }
             }
+        }
+
+        /// <summary>
+        /// Adds a list of items to the inventory, from the looted entity's drops, and removes them from theirs.
+        /// </summary>
+        /// <param name="lootedEntity">The entity to loot.</param>
+        /// <param name="looterName">Wether to write out what was picked up by who.</param>
+        public void Loot(Entity.Entity lootedEntity, string? looterName = null)
+        {
+            if (looterName is not null)
+            {
+                Console.WriteLine($"{looterName} looted the body of {lootedEntity.FullName}");
+            }
+            Loot(lootedEntity.drops, looterName);
+            lootedEntity.drops.Clear();
         }
 
 
@@ -177,7 +197,7 @@ namespace ProgressAdventure.ItemManagement
             var txt = new StringBuilder("Inventory:");
             foreach (var item in items)
             {
-                txt.Append($"\n\t{item.DisplayName}{(item.amount > 1 ? " x" + item.amount.ToString() : "")}");
+                txt.Append($"\n\t{item}");
             }
             return txt.ToString();
         }

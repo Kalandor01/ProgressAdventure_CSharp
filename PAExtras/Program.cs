@@ -1,4 +1,6 @@
-﻿using PASaveManager = ProgressAdventure.SaveManager;
+﻿using ProgressAdventure;
+using ProgressAdventure.WorldManagement;
+using PASaveManager = ProgressAdventure.SaveManager;
 
 namespace PAExtras
 {
@@ -6,9 +8,15 @@ namespace PAExtras
     {
         private static void Main(string[] args)
         {
-            SaveImporter.ImportSave("test");
+            Logger.LogNewLine();
 
-            PASaveManager.LoadSave("test");
+            SaveImporter.ImportSave("new save");
+
+            PASaveManager.LoadSave("new save");
+
+            World.LoadAllChunksFromFolder(null, "Loading chunks...");
+
+            var ch = World.Chunks;
 
             Console.WriteLine();
         }

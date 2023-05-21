@@ -97,6 +97,11 @@
         {
             return HashCode.Combine(Type);
         }
+
+        public override string? ToString()
+        {
+            return $"{DisplayName}{(amount > 1 ? " x" + amount.ToString() : "")}";
+        }
         #endregion
     }
 }
