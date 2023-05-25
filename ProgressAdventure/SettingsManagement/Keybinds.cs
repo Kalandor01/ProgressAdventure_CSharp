@@ -1,12 +1,11 @@
 ﻿using ProgressAdventure.Enums;
-using System.Collections;
 
 namespace ProgressAdventure.SettingsManagement
 {
     /// <summary>
     /// Class for storing the keybinds list.
     /// </summary>
-    public class Keybinds
+    public class Keybinds : IJsonConvertable<Keybinds>
     {
         #region Private fields
         /// <summary>
@@ -25,6 +24,7 @@ namespace ProgressAdventure.SettingsManagement
             set
             {
                 _keybinds = value;
+                FillAllKeybinds();
                 UpdateKeybindConflicts();
             }
         }
@@ -35,15 +35,13 @@ namespace ProgressAdventure.SettingsManagement
         /// <inheritdoc cref="KeybindList"/>
         /// </summary>
         /// <param name="actions"><inheritdoc cref="KeybindList" path="//summary"/></param>
-        /// <exception cref="ArgumentException"></exception>
-        public Keybinds(IEnumerable<ActionKey> actions)
+        public Keybinds(IEnumerable<ActionKey>? actions)
         {
-            if (!actions.Any())
+            if (actions is null)
             {
-                Logger.Log("No actions in actions list.", severity: LogSeverity.FATAL);
-                throw new ArgumentException("No actions in actions list.", nameof(actions));
+                Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
             }
-            KeybindList = actions;
+            KeybindList = actions ?? SettingsUtils.GetDefaultKeybindList();
         }
         #endregion
 
@@ -63,6 +61,15 @@ namespace ProgressAdventure.SettingsManagement
             }
             Logger.Log("Unknown ActionType", "trying to create a placeholder key", severity:LogSeverity.ERROR);
             return new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) });
+        }
+
+        public void FillAllKeybinds()
+        {
+            if (!KeybindList.Any())
+            {
+                Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
+                KeybindList = SettingsUtils.GetDefaultKeybindList();
+            }
         }
 
         /// <summary>
@@ -94,69 +101,6 @@ namespace ProgressAdventure.SettingsManagement
                 }
             }
         }
-
-        /// <summary>
-        /// Turns the <c>Keybinds</c> objest into a json object for the settings file.
-        /// </summary>
-        public Dictionary<string, List<Dictionary<string, object>>> ToJson()
-        {
-            var keybindsJson = new Dictionary<string, List<Dictionary<string, object>>>();
-            foreach (var keybind in KeybindList)
-            {
-                var kbJson = keybind.ToJson();
-                keybindsJson.Add(kbJson.Key, kbJson.Value);
-            }
-            return keybindsJson;
-        }
-        #endregion
-
-        #region Public functions
-        /// <summary>
-        /// Converts the <c>Keybinds</c> json to object format.
-        /// </summary>
-        /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.<br/>
-        /// Its actual type should be IDictionary{string, IEnumerable{IDictionary{string, object}}}</param>
-        public static Keybinds FromJson(IDictionary<string, object> keybindsJson)
-        {
-            var actions = new List<ActionKey>();
-            foreach (var actionJson in keybindsJson)
-            {
-                if (
-                    Enum.TryParse(typeof(ActionType), actionJson.Key, out object? res) &&
-                    Enum.IsDefined(typeof(ActionType), (ActionType)res)
-                )
-                {
-                    var actionType = (ActionType)res;
-                    var keys = new List<ConsoleKeyInfo>();
-                    foreach (var actionKey in (IEnumerable)actionJson.Value)
-                    {
-                        var actionDict = (IDictionary<string, object>)actionKey;
-                        if (
-                            Enum.TryParse(typeof(ConsoleKey), actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out object? keyEnum) &&
-                            Enum.IsDefined(typeof(ConsoleKey), (ConsoleKey)keyEnum) &&
-                            char.TryParse(actionDict.TryGetValue("keyChar", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
-                            int.TryParse(actionDict.TryGetValue("modifiers", out var modValue) ? modValue.ToString() : null, out int keyMods)
-                            )
-                        {
-                            var alt = Utils.GetBit(keyMods, 0);
-                            var shift = Utils.GetBit(keyMods, 1);
-                            var ctrl = Utils.GetBit(keyMods, 2);
-                            keys.Add(new ConsoleKeyInfo(keyChar, (ConsoleKey)keyEnum, shift, alt, ctrl));
-                        }
-                        else
-                        {
-                            Logger.Log("Couldn't parse key from action JSON", actionKey.ToString(), LogSeverity.WARN);
-                        }
-                    }
-                    actions.Add(new ActionKey(actionType, keys));
-                }
-                else
-                {
-                    Logger.Log("Couldn't parse action from Keybinds JSON", actionJson.ToString(), LogSeverity.WARN);
-                }
-            }
-            return new Keybinds(actions);
-        }
         #endregion
 
         #region Public overrides
@@ -187,6 +131,47 @@ namespace ProgressAdventure.SettingsManagement
                 }
             }
             return true;
+        }
+        #endregion
+
+        #region JsonConvert
+        /// <summary>
+        /// Turns the <c>Keybinds</c> objest into a json object for the settings file.
+        /// </summary>
+        public Dictionary<string, object?> ToJson()
+        {
+            var keybindsJson = new Dictionary<string, object?>();
+            foreach (var keybind in KeybindList)
+            {
+                var kbJson = keybind.ToJson().First();
+                keybindsJson.Add(kbJson.Key, kbJson.Value);
+            }
+            return keybindsJson;
+        }
+
+        /// <summary>
+        /// Converts the <c>Keybinds</c> json to object format.
+        /// </summary>
+        /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.<br/>
+        /// Its actual type should be IDictionary{string, IEnumerable{IDictionary{string, object}}}</param>
+        public static Keybinds FromJson(IDictionary<string, object?>? keybindsJson)
+        {
+            if (keybindsJson is null)
+            {
+                Logger.Log("Keybinds parse error", "keybinds json is null", LogSeverity.WARN);
+                return new Keybinds(null);
+            }
+
+            var actions = new List<ActionKey>();
+            foreach (var actionJson in keybindsJson)
+            {
+                var actionKey = ActionKey.FromJson(new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value });
+                if (actionKey is not null)
+                {
+                    actions.Add(actionKey);
+                }
+            }
+            return new Keybinds(actions);
         }
         #endregion
     }

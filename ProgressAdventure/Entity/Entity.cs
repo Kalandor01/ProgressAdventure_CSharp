@@ -7,7 +7,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// A representation of an entity.
     /// </summary>
-    public abstract class Entity
+    public abstract class Entity : IJsonReadable
     {
         #region Public fields
         /// <summary>
@@ -280,39 +280,6 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// Returns a json representation of the <c>Entity</c>.
-        /// </summary>
-        public Dictionary<string, object?> ToJson()
-        {
-            // attributes
-            var attributesProcessed = attributes.Select(a => a.ToString()).ToList();
-            // drops
-            var dropsJson = drops.Select(drop => new Dictionary<string, object>
-                {
-                    ["type"] = drop.Type.ToString(),
-                    ["amount"] = drop.amount,
-                }).ToList();
-            // properties
-            var entityJson = new Dictionary<string, object?>
-            {
-                ["name"] = name,
-                ["baseMaxHp"] = baseMaxHp,
-                ["currentHp"] = CurrentHp,
-                ["baseAttack"] = baseAttack,
-                ["baseDefence"] = baseDefence,
-                ["baseSpeed"] = baseSpeed,
-                ["originalTeam"] = originalTeam,
-                ["currentTeam"] = currentTeam,
-                ["attributes"] = attributesProcessed,
-                ["drops"] = dropsJson,
-                ["xPos"] = position.x,
-                ["yPos"] = position.y,
-                ["facing"] = (int)facing,
-        };
-            return entityJson;
-        }
-
-        /// <summary>
         /// Makes the entity attack another one.
         /// </summary>
         /// <param name="target">The target entity.</param>
@@ -378,8 +345,142 @@ namespace ProgressAdventure.Entity
         }
         #endregion
 
-        #region Protected functions
-        protected static (string? name, (long x, long y)? position, Facing? facing, int? currentHp, int? baseMaxHp, int? baseAttack, int? baseDefence, int? baseSpeed)? FromJsonInternal(IDictionary<string, object?>? entityJson)
+        #region Private methods
+        /// <summary>
+        /// Sets up the entity's stats acording to its base attributes.
+        /// </summary>
+        private void SetupAttributes(int? currentHp = null)
+        {
+            double tempMaxHp = baseMaxHp;
+            double tempAttack = baseAttack;
+            double tempDefence = baseDefence;
+            double tempSpeed = baseSpeed;
+
+            foreach (var attribute in attributes)
+            {
+                var (maxHp, attack, defence, speed) = EntityUtils.attributeStatChangeMap[attribute];
+                tempMaxHp *= maxHp;
+                tempAttack *= attack;
+                tempDefence *= defence;
+                tempSpeed *= speed;
+            }
+            MaxHp = (int)Math.Clamp(tempMaxHp, int.MinValue, int.MaxValue);
+            CurrentHp = currentHp ?? MaxHp;
+            CurrentHp = Math.Clamp(CurrentHp, 0, MaxHp);
+            Attack = (int)Math.Clamp(tempAttack, int.MinValue, int.MaxValue);
+            Defence = (int)Math.Clamp(tempDefence, int.MinValue, int.MaxValue);
+            Speed = (int)Math.Clamp(tempSpeed, int.MinValue, int.MaxValue);
+        }
+        #endregion
+
+        #region Public overrides
+        public override string ToString()
+        {
+            var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
+            var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
+            return $"Name: {name}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
+        }
+        #endregion
+
+        #region JsonConvert
+        public Dictionary<string, object?> ToJson()
+        {
+            // attributes
+            var attributesProcessed = attributes.Select(a => a.ToString()).ToList();
+            // drops
+            var dropsJson = drops.Select(drop => new Dictionary<string, object>
+            {
+                ["type"] = drop.Type.ToString(),
+                ["amount"] = drop.amount,
+            }).ToList();
+            // properties
+            var entityJson = new Dictionary<string, object?>
+            {
+                ["name"] = name,
+                ["baseMaxHp"] = baseMaxHp,
+                ["currentHp"] = CurrentHp,
+                ["baseAttack"] = baseAttack,
+                ["baseDefence"] = baseDefence,
+                ["baseSpeed"] = baseSpeed,
+                ["originalTeam"] = originalTeam,
+                ["currentTeam"] = currentTeam,
+                ["attributes"] = attributesProcessed,
+                ["drops"] = dropsJson,
+                ["xPos"] = position.x,
+                ["yPos"] = position.y,
+                ["facing"] = (int)facing,
+            };
+            return entityJson;
+        }
+
+        public static Player? FromJson(IDictionary<string, object?>? playerJson)
+        {
+            if (playerJson is null)
+            {
+                Logger.Log("Player parse error", "player json is null", LogSeverity.ERROR);
+                return null;
+            }
+            var entityDataRaw = FromJsonInternal(playerJson);
+            if (entityDataRaw is null)
+            {
+                return null;
+            }
+            var entityData = entityDataRaw.Value;
+            entityData.name ??= "You";
+            Inventory? inventory = null;
+            if (
+                playerJson.TryGetValue("inventory", out var inventoryValue)
+            )
+            {
+                inventory = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue);
+            }
+            else
+            {
+                Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
+            }
+            // player
+            Player player;
+            if (
+                entityData.baseMaxHp is not null &&
+                entityData.currentHp is not null &&
+                entityData.baseAttack is not null &&
+                entityData.baseDefence is not null &&
+                entityData.baseSpeed is not null
+            )
+            {
+                player = new Player(
+                    entityData.name,
+                    (int)entityData.baseMaxHp,
+                    (int)entityData.currentHp,
+                    (int)entityData.baseAttack,
+                    (int)entityData.baseDefence,
+                    (int)entityData.baseSpeed,
+                    inventory,
+                    entityData.position,
+                    entityData.facing
+                );
+            }
+            else
+            {
+                player = new Player(entityData.name, inventory, entityData.position, entityData.facing);
+            }
+            return player;
+        }
+
+        /// <summary>
+        /// Converts the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object.
+        /// </summary>
+        /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
+        protected static (
+            string? name,
+            (long x, long y)? position,
+            Facing? facing,
+            int? currentHp,
+            int? baseMaxHp,
+            int? baseAttack,
+            int? baseDefence,
+            int? baseSpeed
+        )? FromJsonInternal(IDictionary<string, object?>? entityJson)
         {
             if (entityJson is null)
             {
@@ -495,43 +596,6 @@ namespace ProgressAdventure.Entity
                 Logger.Log("Entity parse error", "couldn't parse entity base speed", LogSeverity.WARN);
             }
             return (name, position, facing, currentHp, baseMaxHp, baseAttack, baseDefence, baseSpeed);
-        }
-        #endregion
-
-        #region Private methods
-        /// <summary>
-        /// Sets up the entity's stats acording to its base attributes.
-        /// </summary>
-        private void SetupAttributes(int? currentHp = null)
-        {
-            double tempMaxHp = baseMaxHp;
-            double tempAttack = baseAttack;
-            double tempDefence = baseDefence;
-            double tempSpeed = baseSpeed;
-
-            foreach (var attribute in attributes)
-            {
-                var (maxHp, attack, defence, speed) = EntityUtils.attributeStatChangeMap[attribute];
-                tempMaxHp *= maxHp;
-                tempAttack *= attack;
-                tempDefence *= defence;
-                tempSpeed *= speed;
-            }
-            MaxHp = (int)Math.Clamp(tempMaxHp, int.MinValue, int.MaxValue);
-            CurrentHp = currentHp ?? MaxHp;
-            CurrentHp = Math.Clamp(CurrentHp, 0, MaxHp);
-            Attack = (int)Math.Clamp(tempAttack, int.MinValue, int.MaxValue);
-            Defence = (int)Math.Clamp(tempDefence, int.MinValue, int.MaxValue);
-            Speed = (int)Math.Clamp(tempSpeed, int.MinValue, int.MaxValue);
-        }
-        #endregion
-
-        #region Public overrides
-        public override string ToString()
-        {
-            var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
-            var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
-            return $"Name: {name}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
         }
         #endregion
     }

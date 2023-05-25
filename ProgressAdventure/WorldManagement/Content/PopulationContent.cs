@@ -52,16 +52,16 @@ namespace ProgressAdventure.WorldManagement.Content
                 }
             }
         }
+        #endregion
 
+        #region JsonConvert
         public override Dictionary<string, object?> ToJson()
         {
             var populationJson = base.ToJson();
             populationJson.Add("amount", amount);
             return populationJson;
         }
-        #endregion
 
-        #region Public functions
         /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?)"/>
         public static PopulationContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
         {

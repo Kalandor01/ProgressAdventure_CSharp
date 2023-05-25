@@ -1,13 +1,13 @@
 ﻿using ProgressAdventure.Enums;
 using SaveFileManager;
-using System;
+using System.Collections;
 
 namespace ProgressAdventure.SettingsManagement
 {
     /// <summary>
     /// Class for storing a key for keybinds.
     /// </summary>
-    public class ActionKey : KeyAction
+    public class ActionKey : KeyAction, IJsonConvertable<ActionKey>
     {
         #region Public fields
         /// <summary>
@@ -80,25 +80,6 @@ namespace ProgressAdventure.SettingsManagement
         {
             return Keys.Contains(Console.ReadKey(true));
         }
-
-        /// <summary>
-        /// Turns the <c>ActionKey</c> objest into a json object for the settings file.
-        /// </summary>
-        public KeyValuePair<string, List<Dictionary<string, object>>> ToJson()
-        {
-            var keyListJson = new List<Dictionary<string, object>>();
-            foreach (var key in Keys)
-            {
-                var keyJson = new Dictionary<string, object>()
-                {
-                    ["key"] = (int)key.Key,
-                    ["keyChar"] = key.KeyChar,
-                    ["modifiers"] = (int)key.Modifiers
-                };
-                keyListJson.Add(keyJson);
-            }
-            return new KeyValuePair<string, List<Dictionary<string, object>>>(actionType.ToString(), keyListJson);
-        }
         #endregion
 
         #region Public overrides
@@ -136,6 +117,73 @@ namespace ProgressAdventure.SettingsManagement
                 }
             }
             return true;
+        }
+        #endregion
+
+        #region JsonConvert
+        public Dictionary<string, object?> ToJson()
+        {
+            var keyListJson = new List<Dictionary<string, object>>();
+            foreach (var key in Keys)
+            {
+                var keyJson = new Dictionary<string, object>()
+                {
+                    ["key"] = (int)key.Key,
+                    ["keyChar"] = key.KeyChar,
+                    ["modifiers"] = (int)key.Modifiers
+                };
+                keyListJson.Add(keyJson);
+            }
+            return new Dictionary<string, object?> { [actionType.ToString()] = keyListJson };
+        }
+
+        public static ActionKey? FromJson(IDictionary<string, object?>? actionKeyJson)
+        {
+            if (
+                actionKeyJson is null ||
+                !actionKeyJson.Any()
+            )
+            {
+                Logger.Log("Action key parse error", "action key json is null", LogSeverity.WARN);
+                return null;
+            }
+
+            var actionJson = actionKeyJson.First();
+            if (
+                Enum.TryParse(typeof(ActionType), actionJson.Key, out object? res) &&
+                Enum.IsDefined(typeof(ActionType), (ActionType)res) &&
+                actionJson.Value is not null
+            )
+            {
+                var actionType = (ActionType)res;
+                var keys = new List<ConsoleKeyInfo>();
+                foreach (var actionKey in (IEnumerable)actionJson.Value)
+                {
+                    var actionDict = (IDictionary<string, object>)actionKey;
+                    if (
+                        Enum.TryParse(typeof(ConsoleKey), actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out object? keyEnum) &&
+                        Enum.IsDefined(typeof(ConsoleKey), (ConsoleKey)keyEnum) &&
+                        char.TryParse(actionDict.TryGetValue("keyChar", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
+                        int.TryParse(actionDict.TryGetValue("modifiers", out var modValue) ? modValue.ToString() : null, out int keyMods)
+                        )
+                    {
+                        var alt = Utils.GetBit(keyMods, 0);
+                        var shift = Utils.GetBit(keyMods, 1);
+                        var ctrl = Utils.GetBit(keyMods, 2);
+                        keys.Add(new ConsoleKeyInfo(keyChar, (ConsoleKey)keyEnum, shift, alt, ctrl));
+                    }
+                    else
+                    {
+                        Logger.Log("Action key parse error", $"couldn't parse key from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
+                    }
+                }
+                return new ActionKey(actionType, keys);
+            }
+            else
+            {
+                Logger.Log("Action key parse error", $"couldn't parse action from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
+                return null;
+            }
         }
         #endregion
     }

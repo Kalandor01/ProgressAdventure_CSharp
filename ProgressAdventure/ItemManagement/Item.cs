@@ -1,6 +1,8 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using ProgressAdventure.Enums;
+
+namespace ProgressAdventure.ItemManagement
 {
-    public class Item
+    public class Item : IJsonConvertable<Item>
     {
         #region Public fields
         /// <summary>
@@ -101,6 +103,56 @@
         public override string? ToString()
         {
             return $"{DisplayName}{(amount > 1 ? " x" + amount.ToString() : "")}";
+        }
+        #endregion
+
+        #region JsonConvert
+        public Dictionary<string, object?> ToJson()
+        {
+            return new Dictionary<string, object?>
+            {
+                ["type"] = Type.GetHashCode(),
+                ["amount"] = amount,
+            };
+        }
+
+        public static Item? FromJson(IDictionary<string, object?>? itemJson)
+        {
+            if (itemJson is null)
+            {
+                Logger.Log("Item parse error", "item json is null", LogSeverity.ERROR);
+                return null;
+            }
+
+            if (
+                itemJson.TryGetValue("type", out var typeIDValue) &&
+                int.TryParse(typeIDValue?.ToString(), out int itemTypeID) &&
+                ItemUtils.TryParseItemType(itemTypeID, out ItemTypeID itemType)
+            )
+            {
+                int itemAmount = 1;
+                if (
+                    itemJson.TryGetValue("amount", out var amountValue) &&
+                    int.TryParse(amountValue?.ToString(), out itemAmount)
+                )
+                {
+                    if (itemAmount < 1)
+                    {
+                        Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.WARN);
+                        return null;
+                    }
+                }
+                else
+                {
+                    Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+                }
+                return new Item(itemType, itemAmount);
+            }
+            else
+            {
+                Logger.Log("Item parse error", "couldn't parse item type from json", LogSeverity.ERROR);
+                return null;
+            }
         }
         #endregion
     }

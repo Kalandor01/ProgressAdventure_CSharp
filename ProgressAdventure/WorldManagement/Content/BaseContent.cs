@@ -6,7 +6,7 @@ namespace ProgressAdventure.WorldManagement.Content
     /// <summary>
     /// Abstract class for a layer of content, for a tile.
     /// </summary>
-    public abstract class BaseContent
+    public abstract class BaseContent : IJsonReadable
     {
         #region Public fields
         /// <summary>
@@ -67,18 +67,6 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             Logger.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
-
-        /// <summary>
-        /// Returns a json representation of the <c>Content</c>.
-        /// </summary>
-        public virtual Dictionary<string, object?> ToJson()
-        {
-            return new Dictionary<string, object?> {
-                ["type"] = WorldUtils.contentTypeIDTextMap[type],
-                ["subtype"] = WorldUtils.contentTypeIDSubtypeTextMap[type][subtype],
-                ["name"] = Name
-            };
-        }
         #endregion
 
         #region Protected methods
@@ -122,16 +110,28 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="defaultRange">The dafult range to use, if the value doesn't exist.</param>
         protected static long GetLongValueFromData(SplittableRandom chunkRandom, string key, IDictionary<string, object?>? data, (long min, long max)? defaultRange = null)
         {
-            long value;
-            if (data is not null && data.ContainsKey(key) && data[key] is not null)
-            {
-                value = (long)data[key];
-            }
+            if (
+                data is not null &&
+                data.TryGetValue(key, out object? valueRaw) &&
+                long.TryParse(valueRaw?.ToString(), out long value)
+            ) { }
             else
             {
                 value = GetContentValueRange(chunkRandom, defaultRange);
             }
             return value;
+        }
+        #endregion
+
+        #region JsonConvert
+        public virtual Dictionary<string, object?> ToJson()
+        {
+            return new Dictionary<string, object?>
+            {
+                ["type"] = WorldUtils.contentTypeIDTextMap[type],
+                ["subtype"] = WorldUtils.contentTypeIDSubtypeTextMap[type][subtype],
+                ["name"] = Name
+            };
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 contentType = contentTypeMap.First().Value;
             }
             // get content
-            var content = Activator.CreateInstance(contentType, new object?[] {chunkRandom, contentName, contentJson}) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
+            var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson }) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
             return (T)content;
         }
         #endregion

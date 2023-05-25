@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using static ProgressAdventure.WorldManagement.Content.ContentType;
 
 namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
@@ -33,7 +34,9 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
             Console.WriteLine($"{SaveData.player.FullName} climbed a mountain.");
             Console.WriteLine($"The mountain is {height}m tall.");
         }
+        #endregion
 
+        #region JsonConvert
         public override Dictionary<string, object?> ToJson()
         {
             var terrainJson = base.ToJson();

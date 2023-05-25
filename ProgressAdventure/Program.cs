@@ -1,7 +1,6 @@
-﻿using NPrng.Generators;
-using ProgressAdventure.Entity;
+﻿using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
-using ProgressAdventure.WorldManagement;
+using ProgressAdventure.SettingsManagement;
 using System.Text;
 
 namespace ProgressAdventure
@@ -13,6 +12,8 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
+            Settings.UpdateLoggingLevel(1);
+
             SaveManager.CreateSaveData("test", "me");
 
 

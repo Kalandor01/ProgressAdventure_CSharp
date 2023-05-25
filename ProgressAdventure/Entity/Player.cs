@@ -8,7 +8,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// The player entity.
     /// </summary>
-    public class Player : Entity
+    public class Player : Entity, IJsonConvertable<Player>
     {
         #region Public fields
         /// <summary>
@@ -126,16 +126,6 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// Returns a json representation of the <c>Entity</c>.
-        /// </summary>
-        public new Dictionary<string, object?> ToJson()
-        {
-            var playerJson = base.ToJson();
-            playerJson["inventory"] = inventory.ToJson();
-            return playerJson;
-        }
-
-        /// <summary>
         /// Displays the player's stats.
         /// </summary>
         public void Stats()
@@ -146,11 +136,21 @@ namespace ProgressAdventure.Entity
         }
         #endregion
 
-        #region Public functions
-        /// <summary>
-        /// Converts the <c>Player</c> json to object format.
-        /// </summary>
-        /// <param name="playerJson">The json representation of the <c>Player</c> object.</param>
+        #region Public overrides
+        public override string ToString()
+        {
+            return $"{base.ToString()}\n{this.inventory}\nPosition: {this.position}\nRotation: {this.facing}";
+        }
+        #endregion
+
+        #region JsonConvertable
+        public new Dictionary<string, object?> ToJson()
+        {
+            var playerJson = base.ToJson();
+            playerJson["inventory"] = inventory.ToJson();
+            return playerJson;
+        }
+
         public static Player? FromJson(IDictionary<string, object?>? playerJson)
         {
             if (playerJson is null)
@@ -170,7 +170,7 @@ namespace ProgressAdventure.Entity
                 playerJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                inventory = Inventory.FromJson((IEnumerable<object?>?)inventoryValue);
+                inventory = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue);
             }
             else
             {
@@ -203,13 +203,6 @@ namespace ProgressAdventure.Entity
                 player = new Player(entityData.name, inventory, entityData.position, entityData.facing);
             }
             return player;
-        }
-        #endregion
-
-        #region Public overrides
-        public override string ToString()
-        {
-            return $"{base.ToString()}\n{this.inventory}\nPosition: {this.position}\nRotation: {this.facing}";
         }
         #endregion
     }

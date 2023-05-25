@@ -203,14 +203,18 @@ namespace ProgressAdventure
         private static void CorrectSaveData(Dictionary<string, object?> jsonData, string saveVersion)
         {
             Logger.Log("Correcting save data");
-            //// 2.0 -> 2.1
-            //if (saveVersion == "2.0")
-            //{
-            //    // version change description
-            //    //correnting
-            //    saveVersion = "2.1";
-            //    Logger.Log("Corrected save data", "2.0 -> 2.1", LogSeverity.DEBUG);
-            //}
+            // 2.0 -> 2.0.1
+            if (saveVersion == "2.0")
+            {
+                var pSaveVersion = saveVersion;
+                // inventory items in dictionary
+
+                var inventoryItems = ((Dictionary<string, object?>)jsonData["player"])["inventory"];
+                ((Dictionary<string, object?>)jsonData["player"])["inventory"] = new Dictionary<string, object> { ["items"] = inventoryItems };
+                
+                saveVersion = "2.0.1";
+                Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
+            }
         }
 
         /// <summary>

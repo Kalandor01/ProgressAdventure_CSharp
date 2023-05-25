@@ -8,15 +8,19 @@ namespace PAExtras
     {
         private static void Main(string[] args)
         {
+            Thread.CurrentThread.Name = "PAExtras";
             Logger.LogNewLine();
 
-            SaveImporter.ImportSave("new save");
+            var saveName = "test";
 
-            PASaveManager.LoadSave("new save");
+            SaveImporter.ImportSave(saveName);
+
+            PASaveManager.LoadSave(saveName);
 
             World.LoadAllChunksFromFolder(null, "Loading chunks...");
 
             var ch = World.Chunks;
+            var p = SaveData.player;
 
             Console.WriteLine();
         }

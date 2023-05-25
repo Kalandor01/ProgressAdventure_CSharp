@@ -6,7 +6,7 @@ namespace ProgressAdventure.WorldManagement
     /// <summary>
     /// An object representing a chunk, containing a list of tiles.
     /// </summary>
-    public class Chunk
+    public class Chunk : IJsonReadable
     {
         #region Public fields
         /// <summary>
@@ -46,22 +46,6 @@ namespace ProgressAdventure.WorldManagement
         #endregion
 
         #region Public methods
-        /// <summary>
-        /// Returns a json representation of the <c>Chunk</c>.
-        /// </summary>
-        public Dictionary<string, object> ToJson()
-        {
-            var tilesJson = new List<Dictionary<string, object?>>();
-            foreach (var tile in tiles)
-            {
-                tilesJson.Add(tile.Value.ToJson());
-            }
-            return new Dictionary<string, object> {
-                ["chunkRandom"] = Tools.SerializeRandom(ChunkRandomGenerator),
-                ["tiles"] = tilesJson,
-            };
-        }
-
         /// <summary>
         /// Returns the <c>Tile</c> if it exists, or null.
         /// </summary>
@@ -291,27 +275,31 @@ namespace ProgressAdventure.WorldManagement
             var tiles = new Dictionary<string, Tile>();
             foreach (var tileJson in tileListJson)
             {
-                if (tileJson is not null)
+                var tile = Tile.FromJson(chunkRandom, (IDictionary<string, object?>?)tileJson);
+                if (tile is not null)
                 {
-                    var tileDict = (IDictionary<string, object?>)tileJson;
-                    Tile? tile = null;
-                    try
-                    {
-                        tile = Tile.FromJson(chunkRandom, tileDict);
-                    }
-                    catch (ArgumentException)
-                    {
-                        Logger.Log("Tile parse error", "Tile couldn't be parsed (corrupted coordinates?)", LogSeverity.ERROR);
-                    }
-                    if (tile is not null)
-                    {
-                        tiles.Add(GetTileDictName(tile.relativePosition), tile);
-                    }
+                    tiles.Add(GetTileDictName(tile.relativePosition), tile);
                 }
             }
             var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
             Logger.Log("Loaded chunk tiles from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
             return tiles;
+        }
+        #endregion
+
+        #region JsonConvert
+        public Dictionary<string, object?> ToJson()
+        {
+            var tilesJson = new List<Dictionary<string, object?>>();
+            foreach (var tile in tiles)
+            {
+                tilesJson.Add(tile.Value.ToJson());
+            }
+            return new Dictionary<string, object?>
+            {
+                ["chunkRandom"] = Tools.SerializeRandom(ChunkRandomGenerator),
+                ["tiles"] = tilesJson,
+            };
         }
         #endregion
     }

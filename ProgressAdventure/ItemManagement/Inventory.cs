@@ -3,7 +3,7 @@ using System.Text;
 
 namespace ProgressAdventure.ItemManagement
 {
-    public class Inventory
+    public class Inventory : IJsonConvertable<Inventory>
     {
         #region Public fields
         public List<Item> items;
@@ -131,64 +131,6 @@ namespace ProgressAdventure.ItemManagement
             }
             return false;
         }
-
-        /// <summary>
-        /// Convert the items in the inventory into a list for a json format.
-        /// </summary>
-        public List<Dictionary<string, object>> ToJson()
-        {
-            var itemsJson = new List<Dictionary<string, object>>();
-            foreach (var item in items)
-            {
-                itemsJson.Add(new Dictionary<string, object> {
-                    ["type"] = item.Type.GetHashCode(),
-                    ["amount"] = item.amount
-                });
-            }
-            return itemsJson;
-        }
-        #endregion
-
-        #region Public functions
-        /// <summary>
-        /// Converts the <c>Inventory</c> json to object format.
-        /// </summary>
-        /// <param name="itemList">The json representation of the <c>Keybinds</c> object.<br/>
-        /// Its actual type should be IEnumerable{IDictionary{string, object}}</param>
-        public static Inventory? FromJson(IEnumerable<object?>? itemList)
-        {
-            if (itemList is null)
-            {
-                Logger.Log("Inventory parse error", "inventory json is null", LogSeverity.ERROR);
-                return null;
-            }
-            var items = new List<Item>();
-            foreach (var item in itemList)
-            {
-                if (item is null)
-                {
-                    Logger.Log("Inventory parse error", "item json is null", LogSeverity.WARN);
-                    continue;
-                }
-                var itemDict = (IDictionary<string, object?>)item;
-                if (
-                    itemDict.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue?.ToString(), out int itemTypeID) &&
-                    ItemUtils.TryParseItemType(itemTypeID, out ItemTypeID itemType) &&
-                    itemDict.TryGetValue("amount", out var amountValue) &&
-                    int.TryParse(amountValue?.ToString(), out int itemAmount)
-                )
-                {
-                    items.Add(new Item(itemType, itemAmount));
-                }
-                else
-                {
-                    Logger.Log("Couldn't parse item from Inventory JSON", item.ToString(), LogSeverity.WARN);
-                }
-            }
-            var inventory = new Inventory(items);
-            return inventory;
-        }
         #endregion
 
         #region Public overrides
@@ -200,6 +142,45 @@ namespace ProgressAdventure.ItemManagement
                 txt.Append($"\n\t{item}");
             }
             return txt.ToString();
+        }
+        #endregion
+
+        #region JsonConvertable
+        public Dictionary<string, object?> ToJson()
+        {
+            var itemsListJson = new List<Dictionary<string, object?>>();
+            foreach (var item in items)
+            {
+                itemsListJson.Add(item.ToJson());
+            }
+            return new Dictionary<string, object?> { ["items"] = itemsListJson };
+        }
+
+        public static Inventory? FromJson(IDictionary<string, object?>? inventoryJson)
+        {
+            if (
+                inventoryJson is not null &&
+                inventoryJson.TryGetValue("items", out object? itemsJson) &&
+                itemsJson is not null
+            )
+            {
+                var items = new List<Item>();
+                foreach (var itemJson in (IEnumerable<object?>)itemsJson)
+                {
+                    var item = Item.FromJson((IDictionary<string, object?>?)itemJson);
+                    if (item is not null)
+                    {
+                        items.Add(item);
+                    }
+                }
+                var inventory = new Inventory(items);
+                return inventory;
+            }
+            else
+            {
+                Logger.Log("Inventory parse error", "items json is null", LogSeverity.ERROR);
+                return null;
+            }
         }
         #endregion
     }

@@ -183,7 +183,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.0";
+        public const string SAVE_VERSION = "2.0.1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

@@ -33,7 +33,9 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
             Console.WriteLine($"{SaveData.player.FullName} entered a shore.");
             Console.WriteLine($"The shore is {depth}m deep.");
         }
+        #endregion
 
+        #region JsonConvert
         public override Dictionary<string, object?> ToJson()
         {
             var terrainJson = base.ToJson();

@@ -63,87 +63,6 @@ namespace ProgressAdventure
                 chunkSeedModifier ?? tempWorldRandom.GenerateDouble()
             );
         }
-
-        /// <summary>
-        /// Returns a json representation of the <c>RandomState</c>.
-        /// </summary>
-        public static Dictionary<string, object?> ToJson()
-        {
-            return new Dictionary<string, object?>
-            {
-                ["mainRandom"] = Tools.SerializeRandom(MainRandom),
-                ["worldRandom"] = Tools.SerializeRandom(WorldRandom),
-                ["miscRandom"] = Tools.SerializeRandom(MiscRandom),
-                ["tileTypeNoiseSeeds"] = TileTypeNoiseSeeds,
-                ["chunkSeedModifier"] = ChunkSeedModifier,
-            };
-        }
-
-        public static void FromJson(IDictionary<string, object?>? randomStatesJson)
-        {
-            // main random
-            SplittableRandom? mainRandom = null;
-            SplittableRandom? worldRandom = null;
-            SplittableRandom? miscRandom = null;
-            Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
-            double? chunkSeedModifier = null;
-            if (randomStatesJson is not null)
-            {
-                // main random
-                if (randomStatesJson.TryGetValue("mainRandom", out object? mainRandomValue))
-                {
-                    mainRandom = Tools.DeserializeRandom(mainRandomValue?.ToString());
-                }
-                else
-                {
-                    Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
-                }
-                // world random
-                if (randomStatesJson.TryGetValue("worldRandom", out object? worldRandomValue))
-                {
-                    worldRandom = Tools.DeserializeRandom(worldRandomValue?.ToString());
-                }
-                else
-                {
-                    Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
-                }
-                // misc random
-                if (randomStatesJson.TryGetValue("miscRandom", out object? miscRandomValue))
-                {
-                    miscRandom = Tools.DeserializeRandom(miscRandomValue?.ToString());
-                }
-                else
-                {
-                    Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
-                }
-                // tile type noise seeds
-                if (randomStatesJson.TryGetValue("tileTypeNoiseSeeds", out object? tileTypeNoiseSeedsJson))
-                {
-                    tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds((IDictionary<string, object?>?)tileTypeNoiseSeedsJson);
-                }
-                else
-                {
-                    Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
-                }
-                // chunk seed modifier
-                if (
-                    randomStatesJson.TryGetValue("chunkSeedModifier", out object? chunkSeedModifierStrValue) &&
-                    double.TryParse(chunkSeedModifierStrValue?.ToString(), out double chunkSeedValue)
-                )
-                {
-                    chunkSeedModifier = chunkSeedValue;
-                }
-                else
-                {
-                    Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
-                }
-            }
-            else
-            {
-                Logger.Log("Random states parse error", "random states json is null", LogSeverity.WARN);
-            }
-            Initialise(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
-        }
         
         /// <summary>
         /// Recalculates ALL seeds for perlin noise generators.
@@ -249,6 +168,93 @@ namespace ProgressAdventure
                 }
             }
             return noiseSeedDict;
+        }
+        #endregion
+
+        #region JsonConversion
+        /// <summary>
+        /// Returns a json representation of the <c>RandomState</c>.
+        /// </summary>
+        public static Dictionary<string, object?> ToJson()
+        {
+            return new Dictionary<string, object?>
+            {
+                ["mainRandom"] = Tools.SerializeRandom(MainRandom),
+                ["worldRandom"] = Tools.SerializeRandom(WorldRandom),
+                ["miscRandom"] = Tools.SerializeRandom(MiscRandom),
+                ["tileTypeNoiseSeeds"] = TileTypeNoiseSeeds,
+                ["chunkSeedModifier"] = ChunkSeedModifier,
+            };
+        }
+
+        /// <summary>
+        /// Converts the json representation of the object to object format.
+        /// </summary>
+        /// <param name="randomStatesJson">The json representation of the RandomState.</param>
+        public static void FromJson(IDictionary<string, object?>? randomStatesJson)
+        {
+            // main random
+            SplittableRandom? mainRandom = null;
+            SplittableRandom? worldRandom = null;
+            SplittableRandom? miscRandom = null;
+            Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
+            double? chunkSeedModifier = null;
+            if (randomStatesJson is not null)
+            {
+                // main random
+                if (randomStatesJson.TryGetValue("mainRandom", out object? mainRandomValue))
+                {
+                    mainRandom = Tools.DeserializeRandom(mainRandomValue?.ToString());
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
+                }
+                // world random
+                if (randomStatesJson.TryGetValue("worldRandom", out object? worldRandomValue))
+                {
+                    worldRandom = Tools.DeserializeRandom(worldRandomValue?.ToString());
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
+                }
+                // misc random
+                if (randomStatesJson.TryGetValue("miscRandom", out object? miscRandomValue))
+                {
+                    miscRandom = Tools.DeserializeRandom(miscRandomValue?.ToString());
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                }
+                // tile type noise seeds
+                if (randomStatesJson.TryGetValue("tileTypeNoiseSeeds", out object? tileTypeNoiseSeedsJson))
+                {
+                    tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds((IDictionary<string, object?>?)tileTypeNoiseSeedsJson);
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                }
+                // chunk seed modifier
+                if (
+                    randomStatesJson.TryGetValue("chunkSeedModifier", out object? chunkSeedModifierStrValue) &&
+                    double.TryParse(chunkSeedModifierStrValue?.ToString(), out double chunkSeedValue)
+                )
+                {
+                    chunkSeedModifier = chunkSeedValue;
+                }
+                else
+                {
+                    Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
+                }
+            }
+            else
+            {
+                Logger.Log("Random states parse error", "random states json is null", LogSeverity.WARN);
+            }
+            Initialise(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
         }
         #endregion
     }

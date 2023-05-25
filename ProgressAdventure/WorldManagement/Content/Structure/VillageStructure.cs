@@ -33,7 +33,9 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
             Console.WriteLine($"{SaveData.player.FullName} entered a village.");
             Console.WriteLine($"The village has a population of {population} people.");
         }
+        #endregion
 
+        #region JsonConvert
         public override Dictionary<string, object?> ToJson()
         {
             var structureJson = base.ToJson();

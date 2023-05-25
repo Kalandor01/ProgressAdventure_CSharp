@@ -6,7 +6,7 @@ namespace ProgressAdventure.WorldManagement
     /// <summary>
     /// Object, representing a tile in a chunk.
     /// </summary>
-    public class Tile
+    public class Tile : IJsonReadable
     {
         #region Public fields
         /// <summary>
@@ -122,10 +122,9 @@ namespace ProgressAdventure.WorldManagement
             structure.Visit(this);
             population.Visit(this);
         }
+        #endregion
 
-        /// <summary>
-        /// Returns a json representation of the <c>Tile</c>.
-        /// </summary>
+        #region JsonConvert
         public Dictionary<string, object?> ToJson()
         {
             var terrainJson = terrain.ToJson();
@@ -133,9 +132,10 @@ namespace ProgressAdventure.WorldManagement
             var populationJson = population.ToJson();
 
 
-            var tileJson = new Dictionary<string, object?> {
+            var tileJson = new Dictionary<string, object?>
+            {
                 ["xPos"] = relativePosition.x,
-                ["yPos"] =  relativePosition.y,
+                ["yPos"] = relativePosition.y,
                 ["visited"] = Visited,
                 ["terrain"] = terrainJson,
                 ["structure"] = structureJson,
@@ -143,17 +143,20 @@ namespace ProgressAdventure.WorldManagement
             };
             return tileJson;
         }
-        #endregion
 
-        #region Public functions
         /// <summary>
         /// Converts the json representation of the tile into a tile object.
         /// </summary>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="tileJson">The json representation of the tile.</param>
-        /// <exception cref="ArgumentException"></exception>
-        public static Tile FromJson(SplittableRandom chunkRandom, IDictionary<string, object?> tileJson)
+        public static Tile? FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? tileJson)
         {
+            if (tileJson is null)
+            {
+                Logger.Log("Tile parse error", "tile json is null", Enums.LogSeverity.ERROR);
+                return null;
+            }
+
             // x and y
             if (!(
                 tileJson.TryGetValue("xPos", out object? xPosValue) &&
@@ -162,8 +165,8 @@ namespace ProgressAdventure.WorldManagement
                 long.TryParse(yPosValue?.ToString(), out long yPos)
             ))
             {
-                Logger.Log("Tile parse error", "tile coordinates cannot be parsed", Enums.LogSeverity.FATAL);
-                throw new ArgumentException("Tile coordinates cannot be parsed");
+                Logger.Log("Tile parse error", "tile coordinates cannot be parsed", Enums.LogSeverity.ERROR);
+                return null;
             }
             // visited
             int? visited = null;
