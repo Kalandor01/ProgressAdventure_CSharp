@@ -8,7 +8,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// The player entity.
     /// </summary>
-    public class Player : Entity, IJsonConvertable<Player>
+    public class Player : Entity<Player>
     {
         #region Public fields
         /// <summary>
@@ -48,35 +48,6 @@ namespace ProgressAdventure.Entity
                 facing
             )
         { }
-
-        /// <summary>
-        /// <inheritdoc cref="Player"/><br/>
-        /// Can be used for loading the <c>Player</c> from json.
-        /// </summary>
-        /// <param name="name"><inheritdoc cref="Entity.name" path="//summary"/></param>
-        /// <param name="baseMaxHp"><inheritdoc cref="Entity.baseMaxHp" path="//summary"/></param>
-        /// <param name="currentHp"><inheritdoc cref="Entity.CurrentHp" path="//summary"/></param>
-        /// <param name="baseAttack"><inheritdoc cref="Entity.baseAttack" path="//summary"/></param>
-        /// <param name="baseDefence"><inheritdoc cref="Entity.baseDefence" path="//summary"/></param>
-        /// <param name="baseSpeed"><inheritdoc cref="Entity.baseSpeed" path="//summary"/></param>
-        /// <param name="inventory"><inheritdoc cref="inventory" path="//summary"/></param>
-        /// <param name="position"><inheritdoc cref="Entity.position" path="//summary"/></param>
-        /// <param name="facing"><inheritdoc cref="Entity.facing" path="//summary"/></param>
-        public Player(
-            string? name,
-            int baseMaxHp,
-            int currentHp,
-            int baseAttack,
-            int baseDefence,
-            int baseSpeed,
-            Inventory? inventory = null,
-            (long x, long y)? position = null,
-            Facing? facing = null
-        )
-            : base(string.IsNullOrWhiteSpace(name) ? "You" : name, baseMaxHp, baseAttack, baseDefence, baseSpeed, currentHp, position:position, facing:facing)
-        {
-            this.inventory = inventory ?? new Inventory();
-        }
         #endregion
 
         #region Private constructors
@@ -96,17 +67,25 @@ namespace ProgressAdventure.Entity
             Facing? facing = null
         )
             : this(
-                  name,
-                  stats.baseMaxHpValue,
-                  stats.baseMaxHpValue,
-                  stats.baseAttackValue,
-                  stats.baseDefenceValue,
-                  stats.baseSpeedValue,
-                  inventory,
-                  position,
-                  facing
-                )
-        { }
+                (
+                    name,
+                    stats.baseMaxHpValue,
+                    stats.baseMaxHpValue,
+                    stats.baseAttackValue,
+                    stats.baseDefenceValue,
+                    stats.baseSpeedValue,
+                    0,
+                    0,
+                    new List<Attribute>(),
+                    new List<Item>(),
+                    position,
+                    facing
+                ),
+                null
+            )
+        {
+            this.inventory = inventory ?? new Inventory();
+        }
         #endregion
 
         #region Public methods
@@ -144,66 +123,54 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region JsonConvertable
-        public new Dictionary<string, object?> ToJson()
+        #region Constructors
+        /// <summary>
+        /// <inheritdoc cref="Player"/><br/>
+        /// Can be used for loading the <c>Player</c> from json.
+        /// </summary>
+        /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
+        /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.</param>
+        protected Player((
+            string? name,
+            int? baseMaxHp,
+            int? currentHp,
+            int? baseAttack,
+            int? baseDefence,
+            int? baseSpeed,
+            int? originalTeam,
+            int? currentTeam,
+            List<Attribute>? attributes,
+            List<Item>? drops,
+            (long x, long y)? position,
+            Facing? facing
+        ) entityData, IDictionary<string, object?>? miscData)
+            : base(entityData, miscData) { }
+        #endregion
+
+        #region Methods
+        public override Dictionary<string, object?> ToJson()
         {
             var playerJson = base.ToJson();
             playerJson["inventory"] = inventory.ToJson();
             return playerJson;
         }
 
-        public static Player? FromJson(IDictionary<string, object?>? playerJson)
+        protected override void FromMiscJson(IDictionary<string, object?> miscJson)
         {
-            if (playerJson is null)
-            {
-                Logger.Log("Player parse error", "player json is null", LogSeverity.ERROR);
-                return null;
-            }
-            var entityDataRaw = FromJsonInternal(playerJson);
-            if (entityDataRaw is null)
-            {
-                return null;
-            }
-            var entityData = entityDataRaw.Value;
-            entityData.name ??= "You";
-            Inventory? inventory = null;
+            Inventory? inventoryTemp = null;
             if (
-                playerJson.TryGetValue("inventory", out var inventoryValue)
+                miscJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                inventory = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue);
+                inventoryTemp = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue);
             }
             else
             {
                 Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
             }
-            // player
-            Player player;
-            if (
-                entityData.baseMaxHp is not null &&
-                entityData.currentHp is not null &&
-                entityData.baseAttack is not null &&
-                entityData.baseDefence is not null &&
-                entityData.baseSpeed is not null
-            )
-            {
-                player = new Player(
-                    entityData.name,
-                    (int)entityData.baseMaxHp,
-                    (int)entityData.currentHp,
-                    (int)entityData.baseAttack,
-                    (int)entityData.baseDefence,
-                    (int)entityData.baseSpeed,
-                    inventory,
-                    entityData.position,
-                    entityData.facing
-                );
-            }
-            else
-            {
-                player = new Player(entityData.name, inventory, entityData.position, entityData.facing);
-            }
-            return player;
+            inventory = inventoryTemp ?? new Inventory();
         }
+        #endregion
         #endregion
     }
 }

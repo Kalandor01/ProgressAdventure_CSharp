@@ -24,9 +24,11 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// The keys that can be pressed to trigger this action.
         /// </summary>
-        public new IEnumerable<ConsoleKeyInfo> Keys
+#pragma warning disable CS0108 // hiding was intended
+        public IEnumerable<ConsoleKeyInfo> Keys
+#pragma warning restore CS0108 // hiding was intended
         {
-             get => base.Keys;
+            get => base.Keys;
             set {
                 base.Keys = value;
                 UpdateName();
@@ -150,19 +152,18 @@ namespace ProgressAdventure.SettingsManagement
 
             var actionJson = actionKeyJson.First();
             if (
-                Enum.TryParse(typeof(ActionType), actionJson.Key, out object? res) &&
-                Enum.IsDefined(typeof(ActionType), (ActionType)res) &&
+                Enum.TryParse(actionJson.Key, out ActionType actionType) &&
+                Enum.IsDefined(actionType) &&
                 actionJson.Value is not null
             )
             {
-                var actionType = (ActionType)res;
                 var keys = new List<ConsoleKeyInfo>();
                 foreach (var actionKey in (IEnumerable)actionJson.Value)
                 {
                     var actionDict = (IDictionary<string, object>)actionKey;
                     if (
-                        Enum.TryParse(typeof(ConsoleKey), actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out object? keyEnum) &&
-                        Enum.IsDefined(typeof(ConsoleKey), (ConsoleKey)keyEnum) &&
+                        Enum.TryParse(actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out ConsoleKey keyEnum) &&
+                        Enum.IsDefined(keyEnum) &&
                         char.TryParse(actionDict.TryGetValue("keyChar", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
                         int.TryParse(actionDict.TryGetValue("modifiers", out var modValue) ? modValue.ToString() : null, out int keyMods)
                         )
@@ -170,7 +171,7 @@ namespace ProgressAdventure.SettingsManagement
                         var alt = Utils.GetBit(keyMods, 0);
                         var shift = Utils.GetBit(keyMods, 1);
                         var ctrl = Utils.GetBit(keyMods, 2);
-                        keys.Add(new ConsoleKeyInfo(keyChar, (ConsoleKey)keyEnum, shift, alt, ctrl));
+                        keys.Add(new ConsoleKeyInfo(keyChar, keyEnum, shift, alt, ctrl));
                     }
                     else
                     {

@@ -1,11 +1,14 @@
 ﻿using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
+using System.Reflection;
+using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
 {
     /// <summary>
-    /// A representation of an entity.
+    /// A representation of an entity.<br/>
+    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData, IDictionary<string, object?>? miscData) for FromJson<T>() to work.
     /// </summary>
     public abstract class Entity : IJsonReadable
     {
@@ -41,7 +44,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The list of attributes that the <c>Entity</c> has.
         /// </summary>
-        public List<Enums.Attribute> attributes;
+        public List<Attribute> attributes;
         /// <summary>
         /// The list of items that the <c>Entity</c> will drop on death.
         /// </summary>
@@ -83,53 +86,7 @@ namespace ProgressAdventure.Entity
         public int Speed { get; protected set; }
         #endregion
 
-        #region Constructors
-        /// <summary>
-        /// <inheritdoc cref="Entity"/><br/>
-        /// Can be used for loading the <c>Entity</c> from json.
-        /// </summary>
-        /// <param name="name"><inheritdoc cref="name" path="//summary"/></param>
-        /// <param name="baseMaxHp"><inheritdoc cref="baseMaxHp" path="//summary"/></param>
-        /// <param name="baseAttack"><inheritdoc cref="baseAttack" path="//summary"/></param>
-        /// <param name="baseDefence"><inheritdoc cref="baseDefence" path="//summary"/></param>
-        /// <param name="baseSpeed"><inheritdoc cref="baseSpeed" path="//summary"/></param>
-        /// <param name="originalTeam"><inheritdoc cref="originalTeam" path="//summary"/></param>
-        /// <param name="currentTeam"><inheritdoc cref="currentTeam" path="//summary"/></param>
-        /// <param name="attributes"><inheritdoc cref="attributes" path="//summary"/></param>
-        /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
-        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
-        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
-        public Entity(
-            string name,
-            int baseMaxHp,
-            int baseAttack,
-            int baseDefence,
-            int baseSpeed,
-            int? currentHp = null,
-            int originalTeam = 0,
-            int? currentTeam = null,
-            List<Enums.Attribute>? attributes = null,
-            List<Item>? drops = null,
-            (long x, long y) ? position = null,
-            Facing? facing = null
-        )
-        {
-            this.name = name;
-            this.baseMaxHp = baseMaxHp;
-            this.baseAttack = baseAttack;
-            this.baseDefence = baseDefence;
-            this.baseSpeed = baseSpeed;
-            this.originalTeam = originalTeam;
-            this.currentTeam = currentTeam ?? this.originalTeam;
-            this.attributes = attributes ?? new List<Enums.Attribute>();
-            this.drops = drops ?? new List<Item>();
-            this.position = position ?? (0, 0);
-            this.facing = facing ?? Facing.NORTH;
-            // adjust properties
-            SetupAttributes(currentHp);
-            UpdateFullName();
-        }
-
+        #region Public constructors
         /// <summary>
         /// <inheritdoc cref="Entity"/><br/>
         /// Can be used for creating a new <c>Entity</c>, from the result of the EntityManager function.
@@ -145,21 +102,26 @@ namespace ProgressAdventure.Entity
                 int baseSpeed,
                 int originalTeam,
                 int? team,
-                List<Enums.Attribute>? attributes
+                List<Attribute>? attributes
             ) stats,
             List<Item>? drops = null
         )
             :this(
-                 name,
-                 stats.baseMaxHp,
-                 stats.baseAttack,
-                 stats.baseDefence,
-                 stats.baseSpeed,
-                 null,
-                 stats.originalTeam,
-                 stats.team,
-                 stats.attributes,
-                 drops
+                (
+                    name,
+                    stats.baseMaxHp,
+                    null,
+                    stats.baseAttack,
+                    stats.baseDefence,
+                    stats.baseSpeed,
+                    stats.originalTeam,
+                    stats.team,
+                    stats.attributes,
+                    drops,
+                    null,
+                    null
+                ),
+                null
             ) { }
         #endregion
 
@@ -170,7 +132,7 @@ namespace ProgressAdventure.Entity
         public void UpdateFullName()
         {
             string fullName = name;
-            if (attributes.Contains(Enums.Attribute.RARE))
+            if (attributes.Contains(Attribute.RARE))
             {
                 fullName = "Rare " + fullName;
             }
@@ -383,16 +345,88 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region JsonConvert
-        public Dictionary<string, object?> ToJson()
+        #region Constructors
+        /// <summary>
+        /// <inheritdoc cref="Entity"/><br/>
+        /// Can be used for loading the <c>Entity</c> from json.
+        /// </summary>
+        /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
+        /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.<br/>
+        /// Should only be null, if entity creation called this constructor.</param>
+        protected Entity((
+            string? name,
+            int? baseMaxHp,
+            int? currentHp,
+            int? baseAttack,
+            int? baseDefence,
+            int? baseSpeed,
+            int? originalTeam,
+            int? currentTeam,
+            List<Attribute>? attributes,
+            List<Item>? drops,
+            (long x, long y)? position,
+            Facing? facing
+        ) entityData, IDictionary<string, object?>? miscData)
+        {
+            name = entityData.name ?? GetDefaultName();
+            position = entityData.position ?? (0, 0);
+            facing = entityData.facing ?? Facing.NORTH;
+            if (
+                entityData.baseMaxHp is null ||
+                entityData.baseAttack is null ||
+                entityData.baseDefence is null ||
+                entityData.baseSpeed is null ||
+                entityData.originalTeam is null ||
+                entityData.currentTeam is null ||
+                entityData.attributes is null
+            )
+            {
+                var (
+                    baseMaxHpValue,
+                    baseAttackValue,
+                    baseDefenceValue,
+                    baseSpeedValue,
+                    originalTeam,
+                    currentTeam,
+                    attributes
+                ) = GetBaseStats();
+                baseMaxHp = entityData.baseMaxHp ?? baseMaxHpValue;
+                baseAttack = entityData.baseAttack ?? baseAttackValue;
+                baseDefence = entityData.baseDefence ?? baseDefenceValue;
+                baseSpeed = entityData.baseSpeed ?? baseSpeedValue;
+                this.originalTeam = entityData.originalTeam ?? originalTeam;
+                this.currentTeam = entityData.currentTeam ?? currentTeam;
+                this.attributes = entityData.attributes ?? attributes;
+            }
+            else
+            {
+                baseMaxHp = (int)entityData.baseMaxHp;
+                baseAttack = (int)entityData.baseAttack;
+                baseDefence = (int)entityData.baseDefence;
+                baseSpeed = (int)entityData.baseSpeed;
+                originalTeam = (int)entityData.originalTeam;
+                currentTeam = (int)entityData.currentTeam;
+                attributes = entityData.attributes;
+            }
+            drops = entityData.drops ?? GetDefaultDrops();
+            // not new entity call
+            if (miscData is not null)
+            {
+                FromMiscJson(miscData);
+            }
+            // adjust properties
+            SetupAttributes(entityData.currentHp);
+            UpdateFullName();
+        }
+        #endregion
+
+        #region Methods
+        public virtual Dictionary<string, object?> ToJson()
         {
             // attributes
             var attributesProcessed = attributes.Select(a => a.ToString()).ToList();
             // drops
-            var dropsJson = drops.Select(drop => new Dictionary<string, object>
-            {
-                ["type"] = drop.Type.ToString(),
-                ["amount"] = drop.amount,
-            }).ToList();
+            var dropsJson = drops.Select(drop => drop.ToJson()).ToList();
             // properties
             var entityJson = new Dictionary<string, object?>
             {
@@ -413,58 +447,70 @@ namespace ProgressAdventure.Entity
             return entityJson;
         }
 
-        public static Player? FromJson(IDictionary<string, object?>? playerJson)
+        /// <summary>
+        /// Converts the misc data of the entity from a json version.
+        /// </summary>
+        /// <param name="miscJson">The json representation of the misc data for the specific entity type.</param>
+        protected virtual void FromMiscJson(IDictionary<string, object?> miscJson) { }
+        #endregion
+
+        #region Functions
+        /// <summary>
+        /// Converts the json representation of the entity to a specific entity object.
+        /// </summary>
+        /// <typeparam name="T">The type of the entity to try to convert into.</typeparam>
+        /// <param name="entityJson">The json representation of the entity.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
+        public static T? FromJson<T>(IDictionary<string, object?>? entityJson)
+            where T : Entity<T>
         {
-            if (playerJson is null)
-            {
-                Logger.Log("Player parse error", "player json is null", LogSeverity.ERROR);
-                return null;
-            }
-            var entityDataRaw = FromJsonInternal(playerJson);
-            if (entityDataRaw is null)
+            var entityData = FromJsonInternal(entityJson);
+            if (entityData is null || entityJson is null)
             {
                 return null;
             }
-            var entityData = entityDataRaw.Value;
-            entityData.name ??= "You";
-            Inventory? inventory = null;
-            if (
-                playerJson.TryGetValue("inventory", out var inventoryValue)
-            )
-            {
-                inventory = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue);
-            }
-            else
-            {
-                Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
-            }
-            // player
-            Player player;
-            if (
-                entityData.baseMaxHp is not null &&
-                entityData.currentHp is not null &&
-                entityData.baseAttack is not null &&
-                entityData.baseDefence is not null &&
-                entityData.baseSpeed is not null
-            )
-            {
-                player = new Player(
-                    entityData.name,
-                    (int)entityData.baseMaxHp,
-                    (int)entityData.currentHp,
-                    (int)entityData.baseAttack,
-                    (int)entityData.baseDefence,
-                    (int)entityData.baseSpeed,
-                    inventory,
-                    entityData.position,
-                    entityData.facing
-                );
-            }
-            else
-            {
-                player = new Player(entityData.name, inventory, entityData.position, entityData.facing);
-            }
-            return player;
+
+            // get entity
+            var constructor = typeof(T).GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
+                null,
+                new[] { entityData.GetType(), entityJson.GetType() },
+                null
+            ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{typeof(T)}\"!", null);
+            var entity = constructor.Invoke(new object[] { entityData, entityJson }) ?? throw new ArgumentNullException(message: "Couldn't create entity object from type \"{typeof(T)}\"!", null);
+            return (T)entity;
+        }
+
+        /// <summary>
+        /// Returns a newly generated name of this entity, specific to this entity type.
+        /// </summary>
+        public static string GetDefaultName()
+        {
+            return EntityUtils.GetEntityNameFromClass();
+        }
+
+        /// <summary>
+        /// Returns the newly rolled stats, specific to this entity type.
+        /// </summary>
+        public static (
+            int baseMaxHpValue,
+            int baseAttackValue,
+            int baseDefenceValue,
+            int baseSpeedValue,
+            int originalTeam,
+            int currentTeam,
+            List<Attribute> attributes
+        ) GetBaseStats()
+        {
+            return EntityUtils.EntityManager(5, 5, 5, 5);
+        }
+
+        /// <summary>
+        /// Returns the newly generated drops, specific to this entity type.
+        /// </summary>
+        public static List<Item> GetDefaultDrops()
+        {
+            return new List<Item> { new Item(ItemType.Misc.COPPER_COIN) };
         }
 
         /// <summary>
@@ -473,13 +519,17 @@ namespace ProgressAdventure.Entity
         /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
         protected static (
             string? name,
-            (long x, long y)? position,
-            Facing? facing,
-            int? currentHp,
             int? baseMaxHp,
+            int? currentHp,
             int? baseAttack,
             int? baseDefence,
-            int? baseSpeed
+            int? baseSpeed,
+            int? originalTeam,
+            int? currentTeam,
+            List<Attribute>? attributes,
+            List<Item>? drops,
+            (long x, long y)? position,
+            Facing? facing
         )? FromJsonInternal(IDictionary<string, object?>? entityJson)
         {
             if (entityJson is null)
@@ -499,35 +549,6 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity name", LogSeverity.WARN);
-            }
-            // position
-            (long x, long y)? position = null;
-            if (
-                entityJson.TryGetValue("xPos", out var xPositionValue) &&
-                entityJson.TryGetValue("yPos", out var yPositionValue) &&
-                long.TryParse(xPositionValue?.ToString(), out long xPosition) &&
-                long.TryParse(yPositionValue?.ToString(), out long yPosition)
-            )
-            {
-                position = (xPosition, yPosition);
-            }
-            else
-            {
-                Logger.Log("Entity parse error", "couldn't parse entity position", LogSeverity.WARN);
-            }
-            // facing
-            Facing? facing = null;
-            if (
-                entityJson.TryGetValue("facing", out var facingValue) &&
-                Enum.TryParse(typeof(Facing), facingValue?.ToString(), out object? facingEnum) &&
-                Enum.IsDefined(typeof(Facing), (Facing)facingEnum)
-            )
-            {
-                facing = (Facing)facingEnum;
-            }
-            else
-            {
-                Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
             }
             // stats
             // max hp
@@ -595,8 +616,127 @@ namespace ProgressAdventure.Entity
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base speed", LogSeverity.WARN);
             }
-            return (name, position, facing, currentHp, baseMaxHp, baseAttack, baseDefence, baseSpeed);
+            // original team
+            int? originalTeam = null;
+            if (
+                entityJson.TryGetValue("originalTeam", out var originalTeamValueStr) &&
+                int.TryParse(originalTeamValueStr?.ToString(), out int originalTeamValue)
+            )
+            {
+                originalTeam = originalTeamValue;
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "couldn't parse entity original team", LogSeverity.WARN);
+            }
+            // current team
+            int? currentTeam = null;
+            if (
+                entityJson.TryGetValue("currentTeam", out var currentTeamValueStr) &&
+                int.TryParse(currentTeamValueStr?.ToString(), out int currentTeamValue)
+            )
+            {
+                currentTeam = currentTeamValue;
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "couldn't parse entity current team", LogSeverity.WARN);
+            }
+            // attributes
+            List<Attribute>? attributes = null;
+            if (
+                entityJson.TryGetValue("attributes", out var attributesJson) &&
+                attributesJson is not null
+            )
+            {
+                attributes = new List<Attribute>();
+                var attributeList = (IEnumerable<object?>)attributesJson;
+                foreach (var attribute in attributeList)
+                {
+                    if (
+                        Enum.TryParse(attribute?.ToString(), out Attribute attributeEnum) &&
+                        Enum.IsDefined(attributeEnum)
+                    )
+                    {
+                        attributes.Add(attributeEnum);
+                    }
+                    else
+                    {
+                        Logger.Log("Entity parse error", "entity attribute parse error", LogSeverity.WARN);
+                    }
+                }
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "entity attributes json doesn't exist", LogSeverity.WARN);
+            }
+            // drops
+            List<Item>? drops = null;
+            if (
+                entityJson.TryGetValue("drops", out var dropsJson) &&
+                dropsJson is not null
+            )
+            {
+                drops = new List<Item>();
+                var dropList = (IEnumerable<object?>)dropsJson;
+                foreach (var dropJson in dropList)
+                {
+                    var dropItem = Item.FromJson((IDictionary<string, object?>?)dropJson);
+                    if (dropItem is not null)
+                    {
+                        drops.Add(dropItem);
+                    }
+                }
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "entity drops json doesn't exist", LogSeverity.WARN);
+            }
+            // position
+            (long x, long y)? position = null;
+            if (
+                entityJson.TryGetValue("xPos", out var xPositionValue) &&
+                entityJson.TryGetValue("yPos", out var yPositionValue) &&
+                long.TryParse(xPositionValue?.ToString(), out long xPosition) &&
+                long.TryParse(yPositionValue?.ToString(), out long yPosition)
+            )
+            {
+                position = (xPosition, yPosition);
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "couldn't parse entity position", LogSeverity.WARN);
+            }
+            // facing
+            Facing? facing = null;
+            if (
+                entityJson.TryGetValue("facing", out var facingValue) &&
+                Enum.TryParse(typeof(Facing), facingValue?.ToString(), out object? facingEnum) &&
+                Enum.IsDefined(typeof(Facing), (Facing)facingEnum)
+            )
+            {
+                facing = (Facing)facingEnum;
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
+            }
+            return (
+                name,
+                baseMaxHp,
+                currentHp,
+                baseAttack,
+                baseDefence,
+                baseSpeed,
+                originalTeam,
+                currentTeam,
+                attributes,
+                drops,
+                position,
+                facing
+            );
         }
+        #endregion
         #endregion
     }
 }

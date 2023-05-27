@@ -154,13 +154,12 @@ namespace ProgressAdventure
             {
                 if (
                     tileTypeNoiseSeed.Value is not null &&
-                    Enum.TryParse(typeof(TileNoiseType), tileTypeNoiseSeed.Key.ToString(), out object? noiseTypeValue) &&
-                    noiseTypeValue is not null &&
-                    Enum.IsDefined(typeof(TileNoiseType), noiseTypeValue) &&
+                    Enum.TryParse(tileTypeNoiseSeed.Key.ToString(), out TileNoiseType noiseTypeValue) &&
+                    Enum.IsDefined(noiseTypeValue) &&
                     ulong.TryParse(tileTypeNoiseSeed.Value.ToString(), out ulong noiseSeed)
                 )
                 {
-                    noiseSeedDict.Add((TileNoiseType)noiseTypeValue, noiseSeed);
+                    noiseSeedDict.Add(noiseTypeValue, noiseSeed);
                 }
                 else
                 {
