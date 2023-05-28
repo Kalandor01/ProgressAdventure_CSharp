@@ -54,15 +54,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly rolled stats, specific to this entity type.
         /// </summary>
-        public static (
-            int baseMaxHpValue,
-            int baseAttackValue,
-            int baseDefenceValue,
-            int baseSpeedValue,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
-        ) GetBaseStats(int team = 1)
+        public static EntityManagerStats GetBaseStats(int team = 1)
         {
             return EntityUtils.EntityManager(7, 7, 7, 7, originalTeam: team);
         }
@@ -132,15 +124,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly rolled stats, specific to this entity type.
         /// </summary>
-        public static (
-            int baseMaxHpValue,
-            int baseAttackValue,
-            int baseDefenceValue,
-            int baseSpeedValue,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
-        ) GetBaseStats(int team = 1)
+        public static EntityManagerStats GetBaseStats(int team = 1)
         {
             return EntityUtils.EntityManager(11, 9, 9, 9, originalTeam: team);
         }
@@ -210,15 +194,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly rolled stats, specific to this entity type.
         /// </summary>
-        public static (
-            int baseMaxHpValue,
-            int baseAttackValue,
-            int baseDefenceValue,
-            int baseSpeedValue,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
-        ) GetBaseStats(int team = 1)
+        public static EntityManagerStats GetBaseStats(int team = 1)
         {
             return EntityUtils.EntityManager(13, 11, 11, 5, originalTeam: team);
         }

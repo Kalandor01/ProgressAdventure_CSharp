@@ -215,6 +215,15 @@ namespace ProgressAdventure
                 saveVersion = "2.0.1";
                 Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
             }
+            // 2.0.1 -> 2.0.2
+            if (saveVersion == "2.0.1")
+            {
+                var pSaveVersion = saveVersion;
+                // saved entity types
+                ((Dictionary<string, object?>)jsonData["player"])["type"] = "player";
+                saveVersion = "2.0.2";
+                Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
+            }
         }
 
         /// <summary>

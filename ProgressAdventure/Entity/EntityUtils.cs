@@ -24,12 +24,50 @@ namespace ProgressAdventure.Entity
             [Facing.SOUTH_WEST] = (-1, -1),
             [Facing.SOUTH_EAST] = (1, -1),
         };
+
+        /// <summary>
+        /// The dictionary pairing up entity type strings, to entity types.
+        /// </summary>
+        internal static readonly Dictionary<string, Type> entityTypeMap = new()
+        {
+            ["player"] = typeof(Player),
+            ["caveman"] = typeof(Caveman),
+            ["ghoul"] = typeof(Ghoul),
+            ["troll"] = typeof(Troll),
+        };
+
         /// <summary>
         /// The dictionary pairing up attribute types, to stat modifiers.
         /// </summary>
         internal static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double speed)> attributeStatChangeMap = new()
         {
             [Attribute.RARE] = (2, 2, 2, 2),
+            [Attribute.CRIPPLED] = (0.5, 0.5, 0.5, 0.5),
+            [Attribute.HEALTHY] = (2, 1, 1, 1),
+            [Attribute.SICK] = (0.5, 1, 1, 1),
+            [Attribute.STRONG] = (1, 2, 1, 1),
+            [Attribute.WEAK] = (1, 0.5, 1, 1),
+            [Attribute.TOUGH] = (1, 1, 2, 1),
+            [Attribute.FRAIL] = (1, 1, 0.5, 1),
+            [Attribute.AGILE] = (1, 1, 1, 2),
+            [Attribute.SLOW] = (1, 1, 1, 0.5),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up attributes, to their display name.
+        /// </summary>
+        internal static readonly Dictionary<Attribute, string> attributeNameMap = new()
+        {
+            [Attribute.RARE] = "Rare",
+            [Attribute.CRIPPLED] = "Crippled",
+            [Attribute.HEALTHY] = "Healthy",
+            [Attribute.SICK] = "Sick",
+            [Attribute.STRONG] = "Strong",
+            [Attribute.WEAK] = "Weak",
+            [Attribute.TOUGH] = "Tough",
+            [Attribute.FRAIL] = "Frail",
+            [Attribute.AGILE] = "Agile",
+            [Attribute.SLOW] = "Slow",
         };
         #endregion
 
@@ -44,25 +82,17 @@ namespace ProgressAdventure.Entity
         /// <param name="baseSpeed">The base speed of the entity.</param>
         /// <param name="negativeFluctuation">The value, that will offset all of the base stat values, it the negative direction.</param>
         /// <param name="positiveFluctuation">The value, that will offset all of the base stat values, it the positive direction.</param>
-        /// <param name="rareChance">The chance of the entitiy having the rare attribute. (1 = 100%)</param>
+        /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        public static (
-            int baseMaxHpValue,
-            int baseAttackValue,
-            int baseDefenceValue,
-            int baseSpeedValue,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
-        ) EntityManager(
+        public static EntityManagerStats EntityManager(
             int baseMaxHp,
             int baseAttack,
             int baseDefence,
             int baseSpeed,
             int negativeFluctuation = 2,
             int positiveFluctuation = 3,
-            double rareChance = 0.02,
+            AttributeChances? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
         )
@@ -72,7 +102,7 @@ namespace ProgressAdventure.Entity
                 (baseAttack - negativeFluctuation, baseAttack, baseAttack + positiveFluctuation),
                 (baseDefence - negativeFluctuation, baseDefence, baseDefence + positiveFluctuation),
                 (baseSpeed - negativeFluctuation, baseSpeed, baseSpeed + positiveFluctuation),
-                rareChance,
+                attributeChances,
                 originalTeam,
                 teamChangeChange
             );
@@ -86,23 +116,15 @@ namespace ProgressAdventure.Entity
         /// <param name="baseAttack">The base attack damage range of the entity.</param>
         /// <param name="baseDefence">The base defence value range of the entity.</param>
         /// <param name="baseSpeed">The base speed range of the entity.</param>
-        /// <param name="rareChance">The chance of the entitiy having the rare attribute. (1 = 100%)</param>
+        /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        public static (
-            int baseMaxHpValue,
-            int baseAttackValue,
-            int baseDefenceValue,
-            int baseSpeedValue,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
-        ) EntityManager(
+        public static EntityManagerStats EntityManager(
             (int lower, int middle, int upper) baseMaxHp,
             (int lower, int middle, int upper) baseAttack,
             (int lower, int middle, int upper) baseDefence,
             (int lower, int middle, int upper) baseSpeed,
-            double rareChance = 0.02,
+            AttributeChances? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
         )
@@ -111,11 +133,7 @@ namespace ProgressAdventure.Entity
             var baseAttackValue = ConfigureStat(baseAttack);
             var baseDefenceValue = ConfigureStat(baseDefence);
             var baseSpeedValue = ConfigureStat(baseSpeed);
-            var attributes = new List<Attribute>();
-            if (RandomStates.MainRandom.GenerateDouble() < rareChance)
-            {
-                attributes.Add(Attribute.RARE);
-            }
+            var attributes = GenerateEntityAttributes(attributeChances);
             if (baseMaxHpValue <= 0)
             {
                 baseMaxHpValue = 1;
@@ -126,28 +144,100 @@ namespace ProgressAdventure.Entity
             {
                 currentTeam = 0;
             }
-            return (baseMaxHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
+            return new EntityManagerStats(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
+        }
+
+        public static List<Attribute> GenerateEntityAttributes(AttributeChances? attributeChances)
+        {
+            var attrChances = attributeChances ?? new AttributeChances();
+            var attributes = new List<Attribute>();
+            // all attributes
+            if (RandomStates.MainRandom.GenerateDouble() < attrChances.rareChance)
+            {
+                attributes.Add(Attribute.RARE);
+            }
+            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.crippledChance)
+            {
+                attributes.Add(Attribute.CRIPPLED);
+            }
+            // health
+            if (RandomStates.MainRandom.GenerateDouble() < attrChances.healthyChance)
+            {
+                attributes.Add(Attribute.HEALTHY);
+            }
+            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.sickChance)
+            {
+                attributes.Add(Attribute.SICK);
+            }
+            // attack
+            if (RandomStates.MainRandom.GenerateDouble() < attrChances.strongChance)
+            {
+                attributes.Add(Attribute.STRONG);
+            }
+            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.weakChance)
+            {
+                attributes.Add(Attribute.WEAK);
+            }
+            // defence
+            if (RandomStates.MainRandom.GenerateDouble() < attrChances.toughChance)
+            {
+                attributes.Add(Attribute.TOUGH);
+            }
+            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.frailChance)
+            {
+                attributes.Add(Attribute.FRAIL);
+            }
+            // speed
+            if (RandomStates.MainRandom.GenerateDouble() < attrChances.agileChance)
+            {
+                attributes.Add(Attribute.AGILE);
+            }
+            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.slowChance)
+            {
+                attributes.Add(Attribute.SLOW);
+            }
+            return attributes;
+        }
+
+        /// <summary>
+        /// Returns the name of the type of the entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        public static string? GetEntityTypeName(Entity entity)
+        {
+            foreach (var entityType in entityTypeMap)
+            {
+                if (entityType.Value == entity.GetType())
+                {
+                    return entityType.Key;
+                }
+            }
+            return null;
         }
 
         /// <summary>
         /// Gets the name of the entity from the name of the calling class.
         /// </summary>
-        public static string GetEntityNameFromClass()
+        /// <param name="extraDepth">Should be increased by 1, for every extra method, that called this one, that isn't the target entity class.</param>
+        public static string GetEntityNameFromClass(uint extraDepth = 0)
         {
-            string name;
+            string? name = null;
             try
             {
-                var frame = new StackTrace().GetFrame(1);
-                var method = frame.GetMethod();
-                name = method.ReflectedType.Name;
-                name = name.Replace("_", " ");
+                var frame = new StackTrace().GetFrame((int)(1 + extraDepth));
+                var method = frame?.GetMethod();
+                name = method?.ReflectedType?.Name;
+                name = name?.Replace("_", " ");
             }
             catch (NullReferenceException)
             {
-                Logger.Log("Trying to create entity with no known name", "Using default name", LogSeverity.WARN);
-                name = "[Unknown entity]";
+                Logger.Log("Tried to create entity with no known name", null, LogSeverity.WARN);
             }
-            return name;
+            if (name is null)
+            {
+                Logger.Log("Couldn't get entity name from class", "Using default name", LogSeverity.WARN);
+            }
+            return name ?? "[Unknown entity]";
         }
 
         /// <summary>
@@ -163,33 +253,16 @@ namespace ProgressAdventure.Entity
             }
             return null;
         }
-        #endregion
 
-        #region Private functions
         /// <summary>
-        /// Returns the actual value of the stat, roller using a triangular distribution, from the range.<br/>
-        /// The returned value cannot be less than 0.
+        /// Moves an entity from one position to another, one tile at a time.
         /// </summary>
-        /// <param name="statRange">The range of the values to use.</param>
-        private static int ConfigureStat((int lower, int middle, int upper) statRange)
-        {
-            int statValue;
-            // fluctuation
-            if (statRange.lower == statRange.upper)
-            {
-                statValue = statRange.lower;
-            }
-            else
-            {
-                statValue = (int)Math.Round(RandomStates.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
-            }
-            if (statValue < 0)
-            {
-                statValue = 0;
-            }
-            return statValue;
-        }
-
+        /// <param name="entity">The entity to move.</param>
+        /// <param name="relativeMovementVector">The relative movement vector to move the entity by.</param>
+        /// <param name="updateWorld">Whether to update the world with the new position of the entity, while moving.<br/>
+        /// If null, the default is used.</param>
+        /// <param name="startingPosition">The starting position of the entity.<br/>
+        /// If null, the default is used.</param>
         public static void EntityMover(Entity entity, (long x, long y) relativeMovementVector, bool? updateWorld = null, (long x, long y)? startingPosition = null)
         {
             if (startingPosition is not null)
@@ -238,9 +311,9 @@ namespace ProgressAdventure.Entity
             foreach (var entity in entities)
             {
                 var teamName = entity.currentTeam == 0 ? "Player" : entity.currentTeam.ToString();
-                if (teams.ContainsKey(teamName))
+                if (teams.TryGetValue(teamName, out List<Entity>? value))
                 {
-                    teams[teamName].Add(entity);
+                    value.Add(entity);
                 }
                 else
                 {
@@ -295,6 +368,30 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region Private functions
+        /// <summary>
+        /// Returns the actual value of the stat, roller using a triangular distribution, from the range.<br/>
+        /// The returned value cannot be less than 0.
+        /// </summary>
+        /// <param name="statRange">The range of the values to use.</param>
+        private static int ConfigureStat((int lower, int middle, int upper) statRange)
+        {
+            int statValue;
+            // fluctuation
+            if (statRange.lower == statRange.upper)
+            {
+                statValue = statRange.lower;
+            }
+            else
+            {
+                statValue = (int)Math.Round(RandomStates.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
+            }
+            if (statValue < 0)
+            {
+                statValue = 0;
+            }
+            return statValue;
+        }
+
         /// <summary>
         /// Filters out invalid teams from the teams list, and returns which team the player is in.
         /// </summary>
@@ -373,7 +470,7 @@ namespace ProgressAdventure.Entity
                     Console.WriteLine($"\nTeam {team.Key}:\n");
                     foreach (var entity in team.Value)
                     {
-                        Console.Write($"\t{entity.FullName}");
+                        Console.Write($"\t{entity.GetFullNameWithSpecies()}");
                         if (entity.originalTeam != entity.currentTeam)
                         {
                             Console.Write(" (Switched to this side!)");

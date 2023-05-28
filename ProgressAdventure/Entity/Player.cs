@@ -39,7 +39,7 @@ namespace ProgressAdventure.Entity
                     (7, 10, 13),
                     (7, 10, 13),
                     (1, 10, 20),
-                    0,
+                    new AttributeChances(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                     0,
                     0
                 ),
@@ -61,7 +61,7 @@ namespace ProgressAdventure.Entity
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         private Player(
             string? name,
-            (int baseMaxHpValue, int baseAttackValue, int baseDefenceValue, int baseSpeedValue, int originalTeam, int currentTeam, List<Attribute> attributes) stats,
+            EntityManagerStats stats,
             Inventory? inventory = null,
             (long x, long y)? position = null,
             Facing? facing = null
@@ -69,11 +69,11 @@ namespace ProgressAdventure.Entity
             : this(
                 (
                     name,
-                    stats.baseMaxHpValue,
-                    stats.baseMaxHpValue,
-                    stats.baseAttackValue,
-                    stats.baseDefenceValue,
-                    stats.baseSpeedValue,
+                    stats.baseMaxHp,
+                    stats.baseMaxHp,
+                    stats.baseAttack,
+                    stats.baseDefence,
+                    stats.baseSpeed,
                     0,
                     0,
                     new List<Attribute>(),
@@ -118,7 +118,7 @@ namespace ProgressAdventure.Entity
         #region Public overrides
         public override string ToString()
         {
-            return $"{base.ToString()}\n{this.inventory}\nPosition: {this.position}\nRotation: {this.facing}";
+            return $"{base.ToString()}\n{inventory}\nPosition: {position}\nRotation: {facing}";
         }
         #endregion
 

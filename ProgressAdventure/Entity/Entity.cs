@@ -91,19 +91,12 @@ namespace ProgressAdventure.Entity
         /// <inheritdoc cref="Entity"/><br/>
         /// Can be used for creating a new <c>Entity</c>, from the result of the EntityManager function.
         /// </summary>
+        /// <param name="name">The name of the entity.</param>
         /// <param name="stats">The tuple of stats, representin all other values from the other constructor, other than drops.</param>
         /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
         public Entity(
             string name,
-            (
-                int baseMaxHp,
-                int baseAttack,
-                int baseDefence,
-                int baseSpeed,
-                int originalTeam,
-                int? team,
-                List<Attribute>? attributes
-            ) stats,
+            EntityManagerStats stats,
             List<Item>? drops = null
         )
             :this(
@@ -115,7 +108,7 @@ namespace ProgressAdventure.Entity
                     stats.baseDefence,
                     stats.baseSpeed,
                     stats.originalTeam,
-                    stats.team,
+                    stats.currentTeam,
                     stats.attributes,
                     drops,
                     null,
@@ -131,12 +124,13 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public void UpdateFullName()
         {
-            string fullName = name;
-            if (attributes.Contains(Attribute.RARE))
+            string attributeNames = "";
+            foreach (var attribute in attributes)
             {
-                fullName = "Rare " + fullName;
+                attributeNames += EntityUtils.attributeNameMap[attribute] + " ";
             }
-            FullName = fullName;
+            FullName = attributeNames + name;
+            FullName = FullName[0].ToString().ToUpper() + FullName[1..].ToLower();
         }
 
         /// <summary>
@@ -305,6 +299,14 @@ namespace ProgressAdventure.Entity
                 CurrentHp = 0;
             }
         }
+
+        /// <summary>
+        /// Returns the full name of the entity with their species in parentheses, unless it's a player.
+        /// </summary>
+        public string GetFullNameWithSpecies()
+        {
+            return FullName + (GetType() != typeof(Player) ? $" ({EntityUtils.GetEntityTypeName(this)})" : "");
+        }
         #endregion
 
         #region Private methods
@@ -340,7 +342,8 @@ namespace ProgressAdventure.Entity
         {
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
-            return $"Name: {name}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
+            var typeLine = GetType() != typeof(Player) ? $"\nSpecies: {EntityUtils.GetEntityTypeName(this)}" : "";
+            return $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
         }
         #endregion
 
@@ -381,22 +384,14 @@ namespace ProgressAdventure.Entity
                 entityData.attributes is null
             )
             {
-                var (
-                    baseMaxHpValue,
-                    baseAttackValue,
-                    baseDefenceValue,
-                    baseSpeedValue,
-                    originalTeam,
-                    currentTeam,
-                    attributes
-                ) = GetBaseStats();
-                baseMaxHp = entityData.baseMaxHp ?? baseMaxHpValue;
-                baseAttack = entityData.baseAttack ?? baseAttackValue;
-                baseDefence = entityData.baseDefence ?? baseDefenceValue;
-                baseSpeed = entityData.baseSpeed ?? baseSpeedValue;
-                this.originalTeam = entityData.originalTeam ?? originalTeam;
-                this.currentTeam = entityData.currentTeam ?? currentTeam;
-                this.attributes = entityData.attributes ?? attributes;
+                var ems = GetBaseStats();
+                baseMaxHp = entityData.baseMaxHp ?? ems.baseMaxHp;
+                baseAttack = entityData.baseAttack ?? ems.baseAttack;
+                baseDefence = entityData.baseDefence ?? ems.baseDefence;
+                baseSpeed = entityData.baseSpeed ?? ems.baseSpeed;
+                originalTeam = entityData.originalTeam ?? ems.originalTeam;
+                currentTeam = entityData.currentTeam ?? ems.currentTeam;
+                attributes = entityData.attributes ?? ems.attributes;
             }
             else
             {
@@ -428,8 +423,9 @@ namespace ProgressAdventure.Entity
             // drops
             var dropsJson = drops.Select(drop => drop.ToJson()).ToList();
             // properties
-            var entityJson = new Dictionary<string, object?>
+            return new Dictionary<string, object?>
             {
+                ["type"] = EntityUtils.GetEntityTypeName(this),
                 ["name"] = name,
                 ["baseMaxHp"] = baseMaxHp,
                 ["currentHp"] = CurrentHp,
@@ -444,7 +440,6 @@ namespace ProgressAdventure.Entity
                 ["yPos"] = position.y,
                 ["facing"] = (int)facing,
             };
-            return entityJson;
         }
 
         /// <summary>
@@ -464,21 +459,43 @@ namespace ProgressAdventure.Entity
         public static T? FromJson<T>(IDictionary<string, object?>? entityJson)
             where T : Entity<T>
         {
-            var entityData = FromJsonInternal(entityJson);
-            if (entityData is null || entityJson is null)
+            return (T?)AnyEntityFromJsonPrivate(typeof(T), entityJson);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entityJson"></param>
+        public static Entity? AnyEntityFromJson(IDictionary<string, object?>? entityJson)
+        {
+            if (entityJson is null)
             {
+                Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
                 return null;
             }
-
-            // get entity
-            var constructor = typeof(T).GetConstructor(
-                BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
-                null,
-                new[] { entityData.GetType(), entityJson.GetType() },
-                null
-            ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{typeof(T)}\"!", null);
-            var entity = constructor.Invoke(new object[] { entityData, entityJson }) ?? throw new ArgumentNullException(message: "Couldn't create entity object from type \"{typeof(T)}\"!", null);
-            return (T)entity;
+            if (
+                entityJson.TryGetValue("type", out object? entityTypeValue) &&
+                entityTypeValue is not null
+            )
+            {
+                if (
+                    EntityUtils.entityTypeMap.TryGetValue(entityTypeValue.ToString() ?? "", out Type? entityType) &&
+                    entityType is not null
+                )
+                {
+                    return AnyEntityFromJsonPrivate(entityType, entityJson);
+                }
+                else
+                {
+                    Logger.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
+                    return null;
+                }
+            }
+            else
+            {
+                Logger.Log("Entity parse error", "entity type json is null", LogSeverity.ERROR);
+                return null;
+            }
         }
 
         /// <summary>
@@ -486,21 +503,13 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static string GetDefaultName()
         {
-            return EntityUtils.GetEntityNameFromClass();
+            return EntityUtils.GetEntityNameFromClass(1);
         }
 
         /// <summary>
         /// Returns the newly rolled stats, specific to this entity type.
         /// </summary>
-        public static (
-            int baseMaxHpValue,
-            int baseAttackValue,
-            int baseDefenceValue,
-            int baseSpeedValue,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
-        ) GetBaseStats()
+        public static EntityManagerStats GetBaseStats()
         {
             return EntityUtils.EntityManager(5, 5, 5, 5);
         }
@@ -514,10 +523,35 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
+        /// Converts the json representation of the entity to a specific entity object.
+        /// </summary>
+        /// <param name="entityType">The type of the entity to try to convert into.</param>
+        /// <param name="entityJson">The json representation of the entity.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
+        private static Entity? AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?>? entityJson)
+        {
+            var entityData = FromJsonPrivate(entityJson);
+            if (entityData is null || entityJson is null)
+            {
+                return null;
+            }
+
+            // get entity
+            var constructor = entityType.GetConstructor(
+                BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
+                null,
+                new[] { entityData.GetType(), entityJson.GetType() },
+                null
+            ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{entityType}\"!", null);
+            var entity = constructor.Invoke(new object[] { entityData, entityJson }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
+            return (Entity?)entity;
+        }
+
+        /// <summary>
         /// Converts the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object.
         /// </summary>
         /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
-        protected static (
+        private static (
             string? name,
             int? baseMaxHp,
             int? currentHp,
@@ -530,7 +564,7 @@ namespace ProgressAdventure.Entity
             List<Item>? drops,
             (long x, long y)? position,
             Facing? facing
-        )? FromJsonInternal(IDictionary<string, object?>? entityJson)
+        )? FromJsonPrivate(IDictionary<string, object?>? entityJson)
         {
             if (entityJson is null)
             {
