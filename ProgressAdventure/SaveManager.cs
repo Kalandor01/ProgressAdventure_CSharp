@@ -10,6 +10,44 @@ namespace ProgressAdventure
 {
     public static class SaveManager
     {
+        #region Private dicts
+        /// <summary>
+        /// The dictionary pairing up item type IDs, to their name.
+        /// </summary>
+        private static readonly Dictionary<int, string> _itemTypeNameMap = new()
+        {
+            //weapons
+            [65536] = "weapon/wooden_sword",
+            [65537] = "weapon/stone_sword",
+            [65538] = "weapon/steel_sword",
+            [65539] = "weapon/wooden_bow",
+            [65540] = "weapon/steel_arrow",
+            [65541] = "weapon/wooden_club",
+            [65542] = "weapon/club_with_teeth",
+            //defence
+            [65792] = "defence/wooden_shield",
+            [65793] = "defence/leather_cap",
+            [65794] = "defence/leather_tunic",
+            [65795] = "defence/leather_pants",
+            [65796] = "defence/leather_boots",
+            //materials
+            [66048] = "material/bootle",
+            [66049] = "material/wool",
+            [66050] = "material/cloth",
+            [66051] = "material/wood",
+            [66052] = "material/stone",
+            [66053] = "material/steel",
+            [66054] = "material/gold",
+            [66055] = "material/teeth",
+            //misc
+            [66304] = "misc/health_potion",
+            [66305] = "misc/gold_coin",
+            [66306] = "misc/silver_coin",
+            [66307] = "misc/copper_coin",
+            [66308] = "misc/rotten_flesh",
+        };
+        #endregion
+
         #region Public functions
         /// <summary>
         /// Creates a save file from the save data.<br/>
@@ -209,8 +247,8 @@ namespace ProgressAdventure
                 var pSaveVersion = saveVersion;
                 // inventory items in dictionary
 
-                var inventoryItems = ((Dictionary<string, object?>)jsonData["player"])["inventory"];
-                ((Dictionary<string, object?>)jsonData["player"])["inventory"] = new Dictionary<string, object> { ["items"] = inventoryItems };
+                var inventoryItems = ((IDictionary<string, object?>)jsonData["player"])["inventory"];
+                ((IDictionary<string, object?>)jsonData["player"])["inventory"] = new Dictionary<string, object> { ["items"] = inventoryItems };
                 
                 saveVersion = "2.0.1";
                 Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
@@ -220,8 +258,24 @@ namespace ProgressAdventure
             {
                 var pSaveVersion = saveVersion;
                 // saved entity types
-                ((Dictionary<string, object?>)jsonData["player"])["type"] = "player";
+                ((IDictionary<string, object?>)jsonData["player"])["type"] = "player";
                 saveVersion = "2.0.2";
+                Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
+            }
+            // 2.0.2 -> 2.1
+            if (saveVersion == "2.0.2")
+            {
+                var pSaveVersion = saveVersion;
+                // saved item types as string
+                var inventory = ((IDictionary<string, object?>)jsonData["player"])["inventory"];
+                var inventoryItems = (IEnumerable)((IDictionary<string, object?>)inventory)["items"];
+                foreach (var item in inventoryItems)
+                {
+                    var itemIDValue = ((IDictionary<string, object?>)item)["type"];
+                    var itemID = int.Parse(itemIDValue?.ToString());
+                    ((IDictionary<string, object?>)item)["type"] = _itemTypeNameMap[itemID];
+                }
+                saveVersion = "2.1";
                 Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
             }
         }

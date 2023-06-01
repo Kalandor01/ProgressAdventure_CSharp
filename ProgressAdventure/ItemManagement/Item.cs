@@ -48,28 +48,16 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public void SetAttributes()
         {
-            if (ItemUtils.itemAttributes.ContainsKey(Type))
+            string? displayNameValue = null;
+            bool? consumableValue = null;
+            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributes attributes))
             {
-                var (displayName, consumable) = ItemUtils.itemAttributes[Type];
-                DisplayName = displayName;
-                Consumable = consumable;
+                displayNameValue = attributes.displayName;
+                consumableValue = attributes.consumable;
             }
-            else
-            {
-                var name = Type.ToString();
-                if (name is null)
-                {
-                    Logger.Log("Unknown item", $"type: {Type}, amount: {amount}");
-                }
-                else
-                {
-                    name = name.Split('.').Last();
-                    name = name[0].ToString().ToUpper() + name[1..].ToLower();
-                    name = name.Replace("_", " ");
-                }
-                DisplayName = name ?? "[UNKNOWN ITEM]";
-                Consumable = false;
-            }
+
+            DisplayName = displayNameValue ?? ItemUtils.ItemIDToDisplayName(Type);
+            Consumable = consumableValue ?? false;
         }
 
         /// <summary>
@@ -111,7 +99,7 @@ namespace ProgressAdventure.ItemManagement
         {
             return new Dictionary<string, object?>
             {
-                ["type"] = Type.GetHashCode(),
+                ["type"] = ItemUtils.itemAttributes[Type].typeName,
                 ["amount"] = amount,
             };
         }
@@ -125,9 +113,8 @@ namespace ProgressAdventure.ItemManagement
             }
 
             if (
-                itemJson.TryGetValue("type", out var typeIDValue) &&
-                int.TryParse(typeIDValue?.ToString(), out int itemTypeID) &&
-                ItemUtils.TryParseItemType(itemTypeID, out ItemTypeID itemType)
+                itemJson.TryGetValue("type", out var typeNameValue) &&
+                ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType)
             )
             {
                 int itemAmount = 1;

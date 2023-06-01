@@ -18,27 +18,29 @@ namespace ProgressAdventure
             SaveManager.CreateSaveData("test", "me");
 
 
-            var entities = new List<Entity.Entity>
-            {
-                SaveData.player,
-                new Troll(0),
-                new Troll(0),
-                new Troll(0),
+            //var entities = new List<Entity.Entity>
+            //{
+            //    SaveData.player,
+            //    new Troll(0),
+            //    new Troll(0),
+            //    new Troll(0),
 
-                new Caveman(1),
-                new Ghoul(1),
-                new Troll(1),
+            //    new Caveman(1),
+            //    new Ghoul(1),
+            //    new Troll(1),
 
-                new Caveman(2),
-                new Troll(2),
-                new Ghoul(2),
+            //    new Caveman(2),
+            //    new Troll(2),
+            //    new Ghoul(2),
 
-                new Caveman(3),
-                new Ghoul(3),
-                new Troll(3),
-            };
+            //    new Caveman(3),
+            //    new Ghoul(3),
+            //    new Troll(3),
+            //};
 
-            EntityUtils.Fight(entities);
+            //EntityUtils.Fight(entities);
+
+
 
 
             Console.WriteLine();
