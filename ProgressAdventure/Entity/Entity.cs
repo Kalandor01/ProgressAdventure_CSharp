@@ -463,9 +463,9 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// 
+        /// Converts any entity json, from a json format, into an entity object (if it implements the nececary protected constructor).
         /// </summary>
-        /// <param name="entityJson"></param>
+        /// <param name="entityJson">The json representation of an entity.</param>
         public static Entity? AnyEntityFromJson(IDictionary<string, object?>? entityJson)
         {
             if (entityJson is null)

@@ -61,7 +61,11 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static Keybinds Keybinds
         {
-            get => _keybinds ?? GetKeybins();
+            get
+            {
+                _keybinds ??= GetKeybins();
+                return _keybinds;
+            }
             set => UpdateKeybinds(value);
         }
         /// <summary>
@@ -145,7 +149,7 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds keybinds;
             try
             {
-                keybinds = Keybinds.FromJson((IDictionary<string, object>)keybindsDict);
+                keybinds = Keybinds.FromJson((IDictionary<string, object?>?)keybindsDict);
             }
             catch (Exception e)
             {
@@ -250,7 +254,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// Recreates the settings file from the default values, and returns the result.
         /// </summary>
-        private static Dictionary<string, object?> RecreateSettings()
+        private static Dictionary<string, object> RecreateSettings()
         {
             var newSettings = SettingsUtils.GetDefaultSettings();
             Tools.EncodeSaveShort(newSettings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
@@ -264,20 +268,27 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         private static Dictionary<string, object?> GetSettingsDict()
         {
+            Dictionary<string, object?>? settingsJson = null;
             try
             {
-                return Tools.DecodeSaveShort(Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED);
+                settingsJson = Tools.DecodeSaveShort(Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED);
+                if (settingsJson is null)
+                {
+                    Logger.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
+                }
             }
             catch (FormatException)
             {
                 Logger.Log("Decode error", "settings", LogSeverity.ERROR);
                 Utils.PressKey("The settings file is corrupted, and will now be recreated!");
-                return RecreateSettings();
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException) { }
+
+            if (settingsJson is not null)
             {
-                return RecreateSettings();
+                return settingsJson;
             }
+            return RecreateSettings();
         }
 
         /// <summary>
@@ -288,17 +299,26 @@ namespace ProgressAdventure.SettingsManagement
         {
             var settings = GetSettingsDict();
             var settingsKeyName = SettingsUtils.settingsKeyNames[settingsKey];
-            if (settings.ContainsKey(settingsKeyName))
+            if (settings.TryGetValue(settingsKeyName, out object? settingValue))
             {
-                return settings[settingsKeyName];
+                if (settingValue is not null)
+                {
+                    return settingValue;
+                }
+                else
+                {
+                    Logger.Log("Value is null in settings", settingsKeyName, LogSeverity.WARN);
+                }
             }
             else
             {
                 Logger.Log("Missing key in settings", settingsKeyName, LogSeverity.WARN);
-                var defSettings = SettingsUtils.GetDefaultSettings();
-                SettingsManager(settingsKey, defSettings[settingsKeyName]);
-                return defSettings[settingsKeyName];
             }
+
+            var defSettings = SettingsUtils.GetDefaultSettings();
+            var defSettingValue = defSettings[settingsKeyName];
+            SettingsManager(settingsKey, defSettingValue);
+            return defSettingValue;
         }
 
         /// <summary>
@@ -310,26 +330,23 @@ namespace ProgressAdventure.SettingsManagement
         {
             var settings = GetSettingsDict();
             var settingsKeyName = SettingsUtils.settingsKeyNames[settingsKey];
-            if (settings.ContainsKey(settingsKeyName))
+            if (settings.TryGetValue(settingsKeyName, out object? settingValue))
             {
-                var settingValue = settings[settingsKeyName];
                 var keybindsEqual = false;
                 if (settingsKey == SettingsKey.KEYBINDS && settingValue is not null)
                 {
-                    var kbConverError = false;
-                    Keybinds oldKb = null;
+                    Keybinds? oldKb = null;
                     try
                     {
-                        oldKb = Keybinds.FromJson((IDictionary<string, object>)settingValue);
+                        oldKb = Keybinds.FromJson((IDictionary<string, object?>?)settingValue);
                     }
                     catch (Exception e)
                     {
-                        kbConverError = true;
                         Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
                     }
-                    if (!kbConverError)
+                    if (oldKb is not null)
                     {
-                        keybindsEqual = ((Keybinds)value).Equals(oldKb);
+                        keybindsEqual = oldKb.Equals(value);
                         if (!keybindsEqual)
                         {
                             value = ((Keybinds)value).ToJson();

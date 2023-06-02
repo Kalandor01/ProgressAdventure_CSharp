@@ -6,9 +6,9 @@ namespace ProgressAdventure.ItemManagement
     {
         #region Public fields
         /// <summary>
-        /// The number of items
+        /// The number of items.
         /// </summary>
-        public long amount;
+        private long _amount;
         #endregion
 
         #region Public properties
@@ -16,6 +16,24 @@ namespace ProgressAdventure.ItemManagement
         /// The type of the item.
         /// </summary>
         public ItemTypeID Type { get; }
+
+        /// <summary>
+        /// <inheritdoc cref="_amount"/>
+        /// </summary>
+        public long Amount {
+            get
+            {
+                return _amount;
+            }
+            set
+            {
+                _amount = value;
+                if (_amount < 0)
+                {
+                    _amount = 0;
+                }
+            }
+        }
 
         /// <summary>
         /// The display name of the item.
@@ -33,11 +51,18 @@ namespace ProgressAdventure.ItemManagement
         /// <inheritdoc cref="Item"/>
         /// </summary>
         /// <param name="type"><inheritdoc cref="Type" path="//summary"/></param>
-        /// <param name="amount"><inheritdoc cref="amount" path="//summary"/></param>
+        /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
         public Item(ItemTypeID type, long amount = 1)
         {
-            Type = type;
-            this.amount = amount;
+            var typeValue = ItemUtils.ToItemType(type.GetHashCode());
+            if (typeValue is null)
+            {
+                Logger.Log("Unknown item type", $"id: {type.GetHashCode()}", LogSeverity.ERROR);
+                throw new ArgumentException("Unknown item type", nameof(type));
+            }
+            Type = (ItemTypeID)typeValue;
+            Amount = amount;
             SetAttributes();
         }
         #endregion
@@ -65,11 +90,11 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public bool Use()
         {
-            if (amount > 0)
+            if (Amount > 0)
             {
                 if (Consumable)
                 {
-                    amount--;
+                    Amount--;
                 }
                 return true;
             }
@@ -90,17 +115,28 @@ namespace ProgressAdventure.ItemManagement
 
         public override string? ToString()
         {
-            return $"{DisplayName}{(amount > 1 ? " x" + amount.ToString() : "")}";
+            return $"{DisplayName}{(Amount > 1 ? " x" + Amount.ToString() : "")}";
         }
         #endregion
 
         #region JsonConvert
         public Dictionary<string, object?> ToJson()
         {
+            string typeName;
+            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributes attributes))
+            {
+                typeName = attributes.typeName;
+            }
+            else
+            {
+                typeName = "[UNKNOWN TYPE NAME]";
+                Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
+            }
+
             return new Dictionary<string, object?>
             {
-                ["type"] = ItemUtils.itemAttributes[Type].typeName,
-                ["amount"] = amount,
+                ["type"] = typeName,
+                ["amount"] = Amount,
             };
         }
 

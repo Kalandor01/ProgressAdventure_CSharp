@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using ProgressAdventure.Enums;
+
+namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
     /// Object for assembling the loot, an entity will drop.
@@ -37,9 +39,16 @@
         /// <param name="amountMin"><inheritdoc cref="amountMin" path="//summary"/></param>
         /// <param name="amountMax"><inheritdoc cref="amountMax" path="//summary"/></param>
         /// <param name="rolls"><inheritdoc cref="rolls" path="//summary"/></param>
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
         public LootFactory(ItemTypeID itemType, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
         {
-            this.itemType = itemType;
+            var actualItemType = ItemUtils.ToItemType(itemType.GetHashCode());
+            if (actualItemType is null)
+            {
+                Logger.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
+                throw new ArgumentException("Unknown item type", nameof(itemType));
+            }
+            this.itemType = (ItemTypeID)actualItemType;
             this.chance = chance;
             this.amountMin = amountMin;
             this.amountMax = (int)(amountMax is not null ? amountMax : this.amountMin);

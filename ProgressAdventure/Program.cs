@@ -1,7 +1,9 @@
-﻿using ProgressAdventure.Entity;
+﻿using Newtonsoft.Json.Linq;
+using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
+using SaveFileManager;
 using System.Text;
 
 namespace ProgressAdventure
@@ -40,7 +42,7 @@ namespace ProgressAdventure
 
             //EntityUtils.Fight(entities);
 
-
+            
 
 
             Console.WriteLine();

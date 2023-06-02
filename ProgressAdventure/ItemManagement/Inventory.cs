@@ -18,20 +18,44 @@ namespace ProgressAdventure.ItemManagement
 
         #region Public methods
         /// <summary>
+        /// Tries to find an item in the inventory, based on the input item type.
+        /// </summary>
+        /// <param name="itemID">The item type to search for.</param>
+        public Item? FindByType(ItemTypeID itemID)
+        {
+            foreach (var currItem in items)
+            {
+                if (currItem.Type == itemID)
+                {
+                    return currItem;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Tries to find an item in the inventory, based on the input item's type.
+        /// </summary>
+        /// <param name="item">The item whose type to search for.</param>
+        public Item? FindByType(Item item)
+        {
+            return FindByType(item.Type);
+        }
+
+        /// <summary>
         /// Adds an item to the inventory. If the item already exists, it adds to the amount.
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>If the item already exists in the inventory.</returns>
         public bool Add(Item item)
         {
-            foreach (var currItem in items)
+            var foundItem = FindByType(item);
+            if (foundItem is not null)
             {
-                if (currItem.Type == item.Type)
-                {
-                    currItem.amount += item.amount;
-                    return true;
-                }
+                foundItem.Amount += item.Amount;
+                return true;
             }
+
             items.Add(item);
             return false;
         }
@@ -41,19 +65,11 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="itemType">The type of the item to add.</param>
         /// <param name="amount">The amount of the items to add.</param>
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
         /// <returns><inheritdoc cref="Add(Item)"/></returns>
         public bool Add(ItemTypeID itemType, int amount = 1)
         {
-            foreach (var item in items)
-            {
-                if (item.Type == itemType)
-                {
-                    item.amount += amount;
-                    return true;
-                }
-            }
-            items.Add(new Item(itemType, amount));
-            return false;
+            return Add(new Item(itemType, amount));
         }
 
         /// <summary>
@@ -68,13 +84,13 @@ namespace ProgressAdventure.ItemManagement
             {
                 if (items.ElementAt(x).Type == itemType)
                 {
-                    if (amount is null || items.ElementAt(x).amount - amount <= 0)
+                    if (amount is null || items.ElementAt(x).Amount - amount <= 0)
                     {
                         items.RemoveAt(x);
                     }
                     else
                     {
-                        items.ElementAt(x).amount -= (int)amount;
+                        items.ElementAt(x).Amount -= (int)amount;
                     }
                     return true;
                 }
@@ -122,7 +138,7 @@ namespace ProgressAdventure.ItemManagement
                 if (items.ElementAt(x).Type == itemType)
                 {
                     items.ElementAt(x).Use();
-                    if (items.ElementAt(x).amount <= 0)
+                    if (items.ElementAt(x).Amount <= 0)
                     {
                         items.RemoveAt(x);
                     }

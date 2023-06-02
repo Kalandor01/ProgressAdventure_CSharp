@@ -106,7 +106,7 @@
             var name = itemTypeID.ToString();
             if (name is null)
             {
-                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}");
+                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", Enums.LogSeverity.ERROR);
             }
             else
             {

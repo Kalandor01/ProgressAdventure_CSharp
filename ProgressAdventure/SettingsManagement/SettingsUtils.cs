@@ -144,9 +144,9 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// Returns the "json" representation of the default settings file.
         /// </summary>
-        public static Dictionary<string, object?> GetDefaultSettings()
+        public static Dictionary<string, object> GetDefaultSettings()
         {
-            return new Dictionary<string, object?>
+            return new Dictionary<string, object>
             {
                 [settingsKeyNames[SettingsKey.AUTO_SAVE]] = true,
                 [settingsKeyNames[SettingsKey.LOGGING_LEVEL]] = 0,
