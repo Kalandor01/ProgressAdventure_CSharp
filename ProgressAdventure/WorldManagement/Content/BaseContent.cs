@@ -140,8 +140,9 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <typeparam name="T">The content type to return.</typeparam>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="contentJson">The json representation of the content.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <exception cref="ArgumentException">Thrown if the content type cannot be created.</exception>
-        protected static T LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
+        protected static T LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion)
             where T : BaseContent
         {
             var contentTypeMap = WorldUtils.contentTypeMap[typeof(T)];

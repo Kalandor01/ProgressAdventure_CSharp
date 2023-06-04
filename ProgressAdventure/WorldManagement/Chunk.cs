@@ -140,37 +140,62 @@ namespace ProgressAdventure.WorldManagement
                 }
                 throw;
             }
+
+            if (chunkJson is null)
+            {
+                Logger.Log("Chunk parse error", "chunk json is null", LogSeverity.ERROR);
+                return null;
+            }
+
+            //file version
+            string? fileVersion = null;
+            if (
+                chunkJson.TryGetValue("fileVersion", out object? fileVersionValue) &&
+                fileVersionValue is not null
+            )
+            {
+                fileVersion = fileVersionValue.ToString();
+            }
+            if (fileVersion is null)
+            {
+                Logger.Log("Chunk parse error", "couldn't parse file version, assuming minimum", LogSeverity.WARN);
+                fileVersion = Constants.OLDEST_SAVE_VERSION;
+            }
+
             // chunk seed
             SplittableRandom? chunkRandomGenerator = null;
-            if (!(
-                chunkJson is not null &&
-                chunkJson.TryGetValue("chunkRandom", out object? chunkRandom)
-            ))
+            if (chunkJson.TryGetValue("chunkRandom", out object? chunkRandom))
             {
-                Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
-            }
-            else
-            {
-                chunkRandomGenerator = Tools.DeserializeRandom(chunkRandom?.ToString());
-                if (chunkRandomGenerator is null)
+                if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom chunkRandomValue))
+                {
+                    chunkRandomGenerator = chunkRandomValue;
+                }
+                else
                 {
                     Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
                 }
             }
+            else
+            {
+                Logger.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
+            }
             chunkRandomGenerator ??= GetChunkRandom(position);
+
             // tiles
-            if (!(
-                chunkJson is not null &&
+            if (
                 chunkJson.TryGetValue("tiles", out object? tilesList) &&
                 tilesList is not null
-            ))
+            )
+            {
+                var tiles = TilesFromJson(chunkRandomGenerator, position, (IEnumerable<object?>)tilesList, fileVersion);
+                Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
+                return new Chunk(position, tiles, chunkRandomGenerator);
+            }
+            else
             {
                 Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
                 return null;
             }
-            var tiles = TilesFromJson(chunkRandomGenerator, position, (IEnumerable<object?>)tilesList);
-            Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
-            return new Chunk(position, tiles, chunkRandomGenerator);
         }
 
         /// <summary>
@@ -269,13 +294,14 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="chunkRandom">The chunk's random generator.</param>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
         /// <param name="tileListJson">The json representation of the list of tiles.</param>
-        private static Dictionary<string, Tile> TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable<object?> tileListJson)
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        private static Dictionary<string, Tile> TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable<object?> tileListJson, string fileVersion)
         {
             chunkRandom ??= GetChunkRandom(absolutePosition);
             var tiles = new Dictionary<string, Tile>();
             foreach (var tileJson in tileListJson)
             {
-                var tile = Tile.FromJson(chunkRandom, (IDictionary<string, object?>?)tileJson);
+                var tile = Tile.FromJson(chunkRandom, (IDictionary<string, object?>?)tileJson, fileVersion);
                 if (tile is not null)
                 {
                     tiles.Add(GetTileDictName(tile.relativePosition), tile);
@@ -297,6 +323,7 @@ namespace ProgressAdventure.WorldManagement
             }
             return new Dictionary<string, object?>
             {
+                ["fileVersion"] = Constants.SAVE_VERSION,
                 ["chunkRandom"] = Tools.SerializeRandom(ChunkRandomGenerator),
                 ["tiles"] = tilesJson,
             };

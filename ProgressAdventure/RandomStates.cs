@@ -190,6 +190,7 @@ namespace ProgressAdventure
         /// Converts the json representation of the object to object format.
         /// </summary>
         /// <param name="randomStatesJson">The json representation of the RandomState.</param>
+        /// <param name="fileVersion">The version number of the loaded file file.</param>
         public static void FromJson(IDictionary<string, object?>? randomStatesJson)
         {
             // main random

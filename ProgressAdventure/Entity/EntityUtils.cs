@@ -34,12 +34,13 @@ namespace ProgressAdventure.Entity
             ["caveman"] = typeof(Caveman),
             ["ghoul"] = typeof(Ghoul),
             ["troll"] = typeof(Troll),
+            ["dragon"] = typeof(Dragon),
         };
 
         /// <summary>
         /// The dictionary pairing up attribute types, to stat modifiers.
         /// </summary>
-        internal static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double speed)> attributeStatChangeMap = new()
+        internal static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double agility)> attributeStatChangeMap = new()
         {
             [Attribute.RARE] = (2, 2, 2, 2),
             [Attribute.CRIPPLED] = (0.5, 0.5, 0.5, 0.5),
@@ -79,7 +80,7 @@ namespace ProgressAdventure.Entity
         /// <param name="baseMaxHp">The base max HP of the entity.</param>
         /// <param name="baseAttack">The base attack damage of the entity.</param>
         /// <param name="baseDefence">The base defence value of the entity.</param>
-        /// <param name="baseSpeed">The base speed of the entity.</param>
+        /// <param name="baseAgility">The base agility of the entity.</param>
         /// <param name="negativeFluctuation">The value, that will offset all of the base stat values, it the negative direction.</param>
         /// <param name="positiveFluctuation">The value, that will offset all of the base stat values, it the positive direction.</param>
         /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
@@ -89,7 +90,7 @@ namespace ProgressAdventure.Entity
             int baseMaxHp,
             int baseAttack,
             int baseDefence,
-            int baseSpeed,
+            int baseAgility,
             int negativeFluctuation = 2,
             int positiveFluctuation = 3,
             AttributeChances? attributeChances = null,
@@ -101,7 +102,7 @@ namespace ProgressAdventure.Entity
                 (baseMaxHp - negativeFluctuation, baseMaxHp, baseMaxHp + positiveFluctuation),
                 (baseAttack - negativeFluctuation, baseAttack, baseAttack + positiveFluctuation),
                 (baseDefence - negativeFluctuation, baseDefence, baseDefence + positiveFluctuation),
-                (baseSpeed - negativeFluctuation, baseSpeed, baseSpeed + positiveFluctuation),
+                (baseAgility - negativeFluctuation, baseAgility, baseAgility + positiveFluctuation),
                 attributeChances,
                 originalTeam,
                 teamChangeChange
@@ -115,7 +116,7 @@ namespace ProgressAdventure.Entity
         /// <param name="baseMaxHp">The base max HP range of the entity.</param>
         /// <param name="baseAttack">The base attack damage range of the entity.</param>
         /// <param name="baseDefence">The base defence value range of the entity.</param>
-        /// <param name="baseSpeed">The base speed range of the entity.</param>
+        /// <param name="baseAgility">The base agility range of the entity.</param>
         /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
@@ -123,7 +124,7 @@ namespace ProgressAdventure.Entity
             (int lower, int middle, int upper) baseMaxHp,
             (int lower, int middle, int upper) baseAttack,
             (int lower, int middle, int upper) baseDefence,
-            (int lower, int middle, int upper) baseSpeed,
+            (int lower, int middle, int upper) baseAgility,
             AttributeChances? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
@@ -132,7 +133,7 @@ namespace ProgressAdventure.Entity
             var baseMaxHpValue = ConfigureStat(baseMaxHp);
             var baseAttackValue = ConfigureStat(baseAttack);
             var baseDefenceValue = ConfigureStat(baseDefence);
-            var baseSpeedValue = ConfigureStat(baseSpeed);
+            var baseAgilityValue = ConfigureStat(baseAgility);
             var attributes = GenerateEntityAttributes(attributeChances);
             if (baseMaxHpValue <= 0)
             {
@@ -144,7 +145,7 @@ namespace ProgressAdventure.Entity
             {
                 currentTeam = 0;
             }
-            return new EntityManagerStats(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseSpeedValue, originalTeam, currentTeam, attributes);
+            return new EntityManagerStats(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseAgilityValue, originalTeam, currentTeam, attributes);
         }
 
         public static List<Attribute> GenerateEntityAttributes(AttributeChances? attributeChances)
@@ -187,7 +188,7 @@ namespace ProgressAdventure.Entity
             {
                 attributes.Add(Attribute.FRAIL);
             }
-            // speed
+            // agility
             if (RandomStates.MainRandom.GenerateDouble() < attrChances.agileChance)
             {
                 attributes.Add(Attribute.AGILE);
@@ -308,10 +309,17 @@ namespace ProgressAdventure.Entity
         public static Dictionary<string, List<Entity>> CreateTeams(IEnumerable<Entity> entities)
         {
             var teams = new Dictionary<string, List<Entity>>();
+            var noTeamNumber = 0;
             foreach (var entity in entities)
             {
+                // -1 = no team, 0 = player team
                 var teamName = entity.currentTeam == 0 ? "Player" : entity.currentTeam.ToString();
-                if (teams.TryGetValue(teamName, out List<Entity>? value))
+                if (entity.currentTeam == -1)
+                {
+                    teamName = entity.FullName + noTeamNumber;
+                    noTeamNumber++;
+                }
+                if (entity.currentTeam != -1 && teams.TryGetValue(teamName, out List<Entity>? value))
                 {
                     value.Add(entity);
                 }
@@ -342,7 +350,7 @@ namespace ProgressAdventure.Entity
         /// <param name="writeOut">Whether to write out, what is happening with the fight.</param>
         public static void ForcedFight(Dictionary<string, List<Entity>> teams, bool writeOut = true)
         {
-            var (teamsPrepared, playerTeam) = PrepareTeams(teams);
+            var (teamsPrepared, playerTeam, player) = PrepareTeams(teams);
             if (teamsPrepared.Count == 0)
             {
                 Logger.Log("Fight log", "no entities in fight");
@@ -361,7 +369,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                UnpreparedFight(teamsPrepared, playerTeam, writeOut);
+                UnpreparedFight(teamsPrepared, playerTeam, player, writeOut);
             }
             Logger.Log("Fight log", "fight ended");
         }
@@ -396,9 +404,10 @@ namespace ProgressAdventure.Entity
         /// Filters out invalid teams from the teams list, and returns which team the player is in.
         /// </summary>
         /// <param name="teamsRaw">The teams of entities.</param>
-        private static (Dictionary<string, List<Entity>> teams, string? playerTeam) PrepareTeams(Dictionary<string, List<Entity>> teamsRaw)
+        private static (Dictionary<string, List<Entity>> teams, string? playerTeam, Player? player) PrepareTeams(Dictionary<string, List<Entity>> teamsRaw)
         {
             string? playerTeam = null;
+            Player? player = null;
             var teams = new Dictionary<string, List<Entity>>();
             foreach (var team in teamsRaw)
             {
@@ -411,6 +420,7 @@ namespace ProgressAdventure.Entity
                         if (entity.GetType() == typeof(Player))
                         {
                             playerTeam = team.Key;
+                            player = (Player)entity;
                         }
                     }
                     teams.Add(team.Key, entityList);
@@ -420,7 +430,7 @@ namespace ProgressAdventure.Entity
                     Logger.Log("Fight log", $"empty team: {team.Key}", LogSeverity.WARN);
                 }
             }
-            return (teams, playerTeam);
+            return (teams, playerTeam, player);
         }
 
         /// <summary>
@@ -457,29 +467,71 @@ namespace ProgressAdventure.Entity
         /// <param name="teams">The teams of entities, the fight should happen between.</param>
         /// <param name="playerTeam">The team that the player is in, or null.</param>
         /// <param name="writeOut">Whether to write out, what is happening with the fight.</param>
-        private static void UnpreparedFight(Dictionary<string, List<Entity>> teams, string? playerTeam, bool writeOut)
+        /// <param name="player">The (first) player in the fight, or null.</param>
+        private static void UnpreparedFight(Dictionary<string, List<Entity>> teams, string? playerTeam, Player? player, bool writeOut)
         {
             var teamCounts = GetTeamEntityCounts(teams);
             var totalCount = GetTotalEntityCount(teamCounts);
+            var isPlayerInTeam = playerTeam is not null && teams[playerTeam].Count > 1;
             Logger.Log("Fight log", $"fight started with {teams.Count} teams, and {totalCount} entities");
+            if (player is not null)
+            {
+                Logger.Log("Fight log", $"player is in the fight, team: {playerTeam}");
+            }
+            
             // entities write out
             if (writeOut)
             {
-                foreach (var team in teams)
+                var oneEntityTeamExists = false;
+                if (teams.Count < totalCount)
                 {
-                    Console.WriteLine($"\nTeam {team.Key}:\n");
-                    foreach (var entity in team.Value)
+                    foreach (var team in teams)
                     {
-                        Console.Write($"\t{entity.GetFullNameWithSpecies()}");
-                        if (entity.originalTeam != entity.currentTeam)
+                        if (team.Value.Count > 1)
                         {
-                            Console.Write(" (Switched to this side!)");
+                            Console.WriteLine($"\nTeam {team.Key}:\n");
+                            foreach (var entity in team.Value)
+                            {
+                                Console.Write($"\t{entity.GetFullNameWithSpecies()}");
+                                if (entity.originalTeam != entity.currentTeam)
+                                {
+                                    Console.Write(" (Switched to this side!)");
+                                }
+                                Console.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
+                            }
                         }
-                        Console.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tSpeed: {entity.Speed}\n");
+                        else
+                        {
+                            oneEntityTeamExists = true;
+                        }
+                    }
+                    Console.WriteLine("Other entities:\n");
+                }
+                else
+                {
+                    oneEntityTeamExists = true;
+                }
+                if (oneEntityTeamExists)
+                {
+                    foreach (var team in teams)
+                    {
+                        if (team.Value.Count == 1)
+                        {
+                            foreach (var entity in team.Value)
+                            {
+                                Console.Write($"{entity.GetFullNameWithSpecies()}");
+                                if (entity.originalTeam != entity.currentTeam)
+                                {
+                                    Console.Write(" (Switched to this side!)");
+                                }
+                                Console.WriteLine($"\nHP: {entity.CurrentHp}\nAttack: {entity.Attack}\nDefence: {entity.Defence}\nAgility: {entity.Agility}\n");
+                            }
+                        }
                     }
                 }
                 Console.WriteLine();
             }
+
             // fight
             while (teamCounts.Count > 1)
             {
@@ -546,13 +598,16 @@ namespace ProgressAdventure.Entity
                                 }
                                 if (teamCounts[targetTeamKey] <= 0)
                                 {
+                                    if (teams[targetTeamKey].Count > 1)
+                                    {
+                                        Logger.Log("Fight log", $"team {targetTeamKey} defeated");
+                                        if (writeOut)
+                                        {
+                                            Console.WriteLine($"team {targetTeamKey} defeated");
+                                        }
+                                    }
                                     teamCounts.Remove(targetTeamKey);
                                     teams.Remove(targetTeamKey);
-                                    Logger.Log("Fight log", $"team {targetTeamKey} defeated");
-                                    if (writeOut)
-                                    {
-                                        Console.WriteLine($"team {targetTeamKey} defeated");
-                                    }
                                     if (teamCounts.Count <= 1)
                                     {
                                         break;
@@ -571,33 +626,79 @@ namespace ProgressAdventure.Entity
                     }
                 }
             }
+
             // outcome
+            if (writeOut)
+            {
+                Console.WriteLine("\nResults:\n");
+            }
             var winTeamName = teamCounts.First().Key;
+            if (playerTeam is null || winTeamName != playerTeam)
+            {
+                if (teams[winTeamName].Count > 1)
+                {
+                    Logger.Log("Fight log", $"team {winTeamName} won");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"team {winTeamName} won");
+                    }
+                }
+                else
+                {
+                    Logger.Log("Fight log", $"entity {teams[winTeamName].First().FullName} won");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{teams[winTeamName].First().FullName} won");
+                    }
+                }
+            }
             if (playerTeam is not null)
             {
                 // player team dead
                 if (winTeamName != playerTeam)
                 {
-                    Logger.Log("Fight log", "player team defeated");
-                    if (writeOut)
+                    if (isPlayerInTeam)
                     {
-                        Console.WriteLine($"{SaveData.player.FullName}'s team was defeated");
+                        Logger.Log("Fight log", "player team defeated");
+                        if (writeOut)
+                        {
+                            Console.WriteLine($"{player?.FullName}'s team was defeated");
+                        }
+                    }
+                    else
+                    {
+                        Logger.Log("Fight log", "player defeated");
+                        if (writeOut)
+                        {
+                            Console.WriteLine($"{player?.FullName} was defeated");
+                        }
                     }
                 }
                 // player team won
                 else
                 {
-                    Logger.Log("Fight log", "player team won");
-                    if (writeOut)
+                    if (isPlayerInTeam)
                     {
-                        Console.WriteLine($"{SaveData.player.FullName}'s team won");
+                        Logger.Log("Fight log", "player team won");
+                        if (writeOut)
+                        {
+                            Console.WriteLine($"{player?.FullName}'s team won");
+                        }
                     }
-                    if (SaveData.player.CurrentHp == 0)
+                    else
+                    {
+                        Logger.Log("Fight log", "player won");
+                        if (writeOut)
+                        {
+                            Console.WriteLine($"{player?.FullName} won");
+                        }
+                    }
+                    if (player?.CurrentHp == 0)
                     {
                         Logger.Log("Fight log", "player died");
                         if (writeOut)
                         {
-                            Console.WriteLine($"{SaveData.player.FullName} died");
+                            Console.WriteLine($"{player.FullName} died");
                         }
                     }
                     // loot
@@ -607,25 +708,17 @@ namespace ProgressAdventure.Entity
                         {
                             foreach (var entity in team.Value)
                             {
-                                if (entity.CurrentHp <= 0 && !entity.Equals(SaveData.player))
+                                if (entity.CurrentHp <= 0 && !entity.Equals(player))
                                 {
-                                    SaveData.player.inventory.Loot(entity.drops, writeOut ? SaveData.player.FullName : null);
+                                    player?.inventory.Loot(entity.drops, writeOut ? player.FullName : null);
                                 }
                             }
                         }
                     }
                     if (writeOut)
                     {
-                        SaveData.player.Stats();
+                        player?.Stats();
                     }
-                }
-            }
-            else
-            {
-                Logger.Log("Fight log", $"team {winTeamName} won");
-                if (writeOut)
-                {
-                    Console.WriteLine($"team {winTeamName} won");
                 }
             }
         }

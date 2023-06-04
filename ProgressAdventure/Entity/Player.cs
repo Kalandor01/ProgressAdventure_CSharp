@@ -73,7 +73,7 @@ namespace ProgressAdventure.Entity
                     stats.baseMaxHp,
                     stats.baseAttack,
                     stats.baseDefence,
-                    stats.baseSpeed,
+                    stats.baseAgility,
                     0,
                     0,
                     new List<Attribute>(),
@@ -81,7 +81,8 @@ namespace ProgressAdventure.Entity
                     position,
                     facing
                 ),
-                null
+                null,
+                Constants.SAVE_VERSION
             )
         {
             this.inventory = inventory ?? new Inventory();
@@ -110,7 +111,7 @@ namespace ProgressAdventure.Entity
         public void Stats()
         {
             Console.WriteLine($"\nName: {FullName}\n\nSTATS:");
-            Console.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\n");
+            Console.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\n");
             Console.WriteLine(inventory);
         }
         #endregion
@@ -130,21 +131,22 @@ namespace ProgressAdventure.Entity
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
         /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         protected Player((
             string? name,
             int? baseMaxHp,
             int? currentHp,
             int? baseAttack,
             int? baseDefence,
-            int? baseSpeed,
+            int? baseAgility,
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
             List<Item>? drops,
             (long x, long y)? position,
             Facing? facing
-        ) entityData, IDictionary<string, object?>? miscData)
-            : base(entityData, miscData) { }
+        ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
+            : base(entityData, miscData, fileVersion) { }
         #endregion
 
         #region Methods
@@ -155,14 +157,32 @@ namespace ProgressAdventure.Entity
             return playerJson;
         }
 
-        protected override void FromMiscJson(IDictionary<string, object?> miscJson)
+        protected override void FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
+            //correct data
+            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
+            {
+                Logger.Log($"Player json data is old", "correcting data");
+                // 2.0 -> 2.0.1
+                var newFileVersion = "2.0.1";
+                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
+                {
+                    // inventory items in dictionary
+                    miscJson.TryGetValue("inventory", out object? inventoryJson);
+                    miscJson["inventory"] = new Dictionary<string, object?>() { ["items"] = inventoryJson };
+
+                    Logger.Log("Corrected player json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    fileVersion = newFileVersion;
+                }
+            }
+
+            //convert
             Inventory? inventoryTemp = null;
             if (
                 miscJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                inventoryTemp = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue);
+                inventoryTemp = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue, fileVersion);
             }
             else
             {

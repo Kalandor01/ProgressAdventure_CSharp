@@ -11,7 +11,7 @@ namespace ProgressAdventure.Entity
         public int baseMaxHp;
         public int baseAttack;
         public int baseDefence;
-        public int baseSpeed;
+        public int baseAgility;
         public int originalTeam;
         public int currentTeam;
         public List<Attribute> attributes;
@@ -30,7 +30,7 @@ namespace ProgressAdventure.Entity
         /// <param name="baseMaxHp"></param>
         /// <param name="baseAttack"></param>
         /// <param name="baseDefence"></param>
-        /// <param name="baseSpeed"></param>
+        /// <param name="baseAgility"></param>
         /// <param name="originalTeam"></param>
         /// <param name="currentTeam"></param>
         /// <param name="attributes"></param>
@@ -38,7 +38,7 @@ namespace ProgressAdventure.Entity
             int baseMaxHp,
             int baseAttack,
             int baseDefence,
-            int baseSpeed,
+            int baseAgility,
             int originalTeam,
             int currentTeam,
             List<Attribute> attributes
@@ -47,7 +47,7 @@ namespace ProgressAdventure.Entity
             this.baseMaxHp = baseMaxHp;
             this.baseAttack = baseAttack;
             this.baseDefence = baseDefence;
-            this.baseSpeed = baseSpeed;
+            this.baseAgility = baseAgility;
             this.originalTeam = originalTeam;
             this.currentTeam = currentTeam;
             this.attributes = attributes;

@@ -181,9 +181,13 @@ namespace ProgressAdventure
         /// </summary>
         public const int FILE_ENCODING_VERSION = 2;
         /// <summary>
+        /// The ooldest recognised save version.
+        /// </summary>
+        public const string OLDEST_SAVE_VERSION = "2.0";
+        /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.1";
+        public const string SAVE_VERSION = "2.1.1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

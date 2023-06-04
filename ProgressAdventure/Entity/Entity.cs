@@ -30,9 +30,9 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public int baseDefence;
         /// <summary>
-        /// The base speed of the <c>Entity</c>.
+        /// The base agility of the <c>Entity</c>.
         /// </summary>
-        public int baseSpeed;
+        public int baseAgility;
         /// <summary>
         /// The original team that the <c>Entity</c> is a part of.
         /// </summary>
@@ -81,9 +81,9 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public int Defence { get; protected set; }
         /// <summary>
-        /// The current speed of the <c>Entity</c>.
+        /// The current agility of the <c>Entity</c>.
         /// </summary>
-        public int Speed { get; protected set; }
+        public int Agility { get; protected set; }
         #endregion
 
         #region Public constructors
@@ -94,10 +94,12 @@ namespace ProgressAdventure.Entity
         /// <param name="name">The name of the entity.</param>
         /// <param name="stats">The tuple of stats, representin all other values from the other constructor, other than drops.</param>
         /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         public Entity(
             string name,
             EntityManagerStats stats,
-            List<Item>? drops = null
+            List<Item>? drops = null,
+            string fileVersion = Constants.SAVE_VERSION
         )
             :this(
                 (
@@ -106,7 +108,7 @@ namespace ProgressAdventure.Entity
                     null,
                     stats.baseAttack,
                     stats.baseDefence,
-                    stats.baseSpeed,
+                    stats.baseAgility,
                     stats.originalTeam,
                     stats.currentTeam,
                     stats.attributes,
@@ -114,7 +116,8 @@ namespace ProgressAdventure.Entity
                     null,
                     null
                 ),
-                null
+                null,
+                fileVersion
             ) { }
         #endregion
 
@@ -255,7 +258,7 @@ namespace ProgressAdventure.Entity
                 return AttackResponse.ENEMY_DEAD;
             }
             // enemy dodge
-            else if (RandomStates.MiscRandom.GenerateDouble() > Speed * 1.0 / target.Speed - 0.1)
+            else if (RandomStates.MiscRandom.GenerateDouble() > Agility * 1.0 / target.Agility - 0.1)
             {
                 Logger.Log("Attack log", $"{target.FullName} dodged");
                 return AttackResponse.ENEMY_DOGDED;
@@ -318,22 +321,22 @@ namespace ProgressAdventure.Entity
             double tempMaxHp = baseMaxHp;
             double tempAttack = baseAttack;
             double tempDefence = baseDefence;
-            double tempSpeed = baseSpeed;
+            double tempAgility = baseAgility;
 
             foreach (var attribute in attributes)
             {
-                var (maxHp, attack, defence, speed) = EntityUtils.attributeStatChangeMap[attribute];
+                var (maxHp, attack, defence, agility) = EntityUtils.attributeStatChangeMap[attribute];
                 tempMaxHp *= maxHp;
                 tempAttack *= attack;
                 tempDefence *= defence;
-                tempSpeed *= speed;
+                tempAgility *= agility;
             }
             MaxHp = (int)Math.Clamp(tempMaxHp, int.MinValue, int.MaxValue);
             CurrentHp = currentHp ?? MaxHp;
             CurrentHp = Math.Clamp(CurrentHp, 0, MaxHp);
             Attack = (int)Math.Clamp(tempAttack, int.MinValue, int.MaxValue);
             Defence = (int)Math.Clamp(tempDefence, int.MinValue, int.MaxValue);
-            Speed = (int)Math.Clamp(tempSpeed, int.MinValue, int.MaxValue);
+            Agility = (int)Math.Clamp(tempAgility, int.MinValue, int.MaxValue);
         }
         #endregion
 
@@ -343,7 +346,7 @@ namespace ProgressAdventure.Entity
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
             var typeLine = GetType() != typeof(Player) ? $"\nSpecies: {EntityUtils.GetEntityTypeName(this)}" : "";
-            return $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nSpeed: {Speed}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
+            return $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
         }
         #endregion
 
@@ -355,6 +358,7 @@ namespace ProgressAdventure.Entity
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
         /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.<br/>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// Should only be null, if entity creation called this constructor.</param>
         protected Entity((
             string? name,
@@ -362,14 +366,14 @@ namespace ProgressAdventure.Entity
             int? currentHp,
             int? baseAttack,
             int? baseDefence,
-            int? baseSpeed,
+            int? baseAgility,
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
             List<Item>? drops,
             (long x, long y)? position,
             Facing? facing
-        ) entityData, IDictionary<string, object?>? miscData)
+        ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
         {
             name = entityData.name ?? GetDefaultName();
             position = entityData.position ?? (0, 0);
@@ -378,7 +382,7 @@ namespace ProgressAdventure.Entity
                 entityData.baseMaxHp is null ||
                 entityData.baseAttack is null ||
                 entityData.baseDefence is null ||
-                entityData.baseSpeed is null ||
+                entityData.baseAgility is null ||
                 entityData.originalTeam is null ||
                 entityData.currentTeam is null ||
                 entityData.attributes is null
@@ -388,7 +392,7 @@ namespace ProgressAdventure.Entity
                 baseMaxHp = entityData.baseMaxHp ?? ems.baseMaxHp;
                 baseAttack = entityData.baseAttack ?? ems.baseAttack;
                 baseDefence = entityData.baseDefence ?? ems.baseDefence;
-                baseSpeed = entityData.baseSpeed ?? ems.baseSpeed;
+                baseAgility = entityData.baseAgility ?? ems.baseAgility;
                 originalTeam = entityData.originalTeam ?? ems.originalTeam;
                 currentTeam = entityData.currentTeam ?? ems.currentTeam;
                 attributes = entityData.attributes ?? ems.attributes;
@@ -398,7 +402,7 @@ namespace ProgressAdventure.Entity
                 baseMaxHp = (int)entityData.baseMaxHp;
                 baseAttack = (int)entityData.baseAttack;
                 baseDefence = (int)entityData.baseDefence;
-                baseSpeed = (int)entityData.baseSpeed;
+                baseAgility = (int)entityData.baseAgility;
                 originalTeam = (int)entityData.originalTeam;
                 currentTeam = (int)entityData.currentTeam;
                 attributes = entityData.attributes;
@@ -407,7 +411,7 @@ namespace ProgressAdventure.Entity
             // not new entity call
             if (miscData is not null)
             {
-                FromMiscJson(miscData);
+                FromMiscJson(miscData, fileVersion);
             }
             // adjust properties
             SetupAttributes(entityData.currentHp);
@@ -431,7 +435,7 @@ namespace ProgressAdventure.Entity
                 ["currentHp"] = CurrentHp,
                 ["baseAttack"] = baseAttack,
                 ["baseDefence"] = baseDefence,
-                ["baseSpeed"] = baseSpeed,
+                ["baseAgility"] = baseAgility,
                 ["originalTeam"] = originalTeam,
                 ["currentTeam"] = currentTeam,
                 ["attributes"] = attributesProcessed,
@@ -446,7 +450,8 @@ namespace ProgressAdventure.Entity
         /// Converts the misc data of the entity from a json version.
         /// </summary>
         /// <param name="miscJson">The json representation of the misc data for the specific entity type.</param>
-        protected virtual void FromMiscJson(IDictionary<string, object?> miscJson) { }
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        protected virtual void FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion) { }
         #endregion
 
         #region Functions
@@ -455,18 +460,20 @@ namespace ProgressAdventure.Entity
         /// </summary>
         /// <typeparam name="T">The type of the entity to try to convert into.</typeparam>
         /// <param name="entityJson">The json representation of the entity.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        public static T? FromJson<T>(IDictionary<string, object?>? entityJson)
+        public static T? FromJson<T>(IDictionary<string, object?>? entityJson, string fileVersion)
             where T : Entity<T>
         {
-            return (T?)AnyEntityFromJsonPrivate(typeof(T), entityJson);
+            return (T?)AnyEntityFromJsonPrivate(typeof(T), entityJson, fileVersion);
         }
 
         /// <summary>
         /// Converts any entity json, from a json format, into an entity object (if it implements the nececary protected constructor).
         /// </summary>
         /// <param name="entityJson">The json representation of an entity.</param>
-        public static Entity? AnyEntityFromJson(IDictionary<string, object?>? entityJson)
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static Entity? AnyEntityFromJson(IDictionary<string, object?>? entityJson, string fileVersion = Constants.SAVE_VERSION)
         {
             if (entityJson is null)
             {
@@ -483,7 +490,7 @@ namespace ProgressAdventure.Entity
                     entityType is not null
                 )
                 {
-                    return AnyEntityFromJsonPrivate(entityType, entityJson);
+                    return AnyEntityFromJsonPrivate(entityType, entityJson, fileVersion);
                 }
                 else
                 {
@@ -527,10 +534,11 @@ namespace ProgressAdventure.Entity
         /// </summary>
         /// <param name="entityType">The type of the entity to try to convert into.</param>
         /// <param name="entityJson">The json representation of the entity.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        private static Entity? AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?>? entityJson)
+        private static Entity? AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?>? entityJson, string fileVersion)
         {
-            var entityData = FromJsonPrivate(entityJson);
+            var entityData = FromJsonPrivate(entityJson, fileVersion);
             if (entityData is null || entityJson is null)
             {
                 return null;
@@ -540,10 +548,10 @@ namespace ProgressAdventure.Entity
             var constructor = entityType.GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
                 null,
-                new[] { entityData.GetType(), entityJson.GetType() },
+                new[] { entityData.GetType(), entityJson.GetType(), fileVersion.GetType() },
                 null
             ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{entityType}\"!", null);
-            var entity = constructor.Invoke(new object[] { entityData, entityJson }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
+            var entity = constructor.Invoke(new object[] { entityData, entityJson, fileVersion }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
             return (Entity?)entity;
         }
 
@@ -551,26 +559,51 @@ namespace ProgressAdventure.Entity
         /// Converts the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object.
         /// </summary>
         /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         private static (
             string? name,
             int? baseMaxHp,
             int? currentHp,
             int? baseAttack,
             int? baseDefence,
-            int? baseSpeed,
+            int? baseAgility,
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
             List<Item>? drops,
             (long x, long y)? position,
             Facing? facing
-        )? FromJsonPrivate(IDictionary<string, object?>? entityJson)
+        )? FromJsonPrivate(IDictionary<string, object?>? entityJson, string fileVersion)
         {
             if (entityJson is null)
             {
                 Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
                 return null;
             }
+
+
+            //correct data
+            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
+            {
+                Logger.Log($"Entity json data is old", "correcting data");
+                // 2.1 -> 2.1.1
+                var newFileVersion = "2.1.1";
+                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
+                {
+                    // renamed speed to agility
+                    if (entityJson.TryGetValue("baseSpeed", out object? baseSpeedValue))
+                    {
+                        entityJson["baseAgility"] = baseSpeedValue;
+                    }
+
+                    Logger.Log("Corrected entity json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    fileVersion = newFileVersion;
+                }
+                Logger.Log($"Entity json data corrected");
+            }
+
+            //convert
+
             // name
             string? name = null;
             if (
@@ -637,18 +670,18 @@ namespace ProgressAdventure.Entity
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base defence", LogSeverity.WARN);
             }
-            // speed
-            int? baseSpeed = null;
+            // agility
+            int? baseAgility = null;
             if (
-                entityJson.TryGetValue("baseSpeed", out var baseSpeedValue) &&
-                int.TryParse(baseSpeedValue?.ToString(), out int speedValue)
+                entityJson.TryGetValue("baseAgility", out var baseAgilityValue) &&
+                int.TryParse(baseAgilityValue?.ToString(), out int agilityValue)
             )
             {
-                baseSpeed = speedValue;
+                baseAgility = agilityValue;
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity base speed", LogSeverity.WARN);
+                Logger.Log("Entity parse error", "couldn't parse entity base agility", LogSeverity.WARN);
             }
             // original team
             int? originalTeam = null;
@@ -715,7 +748,7 @@ namespace ProgressAdventure.Entity
                 var dropList = (IEnumerable<object?>)dropsJson;
                 foreach (var dropJson in dropList)
                 {
-                    var dropItem = Item.FromJson((IDictionary<string, object?>?)dropJson);
+                    var dropItem = Item.FromJson((IDictionary<string, object?>?)dropJson, fileVersion);
                     if (dropItem is not null)
                     {
                         drops.Add(dropItem);
@@ -755,13 +788,14 @@ namespace ProgressAdventure.Entity
             {
                 Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
             }
+
             return (
                 name,
                 baseMaxHp,
                 currentHp,
                 baseAttack,
                 baseDefence,
-                baseSpeed,
+                baseAgility,
                 originalTeam,
                 currentTeam,
                 attributes,

@@ -444,6 +444,11 @@ namespace ProgressAdventure
         /// <param name="currentVersion">The version number to check.</param>
         public static bool IsUpToDate(string minimumVersion, string currentVersion)
         {
+            if (minimumVersion == currentVersion)
+            {
+                return true;
+            }
+
             var version = currentVersion.Split(".");
             var minVersion = minimumVersion.Split(".");
 
@@ -477,8 +482,8 @@ namespace ProgressAdventure
                     }
                 }
             }
-            // v. shorter
-            return true;
+            // v. <=
+            return false;
         }
         #endregion
         #endregion

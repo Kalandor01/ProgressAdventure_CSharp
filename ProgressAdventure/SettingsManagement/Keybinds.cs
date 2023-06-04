@@ -135,9 +135,6 @@ namespace ProgressAdventure.SettingsManagement
         #endregion
 
         #region JsonConvert
-        /// <summary>
-        /// Turns the <c>Keybinds</c> objest into a json object for the settings file.
-        /// </summary>
         public Dictionary<string, object?> ToJson()
         {
             var keybindsJson = new Dictionary<string, object?>();
@@ -149,12 +146,7 @@ namespace ProgressAdventure.SettingsManagement
             return keybindsJson;
         }
 
-        /// <summary>
-        /// Converts the <c>Keybinds</c> json to object format.
-        /// </summary>
-        /// <param name="keybindsJson">The json representation of the <c>Keybinds</c> object.<br/>
-        /// Its actual type should be IDictionary{string, IEnumerable{IDictionary{string, object}}}</param>
-        public static Keybinds FromJson(IDictionary<string, object?>? keybindsJson)
+        public static Keybinds FromJson(IDictionary<string, object?>? keybindsJson, string fileVersion = Constants.SAVE_VERSION)
         {
             if (keybindsJson is null)
             {
@@ -165,7 +157,10 @@ namespace ProgressAdventure.SettingsManagement
             var actions = new List<ActionKey>();
             foreach (var actionJson in keybindsJson)
             {
-                var actionKey = ActionKey.FromJson(new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value });
+                var actionKey = ActionKey.FromJson(
+                    new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value },
+                    fileVersion
+                );
                 if (actionKey is not null)
                 {
                     actions.Add(actionKey);

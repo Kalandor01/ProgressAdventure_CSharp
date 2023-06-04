@@ -139,7 +139,7 @@ namespace ProgressAdventure.SettingsManagement
             return new Dictionary<string, object?> { [actionType.ToString()] = keyListJson };
         }
 
-        public static ActionKey? FromJson(IDictionary<string, object?>? actionKeyJson)
+        public static ActionKey? FromJson(IDictionary<string, object?>? actionKeyJson, string fileVersion)
         {
             if (
                 actionKeyJson is null ||

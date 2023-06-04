@@ -149,7 +149,8 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="tileJson">The json representation of the tile.</param>
-        public static Tile? FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? tileJson)
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static Tile? FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? tileJson, string fileVersion)
         {
             if (tileJson is null)
             {
@@ -187,7 +188,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("terrain", out object? terrainJson)
             )
             {
-                terrain = TerrainContent.FromJson(chunkRandom, (IDictionary<string, object?>?)terrainJson);
+                terrain = TerrainContent.FromJson(chunkRandom, (IDictionary<string, object?>?)terrainJson, fileVersion);
             }
             else
             {
@@ -199,7 +200,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("structure", out object? structureJson)
             )
             {
-                structure = StructureContent.FromJson(chunkRandom, (IDictionary<string, object?>?)structureJson);
+                structure = StructureContent.FromJson(chunkRandom, (IDictionary<string, object?>?)structureJson, fileVersion);
             }
             else
             {
@@ -211,7 +212,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("population", out object? populationJson)
             )
             {
-                population = PopulationContent.FromJson(chunkRandom, (IDictionary<string, object?>?)populationJson);
+                population = PopulationContent.FromJson(chunkRandom, (IDictionary<string, object?>?)populationJson, fileVersion);
             }
             else
             {

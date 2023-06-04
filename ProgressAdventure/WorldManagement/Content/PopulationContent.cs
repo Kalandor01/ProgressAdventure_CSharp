@@ -62,10 +62,10 @@ namespace ProgressAdventure.WorldManagement.Content
             return populationJson;
         }
 
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?)"/>
-        public static PopulationContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
+        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?, string)"/>
+        public static PopulationContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion)
         {
-            return LoadContent<PopulationContent>(chunkRandom, contentJson);
+            return LoadContent<PopulationContent>(chunkRandom, contentJson, fileVersion);
         }
         #endregion
     }

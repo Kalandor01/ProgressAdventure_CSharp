@@ -35,11 +35,11 @@
         /// </summary>
         FRAIL,
         /// <summary>
-        /// Doubles the speed of the entity.
+        /// Doubles the agility of the entity.
         /// </summary>
         AGILE,
         /// <summary>
-        /// Halfs the speed of the entity.
+        /// Halfs the agility of the entity.
         /// </summary>
         SLOW,
     }

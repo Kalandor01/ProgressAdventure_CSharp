@@ -17,10 +17,10 @@ namespace ProgressAdventure.WorldManagement.Content
         #endregion
 
         #region Public functions
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?)"/>
-        public static StructureContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson)
+        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?, string)"/>
+        public static StructureContent FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion)
         {
-            return LoadContent<StructureContent>(chunkRandom, contentJson);
+            return LoadContent<StructureContent>(chunkRandom, contentJson, fileVersion);
         }
         #endregion
     }

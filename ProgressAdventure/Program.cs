@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using ProgressAdventure.Entity;
+﻿using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
-using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
-using SaveFileManager;
 using System.Text;
 
 namespace ProgressAdventure
@@ -15,7 +12,7 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            Settings.UpdateLoggingLevel(1);
+            //Settings.UpdateLoggingLevel(0);
 
             SaveManager.CreateSaveData("test", "me");
 
@@ -42,8 +39,40 @@ namespace ProgressAdventure
 
             //EntityUtils.Fight(entities);
 
-            
+            var es = new List<Entity.Entity>
+            {
+                new Player(),
+                new Ghoul(2),
+                new Troll(),
+                new Caveman(2),
+                new Caveman(2),
+                new Caveman(2),
+                new Caveman(2),
+                new Caveman(2),
+                new Dragon(),
+            };
 
+            var ej = new List<Dictionary<string, object?>>();
+            foreach (var entity in es)
+            {
+                ej.Add(entity.ToJson());
+            }
+
+            var es2 = new List<Entity.Entity>();
+            foreach (var entityJson in ej)
+            {
+                var e = Entity.Entity.AnyEntityFromJson(entityJson);
+                if (e is null)
+                {
+                    Console.WriteLine("PARSE ERROR");
+                }
+                else
+                {
+                    es2.Add(e);
+                }
+            }
+
+            EntityUtils.Fight(es2);
 
             Console.WriteLine();
         }

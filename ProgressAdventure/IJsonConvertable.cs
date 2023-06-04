@@ -11,6 +11,7 @@
         /// Converts the json representation of the object to object format.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
-        static abstract T? FromJson(IDictionary<string, object?>? objectJson);
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        static abstract T? FromJson(IDictionary<string, object?>? objectJson, string fileVersion);
     }
 }

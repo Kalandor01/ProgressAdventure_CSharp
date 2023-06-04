@@ -10,44 +10,6 @@ namespace ProgressAdventure
 {
     public static class SaveManager
     {
-        #region Private dicts
-        /// <summary>
-        /// The dictionary pairing up item type IDs, to their name.
-        /// </summary>
-        private static readonly Dictionary<int, string> _itemTypeNameMap = new()
-        {
-            //weapons
-            [65536] = "weapon/wooden_sword",
-            [65537] = "weapon/stone_sword",
-            [65538] = "weapon/steel_sword",
-            [65539] = "weapon/wooden_bow",
-            [65540] = "weapon/steel_arrow",
-            [65541] = "weapon/wooden_club",
-            [65542] = "weapon/club_with_teeth",
-            //defence
-            [65792] = "defence/wooden_shield",
-            [65793] = "defence/leather_cap",
-            [65794] = "defence/leather_tunic",
-            [65795] = "defence/leather_pants",
-            [65796] = "defence/leather_boots",
-            //materials
-            [66048] = "material/bootle",
-            [66049] = "material/wool",
-            [66050] = "material/cloth",
-            [66051] = "material/wood",
-            [66052] = "material/stone",
-            [66053] = "material/steel",
-            [66054] = "material/gold",
-            [66055] = "material/teeth",
-            //misc
-            [66304] = "misc/health_potion",
-            [66305] = "misc/gold_coin",
-            [66306] = "misc/silver_coin",
-            [66307] = "misc/copper_coin",
-            [66308] = "misc/rotten_flesh",
-        };
-        #endregion
-
         #region Public functions
         /// <summary>
         /// Creates a save file from the save data.<br/>
@@ -109,6 +71,8 @@ namespace ProgressAdventure
         /// <param name="saveName">The name of the save folder.</param>
         /// <param name="backupChoice">If the user can choose, whether to backup the save, or not.</param>
         /// <param name="automaticBackup">If the save folder should be backed up or not. (only applies if <c>backupChoice</c> is false)</param>
+        /// <exception cref="FileNotFoundException">Thrown, if the save file doesn't exist.</exception>
+        /// <exception cref="FileLoadException">Thrown, if the save file doesn't have a save version.</exception>
         public static void LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true)
         {
             var saveFolderPath = Tools.GetSaveFolderPath(saveName);
@@ -154,12 +118,18 @@ namespace ProgressAdventure
                 // backup
                 if (backupChoice)
                 {
-                    var isOlder = Tools.IsUpToDate(saveVersion, Constants.SAVE_VERSION);
+                    var isOlder = !Tools.IsUpToDate(Constants.SAVE_VERSION, saveVersion);
                     Logger.Log("Trying to load save with an incorrect version", $"{saveVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
                     var ans = (int)new UIList(new string[] { "Yes", "No" }, $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?").Display(Settings.Keybinds.KeybindList);
                     if (ans == 0)
                     {
                         Tools.CreateBackup(saveName);
+                    }
+                    // correct too old save version
+                    if (isOlder && Tools.IsUpToDate(Constants.OLDEST_SAVE_VERSION, saveVersion))
+                    {
+                        Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {saveVersion}", LogSeverity.ERROR);
+                        saveVersion = Constants.OLDEST_SAVE_VERSION;
                     }
                 }
                 // correct
@@ -176,7 +146,7 @@ namespace ProgressAdventure
             _ = TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
             // player
             var playerData = (IDictionary<string, object?>?)data["player"];
-            var player = Player.FromJson(playerData);
+            var player = Player.FromJson(playerData, saveVersion);
             Logger.Log("Loaded save data from json", $"save name: {saveName}");
 
             // PREPARING
@@ -237,46 +207,27 @@ namespace ProgressAdventure
         /// Modifies the save data, to make it up to date, with the newest save file data structure.
         /// </summary>
         /// <param name="jsonData">The json representation of the jave data.</param>
-        /// <param name="saveVersion">The original version of the save file.</param>
-        private static void CorrectSaveData(Dictionary<string, object?> jsonData, string saveVersion)
+        /// <param name="fileVersion">The original version of the save file.</param>
+        private static void CorrectSaveData(Dictionary<string, object?> jsonData, string fileVersion)
         {
             Logger.Log("Correcting save data");
-            // 2.0 -> 2.0.1
-            if (saveVersion == "2.0")
-            {
-                var pSaveVersion = saveVersion;
-                // inventory items in dictionary
-
-                var inventoryItems = ((IDictionary<string, object?>)jsonData["player"])["inventory"];
-                ((IDictionary<string, object?>)jsonData["player"])["inventory"] = new Dictionary<string, object> { ["items"] = inventoryItems };
-                
-                saveVersion = "2.0.1";
-                Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
-            }
+            //correct data
             // 2.0.1 -> 2.0.2
-            if (saveVersion == "2.0.1")
+            var newFileVersion = "2.0.2";
+            if (!Tools.IsUpToDate(newFileVersion, fileVersion))
             {
-                var pSaveVersion = saveVersion;
                 // saved entity types
-                ((IDictionary<string, object?>)jsonData["player"])["type"] = "player";
-                saveVersion = "2.0.2";
-                Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
-            }
-            // 2.0.2 -> 2.1
-            if (saveVersion == "2.0.2")
-            {
-                var pSaveVersion = saveVersion;
-                // saved item types as string
-                var inventory = ((IDictionary<string, object?>)jsonData["player"])["inventory"];
-                var inventoryItems = (IEnumerable)((IDictionary<string, object?>)inventory)["items"];
-                foreach (var item in inventoryItems)
+                if (
+                    jsonData.TryGetValue("player", out object? playerJson) &&
+                    playerJson is not null &&
+                    playerJson as IDictionary<string, object?> is not null
+                )
                 {
-                    var itemIDValue = ((IDictionary<string, object?>)item)["type"];
-                    var itemID = int.Parse(itemIDValue?.ToString());
-                    ((IDictionary<string, object?>)item)["type"] = _itemTypeNameMap[itemID];
+                    ((IDictionary<string, object?>)playerJson)["type"] = "player";
                 }
-                saveVersion = "2.1";
-                Logger.Log("Corrected save data", $"{pSaveVersion} -> {saveVersion}", LogSeverity.DEBUG);
+
+                Logger.Log("Corrected save data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                fileVersion = newFileVersion;
             }
         }
 

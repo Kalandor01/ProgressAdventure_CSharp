@@ -22,6 +22,10 @@ namespace PAExtras
             var ch = World.Chunks;
             var p = SaveData.player;
 
+            PASaveManager.MakeSave();
+
+            PASaveManager.LoadSave(saveName);
+
             Console.WriteLine();
         }
     }

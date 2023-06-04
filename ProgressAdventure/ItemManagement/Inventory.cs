@@ -172,7 +172,7 @@ namespace ProgressAdventure.ItemManagement
             return new Dictionary<string, object?> { ["items"] = itemsListJson };
         }
 
-        public static Inventory? FromJson(IDictionary<string, object?>? inventoryJson)
+        public static Inventory? FromJson(IDictionary<string, object?>? inventoryJson, string fileVersion)
         {
             if (
                 inventoryJson is not null &&
@@ -183,7 +183,7 @@ namespace ProgressAdventure.ItemManagement
                 var items = new List<Item>();
                 foreach (var itemJson in (IEnumerable<object?>)itemsJson)
                 {
-                    var item = Item.FromJson((IDictionary<string, object?>?)itemJson);
+                    var item = Item.FromJson((IDictionary<string, object?>?)itemJson, fileVersion);
                     if (item is not null)
                     {
                         items.Add(item);
