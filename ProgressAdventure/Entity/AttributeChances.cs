@@ -23,7 +23,7 @@
         /// <inheritdoc cref="AttributeChances"/>
         /// </summary>
         public AttributeChances()
-            : this(null) { }
+            : this(0.02) { }
 
         /// <summary>
         /// <inheritdoc cref="AttributeChances"/>
@@ -39,28 +39,28 @@
         /// <param name="agileChance"></param>
         /// <param name="slowChance"></param>
         public AttributeChances(
-            double? rareChance = null,
-            double? crippledChance = null,
-            double? healthyChance = null,
-            double? sickChance = null,
-            double? strongChance = null,
-            double? weakChance = null,
-            double? toughChance = null,
-            double? frailChance = null,
-            double? agileChance = null,
-            double? slowChance = null
+            double rareChance = 0.02,
+            double crippledChance = 0.02,
+            double healthyChance = 0.1,
+            double sickChance = 0.1,
+            double strongChance = 0.1,
+            double weakChance = 0.1,
+            double toughChance = 0.1,
+            double frailChance = 0.1,
+            double agileChance = 0.1,
+            double slowChance = 0.1
         )
         {
-            this.rareChance = Math.Clamp(rareChance ?? 0.02, 0, 1);
-            this.crippledChance = Math.Clamp(crippledChance ?? 0.02, 0, 1);
-            this.healthyChance = Math.Clamp(healthyChance ??  0.1, 0, 1);
-            this.sickChance = Math.Clamp(sickChance ?? 0.1, 0, 1);
-            this.strongChance = Math.Clamp(strongChance ?? 0.1, 0, 1);
-            this.weakChance = Math.Clamp(weakChance ?? 0.1, 0, 1);
-            this.toughChance = Math.Clamp(toughChance ?? 0.1, 0, 1);
-            this.frailChance = Math.Clamp(frailChance ?? 0.1, 0, 1);
-            this.agileChance = Math.Clamp(agileChance ?? 0.1, 0, 1);
-            this.slowChance = Math.Clamp(slowChance ?? 0.1, 0, 1);
+            this.rareChance = Math.Clamp(rareChance, 0, 1);
+            this.crippledChance = Math.Clamp(crippledChance, 0, 1);
+            this.healthyChance = Math.Clamp(healthyChance, 0, 1);
+            this.sickChance = Math.Clamp(sickChance, 0, 1);
+            this.strongChance = Math.Clamp(strongChance, 0, 1);
+            this.weakChance = Math.Clamp(weakChance, 0, 1);
+            this.toughChance = Math.Clamp(toughChance, 0, 1);
+            this.frailChance = Math.Clamp(frailChance, 0, 1);
+            this.agileChance = Math.Clamp(agileChance, 0, 1);
+            this.slowChance = Math.Clamp(slowChance, 0, 1);
         }
         #endregion
     }
