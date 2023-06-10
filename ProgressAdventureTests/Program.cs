@@ -1,10 +1,14 @@
-﻿using ProgressAdventure.Entity;
-using ProgressAdventure.Enums;
-using ProgressAdventure.SettingsManagement;
-using System.Collections;
+﻿using ProgressAdventure.Enums;
 using System.Text;
+using PAConstants = ProgressAdventure.Constants;
+using PAUtils = ProgressAdventure.Utils;
+using Logger = ProgressAdventure.Logger;
+using ProgressAdventure.Entity;
+using Moq;
+using System.Reflection;
+using System.Transactions;
 
-namespace ProgressAdventure
+namespace ProgressAdventureTests
 {
     internal class Program
     {
@@ -13,60 +17,7 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            //Settings.UpdateLoggingLevel(0);
-
-            //SaveManager.CreateSaveData("test", "me");
-
-
-
-            //var es = new List<Entity.Entity>
-            //{
-            //    new Player(),
-            //    new Ghoul(2),
-            //    new Troll(),
-            //    new Caveman(2),
-            //    new Caveman(2),
-            //    new Caveman(2),
-            //    new Caveman(2),
-            //    new Caveman(2),
-            //    new Dragon(),
-            //};
-
-            //var ej = new List<Dictionary<string, object?>>();
-            //foreach (var entity in es)
-            //{
-            //    ej.Add(entity.ToJson());
-            //}
-
-            //var es2 = new List<Entity.Entity>();
-            //foreach (var entityJson in ej)
-            //{
-            //    var e = Entity.Entity.AnyEntityFromJson(entityJson);
-            //    if (e is null)
-            //    {
-            //        Console.WriteLine("PARSE ERROR");
-            //    }
-            //    else
-            //    {
-            //        es2.Add(e);
-            //    }
-            //}
-
-            //EntityUtils.Fight(es2);
-
-
-
-
-            var gh = (object?)5;
-            var gh2 = (object?)new List<int>();
-
-            var hm1 = gh2 is IEnumerable<object?> gg;
-            var hm2 = gh is IDictionary<string, object?> hh;
-
-            var g1 = gh2 as IEnumerable;
-            var g2 = gh as IDictionary;
-
-
+            Tools.RunAllTests();
 
             Console.WriteLine();
         }
@@ -78,13 +29,16 @@ namespace ProgressAdventure
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
+            Thread.CurrentThread.Name = Constants.TESTS_THREAD_NAME;
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
-            SettingsManagement.Settings.Initialise();
-            Globals.Initialise();
+            if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
+            {
+                ProgressAdventure.SettingsManagement.Settings.Initialise();
+                ProgressAdventure.Globals.Initialise();
+            }
         }
 
         /// <summary>
@@ -99,9 +53,9 @@ namespace ProgressAdventure
             catch (Exception e)
             {
                 Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
-                if (Constants.ERROR_HANDLING)
+                if (PAConstants.ERROR_HANDLING)
                 {
-                    Utils.PressKey("ERROR: " + e.Message);
+                    PAUtils.PressKey("ERROR: " + e.Message);
                 }
                 throw;
             }
@@ -128,10 +82,10 @@ namespace ProgressAdventure
                 catch (Exception e)
                 {
                     Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
-                    if (Constants.ERROR_HANDLING)
+                    if (PAConstants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
-                        var ans = Utils.Input("Restart?(Y/N): ");
+                        var ans = PAUtils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
                             Logger.Log("Restarting instance");

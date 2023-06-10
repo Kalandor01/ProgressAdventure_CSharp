@@ -4,44 +4,6 @@ namespace ProgressAdventure.ItemManagement
 {
     public class Item : IJsonConvertable<Item>
     {
-        #region Private dicts
-        /// <summary>
-        /// The dictionary pairing up item type IDs, to their name.
-        /// </summary>
-        private static readonly Dictionary<int, string> _itemTypeNameMap = new()
-        {
-            //weapons
-            [65536] = "weapon/wooden_sword",
-            [65537] = "weapon/stone_sword",
-            [65538] = "weapon/steel_sword",
-            [65539] = "weapon/wooden_bow",
-            [65540] = "weapon/steel_arrow",
-            [65541] = "weapon/wooden_club",
-            [65542] = "weapon/club_with_teeth",
-            //defence
-            [65792] = "defence/wooden_shield",
-            [65793] = "defence/leather_cap",
-            [65794] = "defence/leather_tunic",
-            [65795] = "defence/leather_pants",
-            [65796] = "defence/leather_boots",
-            //materials
-            [66048] = "material/bootle",
-            [66049] = "material/wool",
-            [66050] = "material/cloth",
-            [66051] = "material/wood",
-            [66052] = "material/stone",
-            [66053] = "material/steel",
-            [66054] = "material/gold",
-            [66055] = "material/teeth",
-            //misc
-            [66304] = "misc/health_potion",
-            [66305] = "misc/gold_coin",
-            [66306] = "misc/silver_coin",
-            [66307] = "misc/copper_coin",
-            [66308] = "misc/rotten_flesh",
-        };
-        #endregion
-
         #region Public fields
         /// <summary>
         /// The number of items.
@@ -198,7 +160,7 @@ namespace ProgressAdventure.ItemManagement
                     if (
                         itemJson.TryGetValue("type", out var typeIDValue) &&
                         int.TryParse(typeIDValue?.ToString(), out int itemID) &&
-                        _itemTypeNameMap.TryGetValue(itemID, out string? itemName))
+                        ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName))
                     {
                         itemJson["type"] = itemName;
                     }

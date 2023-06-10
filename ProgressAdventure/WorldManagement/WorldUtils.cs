@@ -290,9 +290,9 @@ namespace ProgressAdventure.WorldManagement
                 var propertyNum = 0;
                 foreach (var propertyKey in properties.Keys)
                 {
-                    if (noiseValues.ContainsKey(propertyKey))
+                    if (noiseValues.TryGetValue(propertyKey, out double noiseValue))
                     {
-                        sumDiff += Math.Abs(properties[propertyKey] - noiseValues[propertyKey]);
+                        sumDiff += Math.Abs(properties[propertyKey] - noiseValue);
                         propertyNum++;
                     }
                 }
@@ -317,13 +317,21 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
+        /// Returns all content type IDs.
+        /// </summary>
+        public static List<ContentTypeID> GetAllContentTypes()
+        {
+            return Tools.GetNestedStaticClassFields<ContentTypeID>(typeof(ContentType));
+        }
+
+        /// <summary>
         /// Returs the content type, if the content type ID is an ID for an content type.
         /// </summary>
         /// <param name="contentTypeID">The int representation of the content's ID.</param>
         public static ContentTypeID? ToContentType(int contentTypeID)
         {
             var newContentType = (ContentTypeID)contentTypeID;
-            var contentTypes = Tools.GetNestedStaticClassFields<ContentTypeID>(typeof(ContentType));
+            var contentTypes = GetAllContentTypes();
             foreach (var contentType in contentTypes)
             {
                 if (newContentType == contentType)

@@ -43,7 +43,53 @@
         };
         #endregion
 
+        #region "Private" dicts
+        /// <summary>
+        /// The dictionary pairing up old item type IDs, to their name.
+        /// </summary>
+        internal static readonly Dictionary<int, string> _legacyItemTypeNameMap = new()
+        {
+            //weapons
+            [65536] = "weapon/wooden_sword",
+            [65537] = "weapon/stone_sword",
+            [65538] = "weapon/steel_sword",
+            [65539] = "weapon/wooden_bow",
+            [65540] = "weapon/steel_arrow",
+            [65541] = "weapon/wooden_club",
+            [65542] = "weapon/club_with_teeth",
+            //defence
+            [65792] = "defence/wooden_shield",
+            [65793] = "defence/leather_cap",
+            [65794] = "defence/leather_tunic",
+            [65795] = "defence/leather_pants",
+            [65796] = "defence/leather_boots",
+            //materials
+            [66048] = "material/bootle",
+            [66049] = "material/wool",
+            [66050] = "material/cloth",
+            [66051] = "material/wood",
+            [66052] = "material/stone",
+            [66053] = "material/steel",
+            [66054] = "material/gold",
+            [66055] = "material/teeth",
+            //misc
+            [66304] = "misc/health_potion",
+            [66305] = "misc/gold_coin",
+            [66306] = "misc/silver_coin",
+            [66307] = "misc/copper_coin",
+            [66308] = "misc/rotten_flesh",
+        };
+        #endregion
+
         #region Public fuctions
+        /// <summary>
+        /// Return all item type IDs.
+        /// </summary>
+        public static List<ItemTypeID> GetAllItemTypes()
+        {
+            return Tools.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
+        }
+
         /// <summary>
         /// Returs the item type, if the item type ID is an id for an item type.
         /// </summary>
@@ -51,7 +97,7 @@
         public static ItemTypeID? ToItemType(int itemTypeID)
         {
             var newItemType = (ItemTypeID)itemTypeID;
-            var itemTypes = Tools.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
+            var itemTypes = GetAllItemTypes();
             foreach (var itemType in itemTypes)
             {
                 if (newItemType == itemType)
