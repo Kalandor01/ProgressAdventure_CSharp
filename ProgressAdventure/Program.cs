@@ -55,10 +55,11 @@ namespace ProgressAdventure
             //EntityUtils.Fight(es2);
 
 
+            var json = new Player().ToJson();
 
 
             var gh = (object?)5;
-            var gh2 = (object?)new List<int>();
+            var gh2 = (object?)new List<object?>();
 
             var hm1 = gh2 is IEnumerable<object?> gg;
             var hm2 = gh is IDictionary<string, object?> hh;

@@ -48,7 +48,7 @@ namespace ProgressAdventureTests
         private static void EvaluateResult(string testName, LogSeverity resultType, string? exeption = null)
         {
             Console.WriteLine(resultType);
-            Logger.Log(testName, resultType + (resultType == LogSeverity.FAIL ? ": " + exeption : ""), resultType);
+            Logger.Log(testName, resultType + (resultType == LogSeverity.PASS ? "" : ": " + exeption), resultType);
             Thread.CurrentThread.Name = Constants.TESTS_THREAD_NAME;
         }
 
@@ -81,7 +81,7 @@ namespace ProgressAdventureTests
         {
             Logger.LogNewLine();
             Logger.Log("Runing all tests");
-            RunTest(Tests.CheckAllItemTypesExist, false);
+            RunTest(Tests.AllItemTypesExistAndLoadable, false);
             RunTest(Tests.AllEntitiesLoadable, false);
         }
     }

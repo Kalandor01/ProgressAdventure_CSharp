@@ -69,23 +69,6 @@ namespace ProgressAdventure.ItemManagement
 
         #region Public methods
         /// <summary>
-        /// Sets the item's attributes, based on its type.
-        /// </summary>
-        public void SetAttributes()
-        {
-            string? displayNameValue = null;
-            bool? consumableValue = null;
-            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributes attributes))
-            {
-                displayNameValue = attributes.displayName;
-                consumableValue = attributes.consumable;
-            }
-
-            DisplayName = displayNameValue ?? ItemUtils.ItemIDToDisplayName(Type);
-            Consumable = consumableValue ?? false;
-        }
-
-        /// <summary>
         /// Tries to use the item, and returns the success.
         /// </summary>
         public bool Use()
@@ -99,6 +82,25 @@ namespace ProgressAdventure.ItemManagement
                 return true;
             }
             return false;
+        }
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Sets the item's attributes, based on its type.
+        /// </summary>
+        private void SetAttributes()
+        {
+            string? displayNameValue = null;
+            bool? consumableValue = null;
+            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributes attributes))
+            {
+                displayNameValue = attributes.displayName;
+                consumableValue = attributes.consumable;
+            }
+
+            DisplayName = displayNameValue ?? ItemUtils.ItemIDToDisplayName(Type);
+            Consumable = consumableValue ?? false;
         }
         #endregion
 

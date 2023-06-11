@@ -1,12 +1,8 @@
 ﻿using ProgressAdventure.Enums;
 using System.Text;
+using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
 using PAUtils = ProgressAdventure.Utils;
-using Logger = ProgressAdventure.Logger;
-using ProgressAdventure.Entity;
-using Moq;
-using System.Reflection;
-using System.Transactions;
 
 namespace ProgressAdventureTests
 {
