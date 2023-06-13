@@ -126,7 +126,7 @@ namespace ProgressAdventure
                         Tools.CreateBackup(saveName);
                     }
                     // correct too old save version
-                    if (isOlder && Tools.IsUpToDate(Constants.OLDEST_SAVE_VERSION, saveVersion))
+                    if (isOlder && !Tools.IsUpToDate(Constants.OLDEST_SAVE_VERSION, saveVersion))
                     {
                         Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {saveVersion}", LogSeverity.ERROR);
                         saveVersion = Constants.OLDEST_SAVE_VERSION;
@@ -136,7 +136,7 @@ namespace ProgressAdventure
                 CorrectSaveData(data, saveVersion);
             }
             // load random states
-            var randomStates = (IDictionary<string, object?>?)data["randomStates"];
+            var randomStates = data["randomStates"] as IDictionary<string, object?>;
             RandomStates.FromJson(randomStates);
             // display name
             var displayName = (string?)data["displayName"];
@@ -145,7 +145,7 @@ namespace ProgressAdventure
             // playtime
             _ = TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
             // player
-            var playerData = (IDictionary<string, object?>?)data["player"];
+            var playerData = data["player"] as IDictionary<string, object?>;
             var player = Player.FromJson(playerData, saveVersion);
             Logger.Log("Loaded save data from json", $"save name: {saveName}");
 
@@ -219,11 +219,10 @@ namespace ProgressAdventure
                 // saved entity types
                 if (
                     jsonData.TryGetValue("player", out object? playerJson) &&
-                    playerJson is not null &&
-                    playerJson as IDictionary<string, object?> is not null
+                    playerJson is IDictionary<string, object?> playerDict
                 )
                 {
-                    ((IDictionary<string, object?>)playerJson)["type"] = "player";
+                    playerDict["type"] = "player";
                 }
 
                 Logger.Log("Corrected save data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);

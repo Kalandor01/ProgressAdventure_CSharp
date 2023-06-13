@@ -7,6 +7,12 @@ namespace ProgressAdventure
     /// </summary>
     public static class NPrngExtensions
     {
+        /// <summary>
+        /// Returns a number in a range, between the min and max, in a triangular distribution.
+        /// </summary>
+        /// <param name="lower">The lower bound of the range.</param>
+        /// <param name="middle">The median bound of the range.</param>
+        /// <param name="upper">The upper bound of the range.</param>
         public static double Triangular(this AbstractPseudoRandomGenerator generator,
             double lower, double middle, double upper)
         {

@@ -186,5 +186,24 @@ namespace ProgressAdventureTests
 
             return null;
         }
+
+        /// <summary>
+        /// NOT WORKING!!!<br/>
+        /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.<br/>
+        /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
+        /// </summary>
+        [Fact]
+        public static (LogSeverity resultType, string? exeption)? BasicJsonConvertTest()
+        {
+            RandomStates.Initialise();
+
+            var jsonConvertableType = typeof(IJsonConvertable<>);
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var unfilteredTypes = paAssembly.GetTypes().Where(jsonConvertableType.IsGenericAssignableFromType);
+            var filteredTypes = unfilteredTypes.Where(type => type != typeof(IJsonConvertable<>));
+
+
+            return null;
+        }
     }
 }

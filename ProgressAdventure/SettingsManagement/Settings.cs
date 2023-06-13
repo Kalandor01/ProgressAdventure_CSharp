@@ -149,7 +149,7 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds keybinds;
             try
             {
-                keybinds = Keybinds.FromJson((IDictionary<string, object?>?)keybindsDict);
+                keybinds = Keybinds.FromJson(keybindsDict as IDictionary<string, object?>);
             }
             catch (Exception e)
             {
@@ -338,7 +338,7 @@ namespace ProgressAdventure.SettingsManagement
                     Keybinds? oldKb = null;
                     try
                     {
-                        oldKb = Keybinds.FromJson((IDictionary<string, object?>?)settingValue);
+                        oldKb = Keybinds.FromJson(settingValue as IDictionary<string, object?>);
                     }
                     catch (Exception e)
                     {

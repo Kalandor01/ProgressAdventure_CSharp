@@ -225,18 +225,18 @@ namespace ProgressAdventure
             {
                 Console.WriteLine("[NULL]");
             }
-            else if (writable is not string && typeof(IDictionary).IsAssignableFrom(writable.GetType()))
+            else if (writable is not string && writable is IDictionary writableDict)
             {
-                foreach (var item in ((IDictionary)writable).Keys)
+                foreach (var item in writableDict.Keys)
                 {
                     Console.WriteLine(new string('\t', recursionNum) + item.ToString() + ":");
-                    RecursiveWrite(((IDictionary)writable)[item], recursionNum + 1);
+                    RecursiveWrite(writableDict[item], recursionNum + 1);
                 }
             }
-            else if (writable is not string && typeof(IEnumerable).IsAssignableFrom(writable.GetType()))
+            else if (writable is not string && writable is IEnumerable writableList)
             {
                 recursionNum++;
-                foreach (var item in (IEnumerable)writable)
+                foreach (var item in writableList)
                 {
                     RecursiveWrite(item, recursionNum);
                 }

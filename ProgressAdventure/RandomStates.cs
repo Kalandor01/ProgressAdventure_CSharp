@@ -231,7 +231,7 @@ namespace ProgressAdventure
                 // tile type noise seeds
                 if (randomStatesJson.TryGetValue("tileTypeNoiseSeeds", out object? tileTypeNoiseSeedsJson))
                 {
-                    tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds((IDictionary<string, object?>?)tileTypeNoiseSeedsJson);
+                    tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds(tileTypeNoiseSeedsJson as IDictionary<string, object?>);
                 }
                 else
                 {

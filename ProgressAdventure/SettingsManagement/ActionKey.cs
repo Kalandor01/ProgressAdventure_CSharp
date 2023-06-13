@@ -154,14 +154,15 @@ namespace ProgressAdventure.SettingsManagement
             if (
                 Enum.TryParse(actionJson.Key, out ActionType actionType) &&
                 Enum.IsDefined(actionType) &&
-                actionJson.Value is not null
+                actionJson.Value is IEnumerable actionKeyList
             )
             {
                 var keys = new List<ConsoleKeyInfo>();
-                foreach (var actionKey in (IEnumerable)actionJson.Value)
+                foreach (var actionKey in actionKeyList)
                 {
-                    var actionDict = (IDictionary<string, object>)actionKey;
+                    var actionDict = actionKey as IDictionary<string, object>;
                     if (
+                        actionDict is not null &&
                         Enum.TryParse(actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out ConsoleKey keyEnum) &&
                         Enum.IsDefined(keyEnum) &&
                         char.TryParse(actionDict.TryGetValue("keyChar", out var charValue) ? charValue.ToString() : null, out char keyChar) &&

@@ -182,7 +182,7 @@ namespace ProgressAdventure.Entity
                 miscJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                inventoryTemp = Inventory.FromJson((IDictionary<string, object?>?)inventoryValue, fileVersion);
+                inventoryTemp = Inventory.FromJson(inventoryValue as IDictionary<string, object?>, fileVersion);
             }
             else
             {

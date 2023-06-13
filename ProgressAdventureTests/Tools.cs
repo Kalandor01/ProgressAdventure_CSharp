@@ -83,6 +83,7 @@ namespace ProgressAdventureTests
             Logger.Log("Runing all tests");
             RunTest(Tests.AllItemTypesExistAndLoadable, false);
             RunTest(Tests.AllEntitiesLoadable, false);
+            RunTest(Tests.BasicJsonConvertTest, false);
         }
     }
 }

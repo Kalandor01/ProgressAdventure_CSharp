@@ -80,7 +80,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// Ghoul entity.
     /// </summary>
-    public class Ghoul : Entity
+    public class Ghoul : Entity<Ghoul>
     {
         #region Constructors
         /// <summary>
@@ -151,7 +151,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// Troll entity.
     /// </summary>
-    public class Troll : Entity
+    public class Troll : Entity<Troll>
     {
         #region Constructors
         /// <summary>
@@ -223,7 +223,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// ragon entity.
     /// </summary>
-    public class Dragon : Entity
+    public class Dragon : Entity<Dragon>
     {
         #region Constructors
         /// <summary>

@@ -188,7 +188,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("terrain", out object? terrainJson)
             )
             {
-                terrain = TerrainContent.FromJson(chunkRandom, (IDictionary<string, object?>?)terrainJson, fileVersion);
+                terrain = TerrainContent.FromJson(chunkRandom, terrainJson as IDictionary<string, object?>, fileVersion);
             }
             else
             {
@@ -200,7 +200,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("structure", out object? structureJson)
             )
             {
-                structure = StructureContent.FromJson(chunkRandom, (IDictionary<string, object?>?)structureJson, fileVersion);
+                structure = StructureContent.FromJson(chunkRandom, structureJson as IDictionary<string, object?>, fileVersion);
             }
             else
             {
@@ -212,7 +212,7 @@ namespace ProgressAdventure.WorldManagement
                 tileJson.TryGetValue("population", out object? populationJson)
             )
             {
-                population = PopulationContent.FromJson(chunkRandom, (IDictionary<string, object?>?)populationJson, fileVersion);
+                population = PopulationContent.FromJson(chunkRandom, populationJson as IDictionary<string, object?>, fileVersion);
             }
             else
             {

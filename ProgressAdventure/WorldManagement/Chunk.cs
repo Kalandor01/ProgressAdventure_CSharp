@@ -1,5 +1,6 @@
 ﻿using NPrng.Generators;
 using ProgressAdventure.Enums;
+using System.Collections;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -183,11 +184,11 @@ namespace ProgressAdventure.WorldManagement
 
             // tiles
             if (
-                chunkJson.TryGetValue("tiles", out object? tilesList) &&
-                tilesList is not null
+                chunkJson.TryGetValue("tiles", out object? tilesListValue) &&
+                tilesListValue is IEnumerable tilesList
             )
             {
-                var tiles = TilesFromJson(chunkRandomGenerator, position, (IEnumerable<object?>)tilesList, fileVersion);
+                var tiles = TilesFromJson(chunkRandomGenerator, position, tilesList, fileVersion);
                 Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
                 return new Chunk(position, tiles, chunkRandomGenerator);
             }
@@ -293,15 +294,15 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="chunkRandom">The chunk's random generator.</param>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
-        /// <param name="tileListJson">The json representation of the list of tiles.</param>
+        /// <param name="tileListJson">A list of tiles is a json representation.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        private static Dictionary<string, Tile> TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable<object?> tileListJson, string fileVersion)
+        private static Dictionary<string, Tile> TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable tileListJson, string fileVersion)
         {
             chunkRandom ??= GetChunkRandom(absolutePosition);
             var tiles = new Dictionary<string, Tile>();
             foreach (var tileJson in tileListJson)
             {
-                var tile = Tile.FromJson(chunkRandom, (IDictionary<string, object?>?)tileJson, fileVersion);
+                var tile = Tile.FromJson(chunkRandom, tileJson as IDictionary<string, object?>, fileVersion);
                 if (tile is not null)
                 {
                     tiles.Add(GetTileDictName(tile.relativePosition), tile);

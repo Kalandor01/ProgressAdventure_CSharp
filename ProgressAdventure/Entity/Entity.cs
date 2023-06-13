@@ -1,6 +1,7 @@
 ﻿using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
+using System.Collections;
 using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
@@ -713,11 +714,10 @@ namespace ProgressAdventure.Entity
             List<Attribute>? attributes = null;
             if (
                 entityJson.TryGetValue("attributes", out var attributesJson) &&
-                attributesJson is not null
+                attributesJson is IEnumerable attributeList
             )
             {
                 attributes = new List<Attribute>();
-                var attributeList = (IEnumerable<object?>)attributesJson;
                 foreach (var attribute in attributeList)
                 {
                     if (
@@ -735,20 +735,19 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "entity attributes json doesn't exist", LogSeverity.WARN);
+                Logger.Log("Entity parse error", "couldn't parse entity attributes list", LogSeverity.WARN);
             }
             // drops
             List<Item>? drops = null;
             if (
                 entityJson.TryGetValue("drops", out var dropsJson) &&
-                dropsJson is not null
+                dropsJson is IEnumerable dropList
             )
             {
                 drops = new List<Item>();
-                var dropList = (IEnumerable<object?>)dropsJson;
                 foreach (var dropJson in dropList)
                 {
-                    var dropItem = Item.FromJson((IDictionary<string, object?>?)dropJson, fileVersion);
+                    var dropItem = Item.FromJson(dropJson as IDictionary<string, object?>, fileVersion);
                     if (dropItem is not null)
                     {
                         drops.Add(dropItem);
@@ -757,7 +756,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "entity drops json doesn't exist", LogSeverity.WARN);
+                Logger.Log("Entity parse error", "couldn't parse drops list from json", LogSeverity.WARN);
             }
             // position
             (long x, long y)? position = null;

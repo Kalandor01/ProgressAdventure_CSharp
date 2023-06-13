@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using System.Collections;
 using System.Text;
 
 namespace ProgressAdventure.ItemManagement
@@ -177,13 +178,13 @@ namespace ProgressAdventure.ItemManagement
             if (
                 inventoryJson is not null &&
                 inventoryJson.TryGetValue("items", out object? itemsJson) &&
-                itemsJson is not null
+                itemsJson is IEnumerable itemList
             )
             {
                 var items = new List<Item>();
-                foreach (var itemJson in (IEnumerable<object?>)itemsJson)
+                foreach (var itemJson in itemList)
                 {
-                    var item = Item.FromJson((IDictionary<string, object?>?)itemJson, fileVersion);
+                    var item = Item.FromJson(itemJson as IDictionary<string, object?>, fileVersion);
                     if (item is not null)
                     {
                         items.Add(item);
@@ -194,7 +195,7 @@ namespace ProgressAdventure.ItemManagement
             }
             else
             {
-                Logger.Log("Inventory parse error", "items json is null", LogSeverity.ERROR);
+                Logger.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
                 return null;
             }
         }

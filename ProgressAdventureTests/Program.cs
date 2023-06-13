@@ -1,4 +1,6 @@
-﻿using ProgressAdventure.Enums;
+﻿using ProgressAdventure;
+using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
 using System.Text;
 using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
@@ -14,6 +16,7 @@ namespace ProgressAdventureTests
         static void MainFunction()
         {
             Tools.RunAllTests();
+
 
             Console.WriteLine();
         }
