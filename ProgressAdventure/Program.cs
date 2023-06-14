@@ -53,7 +53,9 @@ namespace ProgressAdventure
             //EntityUtils.Fight(es2);
 
 
-            
+            //MenuManager.OtherOptions();
+            MenuManager.KeybindSettings();
+
 
 
             Console.WriteLine();

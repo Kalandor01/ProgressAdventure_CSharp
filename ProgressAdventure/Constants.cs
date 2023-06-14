@@ -1,4 +1,5 @@
-﻿using SaveFileManager;
+﻿using ProgressAdventure.Enums;
+using SaveFileManager;
 using System.Text;
 
 namespace ProgressAdventure
@@ -137,7 +138,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current logging level.
         /// </summary>
-        public static int LOGGING_LEVEL = 0;
+        public static LogSeverity LOGGING_LEVEL = LogSeverity.DEBUG;
         /// <summary>
         /// If the logger should log the milisecond in time.
         /// </summary>

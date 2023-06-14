@@ -188,6 +188,19 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
+        /// Checks if some dictionary maps are correct (contain all values).<br/>
+        /// Checked dictionaries:<br/>
+        /// - Logger.loggingValuesMap<br/>
+        /// </summary>
+        [Fact]
+        public static (LogSeverity resultType, string? exeption)? DictionaryMapsTest()
+        {
+
+            return (LogSeverity.FAIL, "Not implemented!");
+            return null;
+        }
+
+        /// <summary>
         /// NOT WORKING!!!<br/>
         /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
@@ -203,7 +216,7 @@ namespace ProgressAdventureTests
             var filteredTypes = unfilteredTypes.Where(type => type != typeof(IJsonConvertable<>));
 
 
-            return null;
+            return (LogSeverity.FAIL, "Not realy implemented!");
         }
     }
 }

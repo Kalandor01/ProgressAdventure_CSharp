@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using System.Text;
 
 namespace ProgressAdventure.SettingsManagement
 {
@@ -131,6 +132,11 @@ namespace ProgressAdventure.SettingsManagement
                 }
             }
             return true;
+        }
+
+        public override string ToString()
+        {
+            return string.Join("\n", KeybindList);
         }
         #endregion
 

@@ -120,6 +120,11 @@ namespace ProgressAdventure.SettingsManagement
             }
             return true;
         }
+
+        public override string ToString()
+        {
+            return actionType.ToString() + ": " + Name;
+        }
         #endregion
 
         #region JsonConvert

@@ -7,22 +7,41 @@ namespace ProgressAdventure
     /// </summary>
     public static class Logger
     {
+        #region Public dicts
+        /// <summary>
+        /// Dictionary mapping logging severities to their logging values.<br/>
+        /// A log will actualy happen, if the current logging level is lower than the loggin level of the message.
+        /// </summary>
+        public static readonly Dictionary<LogSeverity, int> loggingValuesMap = new()
+        {
+            [LogSeverity.MINIMAL] = -1,
+            [LogSeverity.DEBUG] = (int)LogSeverity.DEBUG,
+            [LogSeverity.INFO] = (int)LogSeverity.INFO,
+            [LogSeverity.WARN] = (int)LogSeverity.WARN,
+            [LogSeverity.ERROR] = (int)LogSeverity.ERROR,
+            [LogSeverity.FATAL] = (int)LogSeverity.FATAL,
+
+            [LogSeverity.PASS] = (int)LogSeverity.PASS,
+            [LogSeverity.FAIL] = (int)LogSeverity.FAIL,
+            [LogSeverity.OTHER] = (int)LogSeverity.OTHER,
+        };
+        #endregion
+
         #region Public functions
         /// <summary>
         /// Progress Adventure logger.
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="detail">The details of the message.</param>
-        /// <param name="severity">The type of the message.</param>
+        /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
         /// <param name="newLine">Whether to write a new line before the message. or not.</param>
         public static void Log(string message, string? detail = "", LogSeverity severity = LogSeverity.INFO, bool writeOut = false, bool newLine = false)
         {
             try
             {
-                if (Constants.LOGGING_ENABLED && Constants.LOGGING_LEVEL <= (int)severity)
+                if (Constants.LOGGING_ENABLED && loggingValuesMap[Constants.LOGGING_LEVEL] <= loggingValuesMap[severity])
                 {
-                    var lType = severity.ToString();
                     var now = DateTime.Now;
                     var currentDate = Utils.MakeDate(now);
                     var currentTime = Utils.MakeTime(now, writeMs: Constants.LOG_MS);
@@ -33,7 +52,7 @@ namespace ProgressAdventure
                         {
                             f.Write("\n");
                         }
-                        f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{lType}]\t: |{message}| {detail}\n");
+                        f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {detail}\n");
                     }
                     if (writeOut)
                     {
@@ -41,7 +60,7 @@ namespace ProgressAdventure
                         {
                             Console.WriteLine();
                         }
-                        Console.WriteLine($"{Path.Join(Constants.LOGS_FOLDER, $"{currentDate}.{Constants.LOG_EXT}")} -> [{currentTime}] [{Thread.CurrentThread.Name}/{lType}]\t: |{message}| {detail}");
+                        Console.WriteLine($"{Path.Join(Constants.LOGS_FOLDER, $"{currentDate}.{Constants.LOG_EXT}")} -> [{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {detail}");
                     }
                 }
             }
@@ -59,17 +78,19 @@ namespace ProgressAdventure
         /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled or not.
         /// </summary>
         /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
-        public static void ChangeLoggingLevel(int value)
+        public static void ChangeLoggingLevel(LogSeverity value)
         {
             if (Constants.LOGGING_LEVEL != value)
             {
                 // logging level
                 var oldLoggingLevel = Constants.LOGGING_LEVEL;
+                var logginValue = loggingValuesMap[value];
                 Constants.LOGGING_LEVEL = value;
                 Log("Logging level changed", $"{oldLoggingLevel} -> {Constants.LOGGING_LEVEL}");
+                
                 // logging
                 var oldLogging = Constants.LOGGING_ENABLED;
-                Constants.LOGGING_ENABLED = value != -1;
+                Constants.LOGGING_ENABLED = logginValue != -1;
                 if (Constants.LOGGING_ENABLED != oldLogging)
                 {
                     Log($"Logging {(Constants.LOGGING_ENABLED ? "enabled" : "disabled")}");

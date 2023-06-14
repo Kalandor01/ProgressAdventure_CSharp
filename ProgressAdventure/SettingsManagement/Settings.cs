@@ -13,11 +13,9 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         private static bool _autoSave;
         /// <summary>
-        /// Indicates the level of logs, that will be recorded.<br/>
-        /// The higher the number, generaly the higher the log severity needs to be, to be writen to file.<br/>
-        /// -1 to turn logging off.
+        /// The minimum level of logs, that will be recorded.
         /// </summary>
-        private static int _loggingLevel;
+        private static LogSeverity _loggingLevel;
         /// <summary>
         /// The keybinds object to use, for the app.
         /// </summary>
@@ -51,7 +49,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_loggingLevel" path="//summary"/>
         /// </summary>
-        public static int LoggingLevel
+        public static LogSeverity LoggingLevel
         {
             get => _loggingLevel;
             set => UpdateLoggingLevel(value);
@@ -106,7 +104,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
         public static void Initialise(
             bool? autoSave = null,
-            int? loggingLevel = null,
+            LogSeverity? loggingLevel = null,
             Keybinds? keybinds = null,
             bool? askDeleteSave = null,
             bool? askRegenerateSave = null,
@@ -135,9 +133,14 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// Returns the value of the <c>keybinds</c> from the setting file.
         /// </summary>
-        public static int GetLoggingLevel()
+        public static LogSeverity GetLoggingLevel()
         {
-            return (int)(long)SettingsManager(SettingsKey.LOGGING_LEVEL);
+            var logLevel = (int)(long)SettingsManager(SettingsKey.LOGGING_LEVEL);
+            if (!Tools.TryParseLogSeverityFromValue(logLevel, out LogSeverity severity))
+            {
+                Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
+            }
+            return severity;
         }
 
         /// <summary>
@@ -190,7 +193,7 @@ namespace ProgressAdventure.SettingsManagement
         /// Updates the value of the <c>autoSave</c> in the object and in the settings file.
         /// </summary>
         /// <param name="autoSave"><inheritdoc cref="_autoSave" path="//summary"/></param>
-        public static void UpdateAutoSave(bool autoSave)
+        private static void UpdateAutoSave(bool autoSave)
         {
             SettingsManager(SettingsKey.AUTO_SAVE, autoSave);
             _autoSave = GetAutoSave();
@@ -200,19 +203,20 @@ namespace ProgressAdventure.SettingsManagement
         /// Updates the value of the <c>loggingLevel</c> in the object and in the settings file.
         /// </summary>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
-        public static void UpdateLoggingLevel(int loggingLevel)
+        private static void UpdateLoggingLevel(LogSeverity loggingLevel)
         {
-            SettingsManager(SettingsKey.LOGGING_LEVEL, (long)loggingLevel);
+            var loggingLevelValue = (long)Logger.loggingValuesMap[loggingLevel];
+            SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
             _loggingLevel = GetLoggingLevel();
 
-            Logger.ChangeLoggingLevel(_loggingLevel);
+            Logger.ChangeLoggingLevel(LoggingLevel);
         }
 
         /// <summary>
         /// Updates the value of the <c>keybinds</c> in the object and in the settings file.
         /// </summary>
         /// <param name="keybinds"><inheritdoc cref="_keybinds" path="//summary"/></param>
-        public static void UpdateKeybinds(Keybinds keybinds)
+        private static void UpdateKeybinds(Keybinds keybinds)
         {
             SettingsManager(SettingsKey.KEYBINDS, keybinds);
             _keybinds = GetKeybins();
@@ -222,7 +226,7 @@ namespace ProgressAdventure.SettingsManagement
         /// Updates the value of <c>askDeleteSave</c> in the object and in the settings file.
         /// </summary>
         /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
-        public static void UpdateAskDeleteSave(bool askDeleteSave)
+        private static void UpdateAskDeleteSave(bool askDeleteSave)
         {
             SettingsManager(SettingsKey.ASK_DELETE_SAVE, askDeleteSave);
             _askDeleteSave = GetAskDeleteSave();
@@ -232,7 +236,7 @@ namespace ProgressAdventure.SettingsManagement
         /// Updates the value of <c>askRegenerateSave</c> in the object and in the settings file.
         /// </summary>
         /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
-        public static void UpdateAskRegenerateSave(bool askRegenerateSave)
+        private static void UpdateAskRegenerateSave(bool askRegenerateSave)
         {
             SettingsManager(SettingsKey.ASK_REGENERATE_SAVE, askRegenerateSave);
             _askRegenerateSave = GetAskRegenerateSave();
@@ -242,7 +246,7 @@ namespace ProgressAdventure.SettingsManagement
         /// Updates the value of <c>defBackupAction</c> in the object and in the settings file.
         /// </summary>
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
-        public static void UpdateDefBackupAction(int defBackupAction)
+        private static void UpdateDefBackupAction(int defBackupAction)
         {
             SettingsManager(SettingsKey.DEF_BACKUP_ACTION, (long)defBackupAction);
             _defBackupAction = GetDefBackupAction();

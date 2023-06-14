@@ -292,6 +292,26 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Tries to turn the int value of the log severity into a <c>LogSeverity</c> enum, and returns the success.
+        /// </summary>
+        /// <param name="severityValue">The log sevrity's int representation.</param>
+        /// <param name="severity">The sevrity, that got parsed, or created.</param>
+        public static bool TryParseLogSeverityFromValue(int severityValue, out LogSeverity severity)
+        {
+            foreach (var loggingValue in Logger.loggingValuesMap)
+            {
+                if (loggingValue.Value == severityValue)
+                {
+                    severity = loggingValue.Key;
+                    return true;
+                }
+            }
+
+            severity = LogSeverity.DEBUG;
+            return false;
+        }
+
+        /// <summary>
         /// Returns a new <c>SplittableRandom</c> from another <c>SplittableRandom</c>.
         /// </summary>
         /// <param name="parrentRandom">The random generator to use, to generate the other generator.</param>
