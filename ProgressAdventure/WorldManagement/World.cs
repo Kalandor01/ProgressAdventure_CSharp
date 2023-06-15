@@ -112,7 +112,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         public static Chunk? FindChunkInFolder((long x, long y) position, string? saveFolderName = null)
         {
-            var chunk = Chunk.FromFile(position, saveFolderName);
+            var chunk = Chunk.FromFile(position, saveFolderName, false);
             if (chunk is not null)
             {
                 Chunks.Add(GetChunkDictName(position), chunk);

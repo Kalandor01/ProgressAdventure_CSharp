@@ -275,7 +275,7 @@ namespace ProgressAdventure.SettingsManagement
             Dictionary<string, object?>? settingsJson = null;
             try
             {
-                settingsJson = Tools.DecodeSaveShort(Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED);
+                settingsJson = Tools.DecodeSaveShort(Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED, expected: false);
                 if (settingsJson is null)
                 {
                     Logger.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
@@ -287,6 +287,7 @@ namespace ProgressAdventure.SettingsManagement
                 Utils.PressKey("The settings file is corrupted, and will now be recreated!");
             }
             catch (FileNotFoundException) { }
+            catch (DirectoryNotFoundException) { }
 
             if (settingsJson is not null)
             {

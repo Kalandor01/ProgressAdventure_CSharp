@@ -1,7 +1,7 @@
 ﻿using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;
+using ProgressAdventure.WorldManagement;
 using SaveFileManager;
-using System.Drawing;
 using SFMUtils = SaveFileManager.Utils;
 
 namespace ProgressAdventure
@@ -47,6 +47,20 @@ namespace ProgressAdventure
         #endregion
 
         #region Public functions
+        /// <summary>
+        /// Displays a simple yes or no prompt, and returns the user's answer.
+        /// </summary>
+        /// <param name="question">The question to print.</param>
+        /// <param name="yesFirst">If yes or no shoul be the first answer in the answers list.</param>
+        /// <param name="canEscape">If the player can press escape, to exit the prompt. Exiting will be treated as a no answer.</param>
+        /// <param name="keybinds">The keybinds to use.</param>
+        public static bool AskYesNoUIQuestion(string question, bool yesFirst = true, bool canEscape = true, Keybinds? keybinds = null)
+        {
+            var answersList = yesFirst ? new List<string?> { "Yes", "No" } : new List<string?> { "No", "Yes" };
+            var keybindList = keybinds is null ? Settings.Keybinds.KeybindList : keybinds.KeybindList;
+            return (int)new UIList(answersList, question, canEscape: canEscape).Display(keybindList) == (yesFirst ? 0 : 1);
+        }
+
         /// <summary>
         /// Displays the other options menu.
         /// </summary>
@@ -184,91 +198,220 @@ namespace ProgressAdventure
             }
         }
 
-        //public static void MainMenu()
-        //{
-        //    files_data = sm.get_saves_data()
-        //    in_main_menu = True
-        //    while True:
-        //        status: tuple[int, str | Literal[-1], bool] = (-1, -1, False)
-        //        if in_main_menu:
-        //            in_main_menu = False
-        //            if len(files_data) :
-        //                mm_list = ["New save", "Load/Delete save", "Options"]
-        //            else:
-        //                mm_list = ["New save", "Options"]
-        //        option = sfm.UI_list_s(mm_list, " Main menu", can_esc = True).display(Settings.keybinds)
-        //        elif len(files_data):
-        //            option = 1
-        //        else:
-        //            option = -2
-        //            in_main_menu = True
-        //        // new file
-        //        if option == 0:
-        //            status = (1, "", False)
-        //        elif option == -1:
-        //            break
-        //        // load/delete
-        //        elif option == 1 and len(files_data):
-        //            // get data from file_data
-        //            list_data = []
-        //            for data in files_data:
-        //                list_data.append(data[1])
-        //                list_data.append(None)
-        //            list_data.append("Regenerate all save files")
-        //            list_data.append("Delete file")
-        //            list_data.append("Back")
-        //            option = sfm.UI_list_s(list_data, " Level select", True, True, exclude_nones = True).display(Settings.keybinds)
-        //            // load
-        //            if option != -1 and option<len(files_data):
-        //                status = (0, files_data[int(option)][0], files_data[int(option)][2])
-        //            // regenerate
-        //            elif option == len(files_data) :
-        //                if not Settings.ask_regenerate_save or sfm.UI_list_s(["No", "Yes"], f" Are you sure you want to regenerate ALL save files? This will load, delete then resave EVERY save file!", can_esc = True).display(Settings.keybinds) == 1:
-        //                    if Settings.def_backup_action == -1:
-        //                        backup_saves = bool(sfm.UI_list_s(["Yes", "No"], f" Do you want to backup your save files before regenerating them?", can_esc = True).display(Settings.keybinds) == 0)
-        //                    else:
-        //                        backup_saves = bool(Settings.def_backup_action)
-        //                    print("Regenerating save files...\n")
-        //                    for save in files_data:
-        //                        regenerate_save_file(save[0], save[2], backup_saves)
-        //                    files_data = sm.get_saves_data()
-        //                    print("\nDONE!")
-        //            // delete
-        //            elif option == len(files_data) + 1:
-        //                // remove "delete file" + "regenerate save files"
-        //                list_data.pop(len(list_data) - 2)
-        //                list_data.pop(len(list_data) - 2)
-        //                while len(files_data) > 0:
-        //                    option = sfm.UI_list(list_data, " Delete mode!", DELETE_CURSOR_ICONS, True, True, exclude_nones = True).display(Settings.keybinds)
-        //                    if option != -1 and option< (len(list_data) -1) / 2:
-        //                        if not Settings.ask_delete_save or sfm.UI_list_s(["No", "Yes"], f" Are you sure you want to remove Save file {files_data[option][0]}?", can_esc = True).display(Settings.keybinds) :
-        //                            ts.remove_save(files_data[option][0], files_data[option][2])
-        //                            list_data.pop(option * 2)
-        //                            list_data.pop(option * 2)
-        //                            files_data.pop(option)
-        //                    else:
-        //                        break
-        //                if len(files_data) == 0:
-        //                    in_main_menu = True
-        //            // back
-        //            else:
-        //                in_main_menu = True
-        //        elif(option == 2 and len(files_data)) or(option == 1 and not len(files_data)) :
-        //            sfm.UI_list(["Keybinds", "Question popups", "Other", None, "Back"], " Options", None, False, True, [keybind_setting, ask_options, other_options], True).display(Settings.keybinds)
-        //            in_main_menu = True
+        /// <summary>
+        /// The main game loop of the game.
+        /// </summary>
+        public static void GameLoop()
+        {
+            Console.WriteLine("\n\nGAME LOOP NOT DONE YET!!!\n\n");
+            Logger.Log("GAME LOOP PLACEHOLDER", "yes", LogSeverity.FAIL);
+        }
 
-        //        // action
-        //        // new save
-        //        if status[0] == 1:
-        //            press_key(f"\nCreating new save!\n")
-        //            new_save()
-        //            files_data = sm.get_saves_data()
-        //        // load
-        //        elif status[0] == 0:
-        //            press_key(f"\nLoading save: {status[1]}!")
-        //            load_save(status[1], status[2])
-        //            files_data = sm.get_saves_data()
-        //}
+        /// <summary>
+        /// Creates a new save.
+        /// </summary>
+        public static void NewSave()
+        {
+            SaveManager.CreateSaveData();
+            SaveManager.MakeSave();
+            Logger.Log("Created save", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
+            GameLoop();
+        }
+
+        /// <summary>
+        /// Loads an existing save.
+        /// </summary>
+        public static void LoadSave(string saveName)
+        {
+            var backupChoice = Settings.DefBackupAction == -1;
+            var automaticBackup = Settings.DefBackupAction == 1;
+            SaveManager.LoadSave(saveName, backupChoice, automaticBackup);
+            GameLoop();
+        }
+
+        /// <summary>
+        /// Regenerates the save file.
+        /// </summary>
+        /// <param name="saveName">The name of the save folder.</param>
+        /// <param name="makeBackup">Whether to make a backup before regenerating.</param>
+        public static void RegenerateSaveFile(string saveName, bool makeBackup = true)
+        {
+            Console.WriteLine($"Regenerating \"{saveName}\":");
+            Logger.Log("Regenerating save file", $"save name: {saveName}");
+            Console.Write("\tLoading...");
+            SaveManager.LoadSave(saveName, false, makeBackup);
+            Console.WriteLine("DONE!");
+            Logger.Log("Loading all chunks from file", $"save name: {saveName}");
+            World.LoadAllChunksFromFolder(showProgressText: "\tLoading world...");
+            Console.Write("\tDeleting...");
+            Tools.DeleteSave(saveName);
+            Console.WriteLine("DONE!");
+            Console.Write("\tSaving...\r");
+            SaveManager.MakeSave(showProgressText: "\tSaving...");
+            Logger.Log("Save file regenerated", $"save name: {saveName}");
+        }
+
+        /// <summary>
+        /// Displays the main menu.
+        /// </summary>
+        public static void MainMenu()
+        {
+            Console.WriteLine("REFACTOR MAIN MENU... STILL!");
+            Logger.Log("REFACTOR MAIN MENU... STILL!", "do it", LogSeverity.FAIL);
+            var savesData = SaveManager.GetSavesData();
+            var inMainMenu = true;
+            while (true)
+            {
+                (int menuStatus, string? SelectedSaveName) status = (-1, null);
+                int selectedElement;
+                List<string> mainMenuElementList;
+
+                if (inMainMenu)
+                {
+                    inMainMenu = false;
+                    if (savesData.Any())
+                    {
+                        mainMenuElementList = new List<string> { "New save", "Load/Delete save", "Options" };
+                    }
+                    else
+                    {
+                        mainMenuElementList = new List<string> { "New save", "Options" };
+                    }
+                    selectedElement = (int)new UIList(mainMenuElementList, " Main menu", canEscape: true).Display(Settings.Keybinds.KeybindList);
+                }
+                else if (savesData.Any())
+                {
+                    selectedElement = 1;
+                }
+                else
+                {
+                    selectedElement = -2;
+                    inMainMenu = true;
+                }
+
+                // new file
+                if (selectedElement == 0)
+                {
+                    status = (1, "");
+                }
+                else if (selectedElement == -1)
+                {
+                    break;
+                }
+                // load/delete
+                else if (selectedElement == 1 && savesData.Any())
+                {
+                    // get data from file_data
+                    var savesMenuElements = new List<string?>();
+                    foreach (var (saveName, displayText) in savesData)
+                    {
+                        savesMenuElements.Add(displayText);
+                        savesMenuElements.Add(null);
+                    }
+                    savesMenuElements.Add("Regenerate all save files");
+                    savesMenuElements.Add("Delete file");
+                    savesMenuElements.Add("Back");
+                    var filesMenuSelected = (int)new UIList(savesMenuElements, " Level select", null, true, true, excludeNulls: true).Display(Settings.Keybinds.KeybindList);
+                    // load
+                    if (filesMenuSelected != -1 && filesMenuSelected < savesData.Count)
+                    {
+                        status = (0, savesData[filesMenuSelected].saveName);
+                    }
+                    // regenerate
+                    else if (filesMenuSelected == savesData.Count)
+                    {
+                        if (!Settings.AskRegenerateSave || AskYesNoUIQuestion(" Are you sure you want to regenerate ALL save files? This will load, delete then resave EVERY save file!", false))
+                        {
+                            bool backupSaves;
+                            if (Settings.DefBackupAction == -1)
+                            {
+                                backupSaves = AskYesNoUIQuestion(" Do you want to backup your save files before regenerating them?");
+                            }
+                            else
+                            {
+                                backupSaves = Settings.DefBackupAction == 1;
+                            }
+                            Console.WriteLine("Regenerating save files...\n");
+                            foreach (var (saveName, displayText) in savesData)
+                            {
+                                RegenerateSaveFile(saveName, backupSaves);
+                            }
+                            savesData = SaveManager.GetSavesData();
+                            Console.WriteLine("\nDONE!");
+                        }
+                    }
+                    // delete
+                    else if (filesMenuSelected == savesData.Count + 1)
+                    {
+                        // remove "delete file" + "regenerate save files"
+                        savesMenuElements.RemoveAt(savesMenuElements.Count - 2);
+                        savesMenuElements.RemoveAt(savesMenuElements.Count - 2);
+                        while (savesData.Any())
+                        {
+                            filesMenuSelected = (int)new UIList(savesMenuElements, " Delete mode!", Constants.DELETE_CURSOR_ICONS, true, true, excludeNulls: true).Display(Settings.Keybinds.KeybindList);
+                            if (filesMenuSelected != -1 && filesMenuSelected < (savesMenuElements.Count - 1) / 2)
+                            {
+                                if (!Settings.AskDeleteSave || AskYesNoUIQuestion($" Are you sure you want to remove Save file {savesData[filesMenuSelected].saveName}?", false))
+                                {
+                                    Tools.DeleteSave(savesData[filesMenuSelected].saveName);
+                                    savesMenuElements.RemoveAt(filesMenuSelected * 2);
+                                    savesMenuElements.RemoveAt(filesMenuSelected * 2);
+                                    savesData.RemoveAt(filesMenuSelected);
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        if (savesData.Count == 0)
+                        {
+                            inMainMenu = true;
+                        }
+                    }
+                    // back
+                    else
+                    {
+                        inMainMenu = true;
+                    }
+                }
+                else if ((selectedElement == 2 && savesData.Any()) || (selectedElement == 1 && !savesData.Any()))
+                {
+                    var optionsMenuAnswers = new List<string?>
+                    {
+                        "Keybinds",
+                        "Question popups",
+                        "Other",
+                        null,
+                        "Back"
+                    };
+                    var optionsMenuActions = new List<UIAction>
+                    {
+                        new UIAction(KeybindSettings),
+                        new UIAction(AskOptions),
+                        new UIAction(OtherOptions),
+                    };
+                    new UIList(optionsMenuAnswers, " Options", null, false, true, optionsMenuActions, true).Display(Settings.Keybinds.KeybindList);
+                    inMainMenu = true;
+                }
+
+                // action
+                // new save
+                if (status.menuStatus == 1)
+                {
+                    Utils.PressKey("\nCreating new save!\n");
+                    NewSave();
+                    savesData = SaveManager.GetSavesData();
+                }
+                // load
+                else if (status.menuStatus == 0 && status.SelectedSaveName is not null)
+                {
+                    Utils.PressKey($"\nLoading save: {status.SelectedSaveName}!");
+                    LoadSave(status.SelectedSaveName);
+                    savesData = SaveManager.GetSavesData();
+                }
+            }
+        }
         #endregion
 
         #region Private function

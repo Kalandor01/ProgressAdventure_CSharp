@@ -113,14 +113,16 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="position">The position of the chunk.</param>
         /// <param name="saveFolderName">The name of the save folder.<br/>
         /// If null, it will make one using the save name in <c>SaveData</c>.</param>
-        public static Chunk? FromFile((long x, long y) position, string? saveFolderName = null)
+        /// <param name="expected">If the chunk is expected to exist.<br/>
+        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE CHUNK DOESN'T EXIST.</param>
+        public static Chunk? FromFile((long x, long y) position, string? saveFolderName = null, bool expected = true)
         {
             saveFolderName ??= SaveData.saveName;
             var chunkFileName = GetChunkFileName(position);
             Dictionary<string, object?>? chunkJson;
             try
             {
-                chunkJson = Tools.DecodeSaveShort(GetChunkFilePath(chunkFileName, saveFolderName));
+                chunkJson = Tools.DecodeSaveShort(GetChunkFilePath(chunkFileName, saveFolderName), expected: expected);
             }
             catch (Exception e)
             {
@@ -131,12 +133,12 @@ namespace ProgressAdventure.WorldManagement
                 }
                 else if (e is FileNotFoundException)
                 {
-                    Logger.Log("Chunk file not found", null, LogSeverity.ERROR);
+                    Logger.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return null;
                 }
                 else if (e is DirectoryNotFoundException)
                 {
-                    Logger.Log("Chunk folder not found", null, LogSeverity.ERROR);
+                    Logger.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return null;
                 }
                 throw;

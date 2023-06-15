@@ -84,6 +84,7 @@ namespace ProgressAdventureTests
             RunTest(Tests.AllItemTypesExistAndLoadable, false);
             RunTest(Tests.AllEntitiesLoadable, false);
             RunTest(Tests.BasicJsonConvertTest, false);
+            RunTest(Tests.DictionaryMapsTest, false);
         }
     }
 }

@@ -54,10 +54,12 @@ namespace ProgressAdventure
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
         /// <param name="seed">The seed for decoding the file.</param>
         /// <param name="extension">The extension of the file that will be decoded.</param>
+        /// <param name="expected">If the file is expected to exist.<br/>
+        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
         /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
-        public static Dictionary<string, object?>? DecodeSaveShort(string filePath, int lineNum = 0, long? seed = null, string? extension = null)
+        public static Dictionary<string, object?>? DecodeSaveShort(string filePath, int lineNum = 0, long? seed = null, string? extension = null, bool expected = true)
         {
             seed ??= Constants.SAVE_SEED;
             extension ??= Constants.SAVE_EXT;
@@ -75,12 +77,12 @@ namespace ProgressAdventure
             }
             catch (FileNotFoundException)
             {
-                Logger.Log("File not found", $"file name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
+                Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{Constants.SAVE_EXT}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
             catch (DirectoryNotFoundException)
             {
-                Logger.Log("Folder containing file not found", $"folder name: {safeFilePath}.{Constants.SAVE_EXT}", LogSeverity.ERROR);
+                Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{Constants.SAVE_EXT}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
             try
@@ -417,7 +419,7 @@ namespace ProgressAdventure
             var saveFolderPath = GetSaveFolderPath(saveFolderName);
             if (Directory.Exists(saveFolderPath))
             {
-                Directory.Delete(saveFolderPath);
+                Directory.Delete(saveFolderPath, true);
                 Logger.Log("Deleted save", $"save name: {saveFolderName}");
             }
         }

@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.WorldManagement;
 using System.Collections;
 using System.Text;
 
@@ -53,8 +54,7 @@ namespace ProgressAdventure
             //EntityUtils.Fight(es2);
 
 
-            //MenuManager.OtherOptions();
-            MenuManager.KeybindSettings();
+            //MenuManager.MainMenu();
 
 
 
