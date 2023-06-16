@@ -70,30 +70,50 @@ namespace ProgressAdventure.WorldManagement
         public static void SaveAllChunksToFiles(string? saveFolderName = null, bool clearChunks = false, string? showProgressText = null)
         {
             saveFolderName ??= SaveData.saveName;
-            Dictionary<string, Chunk>? chunkData;
+            Dictionary<string, Chunk> chunkData;
+
+            // clearing chunks
             if (clearChunks)
             {
+                chunkData = new Dictionary<string, Chunk>();
                 if (showProgressText is not null)
                 {
-                    Console.Write($"{showProgressText}COPYING...\r");
+                    Console.Write($"{showProgressText}-COPYING...          ");
+                    for (var x = 0; x < Chunks.Count; x++)
+                    {
+                        var chunk = Chunks.ElementAt(x).DeepCopy();
+                        chunkData.Add(chunk.Key, chunk.Value);
+                        Console.Write($"\r{showProgressText}{Math.Round((double)(x + 1) / Chunks.Count * 100, 1)}%");
+                    }
+                    Console.WriteLine($"\r{showProgressText}-COPYING...DONE!                         \r");
                 }
-                chunkData = Chunks.DeepCopy();
+                else
+                {
+                    foreach (var chunk in Chunks)
+                    {
+                        var chunkCopy = chunk.DeepCopy();
+                        chunkData.Add(chunkCopy.Key, chunkCopy.Value);
+                    }
+                }
+
                 Chunks.Clear();
             }
             else
             {
                 chunkData = Chunks;
             }
+
+            // saving chunks
             if (showProgressText is not null)
             {
                 double chunkNum = chunkData.Count;
-                Console.Write(showProgressText + "              ");
+                Console.Write(showProgressText + "                  ");
                 for ( var x = 0; x < chunkNum; x++)
                 {
                     chunkData.ElementAt(x).Value.SaveToFile(saveFolderName);
                     Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%");
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                       ");
+                Console.WriteLine($"\r{showProgressText}DONE!                         ");
             }
             else
             {
@@ -142,6 +162,7 @@ namespace ProgressAdventure.WorldManagement
         {
             saveFolderName ??= SaveData.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
+
             // get existing files
             var chunksFolderPath = Path.Join(Constants.SAVES_FOLDER_PATH, saveFolderName, Constants.SAVE_FOLDER_NAME_CHUNKS);
             var chunkFilePaths = Directory.GetFiles(chunksFolderPath);
@@ -165,10 +186,11 @@ namespace ProgressAdventure.WorldManagement
                         existingChunks.Add((posX, posY));
                         continue;
                     }
-                    Logger.Log("Chunk file parse error", $"chunk positions couldn' be extracted from chunk file name: {chunkFileName}", Enums.LogSeverity.WARN);
+                    Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", Enums.LogSeverity.WARN);
                 }
                 Logger.Log("Chunk file parse error", $"file name is not chunk file name", Enums.LogSeverity.WARN);
             }
+
             // load chunks
             if (showProgressText is not null)
             {

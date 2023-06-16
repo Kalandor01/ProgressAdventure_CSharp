@@ -54,7 +54,7 @@ namespace ProgressAdventure
             //EntityUtils.Fight(es2);
 
 
-            //MenuManager.MainMenu();
+            MenuManager.MainMenu();
 
 
 

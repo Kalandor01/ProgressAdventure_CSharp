@@ -231,9 +231,9 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Turns the json display data from a json into more uniform data.
+        /// Formats the json display data from a save file, into a displayable string.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The save folder's name, and the data extracted from the data file's diplay data.</param>
         private static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, Dictionary<string, object?>? data) data)
         {
             try
@@ -241,23 +241,32 @@ namespace ProgressAdventure
                 if (data.data is not null)
                 {
                     var displayText = new StringBuilder();
+
+                    // display name
                     var displayName = data.data["displayName"] ?? data.folderName;
                     displayText.Append($"{displayName}: {data.data["playerName"]}\n");
+
+                    // last save
                     var lastSave = (DateTime)(data.data["lastSave"] ?? DateTime.Now);
-                    var res = TimeSpan.TryParse(data.data["playtime"]?.ToString(), out var playtime);
-                    if (!res)
+                    displayText.Append($"Last saved: {Utils.MakeDate(lastSave, ".")} {Utils.MakeTime(lastSave)} ");
+
+                    // playtime
+                    var response = TimeSpan.TryParse(data.data["playtime"]?.ToString(), out var playtime);
+                    if (!response)
                     {
                         playtime = TimeSpan.Zero;
                     }
-                    displayText.Append($"Last saved: {Utils.MakeDate(lastSave, ".")} {Utils.MakeTime(lastSave)}");
                     displayText.Append($"Playtime: {playtime}");
+
                     // check version
                     var saveVersion = (string)(data.data["saveVersion"] ?? "[UNKNOWN VERSION]");
                     displayText.Append(Utils.StylizedText($" v.{saveVersion}", saveVersion == Constants.SAVE_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED));
+                    
                     return (data.folderName, displayText.ToString());
                 }
                 else
                 {
+                    Logger.Log("Save display data parse error", $"no data in save file: {data.folderName}", LogSeverity.ERROR);
                     throw new ArgumentException("No data in save file.");
                 }
             }
@@ -265,7 +274,7 @@ namespace ProgressAdventure
             {
                 if (ex is InvalidCastException || ex is ArgumentException || ex is KeyNotFoundException)
                 {
-                    Logger.Log("Parse error", $"Save name: {data.folderName}", LogSeverity.ERROR);
+                    Logger.Log("Save display data parse error", $"Save name: {data.folderName}", LogSeverity.ERROR);
                     Utils.PressKey($"\"{data.folderName}\" could not be parsed!");
                     return null;
                 }

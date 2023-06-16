@@ -57,10 +57,18 @@ namespace PAExtras
         /// <param name="showProggress">Whether to show the conversion proggress text.</param>
         public static void ImportSave(string saveFolderName, bool showProggress = true)
         {
-            Logger.Log("Correcting save file", $"save folder name: {saveFolderName}");
-            Console.WriteLine($"Correcting save file ({saveFolderName})");
             // get folder
             var exprotedSaveFolderPath = Path.Join(Constants.EXPORTED_FOLDER_PATH, saveFolderName);
+            if (!Directory.Exists(exprotedSaveFolderPath))
+            {
+                Logger.Log("Correcting save file", $"save folder doesn't exist: {saveFolderName}", LogSeverity.ERROR);
+                Console.WriteLine($"Save folder \"{exprotedSaveFolderPath}\" doesn't exist");
+                return;
+            }
+
+            Logger.Log("Correcting save file", $"save folder name: {saveFolderName}");
+            Console.WriteLine($"Correcting save file ({saveFolderName})");
+            // get destination folder
             var correctedSaveFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveFolderName);
 
             PATools.RecreateChunksFolder(saveFolderName);
@@ -162,6 +170,10 @@ namespace PAExtras
             //player data
             var playerData = (IDictionary<string, object>)dataFileData["player"];
 
+            // player name
+            var playerName = (string)playerData["name"];
+            displayLine["playerName"] = playerName;
+
             var inventoryJson = new List<Dictionary<string, object>>();
             foreach (var item in (IEnumerable<object>)playerData["inventory"])
             {
@@ -175,7 +187,7 @@ namespace PAExtras
 
             dataLine["player"] = new Dictionary<string, object>
             {
-                ["name"] = (string)playerData["name"],
+                ["name"] = playerName,
                 ["baseMaxHp"] = (int)(long)playerData["base_hp"],
                 ["currentHp"] = (int)(long)playerData["base_hp"],
                 ["baseAttack"] = (int)(long)playerData["base_attack"],

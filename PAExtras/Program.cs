@@ -11,20 +11,11 @@ namespace PAExtras
             Thread.CurrentThread.Name = "PAExtras";
             Logger.LogNewLine();
 
-            var saveName = "test";
-
-            SaveImporter.ImportSave(saveName);
-
-            PASaveManager.LoadSave(saveName);
-
-            World.LoadAllChunksFromFolder(null, "Loading chunks...");
-
-            var ch = World.Chunks;
-            var p = SaveData.player;
-
-            PASaveManager.MakeSave();
-
-            PASaveManager.LoadSave(saveName);
+            SaveImporter.ImportSave("big_test");
+            SaveImporter.ImportSave("new save");
+            SaveImporter.ImportSave("new save_1");
+            SaveImporter.ImportSave("save2_1");
+            SaveImporter.ImportSave("test");
 
             Console.WriteLine();
         }
