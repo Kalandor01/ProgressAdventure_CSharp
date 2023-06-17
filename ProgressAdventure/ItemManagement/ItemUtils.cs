@@ -43,7 +43,7 @@
         };
         #endregion
 
-        #region "Private" dicts
+        #region Internal dicts
         /// <summary>
         /// The dictionary pairing up old item type IDs, to their name.
         /// </summary>

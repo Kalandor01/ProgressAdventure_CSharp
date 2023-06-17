@@ -66,6 +66,9 @@ namespace ProgressAdventure.SettingsManagement
             [ConsoleKey.PageUp] = "page up"
         };
 
+        /// <summary>
+        /// The dictionary pairing up settings keys, to their string representations.
+        /// </summary>
         public static readonly Dictionary<SettingsKey, string> settingsKeyNames = new()
         {
             [SettingsKey.AUTO_SAVE] = "autoSave",
