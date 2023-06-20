@@ -71,6 +71,12 @@ namespace ProgressAdventure
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
+
+            if (!Utils.TryEnableAnsiCodes())
+            {
+                Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+            }
+
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
             SettingsManagement.Settings.Initialise();

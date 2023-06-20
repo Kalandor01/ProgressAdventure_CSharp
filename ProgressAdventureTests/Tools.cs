@@ -68,8 +68,7 @@ namespace ProgressAdventureTests
             RunTest(Tests.SettingsUtilsActionTypeResponseMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsSpecialKeyNameDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsSettingsKeyNameDictionaryCheck, false);
-
-            // TODO: tests for MenuManager and WorldUtils
+            RunTest(Tests.WorldUtilsTileNoiseOffsetsDictionaryCheck, false);
 
             Logger.Log("All dictionary tests finished runing");
 

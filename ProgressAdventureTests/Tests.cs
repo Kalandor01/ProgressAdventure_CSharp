@@ -3,6 +3,7 @@ using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
+using ProgressAdventure.WorldManagement;
 using SaveFileManager;
 using System.Reflection;
 using Xunit;
@@ -513,6 +514,35 @@ namespace ProgressAdventureTests
                     }
                 }
                 else
+                {
+                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the WorldUtils, tile noise offsets dictionary contains all required keys and correct values.
+        /// </summary>
+        [Fact]
+        public static TestResult? WorldUtilsTileNoiseOffsetsDictionaryCheck()
+        {
+            var requiredKeys = Enum.GetValues<TileNoiseType>();
+            IDictionary<TileNoiseType, double> checkedDictionary;
+
+            try
+            {
+                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<TileNoiseType, double>>(typeof(WorldUtils), "_tileNoiseOffsets");
+            }
+            catch (Exception ex)
+            {
+                return new TestResult(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+            }
+
+            foreach (var key in requiredKeys)
+            {
+                if (!checkedDictionary.TryGetValue(key, out double value))
                 {
                     return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }

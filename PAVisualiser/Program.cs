@@ -29,6 +29,12 @@ namespace PAVisualiser
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
+
+            if (!PAUtils.TryEnableAnsiCodes())
+            {
+                Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+            }
+
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
             ProgressAdventure.SettingsManagement.Settings.Initialise();

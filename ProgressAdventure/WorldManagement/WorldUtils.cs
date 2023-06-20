@@ -22,7 +22,7 @@ namespace ProgressAdventure.WorldManagement
 
         #region Config dictionaries
         /// <summary>
-        /// Offsets for tile noise values
+        /// Offsets for tile noise values.
         /// </summary>
         private static readonly Dictionary<TileNoiseType, double> _tileNoiseOffsets = new()
         {

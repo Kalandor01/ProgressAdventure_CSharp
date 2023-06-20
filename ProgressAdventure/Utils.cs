@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using PInvoke;
+using System.Collections;
 using System.Text;
 
 namespace ProgressAdventure
@@ -96,6 +97,22 @@ namespace ProgressAdventure
         public static string MakeTime(DateTime dateTime, string separation = ":", bool writeMs = false, string msSeparation = ".")
         {
             return dateTime.ToString($"HH{separation}mm{separation}ss{(writeMs ? $"{msSeparation}ffffff" : "")}");
+        }
+
+        /// <summary>
+        /// Tries to enable ANSI codes, so they work for the terminal outside of the debug console.
+        /// </summary>
+        public static bool TryEnableAnsiCodes()
+        {
+            var stdHandle = Kernel32.StdHandle.STD_OUTPUT_HANDLE;
+
+            var consoleHandle = Kernel32.GetStdHandle(stdHandle);
+            if (Kernel32.GetConsoleMode(consoleHandle, out var consoleBufferModes) &&
+                consoleBufferModes.HasFlag(Kernel32.ConsoleBufferModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+                return true;
+
+            consoleBufferModes |= Kernel32.ConsoleBufferModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            return Kernel32.SetConsoleMode(consoleHandle, consoleBufferModes);
         }
 
         /// <summary>

@@ -18,7 +18,7 @@ namespace ProgressAdventureTests
             Tools.RunAllTests();
 
 
-            Console.WriteLine();
+            PAUtils.PressKey();
         }
 
         /// <summary>
@@ -31,6 +31,12 @@ namespace ProgressAdventureTests
             Thread.CurrentThread.Name = Constants.TESTS_THREAD_NAME;
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
+
+            if (!Utils.TryEnableAnsiCodes())
+            {
+                Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+            }
+
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
