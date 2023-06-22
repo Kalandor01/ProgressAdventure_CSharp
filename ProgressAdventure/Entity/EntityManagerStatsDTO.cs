@@ -3,9 +3,9 @@
 namespace ProgressAdventure.Entity
 {
     /// <summary>
-    /// Struct used for storing stats returned by the EntityManager function.
+    /// DTO used for storing stats returned by the EntityManager function.
     /// </summary>
-    public struct EntityManagerStats
+    public class EntityManagerStatsDTO
     {
         #region Fields
         public int baseMaxHp;
@@ -19,13 +19,7 @@ namespace ProgressAdventure.Entity
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="EntityManagerStats"/>
-        /// </summary>
-        public EntityManagerStats()
-            : this(1, 1, 1, 1, 1, 1, new List<Attribute>()) { }
-
-        /// <summary>
-        /// <inheritdoc cref="EntityManagerStats"/>
+        /// <inheritdoc cref="EntityManagerStatsDTO"/>
         /// </summary>
         /// <param name="baseMaxHp"></param>
         /// <param name="baseAttack"></param>
@@ -34,14 +28,14 @@ namespace ProgressAdventure.Entity
         /// <param name="originalTeam"></param>
         /// <param name="currentTeam"></param>
         /// <param name="attributes"></param>
-        public EntityManagerStats(
+        public EntityManagerStatsDTO(
             int baseMaxHp,
             int baseAttack,
             int baseDefence,
             int baseAgility,
-            int originalTeam,
-            int currentTeam,
-            List<Attribute> attributes
+            int originalTeam = 1,
+            int? currentTeam = null,
+            List<Attribute>? attributes = null
         )
         {
             this.baseMaxHp = baseMaxHp;
@@ -49,8 +43,8 @@ namespace ProgressAdventure.Entity
             this.baseDefence = baseDefence;
             this.baseAgility = baseAgility;
             this.originalTeam = originalTeam;
-            this.currentTeam = currentTeam;
-            this.attributes = attributes;
+            this.currentTeam = currentTeam ?? originalTeam;
+            this.attributes = attributes ?? new List<Attribute>();
         }
         #endregion
     }

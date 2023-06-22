@@ -86,14 +86,14 @@ namespace ProgressAdventure.Entity
         /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        public static EntityManagerStats EntityManager(
+        public static EntityManagerStatsDTO EntityManager(
             int baseMaxHp,
             int baseAttack,
             int baseDefence,
             int baseAgility,
             int negativeFluctuation = 2,
             int positiveFluctuation = 3,
-            AttributeChances? attributeChances = null,
+            AttributeChancesDTO? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
         )
@@ -120,12 +120,12 @@ namespace ProgressAdventure.Entity
         /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
-        public static EntityManagerStats EntityManager(
+        public static EntityManagerStatsDTO EntityManager(
             (int lower, int middle, int upper) baseMaxHp,
             (int lower, int middle, int upper) baseAttack,
             (int lower, int middle, int upper) baseDefence,
             (int lower, int middle, int upper) baseAgility,
-            AttributeChances? attributeChances = null,
+            AttributeChancesDTO? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
         )
@@ -145,12 +145,12 @@ namespace ProgressAdventure.Entity
             {
                 currentTeam = 0;
             }
-            return new EntityManagerStats(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseAgilityValue, originalTeam, currentTeam, attributes);
+            return new EntityManagerStatsDTO(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseAgilityValue, originalTeam, currentTeam, attributes);
         }
 
-        public static List<Attribute> GenerateEntityAttributes(AttributeChances? attributeChances)
+        public static List<Attribute> GenerateEntityAttributes(AttributeChancesDTO? attributeChances)
         {
-            var attrChances = attributeChances ?? new AttributeChances();
+            var attrChances = attributeChances ?? new AttributeChancesDTO();
             var attributes = new List<Attribute>();
             // all attributes
             if (RandomStates.MainRandom.GenerateDouble() < attrChances.rareChance)

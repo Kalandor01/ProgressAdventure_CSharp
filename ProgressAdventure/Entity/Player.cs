@@ -39,7 +39,7 @@ namespace ProgressAdventure.Entity
                     (7, 10, 13),
                     (7, 10, 13),
                     (1, 10, 20),
-                    new AttributeChances(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                    new AttributeChancesDTO(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                     0,
                     0
                 ),
@@ -61,7 +61,7 @@ namespace ProgressAdventure.Entity
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         private Player(
             string? name,
-            EntityManagerStats stats,
+            EntityManagerStatsDTO stats,
             Inventory? inventory = null,
             (long x, long y)? position = null,
             Facing? facing = null

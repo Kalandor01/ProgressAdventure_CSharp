@@ -1,32 +1,26 @@
 ﻿namespace ProgressAdventure.Entity
 {
     /// <summary>
-    /// Struct used for storing the chances of an entity getting a specific attribute, when creating it's stats in the EntityManager function (1 = 100%).
+    /// DTO used for storing the chances of an entity getting a specific attribute, when creating it's stats in the EntityManager function (1 = 100%).
     /// </summary>
-    public struct AttributeChances
+    public class AttributeChancesDTO
     {
         #region Fields
-        public double rareChance;
-        public double crippledChance;
-        public double healthyChance;
-        public double sickChance;
-        public double strongChance;
-        public double weakChance;
-        public double toughChance;
-        public double frailChance;
-        public double agileChance;
-        public double slowChance;
+        public readonly double rareChance;
+        public readonly double crippledChance;
+        public readonly double healthyChance;
+        public readonly double sickChance;
+        public readonly double strongChance;
+        public readonly double weakChance;
+        public readonly double toughChance;
+        public readonly double frailChance;
+        public readonly double agileChance;
+        public readonly double slowChance;
         #endregion
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="AttributeChances"/>
-        /// </summary>
-        public AttributeChances()
-            : this(0.02) { }
-
-        /// <summary>
-        /// <inheritdoc cref="AttributeChances"/>
+        /// <inheritdoc cref="AttributeChancesDTO"/>
         /// </summary>
         /// <param name="rareChance"></param>
         /// <param name="crippledChance"></param>
@@ -38,7 +32,7 @@
         /// <param name="frailChance"></param>
         /// <param name="agileChance"></param>
         /// <param name="slowChance"></param>
-        public AttributeChances(
+        public AttributeChancesDTO(
             double rareChance = 0.02,
             double crippledChance = 0.02,
             double healthyChance = 0.1,

@@ -98,7 +98,7 @@ namespace ProgressAdventure.Entity
         /// <param name="fileVersion">The version number of the loaded file.</param>
         public Entity(
             string name,
-            EntityManagerStats stats,
+            EntityManagerStatsDTO stats,
             List<Item>? drops = null,
             string fileVersion = Constants.SAVE_VERSION
         )
@@ -517,7 +517,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly rolled stats, specific to this entity type.
         /// </summary>
-        public static EntityManagerStats GetBaseStats()
+        public static EntityManagerStatsDTO GetBaseStats()
         {
             return EntityUtils.EntityManager(5, 5, 5, 5);
         }

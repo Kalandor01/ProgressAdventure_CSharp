@@ -91,16 +91,9 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private void SetAttributes()
         {
-            string? displayNameValue = null;
-            bool? consumableValue = null;
-            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributes attributes))
-            {
-                displayNameValue = attributes.displayName;
-                consumableValue = attributes.consumable;
-            }
-
-            DisplayName = displayNameValue ?? ItemUtils.ItemIDToDisplayName(Type);
-            Consumable = consumableValue ?? false;
+            var attributes = ItemUtils.itemAttributes[Type];
+            DisplayName = attributes.displayName;
+            Consumable = attributes.consumable;
         }
         #endregion
 
@@ -125,13 +118,13 @@ namespace ProgressAdventure.ItemManagement
         public Dictionary<string, object?> ToJson()
         {
             string typeName;
-            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributes attributes))
+            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributesDTO attributes))
             {
                 typeName = attributes.typeName;
             }
             else
             {
-                typeName = "[UNKNOWN TYPE NAME]";
+                typeName = ItemUtils.ItemIDToTypeName(Type);
                 Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
             }
 

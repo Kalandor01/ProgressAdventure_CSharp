@@ -18,7 +18,7 @@ namespace ProgressAdventureTests
         /// Checks if all item IDs can be turned into items.
         /// </summary>
         [Fact]
-        public static TestResult? AllItemTypesExistAndLoadable()
+        public static TestResultDTO? AllItemTypesExistAndLoadable()
         {
             var itemAmount = 3;
 
@@ -34,7 +34,7 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResult(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
+                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
                 }
 
                 allItems.Add(item);
@@ -57,7 +57,7 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResult(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
+                    return new TestResultDTO(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
                 }
 
                 if (
@@ -70,7 +70,7 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                return new TestResult(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+                return new TestResultDTO(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
             }
 
             return null;
@@ -80,7 +80,7 @@ namespace ProgressAdventureTests
         /// Checks if all entities have a type name, and can be loaded from json.
         /// </summary>
         [Fact]
-        public static TestResult? AllEntitiesLoadable()
+        public static TestResultDTO? AllEntitiesLoadable()
         {
             RandomStates.Initialise();
 
@@ -104,7 +104,7 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResult(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                    return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
                 }
 
                 string? typeName = null;
@@ -119,7 +119,7 @@ namespace ProgressAdventureTests
 
                 if (typeName is null)
                 {
-                    return new TestResult(LogSeverity.FAIL, "Entity type has no type name in entity type map");
+                    return new TestResultDTO(LogSeverity.FAIL, "Entity type has no type name in entity type map");
                 }
 
 
@@ -141,7 +141,7 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResult(LogSeverity.FAIL, $"Entity creation from default json failed for \"{entityType}\": " + ex);
+                    return new TestResultDTO(LogSeverity.FAIL, $"Entity creation from default json failed for \"{entityType}\": " + ex);
                 }
 
                 entities.Add(entity);
@@ -164,7 +164,7 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResult(LogSeverity.FAIL, $"Loading entity from json failed for \"{entity.GetType()}\": " + ex);
+                    return new TestResultDTO(LogSeverity.FAIL, $"Loading entity from json failed for \"{entity.GetType()}\": " + ex);
                 }
 
                 if (
@@ -180,7 +180,7 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                return new TestResult(LogSeverity.FAIL, $"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
+                return new TestResultDTO(LogSeverity.FAIL, $"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
             }
 
             return null;
@@ -190,7 +190,7 @@ namespace ProgressAdventureTests
         /// Checks if the Logger, logging values dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? LoggerLoggingValuesDictionaryCheck()
+        public static TestResultDTO? LoggerLoggingValuesDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<LogSeverity>();
             var checkedDictionary = Logger.loggingValuesMap;
@@ -202,7 +202,7 @@ namespace ProgressAdventureTests
                 {
                     if (existingValues.Contains(value))
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -211,7 +211,7 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -222,7 +222,7 @@ namespace ProgressAdventureTests
         /// Checks if the EntityUtils, facing to movement vector dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? EntityUtilsFacingToMovementVectorDictionaryCheck()
+        public static TestResultDTO? EntityUtilsFacingToMovementVectorDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Facing>();
             IDictionary<Facing, (int x, int y)> checkedDictionary;
@@ -233,7 +233,7 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResult(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
             var existingValues = new List<(int x, int y)>();
@@ -246,7 +246,7 @@ namespace ProgressAdventureTests
                         existingValues.Contains(value)
                     )
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -255,14 +255,14 @@ namespace ProgressAdventureTests
                             value.y < -1 || value.y > 1
                         )
                         {
-                            return new TestResult(LogSeverity.FAIL, $"The value associated to \"{key}\" is wrong.");
+                            return new TestResultDTO(LogSeverity.FAIL, $"The value associated to \"{key}\" is wrong.");
                         }
                         existingValues.Add(value);
                     }
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -273,7 +273,7 @@ namespace ProgressAdventureTests
         /// Checks if the EntityUtils, attributes stat change dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? EntityUtilsAttributeStatsChangeDictionaryCheck()
+        public static TestResultDTO? EntityUtilsAttributeStatsChangeDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Attribute>();
             IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)> checkedDictionary;
@@ -284,7 +284,7 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResult(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
             var existingValues = new List<(double maxHp, double attack, double defence, double agility)>();
@@ -295,7 +295,7 @@ namespace ProgressAdventureTests
                 {
                     if (existingValues.Contains(value))
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -304,7 +304,7 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -315,7 +315,7 @@ namespace ProgressAdventureTests
         /// Checks if the EntityUtils, attribute name dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? EntityUtilsAttributeNameDictionaryCheck()
+        public static TestResultDTO? EntityUtilsAttributeNameDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Attribute>();
             IDictionary<Attribute, string> checkedDictionary;
@@ -326,7 +326,7 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResult(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
             var existingValues = new List<string>();
@@ -337,7 +337,7 @@ namespace ProgressAdventureTests
                 {
                     if (existingValues.Contains(value))
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -346,7 +346,7 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -357,7 +357,7 @@ namespace ProgressAdventureTests
         /// Checks if the ItemUtils, item attributes dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? ItemUtilsItemAttributesDictionaryCheck()
+        public static TestResultDTO? ItemUtilsItemAttributesDictionaryCheck()
         {
             var requiredKeys = ItemUtils.GetAllItemTypes();
             var checkedDictionary = ItemUtils.itemAttributes;
@@ -366,15 +366,15 @@ namespace ProgressAdventureTests
 
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out ItemAttributes value))
+                if (checkedDictionary.TryGetValue(key, out ItemAttributesDTO value))
                 {
                     if (value.typeName is null)
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The type name in the dictionary at \"{key}\" is null.");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The type name in the dictionary at \"{key}\" is null.");
                     }
                     if (existingValues.Contains(value.typeName))
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the type name \"{value.typeName}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the type name \"{value.typeName}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -383,7 +383,7 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -394,7 +394,7 @@ namespace ProgressAdventureTests
         /// Checks if the SettingsUtils, action type ignore mapping dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? SettingsUtilsActionTypeIgnoreMappingDictionaryCheck()
+        public static TestResultDTO? SettingsUtilsActionTypeIgnoreMappingDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
             var checkedDictionary = SettingsUtils.actionTypeIgnoreMapping;
@@ -405,12 +405,12 @@ namespace ProgressAdventureTests
                 {
                     if (value is null)
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
                     }
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -421,7 +421,7 @@ namespace ProgressAdventureTests
         /// Checks if the SettingsUtils, action type response mapping dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? SettingsUtilsActionTypeResponseMappingDictionaryCheck()
+        public static TestResultDTO? SettingsUtilsActionTypeResponseMappingDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
             var checkedDictionary = SettingsUtils.actionTypeResponseMapping;
@@ -434,7 +434,7 @@ namespace ProgressAdventureTests
                 {
                     if (existingValues.Contains(value))
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -443,7 +443,7 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -454,7 +454,7 @@ namespace ProgressAdventureTests
         /// Checks if the SettingsUtils, special key name dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? SettingsUtilsSpecialKeyNameDictionaryCheck()
+        public static TestResultDTO? SettingsUtilsSpecialKeyNameDictionaryCheck()
         {
             var checkedDictionary = SettingsUtils.specialKeyNameMap;
 
@@ -465,7 +465,7 @@ namespace ProgressAdventureTests
             {
                 if (existingKeys.Contains(element.Key))
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the key \"{element.Key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the key \"{element.Key}\".");
                 }
                 else
                 {
@@ -474,7 +474,7 @@ namespace ProgressAdventureTests
 
                 if (existingValues.Contains(element.Value))
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{element.Value}\", associated with \"{element.Key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{element.Value}\", associated with \"{element.Key}\".");
                 }
                 else
                 {
@@ -489,7 +489,7 @@ namespace ProgressAdventureTests
         /// Checks if the SettingsUtils, settings key name dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? SettingsUtilsSettingsKeyNameDictionaryCheck()
+        public static TestResultDTO? SettingsUtilsSettingsKeyNameDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<SettingsKey>();
             var checkedDictionary = SettingsUtils.settingsKeyNames;
@@ -502,11 +502,11 @@ namespace ProgressAdventureTests
                 {
                     if (value is null)
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The value in the dictionary at \"{key}\" is null.");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The value in the dictionary at \"{key}\" is null.");
                     }
                     if (existingValues.Contains(value))
                     {
-                        return new TestResult(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     }
                     else
                     {
@@ -515,7 +515,7 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -526,7 +526,7 @@ namespace ProgressAdventureTests
         /// Checks if the WorldUtils, tile noise offsets dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
-        public static TestResult? WorldUtilsTileNoiseOffsetsDictionaryCheck()
+        public static TestResultDTO? WorldUtilsTileNoiseOffsetsDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<TileNoiseType>();
             IDictionary<TileNoiseType, double> checkedDictionary;
@@ -537,14 +537,14 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResult(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
             foreach (var key in requiredKeys)
             {
                 if (!checkedDictionary.TryGetValue(key, out double value))
                 {
-                    return new TestResult(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 
@@ -557,7 +557,7 @@ namespace ProgressAdventureTests
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
         /// </summary>
         [Fact]
-        public static TestResult? BasicJsonConvertTest()
+        public static TestResultDTO? BasicJsonConvertTest()
         {
             RandomStates.Initialise();
 
@@ -567,7 +567,7 @@ namespace ProgressAdventureTests
             var filteredTypes = unfilteredTypes.Where(type => type != typeof(IJsonConvertable<>));
 
 
-            return new TestResult(LogSeverity.PASS, "Not realy implemented!");
+            return new TestResultDTO(LogSeverity.PASS, "Not realy implemented!");
         }
     }
 }

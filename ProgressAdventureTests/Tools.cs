@@ -29,14 +29,14 @@ namespace ProgressAdventureTests
         {
             var testName = PrepareTest(testFunction, newLine);
 
-            TestResult result;
+            TestResultDTO result;
             try
             {
-                result = (TestResult?)testFunction.DynamicInvoke() ?? new TestResult();
+                result = (TestResultDTO?)testFunction.DynamicInvoke() ?? new TestResultDTO();
             }
             catch (Exception ex)
             {
-                EvaluateResult(testName, new TestResult(LogSeverity.FATAL, ex.ToString()));
+                EvaluateResult(testName, new TestResultDTO(LogSeverity.FATAL, ex.ToString()));
                 return;
             }
             EvaluateResult(testName, result);
@@ -182,11 +182,11 @@ namespace ProgressAdventureTests
         /// </summary>
         /// <param name="testName">The name of the test.</param>
         /// <param name="result">The result of the test.</param>
-        private static void EvaluateResult(string testName, TestResult result)
+        private static void EvaluateResult(string testName, TestResultDTO result)
         {
             var passed = result.resultType == LogSeverity.PASS;
             var typeText = PAUtils.StylizedText(result.resultType.ToString(), passed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
-            var messageText = passed ? "" : ": " + result.resultMessage;
+            var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
 
             Console.WriteLine(typeText + messageText);
             Logger.Log(testName, result.resultType + (messageText), result.resultType);

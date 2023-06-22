@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using System.Text;
+
+namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
     /// Utils for items.
@@ -9,37 +11,37 @@
         /// <summary>
         /// The dictionary pairing up item types, to their attributes.
         /// </summary>
-        public static readonly Dictionary<ItemTypeID, ItemAttributes> itemAttributes = new()
+        public static readonly Dictionary<ItemTypeID, ItemAttributesDTO> itemAttributes = new()
         {
             //weapons
-            [ItemType.Weapon.WOODEN_SWORD] = new ItemAttributes("weapon/wooden_sword", null, null),
-            [ItemType.Weapon.STONE_SWORD] = new ItemAttributes("weapon/stone_sword", null, null),
-            [ItemType.Weapon.STEEL_SWORD] = new ItemAttributes("weapon/steel_sword", null, null),
-            [ItemType.Weapon.WOODEN_BOW] = new ItemAttributes("weapon/wooden_bow", null, null),
-            [ItemType.Weapon.STEEL_ARROW] = new ItemAttributes("weapon/steel_arrow", null, null),
-            [ItemType.Weapon.WOODEN_CLUB] = new ItemAttributes("weapon/wooden_club", null, null),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributes("weapon/club_with_teeth", "Teeth club", false),
+            [ItemType.Weapon.WOODEN_SWORD] = new ItemAttributesDTO(ItemType.Weapon.WOODEN_SWORD),
+            [ItemType.Weapon.STONE_SWORD] = new ItemAttributesDTO(ItemType.Weapon.STONE_SWORD),
+            [ItemType.Weapon.STEEL_SWORD] = new ItemAttributesDTO(ItemType.Weapon.STEEL_SWORD),
+            [ItemType.Weapon.WOODEN_BOW] = new ItemAttributesDTO(ItemType.Weapon.WOODEN_BOW),
+            [ItemType.Weapon.STEEL_ARROW] = new ItemAttributesDTO(ItemType.Weapon.STEEL_ARROW),
+            [ItemType.Weapon.WOODEN_CLUB] = new ItemAttributesDTO(ItemType.Weapon.WOODEN_CLUB),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "Teeth club"),
             //defence
-            [ItemType.Defence.WOODEN_SHIELD] = new ItemAttributes("defence/wooden_shield", null, null),
-            [ItemType.Defence.LEATHER_CAP] = new ItemAttributes("defence/leather_cap", null, null),
-            [ItemType.Defence.LEATHER_TUNIC] = new ItemAttributes("defence/leather_tunic", null, null),
-            [ItemType.Defence.LEATHER_PANTS] = new ItemAttributes("defence/leather_pants", null, null),
-            [ItemType.Defence.LEATHER_BOOTS] = new ItemAttributes("defence/leather_boots", null, null),
+            [ItemType.Defence.WOODEN_SHIELD] = new ItemAttributesDTO(ItemType.Defence.WOODEN_SHIELD),
+            [ItemType.Defence.LEATHER_CAP] = new ItemAttributesDTO(ItemType.Defence.LEATHER_CAP),
+            [ItemType.Defence.LEATHER_TUNIC] = new ItemAttributesDTO(ItemType.Defence.LEATHER_TUNIC),
+            [ItemType.Defence.LEATHER_PANTS] = new ItemAttributesDTO(ItemType.Defence.LEATHER_PANTS),
+            [ItemType.Defence.LEATHER_BOOTS] = new ItemAttributesDTO(ItemType.Defence.LEATHER_BOOTS),
             //materials
-            [ItemType.Material.BOOTLE] = new ItemAttributes("material/bootle", null, null),
-            [ItemType.Material.WOOL] = new ItemAttributes("material/wool", null, null),
-            [ItemType.Material.CLOTH] = new ItemAttributes("material/cloth", null, null),
-            [ItemType.Material.WOOD] = new ItemAttributes("material/wood", null, null),
-            [ItemType.Material.STONE] = new ItemAttributes("material/stone", null, null),
-            [ItemType.Material.STEEL] = new ItemAttributes("material/steel", null, null),
-            [ItemType.Material.GOLD] = new ItemAttributes("material/gold", null, null),
-            [ItemType.Material.TEETH] = new ItemAttributes("material/teeth", null, null),
+            [ItemType.Material.BOOTLE] = new ItemAttributesDTO(ItemType.Material.BOOTLE),
+            [ItemType.Material.WOOL] = new ItemAttributesDTO(ItemType.Material.WOOL),
+            [ItemType.Material.CLOTH] = new ItemAttributesDTO(ItemType.Material.CLOTH),
+            [ItemType.Material.WOOD] = new ItemAttributesDTO(ItemType.Material.WOOD),
+            [ItemType.Material.STONE] = new ItemAttributesDTO(ItemType.Material.STONE),
+            [ItemType.Material.STEEL] = new ItemAttributesDTO(ItemType.Material.STEEL),
+            [ItemType.Material.GOLD] = new ItemAttributesDTO(ItemType.Material.GOLD),
+            [ItemType.Material.TEETH] = new ItemAttributesDTO(ItemType.Material.TEETH),
             //misc
-            [ItemType.Misc.HEALTH_POTION] = new ItemAttributes("misc/health_potion", "Health potion", true),
-            [ItemType.Misc.GOLD_COIN] = new ItemAttributes("misc/gold_coin", null, null),
-            [ItemType.Misc.SILVER_COIN] = new ItemAttributes("misc/silver_coin", null, null),
-            [ItemType.Misc.COPPER_COIN] = new ItemAttributes("misc/copper_coin", null, null),
-            [ItemType.Misc.ROTTEN_FLESH] = new ItemAttributes("misc/rotten_flesh", null, null),
+            [ItemType.Misc.HEALTH_POTION] = new ItemAttributesDTO(ItemType.Misc.HEALTH_POTION, true),
+            [ItemType.Misc.GOLD_COIN] = new ItemAttributesDTO(ItemType.Misc.GOLD_COIN),
+            [ItemType.Misc.SILVER_COIN] = new ItemAttributesDTO(ItemType.Misc.SILVER_COIN),
+            [ItemType.Misc.COPPER_COIN] = new ItemAttributesDTO(ItemType.Misc.COPPER_COIN),
+            [ItemType.Misc.ROTTEN_FLESH] = new ItemAttributesDTO(ItemType.Misc.ROTTEN_FLESH),
         };
         #endregion
 
@@ -144,13 +146,49 @@
         }
 
         /// <summary>
-        /// Converts the ite mtype ID, to it's default display name.
+        /// Converts the item type ID, to it's default type name.
+        /// </summary>
+        /// <param name="itemTypeID">The item type ID.</param>
+        public static string ItemIDToTypeName(ItemTypeID itemTypeID)
+        {
+            var modifiedPath = new StringBuilder();
+            var name = itemTypeID.ToString();
+            if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
+            {
+                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", Enums.LogSeverity.ERROR);
+            }
+            else
+            {
+                var actualNamePath = name.Split(nameof(ItemType) + ".").Last();
+                var pathParts = actualNamePath.Split('.');
+                for (var x = 0; x < pathParts.Length - 1; x++)
+                {
+                    var pathPart = pathParts[x];
+                    var modifiedPathPart = new StringBuilder();
+                    for (var y = 0; y < pathPart.Length; y++)
+                    {
+                        if (y != 0 && char.IsUpper(pathPart[y]))
+                        {
+                            modifiedPathPart.Append('_');
+                        }
+                        modifiedPathPart.Append(pathPart[y]);
+                    }
+                    modifiedPath.Append(modifiedPathPart + "/");
+                }
+                modifiedPath.Append(pathParts.Last());
+            }
+            var modifiedPathStr = modifiedPath.ToString().ToLower();
+            return string.IsNullOrWhiteSpace(modifiedPathStr) ? "[UNKNOWN ITEM TYPE]" : modifiedPathStr;
+        }
+
+        /// <summary>
+        /// Converts the item type ID, to it's default display name.
         /// </summary>
         /// <param name="itemTypeID">The item type ID.</param>
         public static string ItemIDToDisplayName(ItemTypeID itemTypeID)
         {
             var name = itemTypeID.ToString();
-            if (name is null)
+            if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
                 Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", Enums.LogSeverity.ERROR);
             }

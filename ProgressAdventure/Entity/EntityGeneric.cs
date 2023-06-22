@@ -47,7 +47,7 @@ namespace ProgressAdventure.Entity
         /// <param name="drops">The list of items, that the entity will drop on death, as loot.</param>
         public Entity(
             string name,
-            EntityManagerStats stats,
+            EntityManagerStatsDTO stats,
             List<Item>? drops = null
         ) : base(name, stats, drops) { }
 
