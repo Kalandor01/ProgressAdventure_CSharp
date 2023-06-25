@@ -6,7 +6,7 @@ namespace ProgressAdventure
     {
         #region Public fields
         /// <summary>
-        /// The name of the save file.
+        /// The name of the save folder.
         /// </summary>
         public static string saveName;
         /// <summary>

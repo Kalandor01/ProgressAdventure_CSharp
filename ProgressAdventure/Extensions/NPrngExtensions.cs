@@ -1,6 +1,6 @@
 ﻿using NPrng;
 
-namespace ProgressAdventure
+namespace ProgressAdventure.Extensions
 {
     /// <summary>
     /// Object for storing extensions for <c>NPrng</c>.

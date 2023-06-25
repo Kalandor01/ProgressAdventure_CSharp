@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure
+﻿namespace ProgressAdventure.Extensions
 {
     /// <summary>
     /// Object for storing extensions for <c>Type</c>.

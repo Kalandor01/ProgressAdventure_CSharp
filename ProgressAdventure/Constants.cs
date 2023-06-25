@@ -170,13 +170,13 @@ namespace ProgressAdventure
         /// </summary>
         public static readonly Encoding ENCODING = Encoding.UTF8;
         /// <summary>
-        /// The interval at which the auto saver tries to save in seconds.
+        /// The interval at which the auto saver tries to save in milliseconds.
         /// </summary>
-        public const int AUTO_SAVE_INTERVAL = 20;
+        public const int AUTO_SAVE_INTERVAL = 20000;
         /// <summary>
-        /// The interval at which the auto saver tries to save in seconds.
+        /// The interval at which the auto saver tries to save in milliseconds.
         /// </summary>
-        public const int AUTO_SAVE_DELAY = 5;
+        public const int AUTO_SAVE_DELAY = 5000;
         /// <summary>
         /// The version number to use in the file encoding.
         /// </summary>
@@ -193,6 +193,10 @@ namespace ProgressAdventure
         /// The division to use in tile noises.
         /// </summary>
         public const long TILE_NOISE_DIVISION = 200;
+        /// <summary>
+        /// In a fight, if no one took damage in X turns, the fight automaticaly ends.
+        /// </summary>
+        public const int FIGHT_GIVE_UP_TURN_NUMBER = 20;
         #endregion
     }
 }

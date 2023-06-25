@@ -1,7 +1,7 @@
-﻿using System.ArrayExtensions;
+﻿using ProgressAdventure.Extensions.ArrayExtensions;
 using System.Reflection;
 
-namespace System
+namespace ProgressAdventure.Extensions
 {
     /// <summary>
     /// Object for storing extensions for <c>object</c>.<br/>

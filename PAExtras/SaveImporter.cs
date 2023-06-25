@@ -1,6 +1,7 @@
 ﻿using NPrng.Generators;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
 using System.Collections;
 using System.Text;
