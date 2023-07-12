@@ -309,7 +309,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Returns the four corners of the world.
         /// </summary>
-        private static (long minX, long minY, long maxX, long maxY)? GetCorners()
+        public static (long minX, long minY, long maxX, long maxY)? GetCorners()
         {
             if (!Chunks.Any())
             {

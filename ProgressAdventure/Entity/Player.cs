@@ -162,7 +162,7 @@ namespace ProgressAdventure.Entity
             //correct data
             if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
             {
-                Logger.Log($"Player json data is old", "correcting data");
+                Logger.Log("Player json data is old", "correcting data");
                 // 2.0 -> 2.0.1
                 var newFileVersion = "2.0.1";
                 if (!Tools.IsUpToDate(newFileVersion, fileVersion))
@@ -174,6 +174,7 @@ namespace ProgressAdventure.Entity
                     Logger.Log("Corrected player json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
                     fileVersion = newFileVersion;
                 }
+                Logger.Log("Player json data corrected");
             }
 
             //convert
