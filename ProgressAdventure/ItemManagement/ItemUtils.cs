@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using ProgressAdventure.Extensions;
+using System.Text;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -194,9 +195,7 @@ namespace ProgressAdventure.ItemManagement
             }
             else
             {
-                name = name.Split('.').Last();
-                name = name[0].ToString().ToUpper() + name[1..].ToLower();
-                name = name.Replace("_", " ");
+                name = name.Split('.').Last().Replace("_", " ").Capitalize();
             }
             return name ?? "[UNKNOWN ITEM]";
         }

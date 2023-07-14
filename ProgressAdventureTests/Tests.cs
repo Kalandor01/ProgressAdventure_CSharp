@@ -230,7 +230,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<Facing, (int x, int y)>>(typeof(EntityUtils), "facingToMovementVectorMapping");
+                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<Facing, (int x, int y)>>(typeof(EntityUtils), "facingToMovementVectorMap");
             }
             catch (Exception ex)
             {

@@ -1,8 +1,7 @@
-﻿using ProgressAdventure;
-using ProgressAdventure.WorldManagement;
-using System.Drawing;
-using System;
+﻿using ProgressAdventure.WorldManagement;
+using System.IO.Compression;
 using PAConstants = ProgressAdventure.Constants;
+using PATools = ProgressAdventure.Tools;
 using PAUtils = ProgressAdventure.Utils;
 
 namespace PAExtras
@@ -12,6 +11,7 @@ namespace PAExtras
     /// </summary>
     public static class Tools
     {
+        #region Public functions
         /// <summary>
         /// Decodes a save file into a json format, and returns if it succeded.
         /// </summary>
@@ -185,5 +185,135 @@ namespace PAExtras
         {
             return alignToMin ? PAUtils.FloorRound(coordinate, PAConstants.CHUNK_SIZE) : PAUtils.CeilRound(coordinate, PAConstants.CHUNK_SIZE);
         }
+
+        /// <summary>
+        /// Extracts a zip archive to a folder, and returns if it succeded.
+        /// </summary>
+        /// <param name="zipFilePath">The path (minus extension) of the zip file to extract.</param>
+        /// <param name="destinationFolderPath">The folder to extract the zip file.</param>
+        /// <param name="extractToFolder">Whether to create a folder in the destination folder to extract the contents of the zip file to.</param>
+        /// <param name="extraFolderName">The name of the extra folder to generate, if <c>extractToFolder</c> is true. Othervise it's the name of the zip file.</param>
+        /// <param name="overwriteFiles">Whether to overwrite files.</param>
+        public static bool Unzip(string zipFilePath, string destinationFolderPath, bool extractToFolder = true, string? extraFolderName = null, bool overwriteFiles = true)
+        {
+            var zipFileFullPath = $"{zipFilePath}.{PAConstants.BACKUP_EXT}";
+
+            if (!File.Exists(zipFileFullPath))
+            {
+                Console.WriteLine($"unzip: FILE {Path.GetRelativePath(PAConstants.ROOT_FOLDER, zipFileFullPath)} NOT FOUND");
+                return false;
+            }
+            if (!Directory.Exists(destinationFolderPath))
+            {
+                Console.WriteLine($"unzip: FOLDER {Path.GetRelativePath(PAConstants.ROOT_FOLDER, destinationFolderPath)} NOT FOUND");
+                return false;
+            }
+
+            var fullDestinationFilePath = extractToFolder ? Path.Join(destinationFolderPath, extraFolderName ?? Path.GetFileName(zipFilePath)) : destinationFolderPath;
+            ZipFile.ExtractToDirectory(zipFileFullPath, fullDestinationFilePath, overwriteFiles);
+            return true;
+        }
+
+        /// <summary>
+        /// Backup loading menu.
+        /// </summary>
+        public static void LoadBackupMenu()
+        {
+            PATools.RecreateSaveFileFolder();
+            var backupFiles = GetSavesData();
+
+            if (!backupFiles.Any())
+            {
+                PAUtils.PressKey("No backups found!");
+                return;
+            }
+
+            while (true)
+            {
+                var lines = new List<string?>();
+                foreach (var file in backupFiles)
+                {
+                    lines.Add($"{file.saveName}: {PAUtils.MakeDate(file.backupDate, ".")} {PAUtils.MakeTime(file.backupDate)}");
+                    lines.Add(null);
+                }
+                var option = (int)new SaveFileManager.UIList(lines, " Backup loading", null, false, true, null, true).Display();
+                // unzip
+                if (option == -1)
+                {
+                    break;
+                }
+                else
+                {
+                    var (fileName, saveName, _) = backupFiles.ElementAt(option);
+                    Unzip(Path.Join(PAConstants.BACKUPS_FOLDER_PATH, fileName), PAConstants.SAVES_FOLDER_PATH, true, saveName);
+                    PAUtils.PressKey($"\n{fileName} loaded!");
+                    if (ProgressAdventure.MenuManager.AskYesNoUIQuestion("Do you want to regenerate the save file?"))
+                    {
+                        ProgressAdventure.MenuManager.RegenerateSaveFile(saveName, false);
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// <c>SaveManager.GetSavesData()</c> for backups.
+        /// </summary>
+        private static List<(string fileName, string saveName, DateTime backupDate)> GetSavesData()
+        {
+            if (PATools.RecreateBackupsFolder())
+            {
+                return new List<(string fileName, string saveName, DateTime backupDate)>();
+            }
+
+            var backups = new List<(string fileName, string saveName, DateTime backupDate)>();
+            var backupPaths = Directory.GetFiles(PAConstants.BACKUPS_FOLDER_PATH);
+            foreach (var backupPath in backupPaths)
+            {
+                if (Path.GetExtension(backupPath) == "." + PAConstants.BACKUP_EXT)
+                {
+                    var fullBackupName = Path.GetFileNameWithoutExtension(backupPath);
+                    var data = fullBackupName.Split(";");
+                    if (data.Length == 3)
+                    {
+                        var dateList = new List<int>();
+                        foreach (var datePart in data[1].Split("-"))
+                        {
+                            if (int.TryParse(datePart, out int dp))
+                            {
+                                dateList.Add(dp);
+                            }
+                        }
+                        if (dateList.Count == 3)
+                        {
+                            foreach (var datePart in data[2].Split("-"))
+                            {
+                                if (int.TryParse(datePart, out int dp))
+                                {
+                                    dateList.Add(dp);
+                                }
+                            }
+                            if (dateList.Count >= 6)
+                            {
+                                int mili = 0;
+                                int micro = 0;
+                                if (dateList.Count == 7)
+                                {
+                                    mili = dateList[6] / 1000;
+                                    micro = dateList[6] % 1000;
+                                }
+                                var date = new DateTime(dateList[0], dateList[1], dateList[2], dateList[3], dateList[4], dateList[5], mili, micro);
+                                backups.Add((fullBackupName, data[0], date));
+                                continue;
+                            }
+                        }
+                    }
+                    Console.WriteLine($"FILE {fullBackupName}.{PAConstants.BACKUP_EXT} HAS WRONG NAMING FORMAT");
+                }
+            }
+            return backups;
+        }
+        #endregion
     }
 }

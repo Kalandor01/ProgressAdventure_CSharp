@@ -200,6 +200,24 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Rotates the vector. (clockwise)
+        /// </summary>
+        /// <param name="vector">The vector to rotate.</param>
+        /// <param name="angle">The angle to rotate by.</param>
+        public static (double x, double y) VectorRotate((double x, double y) vector, double angle)
+        {
+            var radian = -angle * (Math.PI / 180);
+
+            var cos = Math.Cos(radian);
+            var sin = Math.Sin(radian);
+
+            var x = vector.x * cos - vector.y * sin;
+            var y = vector.x * sin + vector.y * cos;
+
+            return (x, y);
+        }
+
+        /// <summary>
         /// Modulo. (not %)
         /// </summary>
         /// <param name="number">The number to modulo.</param>

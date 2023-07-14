@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
 using System.Collections;
@@ -131,10 +132,9 @@ namespace ProgressAdventure.Entity
             string attributeNames = "";
             foreach (var attribute in attributes)
             {
-                attributeNames += EntityUtils.attributeNameMap[attribute] + " ";
+                attributeNames += attribute.ToString().Capitalize() + " ";
             }
-            FullName = attributeNames + name;
-            FullName = FullName[0].ToString().ToUpper() + FullName[1..].ToLower();
+            FullName = (attributeNames + name).Capitalize();
         }
 
         /// <summary>
@@ -142,59 +142,13 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public void WeightedTurn()
         {
-            // turn
             if (RandomStates.MainRandom.GenerateDouble() < 0.2)
             {
                 var oldFacing = facing;
-                var movementVector = EntityUtils.facingToMovementVectorMapping[facing];
-                Facing? newFacing;
-                // back
-                if (RandomStates.MainRandom.GenerateDouble() < 0.2)
-                {
-                    var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
-                    newFacing = EntityUtils.MovementVectorToFacing(((int)x, (int)y));
-                }
-                // side / diagonal
-                else
-                {
-                    // side
-                    if (RandomStates.MainRandom.GenerateDouble() < 0.2)
-                    {
-                        if (RandomStates.MainRandom.GenerateDouble() < 0.5)
-                        {
-                            newFacing = EntityUtils.MovementVectorToFacing((movementVector.y, movementVector.x));
-                        }
-                        else
-                        {
-                            var (x, y) = Utils.VectorMultiply(movementVector, (-1, -1));
-                            newFacing = EntityUtils.MovementVectorToFacing(((int)y, (int)x));
-                        }
-                    }
-                    // diagonal
-                    else
-                    {
-                        // straight to diagonal
-                        if (movementVector.x == 0 || movementVector.y == 0)
-                        {
-                            var diagonalDir = RandomStates.MainRandom.GenerateDouble() < 0.5 ? 1 : -1;
-                            newFacing = EntityUtils.MovementVectorToFacing((
-                                movementVector.x == 0 ? diagonalDir : movementVector.x,
-                                movementVector.y == 0 ? diagonalDir : movementVector.y
-                            ));
-                        }
-                        // diagonal to straight
-                        else
-                        {
-                            var resetX = RandomStates.MainRandom.GenerateDouble() < 0.5;
-                            newFacing = EntityUtils.MovementVectorToFacing((
-                                resetX ? 0 : movementVector.x,
-                                !resetX ? 0 : movementVector.y
-                            ));
-                        }
-                    }
-
-                }
-                if (newFacing is not null)
+                var angle = RandomStates.MainRandom.Triangular(-180, 0, 180);
+                var newFacing = EntityUtils.RotateFacing(oldFacing, angle);
+                
+                if (newFacing is not null && newFacing != oldFacing)
                 {
                     facing = (Facing)newFacing;
                     Logger.Log("Entity turned", $"name: {FullName}, {oldFacing} -> {facing}", LogSeverity.DEBUG);
@@ -209,7 +163,7 @@ namespace ProgressAdventure.Entity
         /// <param name="facing">If not null, it will move in that direction instead.</param>
         public void Move((double x, double y)? multiplierVector = null, Facing? facing = null)
         {
-            var moveRaw = EntityUtils.facingToMovementVectorMapping[facing ?? this.facing];
+            var moveRaw = EntityUtils.facingToMovementVectorMap[facing ?? this.facing];
             var move = Utils.VectorMultiply(moveRaw, multiplierVector ?? (1, 1));
             EntityUtils.EntityMover(this, ((long x, long y))move);
         }
@@ -278,7 +232,7 @@ namespace ProgressAdventure.Entity
                 // hit
                 else
                 {
-                    target.DamageEntity(damage);
+                    target.ReciveDamage(damage);
                     Logger.Log("Attack log", $"{target.FullName} took {damage} damage ({target.CurrentHp})");
                     // kill
                     if (target.CurrentHp == 0)
@@ -295,7 +249,7 @@ namespace ProgressAdventure.Entity
         /// Makes the entity take damage.
         /// </summary>
         /// <param name="damage">The amount of damage to take.</param>
-        public void DamageEntity(int damage)
+        public void ReciveDamage(int damage)
         {
             CurrentHp -= damage;
             if (CurrentHp < 0)

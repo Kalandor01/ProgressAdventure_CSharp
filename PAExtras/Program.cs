@@ -1,8 +1,4 @@
 ﻿using ProgressAdventure;
-using ProgressAdventure.WorldManagement;
-using PASaveManager = ProgressAdventure.SaveManager;
-using PAConstants = ProgressAdventure.Constants;
-using PATools = ProgressAdventure.Tools;
 
 namespace PAExtras
 {
@@ -19,14 +15,28 @@ namespace PAExtras
             //SaveImporter.ImportSave("save2_1");
             //SaveImporter.ImportSave("test");
 
+
+
             //Tools.EncodeSaveFile("data", Path.Join(PAConstants.SAVES_FOLDER_PATH, "test save"));
 
-            PATools.DeleteSave("test");
-            SaveImporter.ImportSave("test");
+
+
+            //PATools.DeleteSave("test");
+            //SaveImporter.ImportSave("test");
 
             //PASaveManager.LoadSave("test", false, false);
             //World.LoadAllChunksFromFolder();
             //Tools.FillWorldAreaSegmented((-1400, -4870, -1385, 4857), 16);
+
+
+
+            //var zipFileName = "hmm;2023-06-15;20-35-20";
+
+            //Tools.Unzip(Path.Join(PAConstants.BACKUPS_FOLDER_PATH, zipFileName), PAConstants.SAVES_FOLDER_PATH, true, zipFileName.Split(";").First());
+
+
+
+            Tools.LoadBackupMenu();
 
             Console.WriteLine();
         }

@@ -14,7 +14,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The dictionary pairing up facing types, to their vector equivalents.
         /// </summary>
-        internal static readonly Dictionary<Facing, (int x, int y)> facingToMovementVectorMapping = new()
+        internal static readonly Dictionary<Facing, (int x, int y)> facingToMovementVectorMap = new()
         {
             [Facing.NORTH] = (0, 1),
             [Facing.SOUTH] = (0, -1),
@@ -53,23 +53,6 @@ namespace ProgressAdventure.Entity
             [Attribute.FRAIL] = (1, 1, 0.5, 1),
             [Attribute.AGILE] = (1, 1, 1, 2),
             [Attribute.SLOW] = (1, 1, 1, 0.5),
-        };
-
-        /// <summary>
-        /// The dictionary pairing up attributes, to their display name.
-        /// </summary>
-        internal static readonly Dictionary<Attribute, string> attributeNameMap = new()
-        {
-            [Attribute.RARE] = "Rare",
-            [Attribute.CRIPPLED] = "Crippled",
-            [Attribute.HEALTHY] = "Healthy",
-            [Attribute.SICK] = "Sick",
-            [Attribute.STRONG] = "Strong",
-            [Attribute.WEAK] = "Weak",
-            [Attribute.TOUGH] = "Tough",
-            [Attribute.FRAIL] = "Frail",
-            [Attribute.AGILE] = "Agile",
-            [Attribute.SLOW] = "Slow",
         };
         #endregion
 
@@ -249,11 +232,33 @@ namespace ProgressAdventure.Entity
         /// <param name="vector">The movement vector.</param>
         public static Facing? MovementVectorToFacing((int x, int y) vector)
         {
-            if (facingToMovementVectorMapping.ContainsValue(vector))
+            if (facingToMovementVectorMap.ContainsValue(vector))
             {
-                return facingToMovementVectorMapping.First(facing => facing.Value == vector).Key;
+                return facingToMovementVectorMap.First(facing => facing.Value == vector).Key;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Rotates the facing. (clockwise)
+        /// </summary>
+        /// <param name="facing">The vector to rotate.</param>
+        /// <param name="angle">The angle to rotate by.</param>
+        public static Facing? RotateFacing(Facing facing, double angle)
+        {
+            var facingVector = facingToMovementVectorMap[facing];
+
+            var radian = -1 * angle * (Math.PI / 180);
+
+            var cos = Math.Cos(radian);
+            var sin = Math.Sin(radian);
+
+            var x = facingVector.x * cos - facingVector.y * sin;
+            var y = facingVector.x * sin + facingVector.y * cos;
+
+            var finalVector = ((int)Math.Round(x), (int)Math.Round(y));
+
+            return MovementVectorToFacing(finalVector);
         }
 
         /// <summary>
