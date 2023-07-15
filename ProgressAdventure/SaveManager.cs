@@ -135,9 +135,10 @@ namespace ProgressAdventure
                 // correct
                 CorrectSaveData(data, saveVersion);
             }
+
             // load random states
             var randomStates = data["randomStates"] as IDictionary<string, object?>;
-            RandomStates.FromJson(randomStates);
+            RandomStates.FromJson(randomStates, saveVersion);
             // display name
             var displayName = (string?)data["displayName"];
             // last save
@@ -146,7 +147,7 @@ namespace ProgressAdventure
             _ = TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
             // player
             var playerData = data["player"] as IDictionary<string, object?>;
-            var player = Player.FromJson(playerData, saveVersion);
+            Player.FromJson(playerData, saveVersion, out Player? player);
             Logger.Log("Loaded save data from json", $"save name: {saveName}");
 
             // PREPARING
@@ -260,7 +261,7 @@ namespace ProgressAdventure
 
                     // check version
                     var saveVersion = (string)(data.data["saveVersion"] ?? "[UNKNOWN VERSION]");
-                    displayText.Append(Utils.StylizedText($" v.{saveVersion}", saveVersion == Constants.SAVE_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED));
+                    displayText.Append(Tools.StylizedText($" v.{saveVersion}", saveVersion == Constants.SAVE_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED));
                     
                     return (data.folderName, displayText.ToString());
                 }

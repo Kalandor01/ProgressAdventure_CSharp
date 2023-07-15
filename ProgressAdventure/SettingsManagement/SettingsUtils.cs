@@ -65,19 +65,6 @@ namespace ProgressAdventure.SettingsManagement
             [ConsoleKey.Home] = "home",
             [ConsoleKey.PageUp] = "page up"
         };
-
-        /// <summary>
-        /// The dictionary pairing up settings keys, to their string representations.
-        /// </summary>
-        public static readonly Dictionary<SettingsKey, string> settingsKeyNames = new()
-        {
-            [SettingsKey.AUTO_SAVE] = "autoSave",
-            [SettingsKey.LOGGING_LEVEL] = "loggingLevel",
-            [SettingsKey.KEYBINDS] = "keybinds",
-            [SettingsKey.ASK_DELETE_SAVE] = "askDeleteSave",
-            [SettingsKey.ASK_REGENERATE_SAVE] = "askRegenerateSave",
-            [SettingsKey.DEF_BACKUP_ACTION] = "defBackupAction"
-        };
         #endregion
 
         #region Public functions
@@ -151,12 +138,13 @@ namespace ProgressAdventure.SettingsManagement
         {
             return new Dictionary<string, object>
             {
-                [settingsKeyNames[SettingsKey.AUTO_SAVE]] = true,
-                [settingsKeyNames[SettingsKey.LOGGING_LEVEL]] = 0,
-                [settingsKeyNames[SettingsKey.KEYBINDS]] = new Keybinds(GetDefaultKeybindList()).ToJson(),
-                [settingsKeyNames[SettingsKey.ASK_DELETE_SAVE]] = true,
-                [settingsKeyNames[SettingsKey.ASK_REGENERATE_SAVE]] = true,
-                [settingsKeyNames[SettingsKey.DEF_BACKUP_ACTION]] = -1
+                [SettingsKey.AUTO_SAVE.ToString()] = true,
+                [SettingsKey.LOGGING_LEVEL.ToString()] = 0,
+                [SettingsKey.KEYBINDS.ToString()] = new Keybinds(GetDefaultKeybindList()).ToJson(),
+                [SettingsKey.ASK_DELETE_SAVE.ToString()] = true,
+                [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = true,
+                [SettingsKey.DEF_BACKUP_ACTION.ToString()] = -1,
+                [SettingsKey.ENABLE_COLORED_TEXT.ToString()] = true,
             };
         }
         #endregion

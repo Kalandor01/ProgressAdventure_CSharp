@@ -144,7 +144,7 @@ namespace ProgressAdventure.SettingsManagement
             return new Dictionary<string, object?> { [actionType.ToString()] = keyListJson };
         }
 
-        public static ActionKey? FromJson(IDictionary<string, object?>? actionKeyJson, string fileVersion)
+        public static bool FromJson(IDictionary<string, object?>? actionKeyJson, string fileVersion, out ActionKey? actionKeyObject)
         {
             if (
                 actionKeyJson is null ||
@@ -152,7 +152,8 @@ namespace ProgressAdventure.SettingsManagement
             )
             {
                 Logger.Log("Action key parse error", "action key json is null", LogSeverity.WARN);
-                return null;
+                actionKeyObject = null;
+                return false;
             }
 
             var actionJson = actionKeyJson.First();
@@ -162,6 +163,7 @@ namespace ProgressAdventure.SettingsManagement
                 actionJson.Value is IEnumerable actionKeyList
             )
             {
+                var success = true;
                 var keys = new List<ConsoleKeyInfo>();
                 foreach (var actionKey in actionKeyList)
                 {
@@ -182,14 +184,17 @@ namespace ProgressAdventure.SettingsManagement
                     else
                     {
                         Logger.Log("Action key parse error", $"couldn't parse key from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
+                        success = false;
                     }
                 }
-                return new ActionKey(actionType, keys);
+                actionKeyObject = new ActionKey(actionType, keys);
+                return success;
             }
             else
             {
                 Logger.Log("Action key parse error", $"couldn't parse action from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
-                return null;
+                actionKeyObject = null;
+                return false;
             }
         }
         #endregion

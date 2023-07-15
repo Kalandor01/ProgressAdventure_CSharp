@@ -152,27 +152,31 @@ namespace ProgressAdventure.SettingsManagement
             return keybindsJson;
         }
 
-        public static Keybinds FromJson(IDictionary<string, object?>? keybindsJson, string fileVersion = Constants.SAVE_VERSION)
+        public static bool FromJson(IDictionary<string, object?>? keybindsJson, string fileVersion, out Keybinds keybinds)
         {
             if (keybindsJson is null)
             {
                 Logger.Log("Keybinds parse error", "keybinds json is null", LogSeverity.WARN);
-                return new Keybinds(null);
+                keybinds = new Keybinds(null);
+                return false;
             }
 
+            var success = true;
             var actions = new List<ActionKey>();
             foreach (var actionJson in keybindsJson)
             {
-                var actionKey = ActionKey.FromJson(
+                success &= ActionKey.FromJson(
                     new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value },
-                    fileVersion
+                    fileVersion,
+                    out ActionKey? actionKey
                 );
                 if (actionKey is not null)
                 {
                     actions.Add(actionKey);
                 }
             }
-            return new Keybinds(actions);
+            keybinds = new Keybinds(actions);
+            return success;
         }
         #endregion
     }

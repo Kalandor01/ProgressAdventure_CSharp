@@ -35,6 +35,10 @@ namespace ProgressAdventure.SettingsManagement
         /// 1: always backup
         /// </summary>
         private static int _defBackupAction;
+        /// <summary>
+        /// Whether to enable colored text on the terminal.
+        /// </summary>
+        private static bool _enableColoredText;
         #endregion
 
         #region Public properties
@@ -44,7 +48,11 @@ namespace ProgressAdventure.SettingsManagement
         public static bool AutoSave
         {
             get => _autoSave;
-            set => UpdateAutoSave(value);
+            set
+            {
+                SettingsManager(SettingsKey.AUTO_SAVE, value);
+                _autoSave = GetAutoSave();
+            }
         }
         /// <summary>
         /// <inheritdoc cref="_loggingLevel" path="//summary"/>
@@ -52,7 +60,14 @@ namespace ProgressAdventure.SettingsManagement
         public static LogSeverity LoggingLevel
         {
             get => _loggingLevel;
-            set => UpdateLoggingLevel(value);
+            set
+            {
+                var loggingLevelValue = (long)Logger.loggingValuesMap[value];
+                SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
+                _loggingLevel = GetLoggingLevel();
+
+                Logger.ChangeLoggingLevel(LoggingLevel);
+            }
         }
         /// <summary>
         /// <inheritdoc cref="_keybinds" path="//summary"/>
@@ -64,7 +79,11 @@ namespace ProgressAdventure.SettingsManagement
                 _keybinds ??= GetKeybins();
                 return _keybinds;
             }
-            set => UpdateKeybinds(value);
+            set
+            {
+                SettingsManager(SettingsKey.KEYBINDS, value);
+                _keybinds = GetKeybins();
+            }
         }
         /// <summary>
         /// <inheritdoc cref="_askDeleteSave" path="//summary"/>
@@ -72,7 +91,11 @@ namespace ProgressAdventure.SettingsManagement
         public static bool AskDeleteSave
         {
             get => _askDeleteSave;
-            set => UpdateAskDeleteSave(value);
+            set
+            {
+                SettingsManager(SettingsKey.ASK_DELETE_SAVE, value);
+                _askDeleteSave = GetAskDeleteSave();
+            }
         }
         /// <summary>
         /// <inheritdoc cref="_askRegenerateSave" path="//summary"/>
@@ -80,7 +103,11 @@ namespace ProgressAdventure.SettingsManagement
         public static bool AskRegenerateSave
         {
             get => _askRegenerateSave;
-            set => UpdateAskRegenerateSave(value);
+            set
+            {
+                SettingsManager(SettingsKey.ASK_REGENERATE_SAVE, value);
+                _askRegenerateSave = GetAskRegenerateSave();
+            }
         }
         /// <summary>
         /// <inheritdoc cref="_defBackupAction" path="//summary"/>
@@ -88,7 +115,23 @@ namespace ProgressAdventure.SettingsManagement
         public static int DefBackupAction
         {
             get => _defBackupAction;
-            set => UpdateDefBackupAction(value);
+            set
+            {
+                SettingsManager(SettingsKey.DEF_BACKUP_ACTION, (long)value);
+                _defBackupAction = GetDefBackupAction();
+            }
+        }
+        /// <summary>
+        /// <inheritdoc cref="_enableColoredText" path="//summary"/>
+        /// </summary>
+        public static bool EnableColoredText
+        {
+            get => _enableColoredText;
+            set
+            {
+                SettingsManager(SettingsKey.ENABLE_COLORED_TEXT, value);
+                _enableColoredText = GetEnableColoredText();
+            }
         }
         #endregion
 
@@ -108,7 +151,8 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds? keybinds = null,
             bool? askDeleteSave = null,
             bool? askRegenerateSave = null,
-            int? defBackupAction = null
+            int? defBackupAction = null,
+            bool? enableColoredText = null
         )
         {
             AutoSave = autoSave ?? GetAutoSave();
@@ -117,11 +161,11 @@ namespace ProgressAdventure.SettingsManagement
             AskDeleteSave = askDeleteSave ?? GetAskDeleteSave();
             AskRegenerateSave = askRegenerateSave ?? GetAskRegenerateSave();
             DefBackupAction = defBackupAction ?? GetDefBackupAction();
+            EnableColoredText = enableColoredText ?? GetEnableColoredText();
         }
         #endregion
 
-        #region Public functions     
-        #region Getters
+        #region Public functions
         /// <summary>
         /// Returns the value of the <c>autoSave</c> from the setting file.
         /// </summary>
@@ -135,7 +179,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static LogSeverity GetLoggingLevel()
         {
-            var logLevel = (int)(long)SettingsManager(SettingsKey.LOGGING_LEVEL);
+            _ = int.TryParse(SettingsManager(SettingsKey.LOGGING_LEVEL).ToString(), out int logLevel);
             if (!Tools.TryParseLogSeverityFromValue(logLevel, out LogSeverity severity))
             {
                 Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
@@ -152,7 +196,7 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds keybinds;
             try
             {
-                keybinds = Keybinds.FromJson(keybindsDict as IDictionary<string, object?>);
+                Keybinds.FromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
             }
             catch (Exception e)
             {
@@ -184,74 +228,17 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static int GetDefBackupAction()
         {
-            return (int)(long)SettingsManager(SettingsKey.DEF_BACKUP_ACTION);
-        }
-        #endregion
-
-        #region Setters
-        /// <summary>
-        /// Updates the value of the <c>autoSave</c> in the object and in the settings file.
-        /// </summary>
-        /// <param name="autoSave"><inheritdoc cref="_autoSave" path="//summary"/></param>
-        private static void UpdateAutoSave(bool autoSave)
-        {
-            SettingsManager(SettingsKey.AUTO_SAVE, autoSave);
-            _autoSave = GetAutoSave();
+            _ = int.TryParse(SettingsManager(SettingsKey.DEF_BACKUP_ACTION).ToString(), out int defBackupAction);
+            return defBackupAction;
         }
 
         /// <summary>
-        /// Updates the value of the <c>loggingLevel</c> in the object and in the settings file.
+        /// Returns the value of the <c>enableColoredText</c> from the setting file.
         /// </summary>
-        /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
-        private static void UpdateLoggingLevel(LogSeverity loggingLevel)
+        public static bool GetEnableColoredText()
         {
-            var loggingLevelValue = (long)Logger.loggingValuesMap[loggingLevel];
-            SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
-            _loggingLevel = GetLoggingLevel();
-
-            Logger.ChangeLoggingLevel(LoggingLevel);
+            return (bool)SettingsManager(SettingsKey.ENABLE_COLORED_TEXT);
         }
-
-        /// <summary>
-        /// Updates the value of the <c>keybinds</c> in the object and in the settings file.
-        /// </summary>
-        /// <param name="keybinds"><inheritdoc cref="_keybinds" path="//summary"/></param>
-        private static void UpdateKeybinds(Keybinds keybinds)
-        {
-            SettingsManager(SettingsKey.KEYBINDS, keybinds);
-            _keybinds = GetKeybins();
-        }
-
-        /// <summary>
-        /// Updates the value of <c>askDeleteSave</c> in the object and in the settings file.
-        /// </summary>
-        /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
-        private static void UpdateAskDeleteSave(bool askDeleteSave)
-        {
-            SettingsManager(SettingsKey.ASK_DELETE_SAVE, askDeleteSave);
-            _askDeleteSave = GetAskDeleteSave();
-        }
-
-        /// <summary>
-        /// Updates the value of <c>askRegenerateSave</c> in the object and in the settings file.
-        /// </summary>
-        /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
-        private static void UpdateAskRegenerateSave(bool askRegenerateSave)
-        {
-            SettingsManager(SettingsKey.ASK_REGENERATE_SAVE, askRegenerateSave);
-            _askRegenerateSave = GetAskRegenerateSave();
-        }
-
-        /// <summary>
-        /// Updates the value of <c>defBackupAction</c> in the object and in the settings file.
-        /// </summary>
-        /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
-        private static void UpdateDefBackupAction(int defBackupAction)
-        {
-            SettingsManager(SettingsKey.DEF_BACKUP_ACTION, (long)defBackupAction);
-            _defBackupAction = GetDefBackupAction();
-        }
-        #endregion
         #endregion
 
         #region Private functions
@@ -303,7 +290,7 @@ namespace ProgressAdventure.SettingsManagement
         private static object SettingsManager(SettingsKey settingsKey)
         {
             var settings = GetSettingsDict();
-            var settingsKeyName = SettingsUtils.settingsKeyNames[settingsKey];
+            var settingsKeyName = settingsKey.ToString();
             if (settings.TryGetValue(settingsKeyName, out object? settingValue))
             {
                 if (settingValue is not null)
@@ -334,7 +321,7 @@ namespace ProgressAdventure.SettingsManagement
         private static void SettingsManager(SettingsKey settingsKey, object value)
         {
             var settings = GetSettingsDict();
-            var settingsKeyName = SettingsUtils.settingsKeyNames[settingsKey];
+            var settingsKeyName = settingsKey.ToString();
             if (settings.TryGetValue(settingsKeyName, out object? settingValue))
             {
                 var keybindsEqual = false;
@@ -343,7 +330,7 @@ namespace ProgressAdventure.SettingsManagement
                     Keybinds? oldKb = null;
                     try
                     {
-                        oldKb = Keybinds.FromJson(settingValue as IDictionary<string, object?>);
+                        Keybinds.FromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
                     }
                     catch (Exception e)
                     {

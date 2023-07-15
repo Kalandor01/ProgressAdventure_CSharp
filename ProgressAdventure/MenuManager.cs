@@ -132,7 +132,7 @@ namespace ProgressAdventure
         public static string GetKeybindName(Keybinds keybinds, ActionType actionType)
         {
             var key = keybinds.GetActionKey(actionType);
-            return Utils.StylizedText(key.Name, (key.conflict ? Constants.Colors.RED : null));
+            return Tools.StylizedText(key.Name, (key.conflict ? Constants.Colors.RED : null));
         }
 
         /// <summary>
@@ -231,8 +231,11 @@ namespace ProgressAdventure
             }
             var loggingElement = new PAChoice(loggingNames, loggingValue, "Logging: ");
 
+            // enable colored text
+            var coloredTextElement = new Toggle(Settings.EnableColoredText ? 1 : 0, "Colored text: ", "enabled", "disabled");
+
             // menu elements
-            var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, null, GenerateSimpleButton() };
+            var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
             
             // response
             var response = SFMUtils.OptionsUI(menuElements, " Other options", keybinds: Settings.Keybinds.KeybindList);
@@ -240,9 +243,11 @@ namespace ProgressAdventure
             {
                 var newAutoSaveValue = autoSaveElement.value == 1;
                 _ = Tools.TryParseLogSeverityFromValue(loggingValues.ElementAt(loggingElement.value), out LogSeverity newLoggingLevel);
+                var newColoredTextValue = coloredTextElement.value == 1;
 
                 Settings.AutoSave = newAutoSaveValue;
                 Settings.LoggingLevel = newLoggingLevel;
+                Settings.EnableColoredText = newColoredTextValue;
             }
         }
 

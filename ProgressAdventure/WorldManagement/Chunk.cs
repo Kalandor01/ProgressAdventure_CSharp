@@ -169,7 +169,7 @@ namespace ProgressAdventure.WorldManagement
             SplittableRandom? chunkRandomGenerator = null;
             if (chunkJson.TryGetValue("chunkRandom", out object? chunkRandom))
             {
-                if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom chunkRandomValue))
+                if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
                 {
                     chunkRandomGenerator = chunkRandomValue;
                 }

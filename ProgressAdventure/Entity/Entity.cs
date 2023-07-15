@@ -411,30 +411,36 @@ namespace ProgressAdventure.Entity
 
         #region Functions
         /// <summary>
-        /// Converts the json representation of the entity to a specific entity object.
+        /// Tries to convert the json representation of the entity to a specific entity object, and returns if it was succesful without any warnings.
         /// </summary>
         /// <typeparam name="T">The type of the entity to try to convert into.</typeparam>
         /// <param name="entityJson">The json representation of the entity.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        public static T? FromJson<T>(IDictionary<string, object?>? entityJson, string fileVersion)
+        public static bool FromJson<T>(IDictionary<string, object?>? entityJson, string fileVersion, out T? entityObject)
             where T : Entity<T>
         {
-            return (T?)AnyEntityFromJsonPrivate(typeof(T), entityJson, fileVersion);
+            var success = AnyEntityFromJsonPrivate(typeof(T), entityJson, fileVersion, out Entity? entity);
+            entityObject = (T?)entity;
+            return success;
         }
 
         /// <summary>
-        /// Converts any entity json, from a json format, into an entity object (if it implements the nececary protected constructor).
+        /// Tries to convert any entity json, from a json format, into an entity object (if it implements the nececary protected constructor), and returns if it was succesful without any warnings.
         /// </summary>
         /// <param name="entityJson">The json representation of an entity.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        public static Entity? AnyEntityFromJson(IDictionary<string, object?>? entityJson, string fileVersion = Constants.SAVE_VERSION)
+        /// <param name="entityObject">The converted entity object.</param>
+        public static bool AnyEntityFromJson(IDictionary<string, object?>? entityJson, string fileVersion, out Entity? entityObject)
         {
             if (entityJson is null)
             {
                 Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
-                return null;
+                entityObject = null;
+                return false;
             }
+
             if (
                 entityJson.TryGetValue("type", out object? entityTypeValue) &&
                 entityTypeValue is not null
@@ -445,18 +451,20 @@ namespace ProgressAdventure.Entity
                     entityType is not null
                 )
                 {
-                    return AnyEntityFromJsonPrivate(entityType, entityJson, fileVersion);
+                    return AnyEntityFromJsonPrivate(entityType, entityJson, fileVersion, out entityObject);
                 }
                 else
                 {
                     Logger.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
-                    return null;
+                    entityObject = null;
+                    return false;
                 }
             }
             else
             {
                 Logger.Log("Entity parse error", "entity type json is null", LogSeverity.ERROR);
-                return null;
+                entityObject = null;
+                return false;
             }
         }
 
@@ -485,18 +493,34 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// Converts the json representation of the entity to a specific entity object.
+        /// Tries to convert the json representation of the entity to a specific entity object, and returns if it was succesful without any warnings.
         /// </summary>
         /// <param name="entityType">The type of the entity to try to convert into.</param>
         /// <param name="entityJson">The json representation of the entity.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        private static Entity? AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?>? entityJson, string fileVersion)
+        private static bool AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?>? entityJson, string fileVersion, out Entity? entityObject)
         {
-            var entityData = FromJsonPrivate(entityJson, fileVersion);
+            var success = FromJsonPrivate(entityJson, fileVersion, out (
+                string? name,
+                int? baseMaxHp,
+                int? currentHp,
+                int? baseAttack,
+                int? baseDefence,
+                int? baseAgility,
+                int? originalTeam,
+                int? currentTeam,
+                List<Attribute>? attributes,
+                List<Item>? drops,
+                (long x, long y)? position,
+                Facing? facing
+            )? entityData);
+
             if (entityData is null || entityJson is null)
             {
-                return null;
+                entityObject = null;
+                return false;
             }
 
             // get entity
@@ -507,15 +531,17 @@ namespace ProgressAdventure.Entity
                 null
             ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{entityType}\"!", null);
             var entity = constructor.Invoke(new object[] { entityData, entityJson, fileVersion }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
-            return (Entity?)entity;
+            entityObject = (Entity?)entity;
+            return success && entityObject is not null;
         }
 
         /// <summary>
-        /// Converts the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object.
+        /// Tries to convert the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object, and returns if it was succesful without any warnings.
         /// </summary>
         /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        private static (
+        /// <param name="entityData">The basic data of the entity.</param>
+        private static bool FromJsonPrivate(IDictionary<string, object?>? entityJson, string fileVersion, out (
             string? name,
             int? baseMaxHp,
             int? currentHp,
@@ -528,12 +554,13 @@ namespace ProgressAdventure.Entity
             List<Item>? drops,
             (long x, long y)? position,
             Facing? facing
-        )? FromJsonPrivate(IDictionary<string, object?>? entityJson, string fileVersion)
+        )? entityData)
         {
             if (entityJson is null)
             {
                 Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
-                return null;
+                entityData = null;
+                return false;
             }
 
 
@@ -558,6 +585,7 @@ namespace ProgressAdventure.Entity
             }
 
             //convert
+            var success = true;
 
             // name
             string? name = null;
@@ -571,7 +599,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity name", LogSeverity.WARN);
+                success = false;
             }
+
             // stats
             // max hp
             int? baseMaxHp = null;
@@ -585,7 +615,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base max hp", LogSeverity.WARN);
+                success = false;
             }
+
             // current hp
             int? currentHp = null;
             if (
@@ -598,7 +630,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity current hp", LogSeverity.WARN);
+                success = false;
             }
+
             // attack
             int? baseAttack = null;
             if (
@@ -611,7 +645,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base attack", LogSeverity.WARN);
+                success = false;
             }
+
             // defence
             int? baseDefence = null;
             if (
@@ -624,7 +660,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base defence", LogSeverity.WARN);
+                success = false;
             }
+
             // agility
             int? baseAgility = null;
             if (
@@ -637,7 +675,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity base agility", LogSeverity.WARN);
+                success = false;
             }
+
             // original team
             int? originalTeam = null;
             if (
@@ -650,7 +690,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity original team", LogSeverity.WARN);
+                success = false;
             }
+
             // current team
             int? currentTeam = null;
             if (
@@ -663,7 +705,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity current team", LogSeverity.WARN);
+                success = false;
             }
+
             // attributes
             List<Attribute>? attributes = null;
             if (
@@ -684,13 +728,16 @@ namespace ProgressAdventure.Entity
                     else
                     {
                         Logger.Log("Entity parse error", "entity attribute parse error", LogSeverity.WARN);
+                        success = false;
                     }
                 }
             }
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity attributes list", LogSeverity.WARN);
+                success = false;
             }
+
             // drops
             List<Item>? drops = null;
             if (
@@ -701,17 +748,19 @@ namespace ProgressAdventure.Entity
                 drops = new List<Item>();
                 foreach (var dropJson in dropList)
                 {
-                    var dropItem = Item.FromJson(dropJson as IDictionary<string, object?>, fileVersion);
-                    if (dropItem is not null)
+                    success &= Item.FromJson(dropJson as IDictionary<string, object?>, fileVersion, out Item? itemObject);
+                    if (itemObject is not null)
                     {
-                        drops.Add(dropItem);
+                        drops.Add(itemObject);
                     }
                 }
             }
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse drops list from json", LogSeverity.WARN);
+                success = false;
             }
+
             // position
             (long x, long y)? position = null;
             if (
@@ -726,7 +775,9 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity position", LogSeverity.WARN);
+                success = false;
             }
+
             // facing
             Facing? facing = null;
             if (
@@ -740,9 +791,10 @@ namespace ProgressAdventure.Entity
             else
             {
                 Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
+                success = false;
             }
 
-            return (
+            entityData = (
                 name,
                 baseMaxHp,
                 currentHp,
@@ -756,6 +808,7 @@ namespace ProgressAdventure.Entity
                 position,
                 facing
             );
+            return success;
         }
         #endregion
         #endregion

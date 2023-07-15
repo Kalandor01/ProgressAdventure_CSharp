@@ -149,6 +149,7 @@ namespace ProgressAdventure
                 Logger.Log("Tile noise seed parse error", "tile noise seed json is null", LogSeverity.WARN);
                 return null;
             }
+
             var noiseSeedDict = new Dictionary<TileNoiseType, ulong>();
             foreach (var tileTypeNoiseSeed in tileTypeNoiseSeeds)
             {
@@ -190,10 +191,10 @@ namespace ProgressAdventure
         /// Converts the json representation of the object to object format.
         /// </summary>
         /// <param name="randomStatesJson">The json representation of the RandomState.</param>
-        /// <param name="fileVersion">The version number of the loaded file file.</param>
-        public static void FromJson(IDictionary<string, object?>? randomStatesJson)
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static bool FromJson(IDictionary<string, object?>? randomStatesJson, string fileVersion)
         {
-            // main random
+            var success = true;
             SplittableRandom? mainRandom = null;
             SplittableRandom? worldRandom = null;
             SplittableRandom? miscRandom = null;
@@ -204,38 +205,43 @@ namespace ProgressAdventure
                 // main random
                 if (randomStatesJson.TryGetValue("mainRandom", out object? mainRandomValue))
                 {
-                    mainRandom = Tools.DeserializeRandom(mainRandomValue?.ToString());
+                    success &= Tools.TryDeserializeRandom(mainRandomValue?.ToString(), out mainRandom);
                 }
                 else
                 {
                     Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
+                    success = false;
                 }
                 // world random
                 if (randomStatesJson.TryGetValue("worldRandom", out object? worldRandomValue))
                 {
-                    worldRandom = Tools.DeserializeRandom(worldRandomValue?.ToString());
+                    success &= Tools.TryDeserializeRandom(worldRandomValue?.ToString(), out worldRandom);
                 }
                 else
                 {
                     Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
+                    success = false;
                 }
                 // misc random
                 if (randomStatesJson.TryGetValue("miscRandom", out object? miscRandomValue))
                 {
-                    miscRandom = Tools.DeserializeRandom(miscRandomValue?.ToString());
+                    success &= Tools.TryDeserializeRandom(miscRandomValue?.ToString(), out miscRandom);
                 }
                 else
                 {
                     Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                    success = false;
                 }
                 // tile type noise seeds
                 if (randomStatesJson.TryGetValue("tileTypeNoiseSeeds", out object? tileTypeNoiseSeedsJson))
                 {
                     tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds(tileTypeNoiseSeedsJson as IDictionary<string, object?>);
+                    success &= tileTypeNoiseSeeds is not null && tileTypeNoiseSeeds.Count == Enum.GetNames<TileNoiseType>().Length;
                 }
                 else
                 {
                     Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                    success = false;
                 }
                 // chunk seed modifier
                 if (
@@ -248,13 +254,16 @@ namespace ProgressAdventure
                 else
                 {
                     Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
+                    success = false;
                 }
             }
             else
             {
                 Logger.Log("Random states parse error", "random states json is null", LogSeverity.WARN);
+                success = false;
             }
             Initialise(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
+            return success;
         }
         #endregion
     }

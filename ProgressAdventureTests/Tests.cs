@@ -49,9 +49,9 @@ namespace ProgressAdventureTests
                 try
                 {
                     var itemJson = item.ToJson();
-                    loadedItem = Item.FromJson(itemJson, PAConstants.SAVE_VERSION);
+                    var success = Item.FromJson(itemJson, PAConstants.SAVE_VERSION, out loadedItem);
 
-                    if (loadedItem is null)
+                    if (loadedItem is null || !success)
                     {
                         throw new ArgumentNullException(item.Type.ToString());
                     }
@@ -133,7 +133,7 @@ namespace ProgressAdventureTests
 
                 try
                 {
-                    entity = Entity.AnyEntityFromJson(defEntityJson);
+                    Entity.AnyEntityFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
 
                     if (entity is null)
                     {
@@ -156,9 +156,9 @@ namespace ProgressAdventureTests
                 try
                 {
                     var entityJson = entity.ToJson();
-                    loadedEntity = Entity.AnyEntityFromJson(entityJson);
+                    var success = Entity.AnyEntityFromJson(entityJson, PAConstants.SAVE_VERSION, out loadedEntity);
 
-                    if (loadedEntity is null)
+                    if (loadedEntity is null || !success)
                     {
                         throw new ArgumentNullException(entity.GetType().ToString());
                     }
@@ -313,48 +313,6 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
-        /// Checks if the EntityUtils, attribute name dictionary contains all required keys and correct values.
-        /// </summary>
-        [Fact]
-        public static TestResultDTO? EntityUtilsAttributeNameDictionaryCheck()
-        {
-            var requiredKeys = Enum.GetValues<Attribute>();
-            IDictionary<Attribute, string> checkedDictionary;
-
-            try
-            {
-                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<Attribute, string>>(typeof(EntityUtils), "attributeNameMap");
-            }
-            catch (Exception ex)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
-            }
-
-            var existingValues = new List<string>();
-
-            foreach (var key in requiredKeys)
-            {
-                if (checkedDictionary.TryGetValue(key, out string? value) && value is not null)
-                {
-                    if (existingValues.Contains(value))
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
-                    }
-                    else
-                    {
-                        existingValues.Add(value);
-                    }
-                }
-                else
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Checks if the ItemUtils, item attributes dictionary contains all required keys and correct values.
         /// </summary>
         [Fact]
@@ -480,43 +438,6 @@ namespace ProgressAdventureTests
                 else
                 {
                     existingValues.Add(element.Value);
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Checks if the SettingsUtils, settings key name dictionary contains all required keys and correct values.
-        /// </summary>
-        [Fact]
-        public static TestResultDTO? SettingsUtilsSettingsKeyNameDictionaryCheck()
-        {
-            var requiredKeys = Enum.GetValues<SettingsKey>();
-            var checkedDictionary = SettingsUtils.settingsKeyNames;
-
-            var existingValues = new List<string>();
-
-            foreach (var key in requiredKeys)
-            {
-                if (checkedDictionary.TryGetValue(key, out string? value))
-                {
-                    if (value is null)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The value in the dictionary at \"{key}\" is null.");
-                    }
-                    if (existingValues.Contains(value))
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
-                    }
-                    else
-                    {
-                        existingValues.Add(value);
-                    }
-                }
-                else
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
             }
 

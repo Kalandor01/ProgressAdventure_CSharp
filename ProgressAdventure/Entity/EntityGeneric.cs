@@ -51,9 +51,9 @@ namespace ProgressAdventure.Entity
             List<Item>? drops = null
         ) : base(name, stats, drops) { }
 
-        public static TEntity? FromJson(IDictionary<string, object?>? entityJson, string fileVersion)
+        public static bool FromJson(IDictionary<string, object?>? entityJson, string fileVersion, out TEntity? entityObject)
         {
-            return FromJson<TEntity>(entityJson, fileVersion);
+            return FromJson<TEntity>(entityJson, fileVersion, out entityObject);
         }
     }
 }

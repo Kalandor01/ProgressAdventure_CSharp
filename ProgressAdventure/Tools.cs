@@ -4,6 +4,7 @@ using NPrng;
 using NPrng.Generators;
 using NPrng.Serializers;
 using ProgressAdventure.Enums;
+using ProgressAdventure.SettingsManagement;
 using SaveFileManager;
 using System.Collections;
 using System.IO.Compression;
@@ -285,12 +286,11 @@ namespace ProgressAdventure
         /// Tries to turn the string representation of a Splittable random into an object, and returns the success.
         /// </summary>
         /// <param name="randomString">The random generator's string representation.</param>
-        /// <param name="random">The random generator, that got deserialised, or created.</param>
-        public static bool TryDeserializeRandom(string? randomString, out SplittableRandom random)
+        /// <param name="random">The random generator, that got deserialised.</param>
+        public static bool TryDeserializeRandom(string? randomString, out SplittableRandom? random)
         {
-            var rand = DeserializeRandom(randomString);
-            random = rand ?? new SplittableRandom();
-            return rand is not null;
+            random = DeserializeRandom(randomString);
+            return random is not null;
         }
 
         /// <summary>
@@ -422,6 +422,18 @@ namespace ProgressAdventure
                 Directory.Delete(saveFolderPath, true);
                 Logger.Log("Deleted save", $"save name: {saveFolderName}");
             }
+        }
+
+        /// <summary>
+        /// Colors text fore/background (influenced by <c>Settings.EnableColoredText</c>).
+        /// </summary>
+        /// <param name="text">The text to display</param>
+        /// <param name="foregroundColor">The RGB color of the foreground color.</param>
+        /// <param name="backgroundColor">The RGB color of the background color.</param>
+        /// <returns>A string that will color the text, when writen out in the console.</returns>
+        public static string StylizedText(string text, (byte r, byte g, byte b)? foregroundColor = null, (byte r, byte g, byte b)? backgroundColor = null)
+        {
+            return Settings.EnableColoredText ? Utils.StylizedText(text, foregroundColor, backgroundColor) : text;
         }
 
         /// <summary>

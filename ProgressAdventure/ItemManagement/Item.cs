@@ -135,12 +135,13 @@ namespace ProgressAdventure.ItemManagement
             };
         }
 
-        public static Item? FromJson(IDictionary<string, object?>? itemJson, string fileVersion)
+        public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out Item? itemObject)
         {
             if (itemJson is null)
             {
                 Logger.Log("Item parse error", "item json is null", LogSeverity.ERROR);
-                return null;
+                itemObject = null;
+                return false;
             }
 
             //correct data
@@ -181,19 +182,22 @@ namespace ProgressAdventure.ItemManagement
                     if (itemAmount < 1)
                     {
                         Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.WARN);
-                        return null;
+                        itemObject = null;
+                        return false;
                     }
                 }
                 else
                 {
                     Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
                 }
-                return new Item(itemType, itemAmount);
+                itemObject = new Item(itemType, itemAmount);
+                return true;
             }
             else
             {
                 Logger.Log("Item parse error", "couldn't parse item type from json", LogSeverity.ERROR);
-                return null;
+                itemObject = null;
+                return false;
             }
         }
         #endregion

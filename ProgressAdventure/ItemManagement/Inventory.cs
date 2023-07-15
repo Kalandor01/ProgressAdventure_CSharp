@@ -173,7 +173,7 @@ namespace ProgressAdventure.ItemManagement
             return new Dictionary<string, object?> { ["items"] = itemsListJson };
         }
 
-        public static Inventory? FromJson(IDictionary<string, object?>? inventoryJson, string fileVersion)
+        public static bool FromJson(IDictionary<string, object?>? inventoryJson, string fileVersion, out Inventory? inventory)
         {
             if (
                 inventoryJson is not null &&
@@ -181,22 +181,24 @@ namespace ProgressAdventure.ItemManagement
                 itemsJson is IEnumerable itemList
             )
             {
+                var success = true;
                 var items = new List<Item>();
                 foreach (var itemJson in itemList)
                 {
-                    var item = Item.FromJson(itemJson as IDictionary<string, object?>, fileVersion);
+                    success &= Item.FromJson(itemJson as IDictionary<string, object?>, fileVersion, out Item? item);
                     if (item is not null)
                     {
                         items.Add(item);
                     }
                 }
-                var inventory = new Inventory(items);
-                return inventory;
+                inventory = new Inventory(items);
+                return success;
             }
             else
             {
                 Logger.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
-                return null;
+                inventory = null;
+                return false;
             }
         }
         #endregion

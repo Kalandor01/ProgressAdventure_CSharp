@@ -1,6 +1,4 @@
-﻿using ProgressAdventure;
-using ProgressAdventure.Entity;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using System.Text;
 using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
@@ -32,7 +30,7 @@ namespace ProgressAdventureTests
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
 
-            if (!Utils.TryEnableAnsiCodes())
+            if (!PAUtils.TryEnableAnsiCodes())
             {
                 Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
             }

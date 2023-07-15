@@ -62,12 +62,10 @@ namespace ProgressAdventureTests
             RunTest(Tests.LoggerLoggingValuesDictionaryCheck, false);
             RunTest(Tests.EntityUtilsFacingToMovementVectorDictionaryCheck, false);
             RunTest(Tests.EntityUtilsAttributeStatsChangeDictionaryCheck, false);
-            RunTest(Tests.EntityUtilsAttributeNameDictionaryCheck, false);
             RunTest(Tests.ItemUtilsItemAttributesDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeIgnoreMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeResponseMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsSpecialKeyNameDictionaryCheck, false);
-            RunTest(Tests.SettingsUtilsSettingsKeyNameDictionaryCheck, false);
             RunTest(Tests.WorldUtilsTileNoiseOffsetsDictionaryCheck, false);
 
             Logger.Log("All dictionary tests finished runing");

@@ -1,5 +1,4 @@
-﻿using ProgressAdventure.Entity;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using System.Text;
 
 namespace ProgressAdventure
@@ -13,22 +12,15 @@ namespace ProgressAdventure
         {
             //Settings.UpdateLoggingLevel(0);
 
-            SaveManager.CreateSaveData("test", "me");
+            //SaveManager.CreateSaveData("test", "me");
 
 
-            //MenuManager.MainMenu();
+            MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
 
 
-            var pl = new Player();
 
-            while (true)
-            {
-                pl.WeightedTurn();
-                var tt = pl.facing;
-            }
-            
             Console.WriteLine();
         }
 
