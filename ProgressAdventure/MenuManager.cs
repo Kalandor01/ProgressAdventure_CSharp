@@ -213,7 +213,7 @@ namespace ProgressAdventure
         public static void OtherOptions()
         {
             // auto save
-            var autoSaveElement = new Toggle(Settings.AutoSave ? 1 : 0, "Auto save: ");
+            var autoSaveElement = new Toggle(Settings.AutoSave, "Auto save: ");
 
             // logging
             var loggingValues = loggingSeveritiesList.Select(el => el.value);
@@ -232,7 +232,7 @@ namespace ProgressAdventure
             var loggingElement = new PAChoice(loggingNames, loggingValue, "Logging: ");
 
             // enable colored text
-            var coloredTextElement = new Toggle(Settings.EnableColoredText ? 1 : 0, "Colored text: ", "enabled", "disabled");
+            var coloredTextElement = new Toggle(Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
 
             // menu elements
             var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
@@ -256,8 +256,8 @@ namespace ProgressAdventure
         /// </summary>
         public static void AskOptions()
         {
-            var askDeleteSaveElement = new Toggle(Settings.AskDeleteSave ? 1 : 0, "Confirm save folder delete: ", "yes", "no");
-            var askRegenerateSaveElement = new Toggle(Settings.AskRegenerateSave ? 1 : 0, "Confirm save folders regeneration: ", "yes", "no");
+            var askDeleteSaveElement = new Toggle(Settings.AskDeleteSave, "Confirm save folder delete: ", "yes", "no");
+            var askRegenerateSaveElement = new Toggle(Settings.AskRegenerateSave, "Confirm save folders regeneration: ", "yes", "no");
 
             // default backup action
             var backupActionValues = defBackupActionsList.Select(ac => ac.value);

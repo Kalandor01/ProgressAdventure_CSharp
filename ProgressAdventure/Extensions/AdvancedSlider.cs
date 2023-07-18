@@ -3,7 +3,8 @@
 namespace ProgressAdventure.Extensions
 {
     /// <summary>
-    /// A version of the <c>SaveFileManager</c> <c>Slider</c>, that allways displays a customisable display name, for each value.
+    /// A version of the <c>SaveFileManager</c> <c>Slider</c>, that allways displays a customisable display name, for each value.<br/>
+    /// Structure: [<c>preText</c>][<c>symbol</c> or <c>symbolEmpty</c>][<c>preValue</c>][<c>value</c>][<c>postValue</c>]
     /// </summary>
     public class AdvancedSlider : Slider
     {
@@ -35,7 +36,7 @@ namespace ProgressAdventure.Extensions
         #endregion
 
         #region Overrides
-        protected override string MakeValue()
+        protected override string MakeValue(IEnumerable<BaseUI?>? elementList = null)
         {
             return _displayValues.ElementAt(value);
         }
