@@ -137,6 +137,16 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Offsets the coordinates of the cursor.
+        /// </summary>
+        /// <param name="offset">The offset coordinates.</param>
+        public static void MoveCursor((int x, int y) offset)
+        {
+            (int x, int y) = (Math.Clamp(Console.CursorLeft + offset.x, 0, Console.BufferWidth - 1), Math.Clamp(Console.CursorTop - offset.y, 0, Console.BufferHeight - 1));
+            Console.SetCursorPosition(x, y);
+        }
+
+        /// <summary>
         /// string.Replace(), but replaces all strings in the list.
         /// </summary>
         /// <param name="originalString">The string to replace from.</param>
