@@ -147,6 +147,47 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Calculates the length of the string, as it will be displayed on the screen.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="startingXPos">The starting X position, where the text will be displayed on the terminal. (Important for tabs.)</param>
+        public static int GetDisplayLen(string text, int startingXPos = 0)
+        {
+            var maxLen = 0;
+            var isPrevEsc = false;
+            var len = 0;
+
+            foreach (var ch in text)
+            {
+                if(ch.Equals('\t'))
+                {
+                    len += 8 - (startingXPos + len) % 8;
+                }
+                else if (ch.Equals('\r'))
+                {
+                    maxLen = len > maxLen ? len : maxLen;
+                    len = 0 - startingXPos;
+                }
+                else if (ch.Equals('\u001b'))
+                {
+                    isPrevEsc = true;
+                }
+                else if (!ch.Equals('\0'))
+                {
+                    if (isPrevEsc)
+                    {
+                        isPrevEsc = false;
+                    }
+                    else
+                    {
+                        len++;
+                    }
+                }
+            }
+            return len > maxLen ? len : maxLen;
+        }
+
+        /// <summary>
         /// string.Replace(), but replaces all strings in the list.
         /// </summary>
         /// <param name="originalString">The string to replace from.</param>

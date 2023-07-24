@@ -3,7 +3,6 @@ using ProgressAdventure.Extensions;
 using ProgressAdventure.SettingsManagement;
 using SaveFileManager;
 using System.Text;
-using SFMUtils = SaveFileManager.Utils;
 
 namespace ProgressAdventure
 {
@@ -23,18 +22,21 @@ namespace ProgressAdventure
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
 
+
+
             var autoSaveElement = new Toggle(false, "Auto save: ");
 
 
             var fps = new TextField(
                 57.ToString(),
-                "fps: ",
-                "Fps",
-                oldValueAsStartingValue:true,
-                maxInputLength:4,
-                validatorFunction:new TextField.ValidatorDelegate(IsFps)
+                "This\nfps: ",
+                "Fps\nlol",
+                multiline: true,
+                oldValueAsStartingValue: true,
+                //maxInputLength:4,
+                textValidatorFunction: new TextField.TextValidatorDelegate(IsFps)
+            //keyValidatorFunction:new TextField.KeyValidatorDelegate(IsGoodKey)
             );
-
 
             // logging
             var loggingNames = new List<string> { "he", "hohohoho", "hahahahaha\nhahah" };
@@ -42,16 +44,23 @@ namespace ProgressAdventure
             var coloredTextElement = new Toggle(true, "Colored text: ", "enabled", "disabled");
 
             // menu elements
-            var menuElements = new List<BaseUI?> { autoSaveElement, fps, loggingElement, coloredTextElement, null};
-            var response = SFMUtils.OptionsUI(menuElements, " Other options", keybinds: Settings.Keybinds.KeybindList);
+            var menuElements = new List<BaseUI?> { autoSaveElement, fps, loggingElement, coloredTextElement, null };
+            var response = new OptionsUI(menuElements, " Other options", new CursorIcon("->", "-->\tL\n  A\n  I", ":(", "):\n")).Display(Settings.Keybinds.KeybindList);
 
             Console.WriteLine();
         }
 
-        public static bool IsFps(string fps)
+        public static (TextFieldValidatorStatus status, string? message) IsFps(string fps)
         {
             var success = int.TryParse(fps, out var fpsValue);
-            return success && fpsValue > 0 && fpsValue <= 1000;
+            var status = success ? (fpsValue > 0 && fpsValue <= 1000 ? TextFieldValidatorStatus.VALID : TextFieldValidatorStatus.RETRY) : TextFieldValidatorStatus.INVALID;
+            var message = success ? (fpsValue > 0 && fpsValue <= 1000 ? null : "Should be between 1 and 1000") : null;
+            return (status, message);
+        }
+
+        public static bool IsGoodKey(ConsoleKeyInfo key)
+        {
+            return int.TryParse(key.KeyChar.ToString(), out _);
         }
 
         /// <summary>

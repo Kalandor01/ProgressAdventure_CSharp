@@ -18,7 +18,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if all item IDs can be turned into items.
         /// </summary>
-        [Fact]
         public static TestResultDTO? AllItemTypesExistAndLoadable()
         {
             var itemAmount = 3;
@@ -80,7 +79,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if all entities have a type name, and can be loaded from json.
         /// </summary>
-        [Fact]
         public static TestResultDTO? AllEntitiesLoadable()
         {
             RandomStates.Initialise();
@@ -190,7 +188,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the Logger, logging values dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? LoggerLoggingValuesDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<LogSeverity>();
@@ -222,7 +219,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the EntityUtils, facing to movement vector dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? EntityUtilsFacingToMovementVectorDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Facing>();
@@ -273,7 +269,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the EntityUtils, attributes stat change dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? EntityUtilsAttributeStatsChangeDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Attribute>();
@@ -315,7 +310,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the ItemUtils, item attributes dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? ItemUtilsItemAttributesDictionaryCheck()
         {
             var requiredKeys = ItemUtils.GetAllItemTypes();
@@ -352,7 +346,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the SettingsUtils, action type ignore mapping dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? SettingsUtilsActionTypeIgnoreMappingDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
@@ -379,7 +372,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the SettingsUtils, action type response mapping dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? SettingsUtilsActionTypeResponseMappingDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
@@ -412,7 +404,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the SettingsUtils, special key name dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? SettingsUtilsSpecialKeyNameDictionaryCheck()
         {
             var checkedDictionary = SettingsUtils.specialKeyNameMap;
@@ -447,7 +438,6 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the WorldUtils, tile noise offsets dictionary contains all required keys and correct values.
         /// </summary>
-        [Fact]
         public static TestResultDTO? WorldUtilsTileNoiseOffsetsDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<TileNoiseType>();
@@ -478,7 +468,6 @@ namespace ProgressAdventureTests
         /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
         /// </summary>
-        [Fact]
         public static TestResultDTO? BasicJsonConvertTest()
         {
             RandomStates.Initialise();

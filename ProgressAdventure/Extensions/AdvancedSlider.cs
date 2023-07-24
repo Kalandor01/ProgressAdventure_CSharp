@@ -36,7 +36,7 @@ namespace ProgressAdventure.Extensions
         #endregion
 
         #region Overrides
-        protected override string MakeValue(IEnumerable<BaseUI?>? elementList = null)
+        protected override string MakeValue(OptionsUI? optionsUI = null)
         {
             return _displayValues.ElementAt(value);
         }

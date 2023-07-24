@@ -238,7 +238,7 @@ namespace ProgressAdventure
             var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
             
             // response
-            var response = SFMUtils.OptionsUI(menuElements, " Other options", keybinds: Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(menuElements, " Other options").Display(Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 var newAutoSaveValue = autoSaveElement.value == 1;
@@ -278,7 +278,7 @@ namespace ProgressAdventure
             var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
 
             // response
-            var response = SFMUtils.OptionsUI(askSettingsElements, " Question popups", keybinds: Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(askSettingsElements, " Question popups").Display(Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 Settings.AskDeleteSave = askDeleteSaveElement.value == 1;
