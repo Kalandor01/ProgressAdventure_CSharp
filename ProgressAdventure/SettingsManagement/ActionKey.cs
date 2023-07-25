@@ -15,30 +15,31 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public ActionType actionType;
         /// <summary>
-        /// If the key conflicts with another key in the keybinds or not.
+        /// A list indicating if a key in a list conflicts with another key in the keybinds.
         /// </summary>
-        public bool conflict;
+        public List<bool> conflicts;
         #endregion
 
         #region Public properties
         /// <summary>
         /// The keys that can be pressed to trigger this action.
         /// </summary>
-#pragma warning disable CS0108 // hiding was intended
+#pragma warning disable CS0108 // Hiding was intended
         public IEnumerable<ConsoleKeyInfo> Keys
-#pragma warning restore CS0108 // hiding was intended
+#pragma warning restore CS0108 // Hiding was intended
         {
             get => base.Keys;
             set {
-                base.Keys = value;
-                UpdateName();
+                base.Keys = value.Distinct();
+                UpdateNames();
+                conflicts = Keys.Select(k => false).ToList();
             }
         }
 
         /// <summary>
-        /// The display name of the key.
+        /// The display names of the keys.
         /// </summary>
-        public string Name { get; private set; }
+        public List<string> Names { get; private set; }
         #endregion
 
         #region Constructors
@@ -61,8 +62,8 @@ namespace ProgressAdventure.SettingsManagement
                 throw new ArgumentException("No keys in keys list!", nameof(keys));
             }
             this.actionType = actionType;
-            conflict = false;
-            UpdateName();
+            conflicts = Keys.Select(k => false).ToList();
+            Keys = keys;
         }
         #endregion
 
@@ -70,9 +71,13 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// Updates the display name of the key.
         /// </summary>
-        public void UpdateName()
+        public void UpdateNames()
         {
-            Name = SettingsUtils.GetKeyName(Keys.ElementAt(0));
+            Names = new List<string>();
+            foreach (var key in Keys)
+            {
+                Names.Add(SettingsUtils.GetKeyName(key));
+            }
         }
 
         /// <summary>
@@ -123,7 +128,7 @@ namespace ProgressAdventure.SettingsManagement
 
         public override string ToString()
         {
-            return actionType.ToString() + ": " + Name;
+            return actionType.ToString() + ": " + string.Join(", ", Names);
         }
         #endregion
 

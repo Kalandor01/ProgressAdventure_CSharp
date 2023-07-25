@@ -1,7 +1,4 @@
 ﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
-using ProgressAdventure.SettingsManagement;
-using SaveFileManager;
 using System.Text;
 
 namespace ProgressAdventure
@@ -18,49 +15,12 @@ namespace ProgressAdventure
             //SaveManager.CreateSaveData("test", "me");
 
 
-            //MenuManager.MainMenu();
+            MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
 
 
-
-            var autoSaveElement = new Toggle(false, "Auto save: ");
-
-
-            var fps = new TextField(
-                57.ToString(),
-                "This\nfps: ",
-                "Fps\nlol",
-                multiline: true,
-                oldValueAsStartingValue: true,
-                //maxInputLength:4,
-                textValidatorFunction: new TextField.TextValidatorDelegate(IsFps)
-            //keyValidatorFunction:new TextField.KeyValidatorDelegate(IsGoodKey)
-            );
-
-            // logging
-            var loggingNames = new List<string> { "he", "hohohoho", "hahahahaha\nhahah" };
-            var loggingElement = new PAChoice(loggingNames, 0, "Logging: ");
-            var coloredTextElement = new Toggle(true, "Colored text: ", "enabled", "disabled");
-
-            // menu elements
-            var menuElements = new List<BaseUI?> { autoSaveElement, fps, loggingElement, coloredTextElement, null };
-            var response = new OptionsUI(menuElements, " Other options", new CursorIcon("->", "-->\tL\n  A\n  I", ":(", "):\n")).Display(Settings.Keybinds.KeybindList);
-
             Console.WriteLine();
-        }
-
-        public static (TextFieldValidatorStatus status, string? message) IsFps(string fps)
-        {
-            var success = int.TryParse(fps, out var fpsValue);
-            var status = success ? (fpsValue > 0 && fpsValue <= 1000 ? TextFieldValidatorStatus.VALID : TextFieldValidatorStatus.RETRY) : TextFieldValidatorStatus.INVALID;
-            var message = success ? (fpsValue > 0 && fpsValue <= 1000 ? null : "Should be between 1 and 1000") : null;
-            return (status, message);
-        }
-
-        public static bool IsGoodKey(ConsoleKeyInfo key)
-        {
-            return int.TryParse(key.KeyChar.ToString(), out _);
         }
 
         /// <summary>

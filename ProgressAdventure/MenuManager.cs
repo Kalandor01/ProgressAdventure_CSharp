@@ -28,6 +28,11 @@ namespace ProgressAdventure
         /// SHOULD NOT BE MODIFIED MANUALY!
         /// </summary>
         private static List<(string saveName, string displayText)> _savesData;
+
+        /// <summary>
+        /// The temp keybinds, used to update the conflicts when a keybind changes.
+        /// </summary>
+        private static Keybinds tempKeybinds;
         #endregion
 
         #region Private Properties
@@ -109,77 +114,38 @@ namespace ProgressAdventure
         {
             return -1;
         }
+
+        /// <inheritdoc cref="KeyField.DisplayValueDelegate"/>
+        private static string KeybindValueDisplay(KeyField keyField, string icons, OptionsUI? optionsUI = null)
+        {
+            return string.Join(", ", SettingsUtils.GetColoredNames(keyField.value));
+        }
         #endregion
 
         #region Public functions
         #region Keybinds
         /// <summary>
-        /// Asks the used for a key, and sets it as a key in the given keybind.
-        /// </summary>
-        /// <param name="keybind">The keybind to modify.</param>
-        public static void SetKeybind(ActionKey keybind)
-        {
-            Console.Write("\n\nPress any key!\n\n");
-            var key = Console.ReadKey();
-            keybind.Keys = new List<ConsoleKeyInfo> { key };
-        }
-
-        /// <summary>
-        /// Returns the name of the current key for a given action, and colors it, depending on if it conflicts with other keys.
-        /// </summary>
-        /// <param name="keybinds">The keybinds to get the key from.</param>
-        /// <param name="actionType">The action type to return the key for.</param>
-        public static string GetKeybindName(Keybinds keybinds, ActionType actionType)
-        {
-            var key = keybinds.GetActionKey(actionType);
-            return Tools.StylizedText(key.Name, (key.conflict ? Constants.Colors.RED : null));
-        }
-
-        /// <summary>
         /// Displays the keybinds menu.
         /// </summary>
         public static void KeybindSettings()
         {
-            var tempKeybinds = Settings.Keybinds.DeepCopy();
-            while (true)
+            tempKeybinds = Settings.Keybinds.DeepCopy();
+
+            var elementList = new List<BaseUI?>();
+            foreach (var actionType in Enum.GetValues<ActionType>())
             {
-                var response = (int)new UIList(new List<string?>
-                    {
-                    $"Escape: {GetKeybindName(tempKeybinds, ActionType.ESCAPE)}",
-                    $"Up: {GetKeybindName(tempKeybinds, ActionType.UP)}",
-                    $"Down: {GetKeybindName(tempKeybinds, ActionType.DOWN)}",
-                    $"Left: {GetKeybindName(tempKeybinds, ActionType.LEFT)}",
-                    $"Right: {GetKeybindName(tempKeybinds, ActionType.RIGHT)}",
-                    $"Enter: {GetKeybindName(tempKeybinds, ActionType.ENTER)}",
-                    null, "Save"
-                    },
-                    " Keybinds", null, false, true
-                ).Display(ActionList, ResultsList);
-                // exit
-                if (response == -1)
-                {
-                    break;
-                }
-                // done
-                else if (response > 5)
-                {
-                    Logger.Log("Keybinds changed", $"{Settings.Keybinds} -> {tempKeybinds}", LogSeverity.DEBUG);
-                    Settings.Keybinds = tempKeybinds;
-
-                    // in place keybinds switch
-                    ActionList.Clear();
-                    ActionList.AddRange(Settings.Keybinds.KeybindList);
-                    ResultsList.Clear();
-                    ResultsList.AddRange(SFMUtils.GetResultsList(ActionList));
-
-                    break;
-                }
-                else
-                {
-                    SetKeybind(tempKeybinds.KeybindList.ElementAt(response));
-                    tempKeybinds.UpdateKeybindConflicts();
-                }
+                elementList.Add(new KeyField(
+                    tempKeybinds.GetActionKey(actionType),
+                    actionType.ToString().Capitalize() + ": ",
+                    validatorFunction: KeybindChange,
+                    displayValueFunction: new KeyField.DisplayValueDelegate(KeybindValueDisplay),
+                    keyNum: 2
+                ));
             }
+            elementList.Add(null);
+            elementList.Add(new Button(new UIAction(SaveKeybinds), text: "Save"));
+
+            new OptionsUI(elementList, " Keybinds").Display(ActionList, ResultsList);
         }
         #endregion
 
@@ -436,6 +402,30 @@ namespace ProgressAdventure
                 loadSaveUI.answers = answers;
                 loadSaveUI.actions = actions;
             }
+        }
+
+        /// <inheritdoc cref="KeyField.ValidatorDelegate"/>
+        private static (TextFieldValidatorStatus status, string? message) KeybindChange(ConsoleKeyInfo key, KeyField keyField)
+        {
+            tempKeybinds.UpdateKeybindConflicts();
+            return (TextFieldValidatorStatus.VALID, null);
+        }
+
+        /// <summary>
+        /// Runs, when the user saves the edited keybinds.
+        /// </summary>
+        private static object SaveKeybinds()
+        {
+            Logger.Log("Keybinds changed", $"\n{Settings.Keybinds}\n -> \n{tempKeybinds}", LogSeverity.DEBUG);
+            Settings.Keybinds = tempKeybinds;
+
+            // in place keybinds switch
+            ActionList.Clear();
+            ActionList.AddRange(Settings.Keybinds.KeybindList);
+            ResultsList.Clear();
+            ResultsList.AddRange(SFMUtils.GetResultsList(ActionList));
+
+            return -1;
         }
         #endregion
 

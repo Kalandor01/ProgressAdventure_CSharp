@@ -80,23 +80,26 @@ namespace ProgressAdventure.SettingsManagement
         {
             foreach (var keybind in KeybindList)
             {
-                keybind.conflict = false;
+                keybind.conflicts = keybind.Keys.Select(k => false).ToList();
             }
-            foreach (var key1 in KeybindList)
+            foreach (var action1 in KeybindList)
             {
-                foreach (var key2 in KeybindList)
+                foreach (var action2 in KeybindList)
                 {
-                    if (key1 != key2)
+                    if (action1 != action2)
                     {
-                        if
-                        (
-                            key1.Keys.Any() &&
-                            key2.Keys.Any() &&
-                            key1.Keys.First() == key2.Keys.First()
-                        )
+                        var key1 = action1.Keys;
+                        var key2 = action2.Keys;
+                        for (var x = 0; x < key1.Count(); x++)
                         {
-                            key1.conflict = true;
-                            key2.conflict = true;
+                            for (var y = 0; y < key2.Count(); y++)
+                            {
+                                if (key1.ElementAt(x).Equals(key2.ElementAt(y)))
+                                {
+                                    action1.conflicts[x] = true;
+                                    action2.conflicts[y] = true;
+                                }
+                            }
                         }
                     }
                 }

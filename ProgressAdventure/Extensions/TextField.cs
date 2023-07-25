@@ -1,19 +1,23 @@
 ﻿using ProgressAdventure.Enums;
 using SaveFileManager;
-using System.Globalization;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ProgressAdventure.Extensions
 {
     /// <summary>
     /// Object for the <c>OptionsUI</c> method.<br/>
-    /// When used as input in the <c>OptionsUI</c> function, it draws a field that can be selected to edit it's value in place, with the enter action.<br/>
+    /// When used as input in the <c>OptionsUI</c> function, it draws a field for a string, that can be selected to edit it's value in place, with the enter action.<br/>
     /// Structure: [<c>preText</c>][<c>value</c>][<c>postValue</c>]
     /// </summary>
     public class TextField : BaseUI
     {
         #region Public fields
+        /// <summary>
+        /// The current value of the object.
+        /// </summary>
+#pragma warning disable CS0108 // Hiding was intended
+        public string value;
+#pragma warning restore CS0108 // Hiding was intended
         /// <summary>
         /// Wether it should have an emplty string, or the old value, when editing the value.
         /// </summary>
@@ -23,7 +27,7 @@ namespace ProgressAdventure.Extensions
         /// </summary>
         public int? maxInputLength;
         /// <summary>
-        /// Wether to interpret the max length as the length of the string a it will be displayed in the terminal, or just the string.Length.
+        /// Wether to interpret string lengths as the length of the string as it will be displayed in the terminal, or just the string.Length.
         /// </summary>
         public bool lengthAsDisplayLength;
         /// <summary>
@@ -36,16 +40,9 @@ namespace ProgressAdventure.Extensions
         public KeyValidatorDelegate? keyValidatorFunction;
         #endregion
 
-        #region Private fields
-        /// <summary>
-        /// The current value of the object.
-        /// </summary>
-        new string? value;
-        #endregion
-
         #region Public delegates
         /// <summary>
-        /// A function to return if the status of the vaue, the user inputed.
+        /// A function to return the status of the vaue, the user inputed.
         /// </summary>
         /// <param name="inputValue">The value that the user inputed.</param>
         public delegate (TextFieldValidatorStatus status, string? message) TextValidatorDelegate(string inputValue);
@@ -59,7 +56,7 @@ namespace ProgressAdventure.Extensions
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="Toggle"/>
+        /// <inheritdoc cref="TextField"/>
         /// </summary>
         /// <param name="value"><inheritdoc cref="value" path="//summary"/></param>
         /// <param name="oldValueAsStartingValue"><inheritdoc cref="oldValueAsStartingValue" path="//summary"/></param>
@@ -68,7 +65,7 @@ namespace ProgressAdventure.Extensions
         /// <param name="textValidatorFunction"><inheritdoc cref="textValidatorFunction" path="//summary"/></param>
         /// <param name="keyValidatorFunction"><inheritdoc cref="keyValidatorFunction" path="//summary"/></param>
         /// <inheritdoc cref="BaseUI(int, string, string, bool, string, bool)"/>
-        public TextField(string? value, string preText = "", string postValue = "", bool multiline = false, bool oldValueAsStartingValue = false, int? maxInputLength = null, bool lengthAsDisplayLength = true, TextValidatorDelegate? textValidatorFunction = null, KeyValidatorDelegate? keyValidatorFunction = null)
+        public TextField(string value, string preText = "", string postValue = "", bool multiline = false, bool oldValueAsStartingValue = false, int? maxInputLength = null, bool lengthAsDisplayLength = true, TextValidatorDelegate? textValidatorFunction = null, KeyValidatorDelegate? keyValidatorFunction = null)
             : base(-1, preText, "", false, postValue, multiline)
         {
             this.value = value;
@@ -85,7 +82,7 @@ namespace ProgressAdventure.Extensions
         /// <inheritdoc cref="BaseUI.MakeSpecial"/>
         protected override string MakeSpecial(string icons, OptionsUI? optionsUI = null)
         {
-            return value ?? "";
+            return value;
         }
 
         /// <inheritdoc cref="BaseUI.HandleAction"/>
@@ -96,7 +93,7 @@ namespace ProgressAdventure.Extensions
                 if (optionsUI == null || !optionsUI.elements.Any(element => element == this))
                 {
                     Console.WriteLine(preText);
-                    value = Console.ReadLine();
+                    value = Console.ReadLine() ?? "";
                 }
                 else
                 {

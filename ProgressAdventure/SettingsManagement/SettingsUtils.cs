@@ -116,6 +116,20 @@ namespace ProgressAdventure.SettingsManagement
         }
 
         /// <summary>
+        /// Returns the colored version of the key names, depending on if it conflicts.
+        /// </summary>
+        /// <param name="actionKey">The <c>ActionKey</c> to get the names from.</param>
+        public static List<string> GetColoredNames(ActionKey actionKey)
+        {
+            var names = new List<string>();
+            for (int x = 0; x < actionKey.Keys.Count(); x++)
+            {
+                names.Add(Utils.StylizedText(actionKey.Names[x], actionKey.conflicts[x] ? Constants.Colors.RED : null));
+            }
+            return names;
+        }
+
+        /// <summary>
         /// Returns the default keybind list, for a Keybinds object.
         /// </summary>
         public static List<ActionKey> GetDefaultKeybindList()

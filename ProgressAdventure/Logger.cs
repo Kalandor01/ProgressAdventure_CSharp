@@ -68,8 +68,16 @@ namespace ProgressAdventure
             {
                 if (Constants.LOGGING_ENABLED)
                 {
-                    using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
-                    f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{e}|\n");
+                    try
+                    {
+                        using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
+                        f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{e}|\n");
+                    }
+                    catch (Exception e2)
+                    {
+                        Console.WriteLine("\n\n\n\n\n\n\n\n\n\n" + "JUST...NO!!! (Logger exception level 2):\n" + e2.ToString() + "\n\n\n");
+                        Console.ReadKey();
+                    }
                 }
             }
         }
