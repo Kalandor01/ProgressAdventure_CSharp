@@ -8,26 +8,26 @@
         /// <summary>
         /// Returned if the enemy dogded the attack.
         /// </summary>
-        ENEMY_DOGDED,
+        TARGET_DOGDED,
         /// <summary>
         /// Returned if the enemy blocked the attack.
         /// </summary>
-        ENEMY_BLOCKED,
+        TARGET_BLOCKED,
         /// <summary>
         /// Returned if the enemy was hit.
         /// </summary>
-        HIT,
+        TARGET_HIT,
         /// <summary>
         /// Returned if the hit killed the enemy.
         /// </summary>
-        KILLED,
+        TARGET_KILLED,
         /// <summary>
-        /// Returned if the enemy was already dead before the hit.
+        /// Returned if the attacked entity is already dead before the hit.
         /// </summary>
-        ENEMY_DEAD,
+        TARGET_DEAD,
         /// <summary>
         /// Returned if the attacking entity is dead.
         /// </summary>
-        ATTACKER_DEAD,
+        ENTITY_DEAD,
     }
 }

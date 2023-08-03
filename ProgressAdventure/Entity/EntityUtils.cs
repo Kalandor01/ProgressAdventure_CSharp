@@ -696,7 +696,7 @@ namespace ProgressAdventure.Entity
                                 var targetEntityNum = RandomStates.MiscRandom.GenerateInRange(0, targetTeam.Value.Count - 1);
                                 targetEntity = targetTeam.Value.ElementAt((int)targetEntityNum);
                             }
-                            while (targetEntity.CurrentHp <= 0);
+                            while (targetEntity.CurrentHp == 0);
                             // attack
                             var targetOldHp = targetEntity.CurrentHp;
                             var attackResponse = entity.AttackEntity(targetEntity);
@@ -706,13 +706,13 @@ namespace ProgressAdventure.Entity
                                 string? writeText = null;
                                 switch (attackResponse)
                                 {
-                                    case AttackResponse.ENEMY_DOGDED:
+                                    case AttackResponse.TARGET_DOGDED:
                                         writeText = "DODGED!";
                                         break;
-                                    case AttackResponse.ENEMY_BLOCKED:
+                                    case AttackResponse.TARGET_BLOCKED:
                                         writeText = "BLOCKED!";
                                         break;
-                                    case AttackResponse.HIT:
+                                    case AttackResponse.TARGET_HIT:
                                         writeText = $"dealt {targetOldHp - targetEntity.CurrentHp} damage ({targetEntity.CurrentHp})";
                                         break;
                                 }
@@ -721,12 +721,12 @@ namespace ProgressAdventure.Entity
                                     Console.WriteLine(writeText);
                                 }
                             }
-                            if (attackResponse == AttackResponse.HIT || attackResponse == AttackResponse.KILLED)
+                            if (attackResponse == AttackResponse.TARGET_HIT || attackResponse == AttackResponse.TARGET_KILLED)
                             {
                                 no_damage_in_x_turns = 0;
                             }
                             // kill
-                            if (attackResponse == AttackResponse.KILLED)
+                            if (attackResponse == AttackResponse.TARGET_KILLED)
                             {
                                 if (writeOut)
                                 {
@@ -854,7 +854,7 @@ namespace ProgressAdventure.Entity
                             {
                                 foreach (var entity in team.Value)
                                 {
-                                    if (entity.CurrentHp <= 0 && !entity.Equals(player))
+                                    if (entity.CurrentHp == 0 && !entity.Equals(player))
                                     {
                                         player?.inventory.Loot(entity.drops, writeOut ? player.FullName : null);
                                     }

@@ -4,6 +4,7 @@ using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
 using System.Collections;
 using System.Reflection;
+using System.Text;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
@@ -61,19 +62,50 @@ namespace ProgressAdventure.Entity
         public Facing facing;
         #endregion
 
+        #region Private fields
+        /// <summary>
+        /// The maximum hp of the <c>Entity</c>.
+        /// </summary>
+        private int _maxHp;
+        /// <summary>
+        /// The current hp of the <c>Entity</c>.
+        /// </summary>
+        private int _currentHp;
+        #endregion
+
         #region Public properties
         /// <summary>
         /// The full name of the <c>Entity</c>.
         /// </summary>
         public string FullName { get; protected set; }
         /// <summary>
-        /// The maximum hp of the <c>Entity</c>.
+        /// <inheritdoc cref="_maxHp" path="//summary"/>
         /// </summary>
-        public int MaxHp { get; protected set; }
+        public int MaxHp
+        {
+            get
+            {
+                return _maxHp;
+            }
+            protected set
+            {
+                _maxHp = value >= 0 ? value : 0;
+            }
+        }
         /// <summary>
-        /// The current hp of the <c>Entity</c>.
+        /// <inheritdoc cref="_currentHp" path="//summary"/>
         /// </summary>
-        public int CurrentHp { get; protected set; }
+        public int CurrentHp
+        {
+            get
+            {
+                return _currentHp;
+            }
+            protected set
+            {
+                _currentHp = Math.Clamp(value, 0, MaxHp);
+            }
+        }
         /// <summary>
         /// The current attack of the <c>Entity</c>.
         /// </summary>
@@ -129,12 +161,12 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public void UpdateFullName()
         {
-            string attributeNames = "";
+            var attributeNames = new StringBuilder();
             foreach (var attribute in attributes)
             {
-                attributeNames += attribute.ToString().Capitalize() + " ";
+                attributeNames.Append(attribute.ToString() + " ");
             }
-            FullName = (attributeNames + name).Capitalize();
+            FullName = (attributeNames.ToString() + name).Capitalize();
         }
 
         /// <summary>
@@ -201,22 +233,22 @@ namespace ProgressAdventure.Entity
         {
             Logger.Log("Attack log", $"{FullName} attacked {target.FullName}");
             // attacker dead
-            if (CurrentHp <= 0)
+            if (CurrentHp == 0)
             {
                 Logger.Log("Attack log", $"{FullName}(attacker) is dead");
-                return AttackResponse.ATTACKER_DEAD;
+                return AttackResponse.ENTITY_DEAD;
             }
             // enemy dead
-            else if (target.CurrentHp <= 0)
+            else if (target.CurrentHp == 0)
             {
                 Logger.Log("Attack log", $"{FullName}(attacked) is already dead");
-                return AttackResponse.ENEMY_DEAD;
+                return AttackResponse.TARGET_DEAD;
             }
             // enemy dodge
             else if (RandomStates.MiscRandom.GenerateDouble() > Agility * 1.0 / target.Agility - 0.1)
             {
                 Logger.Log("Attack log", $"{target.FullName} dodged");
-                return AttackResponse.ENEMY_DOGDED;
+                return AttackResponse.TARGET_DOGDED;
             }            
             // attack
             else
@@ -227,20 +259,20 @@ namespace ProgressAdventure.Entity
                 if (damage <= 0)
                 {
                     Logger.Log("Attack log", $"{target.FullName} blocked attack");
-                    return AttackResponse.ENEMY_BLOCKED;
+                    return AttackResponse.TARGET_BLOCKED;
                 }
                 // hit
                 else
                 {
-                    target.ReciveDamage(damage);
+                    target.TakeDamage(damage);
                     Logger.Log("Attack log", $"{target.FullName} took {damage} damage ({target.CurrentHp})");
                     // kill
                     if (target.CurrentHp == 0)
                     {
                         Logger.Log("Attack log", $"{FullName} defeated {target.FullName}");
-                        return AttackResponse.KILLED;
+                        return AttackResponse.TARGET_KILLED;
                     }
-                    return AttackResponse.HIT;
+                    return AttackResponse.TARGET_HIT;
                 }
             }
         }
@@ -249,13 +281,9 @@ namespace ProgressAdventure.Entity
         /// Makes the entity take damage.
         /// </summary>
         /// <param name="damage">The amount of damage to take.</param>
-        public void ReciveDamage(int damage)
+        public void TakeDamage(int damage)
         {
             CurrentHp -= damage;
-            if (CurrentHp < 0)
-            {
-                CurrentHp = 0;
-            }
         }
 
         /// <summary>
@@ -288,7 +316,6 @@ namespace ProgressAdventure.Entity
             }
             MaxHp = (int)Math.Clamp(tempMaxHp, int.MinValue, int.MaxValue);
             CurrentHp = currentHp ?? MaxHp;
-            CurrentHp = Math.Clamp(CurrentHp, 0, MaxHp);
             Attack = (int)Math.Clamp(tempAttack, int.MinValue, int.MaxValue);
             Defence = (int)Math.Clamp(tempDefence, int.MinValue, int.MaxValue);
             Agility = (int)Math.Clamp(tempAgility, int.MinValue, int.MaxValue);
