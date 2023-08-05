@@ -116,6 +116,10 @@ namespace ProgressAdventure
         /// The <c>CursorIcon</c> for deletions.
         /// </summary>
         public static readonly CursorIcon DELETE_CURSOR_ICONS = new(" X", "", "  ", "");
+        /// <summary>
+        /// The <c>CursorIcon</c> for <c>BaseUIDisplay</c>.
+        /// </summary>
+        public static readonly CursorIcon NO_CURSOR_ICONS = new("", "", "", "");
         #endregion
 
         #region Colors

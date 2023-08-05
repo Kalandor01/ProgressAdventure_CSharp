@@ -18,6 +18,11 @@ namespace ProgressAdventure.ItemManagement
         public ItemTypeID Type { get; }
 
         /// <summary>
+        /// The material, the item is made out of.
+        /// </summary>
+        public Material Material { get; }
+
+        /// <summary>
         /// <inheritdoc cref="_amount"/>
         /// </summary>
         public long Amount {

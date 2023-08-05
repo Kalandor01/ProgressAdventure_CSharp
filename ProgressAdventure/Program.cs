@@ -15,7 +15,7 @@ namespace ProgressAdventure
             //SaveManager.CreateSaveData("test", "me");
 
 
-            //MenuManager.MainMenu();
+            MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
 

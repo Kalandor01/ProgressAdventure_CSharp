@@ -4,11 +4,13 @@ using NPrng;
 using NPrng.Generators;
 using NPrng.Serializers;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using ProgressAdventure.SettingsManagement;
 using SaveFileManager;
 using System.Collections;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
 
 namespace ProgressAdventure
 {
@@ -323,6 +325,75 @@ namespace ProgressAdventure
         }
         #endregion
 
+        #region String corrector
+        /// <summary>
+        /// A function to return the corrected verson of a string, that the user inputed.
+        /// </summary>
+        /// <param name="rawText">The raw user input to correct.</param>
+        public delegate string StringCorrectorDelegate(string? rawText);
+
+        /// <summary>
+        /// Temporary field for the string corrector function.
+        /// </summary>
+        private static StringCorrectorDelegate stringCorrectorFunction;
+        /// <summary>
+        /// Temporary field for the string corrector <c>TextField</c>.
+        /// </summary>
+        private static TextField correctorTextField;
+
+        /// <summary>
+        /// Displays a <c>TextField</c>, where the user can input a string, that will be corrected as the user types it.<br/>
+        /// NOT THREAD SAFE!!!
+        /// </summary>
+        /// <param name="preValue">The text to display before the part, where the user inputs the string.</param>
+        /// <param name="stringCorrector"></param>
+        /// <param name="postValue">The text displayed immediately after the user's inputed text.</param>
+        /// <param name="startingValue">The starting value of the input field.</param>
+        /// <param name="clearScreen">Whether to "clear" the screen, before displaying the text, or not.</param>
+        /// <returns>The uncorrected version of the final string.</returns>
+        public static string GetRealTimeCorrectedString(string preValue, StringCorrectorDelegate stringCorrector, string postValue = "", string startingValue = "", bool clearScreen = true)
+        {
+            stringCorrectorFunction = stringCorrector;
+            correctorTextField = new TextField(
+                "",
+                preValue,
+                postValue + " -> " + stringCorrectorFunction(startingValue),
+                oldValueAsStartingValue: true,
+                keyValidatorFunction: new TextField.KeyValidatorDelegate(StringCorrectorKeyValidator)
+            );
+            new BaseUIDisplay(correctorTextField, autoEnter: true, clearScreen: clearScreen).Display(Settings.Keybinds.KeybindList);
+            Console.WriteLine();
+            return correctorTextField.value;
+        }
+
+        private static bool StringCorrectorKeyValidator(StringBuilder text, ConsoleKeyInfo key)
+        {
+            if (key.Key == ConsoleKey.Enter ||
+                key.KeyChar == '\0' ||
+                key.Key == ConsoleKey.Escape
+            )
+            {
+                return true;
+            }
+
+            string newText = "";
+            if (key.Key == ConsoleKey.Backspace)
+            {
+                if (text.Length > 0)
+                {
+                    newText = text.ToString()[0..(text.Length - 1)];
+                }
+            }
+            else
+            {
+                newText = text.ToString() + key.KeyChar;
+            }
+
+            correctorTextField.PostValue = " -> " + stringCorrectorFunction(newText);
+            return true;
+        }
+        #endregion
+
         #region Misc
         /// <summary>
         /// Returns what the save's folder path should be.
@@ -408,6 +479,11 @@ namespace ProgressAdventure
                 saveName += "_" + extraNum;
             }
             return saveName;
+        }
+
+        public static string CorrectPlayerName(string? rawPlayerName)
+        {
+            return string.IsNullOrWhiteSpace(rawPlayerName) ? "You" : rawPlayerName;
         }
 
         /// <summary>

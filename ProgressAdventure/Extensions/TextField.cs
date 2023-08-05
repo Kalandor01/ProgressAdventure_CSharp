@@ -12,10 +12,10 @@ namespace ProgressAdventure.Extensions
     public class TextField : BaseUI
     {
         #region Public fields
+#pragma warning disable CS0108 // Hiding was intended
         /// <summary>
         /// The current value of the object.
         /// </summary>
-#pragma warning disable CS0108 // Hiding was intended
         public string value;
 #pragma warning restore CS0108 // Hiding was intended
         /// <summary>
@@ -35,9 +35,34 @@ namespace ProgressAdventure.Extensions
         /// </summary>
         public TextValidatorDelegate? textValidatorFunction;
         /// <summary>
-        /// The function to run every keypress.
+        /// The function to run at every keypress.
         /// </summary>
         public KeyValidatorDelegate? keyValidatorFunction;
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// <inheritdoc cref="BaseUI.preText"/>
+        /// </summary>
+        public string PreText
+        {
+            get => preText;
+            set
+            {
+                preText = value;
+            }
+        }
+        /// <summary>
+        /// <inheritdoc cref="BaseUI.postValue"/>
+        /// </summary>
+        public string PostValue
+        {
+            get => postValue;
+            set
+            {
+                postValue = value;
+            }
+        }
         #endregion
 
         #region Public delegates
@@ -50,8 +75,9 @@ namespace ProgressAdventure.Extensions
         /// <summary>
         /// A function to return if the key the user inputed is valid or not.
         /// </summary>
+        /// <param name="currentValue">The currently tiped valur (not including the current key).</param>
         /// <param name="inputKey">The key that the user inputed.</param>
-        public delegate bool KeyValidatorDelegate(ConsoleKeyInfo inputKey);
+        public delegate bool KeyValidatorDelegate(StringBuilder currentValue, ConsoleKeyInfo inputKey);
         #endregion
 
         #region Constructors
@@ -68,7 +94,9 @@ namespace ProgressAdventure.Extensions
         public TextField(string value, string preText = "", string postValue = "", bool multiline = false, bool oldValueAsStartingValue = false, int? maxInputLength = null, bool lengthAsDisplayLength = true, TextValidatorDelegate? textValidatorFunction = null, KeyValidatorDelegate? keyValidatorFunction = null)
             : base(-1, preText, "", false, postValue, multiline)
         {
+            this.preText = preText;
             this.value = value;
+            this.postValue = postValue;
 
             this.oldValueAsStartingValue = oldValueAsStartingValue;
             this.maxInputLength = maxInputLength;
@@ -147,6 +175,12 @@ namespace ProgressAdventure.Extensions
 
                 return true;
             }
+            return true;
+        }
+
+        /// <inheritdoc cref="BaseUI.IsClickable"/>
+        public override bool IsClickable()
+        {
             return true;
         }
 
@@ -273,27 +307,30 @@ namespace ProgressAdventure.Extensions
                 Console.SetCursorPosition(Left, Top);
 
                 var key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
+                if (keyValidatorFunction is null || keyValidatorFunction(newValue, key))
                 {
-                    break;
-                }
-                else if (key.Key == ConsoleKey.Backspace)
-                {
-                    if (newValue.Length > 0)
+                    if (key.Key == ConsoleKey.Enter)
                     {
-                        newValue.Remove(newValue.Length - 1, 1);
+                        break;
                     }
-                }
-                else if (
-                    key.KeyChar != '\0' &&
-                    key.Key != ConsoleKey.Escape &&
-                    (
-                        maxLength < 0 ||
-                        (lengthAsDisplayLength ? Utils.GetDisplayLen(newValue.ToString() + key.KeyChar, xOffset) : newValue.Length + 1) <= maxLength
-                    ) &&
-                    (keyValidatorFunction is null || keyValidatorFunction(key)))
-                {
-                    newValue.Append(key.KeyChar);
+                    else if (key.Key == ConsoleKey.Backspace)
+                    {
+                        if (newValue.Length > 0)
+                        {
+                            newValue.Remove(newValue.Length - 1, 1);
+                        }
+                    }
+                    else if (
+                        key.KeyChar != '\0' &&
+                        key.Key != ConsoleKey.Escape &&
+                        (
+                            maxLength < 0 ||
+                            (lengthAsDisplayLength ? Utils.GetDisplayLen(newValue.ToString() + key.KeyChar, xOffset) : newValue.Length + 1) <= maxLength
+                        )
+                    )
+                    {
+                        newValue.Append(key.KeyChar);
+                    }
                 }
             }
 

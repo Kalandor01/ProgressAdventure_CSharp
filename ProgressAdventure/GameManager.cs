@@ -2,8 +2,6 @@
 using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using System.Threading;
-using System.Xml.Linq;
 
 namespace ProgressAdventure
 {
@@ -173,7 +171,6 @@ namespace ProgressAdventure
                                 Logger.Log("Beginning manual save", $"save name: {SaveData.saveName}");
                                 Globals.exiting = true;
                                 SaveGame();
-                                Globals.exiting = false;
                                 Globals.inGameLoop = false;
                                 break;
                             }

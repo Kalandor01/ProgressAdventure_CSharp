@@ -50,7 +50,7 @@ namespace ProgressAdventure
             // player
             var player = new Player(playerName);
             // load to class
-            SaveData.Initialise(saveName, displaySaveName, null, null, player, false);
+            SaveData.Initialise(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
             World.Initialise();
             World.GenerateTile((SaveData.player.position.x, SaveData.player.position.y));
         }
@@ -60,8 +60,8 @@ namespace ProgressAdventure
         /// </summary>
         public static void CreateSaveData()
         {
-            var displaySaveName = Utils.Input("Name your save: ");
-            var playerName = Utils.Input("What is your name?: ");
+            var displaySaveName = Tools.GetRealTimeCorrectedString("Name your save: ", new Tools.StringCorrectorDelegate(Tools.CorrectSaveName), clearScreen: false);
+            var playerName = Tools.GetRealTimeCorrectedString("What is your name?: ", new Tools.StringCorrectorDelegate(Tools.CorrectPlayerName), clearScreen: false);
             CreateSaveData(displaySaveName, playerName);
         }
 

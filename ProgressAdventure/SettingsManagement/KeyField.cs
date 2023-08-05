@@ -13,10 +13,10 @@ namespace ProgressAdventure.SettingsManagement
     public class KeyField : BaseUI
     {
         #region Public fields
+#pragma warning disable CS0108 // Hiding was intended
         /// <summary>
         /// The current value of the object.
         /// </summary>
-#pragma warning disable CS0108 // Hiding was intended
         public ActionKey value;
 #pragma warning restore CS0108 // Hiding was intended
         /// <summary>
@@ -162,6 +162,12 @@ namespace ProgressAdventure.SettingsManagement
 
                 return true;
             }
+            return true;
+        }
+
+        /// <inheritdoc cref="BaseUI.IsClickable"/>
+        public override bool IsClickable()
+        {
             return true;
         }
 

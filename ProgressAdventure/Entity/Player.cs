@@ -33,7 +33,7 @@ namespace ProgressAdventure.Entity
             Facing? facing = null
         )
             :this(
-                string.IsNullOrWhiteSpace(name) ? "You" : name,
+                Tools.CorrectPlayerName(name),
                 EntityUtils.EntityManager(
                     (14, 20, 26),
                     (7, 10, 13),

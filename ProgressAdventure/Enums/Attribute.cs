@@ -1,5 +1,8 @@
 ﻿namespace ProgressAdventure.Enums
 {
+    /// <summary>
+    /// Posible attributes that modify an entity's stats.
+    /// </summary>
     public enum Attribute
     {
         /// <summary>
