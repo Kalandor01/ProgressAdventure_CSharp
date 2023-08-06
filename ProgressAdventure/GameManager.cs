@@ -73,7 +73,7 @@ namespace ProgressAdventure
             // GAME
             SaveData.player.Stats();
             Console.WriteLine("Wandering...");
-            for (var x = 0; x < 200; x++)
+            for (var x = 0; x < 0; x++)
             {
                 if (!Globals.exiting)
                 {
@@ -87,7 +87,7 @@ namespace ProgressAdventure
             }
             if (!Globals.exiting)
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
             }
             if (!Globals.exiting)
             {

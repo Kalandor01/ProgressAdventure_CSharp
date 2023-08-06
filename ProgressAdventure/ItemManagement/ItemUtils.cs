@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Extensions;
+﻿using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using System.Text;
 
 namespace ProgressAdventure.ItemManagement
@@ -15,34 +16,44 @@ namespace ProgressAdventure.ItemManagement
         public static readonly Dictionary<ItemTypeID, ItemAttributesDTO> itemAttributes = new()
         {
             //weapons
-            [ItemType.Weapon.WOODEN_SWORD] = new ItemAttributesDTO(ItemType.Weapon.WOODEN_SWORD),
-            [ItemType.Weapon.STONE_SWORD] = new ItemAttributesDTO(ItemType.Weapon.STONE_SWORD),
-            [ItemType.Weapon.STEEL_SWORD] = new ItemAttributesDTO(ItemType.Weapon.STEEL_SWORD),
-            [ItemType.Weapon.WOODEN_BOW] = new ItemAttributesDTO(ItemType.Weapon.WOODEN_BOW),
-            [ItemType.Weapon.STEEL_ARROW] = new ItemAttributesDTO(ItemType.Weapon.STEEL_ARROW),
-            [ItemType.Weapon.WOODEN_CLUB] = new ItemAttributesDTO(ItemType.Weapon.WOODEN_CLUB),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "Teeth club"),
+            [ItemType.Weapon.SWORD] = new ItemAttributesDTO(ItemType.Weapon.SWORD),
+            [ItemType.Weapon.BOW] = new ItemAttributesDTO(ItemType.Weapon.BOW),
+            [ItemType.Weapon.ARROW] = new ItemAttributesDTO(ItemType.Weapon.ARROW),
+            [ItemType.Weapon.CLUB] = new ItemAttributesDTO(ItemType.Weapon.CLUB),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "Teeth club", false),
             //defence
-            [ItemType.Defence.WOODEN_SHIELD] = new ItemAttributesDTO(ItemType.Defence.WOODEN_SHIELD),
-            [ItemType.Defence.LEATHER_CAP] = new ItemAttributesDTO(ItemType.Defence.LEATHER_CAP),
-            [ItemType.Defence.LEATHER_TUNIC] = new ItemAttributesDTO(ItemType.Defence.LEATHER_TUNIC),
-            [ItemType.Defence.LEATHER_PANTS] = new ItemAttributesDTO(ItemType.Defence.LEATHER_PANTS),
-            [ItemType.Defence.LEATHER_BOOTS] = new ItemAttributesDTO(ItemType.Defence.LEATHER_BOOTS),
-            //materials
-            [ItemType.Material.BOOTLE] = new ItemAttributesDTO(ItemType.Material.BOOTLE),
-            [ItemType.Material.WOOL] = new ItemAttributesDTO(ItemType.Material.WOOL),
-            [ItemType.Material.CLOTH] = new ItemAttributesDTO(ItemType.Material.CLOTH),
-            [ItemType.Material.WOOD] = new ItemAttributesDTO(ItemType.Material.WOOD),
-            [ItemType.Material.STONE] = new ItemAttributesDTO(ItemType.Material.STONE),
-            [ItemType.Material.STEEL] = new ItemAttributesDTO(ItemType.Material.STEEL),
-            [ItemType.Material.GOLD] = new ItemAttributesDTO(ItemType.Material.GOLD),
-            [ItemType.Material.TEETH] = new ItemAttributesDTO(ItemType.Material.TEETH),
+            [ItemType.Defence.SHIELD] = new ItemAttributesDTO(ItemType.Defence.SHIELD),
+            [ItemType.Defence.HELMET] = new ItemAttributesDTO(ItemType.Defence.HELMET),
+            [ItemType.Defence.CHESTPLATE] = new ItemAttributesDTO(ItemType.Defence.CHESTPLATE),
+            [ItemType.Defence.PANTS] = new ItemAttributesDTO(ItemType.Defence.PANTS),
+            [ItemType.Defence.BOOTS] = new ItemAttributesDTO(ItemType.Defence.BOOTS),
             //misc
-            [ItemType.Misc.HEALTH_POTION] = new ItemAttributesDTO(ItemType.Misc.HEALTH_POTION, true),
-            [ItemType.Misc.GOLD_COIN] = new ItemAttributesDTO(ItemType.Misc.GOLD_COIN),
-            [ItemType.Misc.SILVER_COIN] = new ItemAttributesDTO(ItemType.Misc.SILVER_COIN),
-            [ItemType.Misc.COPPER_COIN] = new ItemAttributesDTO(ItemType.Misc.COPPER_COIN),
-            [ItemType.Misc.ROTTEN_FLESH] = new ItemAttributesDTO(ItemType.Misc.ROTTEN_FLESH),
+            [ItemType.Misc.BOTTLE] = new ItemAttributesDTO(ItemType.Misc.BOTTLE),
+            [ItemType.Misc.HEALTH_POTION] = new ItemAttributesDTO(ItemType.Misc.HEALTH_POTION, false, true),
+            [ItemType.Misc.COIN] = new ItemAttributesDTO(ItemType.Misc.COIN),
+            [ItemType.Misc.MATERIAL] = new ItemAttributesDTO(ItemType.Misc.MATERIAL),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up material types, to their properties.
+        /// </summary>
+        public static readonly Dictionary<Material, MaterialPropertiesDTO> materialProperties = new()
+        {
+            //weapons
+            [Material.BRASS] = new MaterialPropertiesDTO(8730),
+            [Material.CLOTH] = new MaterialPropertiesDTO(1550),
+            [Material.COPPER] = new MaterialPropertiesDTO(8960),
+            [Material.GLASS] = new MaterialPropertiesDTO(2500),
+            [Material.GOLD] = new MaterialPropertiesDTO(19300),
+            [Material.IRON] = new MaterialPropertiesDTO(7874),
+            [Material.LEATHER] = new MaterialPropertiesDTO(800),
+            [Material.ROTTEN_FLESH] = new MaterialPropertiesDTO(1000),
+            [Material.SILVER] = new MaterialPropertiesDTO(10490),
+            [Material.STEEL] = new MaterialPropertiesDTO(7900),
+            [Material.STONE] = new MaterialPropertiesDTO(2650),
+            [Material.TEETH] = new MaterialPropertiesDTO(2900),
+            [Material.WOOD] = new MaterialPropertiesDTO(600),
+            [Material.WOOL] = new MaterialPropertiesDTO(1241),
         };
         #endregion
 
@@ -82,6 +93,42 @@ namespace ProgressAdventure.ItemManagement
             [66307] = "misc/copper_coin",
             [66308] = "misc/rotten_flesh",
         };
+
+        /// <summary>
+        /// The dictionary pairing up old item type names, to the ones, including the material of the item.
+        /// </summary>
+        internal static readonly Dictionary<string, (string typeName, string? material)> _legacyItemNameMaterialMap = new()
+        {
+            //weapons
+            ["weapon/wooden_sword"] = ("weapon/sword", "wood"),
+            ["weapon/stone_sword"] = ("weapon/sword", "stone"),
+            ["weapon/steel_sword"] = ("weapon/sword", "steel"),
+            ["weapon/wooden_bow"] = ("weapon/bow", "wood"),
+            ["weapon/steel_arrow"] = ("weapon/arrow", "steel"),
+            ["weapon/wooden_club"] = ("weapon/club", "wood"),
+            ["weapon/club_with_teeth"] = ("weapon/club_with_teeth", null),
+            //defence
+            ["defence/wooden_shield"] = ("defence/shield", "wood"),
+            ["defence/leather_cap"] = ("defence/helmet", "leather"),
+            ["defence/leather_tunic"] = ("defence/chestplate", "leather"),
+            ["defence/leather_pants"] = ("defence/pants", "leather"),
+            ["defence/leather_boots"] = ("defence/boots", "leather"),
+            //materials
+            ["material/bootle"] = ("misc/bottle", "glass"),
+            ["material/wool"] = ("misc/material", "wool"),
+            ["material/cloth"] = ("misc/material", "cloth"),
+            ["material/wood"] = ("misc/material", "wood"),
+            ["material/stone"] = ("misc/material", "stone"),
+            ["material/steel"] = ("misc/material", "steel"),
+            ["material/gold"] = ("misc/material", "gold"),
+            ["material/teeth"] = ("misc/material", "teeth"),
+            //misc
+            ["misc/health_potion"] = ("misc/health_potion", null),
+            ["misc/gold_coin"] = ("misc/coin", "gold"),
+            ["misc/silver_coin"] = ("misc/coin", "silver"),
+            ["misc/copper_coin"] = ("misc/coin", "copper"),
+            ["misc/rotten_flesh"] = ("misc/material", "rotten_flesh"),
+        };
         #endregion
 
         #region Public fuctions
@@ -119,7 +166,7 @@ namespace ProgressAdventure.ItemManagement
         public static bool TryParseItemType(int itemTypeID, out ItemTypeID itemType)
         {
             var resultItem = ToItemType(itemTypeID);
-            itemType = resultItem ?? ItemType.Misc.COPPER_COIN;
+            itemType = resultItem ?? ItemType.Misc.COIN;
             return resultItem is not null;
         }
 
@@ -142,7 +189,7 @@ namespace ProgressAdventure.ItemManagement
                 }
             }
 
-            itemType = ItemType.Misc.COPPER_COIN;
+            itemType = ItemType.Misc.COIN;
             return false;
         }
 

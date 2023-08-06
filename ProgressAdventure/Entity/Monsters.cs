@@ -40,9 +40,9 @@ namespace ProgressAdventure.Entity
         public static List<Item> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.WOODEN_CLUB, 0.3),
-                new LootFactory(ItemType.Material.CLOTH, 0.15, 0, 1, 3),
-                new LootFactory(ItemType.Misc.COPPER_COIN, 0.35, 0, 4, 3)
+                new LootFactory(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
+                new LootFactory(ItemType.Misc.MATERIAL, Material.CLOTH, 0.15, 0, 1, 3),
+                new LootFactory(ItemType.Misc.COIN, Material.COPPER, 0.35, 0, 4, 3)
             });
         }
         #endregion
@@ -109,9 +109,9 @@ namespace ProgressAdventure.Entity
         public static List<Item> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.STONE_SWORD, 0.2),
-                new LootFactory(ItemType.Misc.ROTTEN_FLESH, 0.55, 0, 3),
-                new LootFactory(ItemType.Misc.COPPER_COIN, 0.4, 0, 5, 4)
+                new LootFactory(ItemType.Weapon.SWORD, Material.STONE, 0.2),
+                new LootFactory(ItemType.Misc.MATERIAL, Material.ROTTEN_FLESH, 0.55, 0, 3),
+                new LootFactory(ItemType.Misc.COIN, Material.COPPER, 0.4, 0, 5, 4)
             });
         }
         #endregion
@@ -178,10 +178,10 @@ namespace ProgressAdventure.Entity
         public static List<Item> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, 0.25),
-                new LootFactory(ItemType.Material.CLOTH, 0.25, 1, 3, 2),
-                new LootFactory(ItemType.Material.TEETH, 0.35, 1, 5, 2),
-                new LootFactory(ItemType.Misc.SILVER_COIN, 0.3, 1, 3, 3)
+                new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, null, 0.25),
+                new LootFactory(ItemType.Misc.MATERIAL, Material.CLOTH, 0.25, 1, 3, 2),
+                new LootFactory(ItemType.Misc.MATERIAL, Material.TEETH, 0.35, 1, 5, 2),
+                new LootFactory(ItemType.Misc.COIN, Material.SILVER, 0.3, 1, 3, 3)
             });
         }
         #endregion
@@ -259,11 +259,11 @@ namespace ProgressAdventure.Entity
         public static List<Item> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Misc.GOLD_COIN, 0.8, 1, 10, 10),
-                new LootFactory(ItemType.Misc.SILVER_COIN, 0.9, 5, 15, 8),
-                new LootFactory(ItemType.Misc.COPPER_COIN, 1, 10, 20, 5),
-                new LootFactory(ItemType.Weapon.STEEL_SWORD, 1, 0, 10),
-                new LootFactory(ItemType.Defence.WOODEN_SHIELD, 1, 0, 5),
+                new LootFactory(ItemType.Misc.COIN, Material.GOLD, 0.8, 1, 10, 10),
+                new LootFactory(ItemType.Misc.COIN, Material.SILVER, 0.9, 5, 15, 8),
+                new LootFactory(ItemType.Misc.COIN, Material.COPPER, 1, 10, 20, 5),
+                new LootFactory(ItemType.Weapon.SWORD, Material.STEEL, 1, 0, 10),
+                new LootFactory(ItemType.Defence.SHIELD, Material.WOOD, 1, 0, 5),
             });
         }
         #endregion

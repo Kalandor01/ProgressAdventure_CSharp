@@ -62,6 +62,7 @@ namespace ProgressAdventureTests
             RunTest(Tests.LoggerLoggingValuesDictionaryCheck, false);
             RunTest(Tests.EntityUtilsFacingToMovementVectorDictionaryCheck, false);
             RunTest(Tests.EntityUtilsAttributeStatsChangeDictionaryCheck, false);
+            RunTest(Tests.ItemUtilsMaterialPropertiesDictionaryCheck, false);
             RunTest(Tests.ItemUtilsItemAttributesDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeIgnoreMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeResponseMappingDictionaryCheck, false);

@@ -7,7 +7,6 @@ using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using SaveFileManager;
 using System.Reflection;
-using Xunit;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
 
@@ -15,176 +14,7 @@ namespace ProgressAdventureTests
 {
     public static class Tests
     {
-        /// <summary>
-        /// Checks if all item IDs can be turned into items.
-        /// </summary>
-        public static TestResultDTO? AllItemTypesExistAndLoadable()
-        {
-            var itemAmount = 3;
-
-            var allItems = new List<Item>();
-
-            // all item IDs can turn into items
-            foreach (var itemID in ItemUtils.GetAllItemTypes())
-            {
-                Item item;
-                try
-                {
-                    item = new Item(itemID, itemAmount);
-                }
-                catch (Exception ex)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
-                }
-
-                allItems.Add(item);
-            }
-
-            // items loadable from json and are the same as before load
-            foreach (var item in allItems)
-            {
-                Item loadedItem;
-
-                try
-                {
-                    var itemJson = item.ToJson();
-                    var success = Item.FromJson(itemJson, PAConstants.SAVE_VERSION, out loadedItem);
-
-                    if (loadedItem is null || !success)
-                    {
-                        throw new ArgumentNullException(item.Type.ToString());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
-                }
-
-                if (
-                    loadedItem.Type == item.Type &&
-                    loadedItem.Amount == item.Amount &&
-                    loadedItem.DisplayName == item.DisplayName &&
-                    loadedItem.Consumable == item.Consumable
-                )
-                {
-                    continue;
-                }
-
-                return new TestResultDTO(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Checks if all entities have a type name, and can be loaded from json.
-        /// </summary>
-        public static TestResultDTO? AllEntitiesLoadable()
-        {
-            RandomStates.Initialise();
-
-            var entityType = typeof(Entity);
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
-            var entityTypes = paAssembly.GetTypes().Where(entityType.IsAssignableFrom);
-            var filteredEntityTypes = entityTypes.Where(type => type != typeof(Entity) && type != typeof(Entity<>));
-
-            var entities = new List<Entity>();
-
-            // check if entity exists and loadable from jsom
-            foreach (var type in filteredEntityTypes)
-            {
-                // get entity type name
-                var entityTypeMapName = "entityTypeMap";
-                IDictionary<string, Type> entityTypeMap;
-
-                try
-                {
-                    entityTypeMap = Tools.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), entityTypeMapName);
-                }
-                catch (Exception ex)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
-                }
-
-                string? typeName = null;
-                foreach (var eType in entityTypeMap)
-                {
-                    if (eType.Value == type)
-                    {
-                        typeName = eType.Key;
-                        break;
-                    }
-                }
-
-                if (typeName is null)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, "Entity type has no type name in entity type map");
-                }
-
-
-                var defEntityJson = new Dictionary<string, object?>()
-                {
-                    ["type"] = typeName,
-                };
-
-                Entity entity;
-
-                try
-                {
-                    Entity.AnyEntityFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
-
-                    if (entity is null)
-                    {
-                        throw new ArgumentNullException(typeName);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Entity creation from default json failed for \"{entityType}\": " + ex);
-                }
-
-                entities.Add(entity);
-            }
-
-            // entities loadable from json and are the same as before load
-            foreach (var entity in entities)
-            {
-                Entity loadedEntity;
-
-                try
-                {
-                    var entityJson = entity.ToJson();
-                    var success = Entity.AnyEntityFromJson(entityJson, PAConstants.SAVE_VERSION, out loadedEntity);
-
-                    if (loadedEntity is null || !success)
-                    {
-                        throw new ArgumentNullException(entity.GetType().ToString());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Loading entity from json failed for \"{entity.GetType()}\": " + ex);
-                }
-
-                if (
-                    loadedEntity.GetType() == entity.GetType() &&
-                    loadedEntity.FullName == entity.FullName &&
-                    loadedEntity.MaxHp == entity.MaxHp &&
-                    loadedEntity.CurrentHp == entity.CurrentHp &&
-                    loadedEntity.Attack == entity.Attack &&
-                    loadedEntity.Defence == entity.Defence &&
-                    loadedEntity.Agility == entity.Agility
-                )
-                {
-                    continue;
-                }
-
-                return new TestResultDTO(LogSeverity.FAIL, $"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
-            }
-
-            return null;
-        }
-
+        #region Dictionary/Enum tests
         /// <summary>
         /// Checks if the Logger, logging values dictionary contains all required keys and correct values.
         /// </summary>
@@ -308,6 +138,28 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
+        /// Checks if the ItemUtils, material properties dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? ItemUtilsMaterialPropertiesDictionaryCheck()
+        {
+            var requiredKeys = Enum.GetValues<Material>();
+            var checkedDictionary = ItemUtils.materialProperties;
+
+            foreach (var key in requiredKeys)
+            {
+                if (
+                    !checkedDictionary.TryGetValue(key, out MaterialPropertiesDTO? value) ||
+                    value is null
+                )
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Checks if the ItemUtils, item attributes dictionary contains all required keys and correct values.
         /// </summary>
         public static TestResultDTO? ItemUtilsItemAttributesDictionaryCheck()
@@ -319,7 +171,7 @@ namespace ProgressAdventureTests
 
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out ItemAttributesDTO value))
+                if (checkedDictionary.TryGetValue(key, out ItemAttributesDTO? value))
                 {
                     if (value.typeName is null)
                     {
@@ -458,6 +310,178 @@ namespace ProgressAdventureTests
                 {
                     return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
+            }
+
+            return null;
+        }
+        #endregion
+
+        /// <summary>
+        /// Checks if all item IDs can be turned into items.
+        /// </summary>
+        public static TestResultDTO? AllItemTypesExistAndLoadable()
+        {
+            var itemAmount = 3;
+
+            var allItems = new List<Item>();
+
+            // all item IDs can turn into items
+            foreach (var itemID in ItemUtils.GetAllItemTypes())
+            {
+                var attributes = ItemUtils.itemAttributes[itemID];
+                Item item;
+                try
+                {
+                    item = new Item(itemID, attributes.canHaveMaterial ? Material.IRON : null, itemAmount);
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
+                }
+
+                allItems.Add(item);
+            }
+
+            // items loadable from json and are the same as before load
+            foreach (var item in allItems)
+            {
+                Item? loadedItem;
+
+                try
+                {
+                    var itemJson = item.ToJson();
+                    var success = Item.FromJson(itemJson, PAConstants.SAVE_VERSION, out loadedItem);
+
+                    if (loadedItem is null || !success)
+                    {
+                        throw new ArgumentNullException(item.Type.ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
+                }
+
+                if (
+                    loadedItem.Type == item.Type &&
+                    loadedItem.Amount == item.Amount &&
+                    loadedItem.DisplayName == item.DisplayName &&
+                    loadedItem.Consumable == item.Consumable
+                )
+                {
+                    continue;
+                }
+
+                return new TestResultDTO(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if all entities have a type name, and can be loaded from json.
+        /// </summary>
+        public static TestResultDTO? AllEntitiesLoadable()
+        {
+            RandomStates.Initialise();
+
+            var entityType = typeof(Entity);
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var entityTypes = paAssembly.GetTypes().Where(entityType.IsAssignableFrom);
+            var filteredEntityTypes = entityTypes.Where(type => type != typeof(Entity) && type != typeof(Entity<>));
+
+            var entities = new List<Entity>();
+
+            // check if entity exists and loadable from jsom
+            foreach (var type in filteredEntityTypes)
+            {
+                // get entity type name
+                var entityTypeMapName = "entityTypeMap";
+                IDictionary<string, Type> entityTypeMap;
+
+                try
+                {
+                    entityTypeMap = Tools.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), entityTypeMapName);
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                }
+
+                string? typeName = null;
+                foreach (var eType in entityTypeMap)
+                {
+                    if (eType.Value == type)
+                    {
+                        typeName = eType.Key;
+                        break;
+                    }
+                }
+
+                if (typeName is null)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, "Entity type has no type name in entity type map");
+                }
+
+
+                var defEntityJson = new Dictionary<string, object?>()
+                {
+                    ["type"] = typeName,
+                };
+
+                Entity? entity;
+
+                try
+                {
+                    Entity.AnyEntityFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
+
+                    if (entity is null)
+                    {
+                        throw new ArgumentNullException(typeName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Entity creation from default json failed for \"{entityType}\": " + ex);
+                }
+
+                entities.Add(entity);
+            }
+
+            // entities loadable from json and are the same as before load
+            foreach (var entity in entities)
+            {
+                Entity? loadedEntity;
+
+                try
+                {
+                    var entityJson = entity.ToJson();
+                    var success = Entity.AnyEntityFromJson(entityJson, PAConstants.SAVE_VERSION, out loadedEntity);
+
+                    if (loadedEntity is null || !success)
+                    {
+                        throw new ArgumentNullException(entity.GetType().ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Loading entity from json failed for \"{entity.GetType()}\": " + ex);
+                }
+
+                if (
+                    loadedEntity.GetType() == entity.GetType() &&
+                    loadedEntity.FullName == entity.FullName &&
+                    loadedEntity.MaxHp == entity.MaxHp &&
+                    loadedEntity.CurrentHp == entity.CurrentHp &&
+                    loadedEntity.Attack == entity.Attack &&
+                    loadedEntity.Defence == entity.Defence &&
+                    loadedEntity.Agility == entity.Agility
+                )
+                {
+                    continue;
+                }
+
+                return new TestResultDTO(LogSeverity.FAIL, $"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
             }
 
             return null;

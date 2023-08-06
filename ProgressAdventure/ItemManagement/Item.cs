@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -20,7 +21,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The material, the item is made out of.
         /// </summary>
-        public Material Material { get; }
+        public Material? Material { get; }
 
         /// <summary>
         /// <inheritdoc cref="_amount"/>
@@ -56,9 +57,10 @@ namespace ProgressAdventure.ItemManagement
         /// <inheritdoc cref="Item"/>
         /// </summary>
         /// <param name="type"><inheritdoc cref="Type" path="//summary"/></param>
+        /// <param name="material">The material of the item.</param>
         /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
-        public Item(ItemTypeID type, long amount = 1)
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or no material was provided, when it was required.</exception>
+        public Item(ItemTypeID type, Material? material, long amount = 1)
         {
             var typeValue = ItemUtils.ToItemType(type.GetHashCode());
             if (typeValue is null)
@@ -66,7 +68,19 @@ namespace ProgressAdventure.ItemManagement
                 Logger.Log("Unknown item type", $"id: {type.GetHashCode()}", LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(type));
             }
+
+            if (
+                material is null &&
+                ItemUtils.itemAttributes.TryGetValue((ItemTypeID)typeValue, out ItemAttributesDTO? itemAttributes) &&
+                itemAttributes.canHaveMaterial
+            )
+            {
+                Logger.Log("Item material was not provided, but is required", $"item type: {typeValue}", LogSeverity.ERROR);
+                throw new ArgumentException("Required material not provided", nameof(material));
+            }
+
             Type = (ItemTypeID)typeValue;
+            Material = material;
             Amount = amount;
             SetAttributes();
         }
@@ -115,7 +129,9 @@ namespace ProgressAdventure.ItemManagement
 
         public override string? ToString()
         {
-            return $"{DisplayName}{(Amount > 1 ? " x" + Amount.ToString() : "")}";
+            var type = Material is null ? "" : Material.ToString()?.Capitalize().Replace("_", " ");
+            var name = Type == ItemType.Misc.MATERIAL ? "" : ((Material is null ? "" : " ") + DisplayName);
+            return $"{type}{name}{(Amount > 1 ? " x" + Amount.ToString() : "")}";
         }
         #endregion
 
@@ -123,7 +139,7 @@ namespace ProgressAdventure.ItemManagement
         public Dictionary<string, object?> ToJson()
         {
             string typeName;
-            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributesDTO attributes))
+            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributesDTO? attributes))
             {
                 typeName = attributes.typeName;
             }
@@ -136,16 +152,17 @@ namespace ProgressAdventure.ItemManagement
             return new Dictionary<string, object?>
             {
                 ["type"] = typeName,
+                ["material"] = Material?.ToString(),
                 ["amount"] = Amount,
             };
         }
 
         public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out Item? itemObject)
         {
+            itemObject = null;
             if (itemJson is null)
             {
                 Logger.Log("Item parse error", "item json is null", LogSeverity.ERROR);
-                itemObject = null;
                 return false;
             }
 
@@ -169,6 +186,22 @@ namespace ProgressAdventure.ItemManagement
                     Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
                     fileVersion = newFileVersion;
                 }
+                // 2.1.1 -> 2.2
+                newFileVersion = "2.2";
+                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
+                {
+                    // item material
+                    if (
+                        itemJson.TryGetValue("type", out var typeValue) &&
+                        ItemUtils._legacyItemNameMaterialMap.TryGetValue(typeValue?.ToString() ?? "", out (string itemType, string? material) newItemattributes))
+                    {
+                        itemJson["type"] = newItemattributes.itemType;
+                        itemJson["material"] = newItemattributes.material;
+                    }
+
+                    Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    fileVersion = newFileVersion;
+                }
                 Logger.Log($"Item json data corrected");
             }
 
@@ -178,6 +211,28 @@ namespace ProgressAdventure.ItemManagement
                 ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType)
             )
             {
+                Material? material = null;
+                if (
+                    itemJson.TryGetValue("material", out var materialValue)
+                )
+                {
+                    if (
+                        materialValue is not null &&
+                        Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed)
+                    )
+                    {
+                        material = materialParsed;
+                    }
+                    else if (materialValue is not null)
+                    {
+                        Logger.Log("Item parse error", "invalid material type in item json, defaulting to no material", LogSeverity.WARN);
+                    }
+                }
+                else
+                {
+                    Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.WARN);
+                }
+
                 int itemAmount = 1;
                 if (
                     itemJson.TryGetValue("amount", out var amountValue) &&
@@ -187,7 +242,6 @@ namespace ProgressAdventure.ItemManagement
                     if (itemAmount < 1)
                     {
                         Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.WARN);
-                        itemObject = null;
                         return false;
                     }
                 }
@@ -195,13 +249,21 @@ namespace ProgressAdventure.ItemManagement
                 {
                     Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
                 }
-                itemObject = new Item(itemType, itemAmount);
+
+                try
+                {
+                    itemObject = new Item(itemType, material, itemAmount);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                    return false;
+                }
                 return true;
             }
             else
             {
                 Logger.Log("Item parse error", "couldn't parse item type from json", LogSeverity.ERROR);
-                itemObject = null;
                 return false;
             }
         }

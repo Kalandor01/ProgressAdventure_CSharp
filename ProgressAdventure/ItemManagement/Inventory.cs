@@ -19,14 +19,15 @@ namespace ProgressAdventure.ItemManagement
 
         #region Public methods
         /// <summary>
-        /// Tries to find an item in the inventory, based on the input item type.
+        /// Tries to find an item in the inventory, based on the input item type and material.
         /// </summary>
         /// <param name="itemID">The item type to search for.</param>
-        public Item? FindByType(ItemTypeID itemID)
+        /// <param name="material">The material to search for.</param>
+        public Item? FindByType(ItemTypeID itemID, Material? material)
         {
             foreach (var currItem in items)
             {
-                if (currItem.Type == itemID)
+                if (currItem.Type == itemID && currItem.Material == material)
                 {
                     return currItem;
                 }
@@ -35,12 +36,12 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
-        /// Tries to find an item in the inventory, based on the input item's type.
+        /// Tries to find an item in the inventory, based on the input item's type and material.
         /// </summary>
-        /// <param name="item">The item whose type to search for.</param>
+        /// <param name="item">The item whose type nad material to search for.</param>
         public Item? FindByType(Item item)
         {
-            return FindByType(item.Type);
+            return FindByType(item.Type, item.Material);
         }
 
         /// <summary>
@@ -65,25 +66,27 @@ namespace ProgressAdventure.ItemManagement
         /// <inheritdoc cref="Add(Item)"/>
         /// </summary>
         /// <param name="itemType">The type of the item to add.</param>
+        /// <param name="material">The material of the item.</param>
         /// <param name="amount">The amount of the items to add.</param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or no material was provided, when it was required.</exception>
         /// <returns><inheritdoc cref="Add(Item)"/></returns>
-        public bool Add(ItemTypeID itemType, int amount = 1)
+        public bool Add(ItemTypeID itemType, Material? material, int amount = 1)
         {
-            return Add(new Item(itemType, amount));
+            return Add(new Item(itemType, material, amount));
         }
 
         /// <summary>
         /// Removes some number of items, from the inventory, based on the type.
         /// </summary>
         /// <param name="itemType">The type of the item to remove.</param>
+        /// <param name="material">The material of the item.</param>
         /// <param name="amount">The amount of the items to remove. If its null, it removes all items of the type.</param>
         /// <returns>If the item existed in the inventory.</returns>
-        public bool Remove(ItemTypeID itemType, uint? amount = null)
+        public bool Remove(ItemTypeID itemType, Material? material, uint? amount = null)
         {
             for (var x = 0; x < items.Count; x++)
             {
-                if (items.ElementAt(x).Type == itemType)
+                if (items.ElementAt(x).Type == itemType && items.ElementAt(x).Material ==  material)
                 {
                     if (amount is null || items.ElementAt(x).Amount - amount <= 0)
                     {
@@ -131,15 +134,19 @@ namespace ProgressAdventure.ItemManagement
             lootedEntity.drops.Clear();
         }
 
-
-        public bool Use(ItemTypeID itemType)
+        /// <summary>
+        /// Uses the item, if it's usable.
+        /// </summary>
+        /// <param name="itemType">The type of the item to use.</param>
+        /// <param name="material">The material of the item to use.</param>
+        public bool Use(ItemTypeID itemType, Material? material)
         {
             for (int x = 0; x < items.Count; x++)
             {
-                if (items.ElementAt(x).Type == itemType)
+                if (items.ElementAt(x).Type == itemType && items.ElementAt(x).Material == material)
                 {
                     items.ElementAt(x).Use();
-                    if (items.ElementAt(x).Amount <= 0)
+                    if (items.ElementAt(x).Amount == 0)
                     {
                         items.RemoveAt(x);
                     }

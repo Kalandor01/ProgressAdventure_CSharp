@@ -516,7 +516,7 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<Item> GetDefaultDrops()
         {
-            return new List<Item> { new Item(ItemType.Misc.COPPER_COIN) };
+            return new List<Item> { new Item(ItemType.Misc.COIN, Material.COPPER) };
         }
 
         /// <summary>
