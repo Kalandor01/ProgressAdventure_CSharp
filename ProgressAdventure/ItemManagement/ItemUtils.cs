@@ -1,6 +1,7 @@
 ﻿using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -17,10 +18,10 @@ namespace ProgressAdventure.ItemManagement
         {
             //weapons
             [ItemType.Weapon.SWORD] = new ItemAttributesDTO(ItemType.Weapon.SWORD),
-            [ItemType.Weapon.BOW] = new ItemAttributesDTO(ItemType.Weapon.BOW),
+            [ItemType.Weapon.BOW] = new ItemAttributesDTO(ItemType.Weapon.BOW, "*/0MC/* bow", true),
             [ItemType.Weapon.ARROW] = new ItemAttributesDTO(ItemType.Weapon.ARROW),
             [ItemType.Weapon.CLUB] = new ItemAttributesDTO(ItemType.Weapon.CLUB),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "Teeth club", false),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "*/0MC/* club with */1ML/* teeth", true),
             //defence
             [ItemType.Defence.SHIELD] = new ItemAttributesDTO(ItemType.Defence.SHIELD),
             [ItemType.Defence.HELMET] = new ItemAttributesDTO(ItemType.Defence.HELMET),
@@ -29,9 +30,9 @@ namespace ProgressAdventure.ItemManagement
             [ItemType.Defence.BOOTS] = new ItemAttributesDTO(ItemType.Defence.BOOTS),
             //misc
             [ItemType.Misc.BOTTLE] = new ItemAttributesDTO(ItemType.Misc.BOTTLE),
-            [ItemType.Misc.HEALTH_POTION] = new ItemAttributesDTO(ItemType.Misc.HEALTH_POTION, false, true),
+            [ItemType.Misc.POTION] = new ItemAttributesDTO(ItemType.Misc.POTION, "*/1MC/* in */0ML/* bottle", true, consumable: true),
             [ItemType.Misc.COIN] = new ItemAttributesDTO(ItemType.Misc.COIN),
-            [ItemType.Misc.MATERIAL] = new ItemAttributesDTO(ItemType.Misc.MATERIAL),
+            [ItemType.Misc.MATERIAL] = new ItemAttributesDTO(ItemType.Misc.MATERIAL, unit: ItemAmountUnit.KG),
         };
 
         /// <summary>
@@ -54,6 +55,17 @@ namespace ProgressAdventure.ItemManagement
             [Material.TEETH] = new MaterialPropertiesDTO(2900),
             [Material.WOOD] = new MaterialPropertiesDTO(600),
             [Material.WOOL] = new MaterialPropertiesDTO(1241),
+            [Material.HEALING_LIQUID] = new MaterialPropertiesDTO(1015),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
+        /// </summary>
+        public static readonly Dictionary<ItemTypeID, List<IngredientDTO>> itemRecipes = new()
+        {
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(ItemType.Misc.MATERIAL, Material.TEETH, 1) },
+            [ItemType.Misc.POTION] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID , 0.5) },
+            [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.MATERIAL, 0.5) },
         };
         #endregion
 
@@ -238,13 +250,123 @@ namespace ProgressAdventure.ItemManagement
             var name = itemTypeID.ToString();
             if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
-                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", Enums.LogSeverity.ERROR);
+                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
             }
             else
             {
                 name = name.Split('.').Last().Replace("_", " ").Capitalize();
             }
             return name ?? "[UNKNOWN ITEM]";
+        }
+
+        /// <summary>
+        /// Fills in the compound item's display name, using the parts used to create it.
+        /// </summary>
+        /// <param name="rawDisplayName">The raw display name of the compound item, where the name of a material in the parts list can be refrenced, by replacing it by "*/[index of part in the list][T: type, M: material, N: display name][U: upper, L: lower, C: capitalise]/*".</param>
+        /// <param name="parts">The parts used to create the compound item.</param>
+        public static string ParseCompoundItemDisplayName(string rawDisplayName, List<AItem> parts)
+        {
+            var pattern = "\\*/(\\d+)([TMN])([ULC])/\\*";
+            var finalName = new StringBuilder();
+            var nameParts = Regex.Split(rawDisplayName, pattern);
+            for (var x = 0; x < nameParts.Length; x++)
+            {
+                // material index
+                if (
+                    x % 4 == 1 &&
+                    int.TryParse(nameParts[x], out int materialIndex) &&
+                    materialIndex < parts.Count
+                )
+                {
+                    string extraText;
+
+                    var propertyType = nameParts[x + 1];
+                    var caseLetter = nameParts[x + 2];
+
+                    if (propertyType == "T")
+                    {
+                        extraText = ItemIDToDisplayName(parts[materialIndex].Type).ToString()?.Replace("_", " ") ?? "";
+                    }
+                    else if (propertyType == "M")
+                    {
+                        extraText = parts[materialIndex].Material.ToString().Replace("_", " ");
+                    }
+                    else
+                    {
+                        extraText = parts[materialIndex].DisplayName;
+                    }
+                    
+                    if (caseLetter == "L")
+                    {
+                        extraText = extraText.ToLower();
+                    }
+                    else if (caseLetter == "C")
+                    {
+                        extraText = extraText.Capitalize();
+                    }
+
+                    finalName.Append(extraText);
+                }
+                // plain text
+                else if (x % 4 == 0)
+                {
+                    finalName.Append(nameParts[x]);
+                }
+            }
+            return finalName.ToString();
+        }
+
+        /// <summary>
+        /// Tries to create a compound item, from a list of ingredients.
+        /// </summary>
+        /// <param name="targetItem">The item type to try to create.</param>
+        /// <param name="items">The list of items to use, as the input for the recipe.</param>
+        public static CompoundItem? MakeItem(ItemTypeID targetItem, List<AItem> items)
+        {
+            CompoundItem? resultItem = null;
+            if (itemRecipes.TryGetValue(targetItem, out List<IngredientDTO>? ingredients))
+            {
+                // get required items from the list
+                var requiredItems = new List<AItem>();
+
+                foreach (var ingredient in ingredients)
+                {
+                    var itemFound = false;
+                    foreach (var item in items)
+                    {
+                        if (
+                            item.Type == ingredient.itemType &&
+                            (ingredient.material is null || item.Material == ingredient.material) &&
+                            item.Amount >= ingredient.amount &&
+                            !requiredItems.Contains(item)
+                        )
+                        {
+                            requiredItems.Add(item);
+                            itemFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!itemFound)
+                    {
+                        return null;
+                    }
+                }
+
+                // create the item
+                var parts = new List<AItem>();
+                for (int x = 0; x < ingredients.Count; x++)
+                {
+                    var usedItem = requiredItems[x].DeepCopy();
+                    requiredItems[x].Amount -= ingredients[x].amount;
+
+                    usedItem.Amount = ingredients[x].amount;
+                    parts.Add(usedItem);
+                }
+
+                resultItem = new CompoundItem(targetItem, parts, 1);
+            }
+            return resultItem;
         }
         #endregion
     }

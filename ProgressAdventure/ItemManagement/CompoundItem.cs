@@ -4,12 +4,17 @@ using ProgressAdventure.Extensions;
 namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
-    /// Class storing an item.
+    /// Class storing an item that is made up of mutiple items.
     /// </summary>
-    public class Item : AItem, IJsonConvertable<Item>
+    public class CompoundItem : AItem, IJsonConvertable<CompoundItem>
     {
 
         #region Public properties
+        /// <summary>
+        /// The parts making up this item.
+        /// </summary>
+        public List<AItem> Parts { get; private set; }
+
         /// <summary>
         /// If the amount of the item gets decreased, if it gets used.
         /// </summary>
@@ -18,13 +23,13 @@ namespace ProgressAdventure.ItemManagement
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="Item"/>
+        /// <inheritdoc cref="CompoundItem"/>
         /// </summary>
         /// <param name="type"><inheritdoc cref="this.Type" path="//summary"/></param>
-        /// <param name="material"><inheritdoc cref="this.Material" path="//summary"/></param>
+        /// <param name="parts"><inheritdoc cref="Parts" path="//summary"/></param>
         /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or a compound item type.</exception>
-        public Item(ItemTypeID type, Material material, double amount = 1)
+        /// <exception cref="ArgumentException">Thrown if the item type is not a compound item type id, or the parts list doesn't have an element.</exception>
+        public CompoundItem(ItemTypeID type, List<AItem> parts, double amount = 1)
         {
             var typeValue = ItemUtils.ToItemType(type.GetHashCode());
             if (typeValue is null)
@@ -35,17 +40,23 @@ namespace ProgressAdventure.ItemManagement
 
             Type = (ItemTypeID)typeValue;
 
-            if (ItemUtils.itemAttributes[Type].isCompoundItem)
+            if (!ItemUtils.itemAttributes[Type].isCompoundItem)
             {
-                Logger.Log("Item type is a compound item", $"type: {type}", LogSeverity.ERROR);
-                throw new ArgumentException("Item type is a compound item type", nameof(type));
+                Logger.Log("Item type is a not compound item", $"type: {type}", LogSeverity.ERROR);
+                throw new ArgumentException("Item type is not a compound item type", nameof(type));
             }
 
-            Material = material;
+            if (!parts.Any())
+            {
+                Logger.Log("Compound item has no parts", $"id: {type}", LogSeverity.ERROR);
+                throw new ArgumentException("Parts list doesn't have an element.", nameof(parts));
+            }
 
-            SetAttributes();
-
+            
+            Parts = parts;
+            Material = Parts.First().Material;
             Amount = amount;
+            SetAttributes();
         }
         #endregion
 
@@ -74,8 +85,7 @@ namespace ProgressAdventure.ItemManagement
         private void SetAttributes()
         {
             var attributes = ItemUtils.itemAttributes[Type];
-            Unit = attributes.unit;
-            DisplayName = attributes.displayName;
+            DisplayName = ItemUtils.ParseCompoundItemDisplayName(attributes.displayName, Parts);
             Consumable = attributes.consumable;
         }
         #endregion
@@ -83,20 +93,18 @@ namespace ProgressAdventure.ItemManagement
         #region Public overrides
         public override bool Equals(object? obj)
         {
-            return obj is Item item && Type == item.Type;
+            return obj is CompoundItem item && Type == item.Type;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Type, Material);
+            return HashCode.Combine(Type, Parts);
         }
 
         public override string? ToString()
         {
-            var type = Material.ToString()?.Capitalize().Replace("_", " ");
-            var name = Type == ItemType.Misc.MATERIAL ? "" : " " + DisplayName;
             var amount = Amount != 1 && Amount > 0 ? " x" + Amount.ToString() + (Unit == ItemAmountUnit.AMOUNT ? "" : " " + Unit.ToString().ToLower()) : "";
-            return $"{type}{name}{amount}";
+            return $"{DisplayName}{amount}";
         }
         #endregion
 
@@ -122,7 +130,7 @@ namespace ProgressAdventure.ItemManagement
             };
         }
 
-        public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out Item? itemObject)
+        public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out CompoundItem? itemObject)
         {
             itemObject = null;
             if (itemJson is null)
@@ -203,7 +211,7 @@ namespace ProgressAdventure.ItemManagement
                     double.TryParse(amountValue?.ToString(), out itemAmount)
                 )
                 {
-                    if (itemAmount < 1)
+                    if (itemAmount <= 0)
                     {
                         Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.ERROR);
                         return false;
@@ -216,7 +224,7 @@ namespace ProgressAdventure.ItemManagement
 
                 try
                 {
-                    itemObject = new Item(itemType, material, itemAmount);
+                    itemObject = new CompoundItem(itemType, new List<AItem>(), itemAmount);
                 }
                 catch (Exception ex)
                 {

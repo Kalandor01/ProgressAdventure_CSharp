@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.ItemManagement;
 using System.Text;
 
 namespace ProgressAdventure
@@ -14,8 +15,19 @@ namespace ProgressAdventure
 
             //SaveManager.CreateSaveData("test", "me");
 
+            var items = new List<AItem>
+            {
+                new Item(ItemType.Misc.BOTTLE, Material.GLASS, 1.5),
+                new Item(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID, 0.2),
+                new Item(ItemType.Misc.COIN, Material.GOLD, 152),
+                new Item(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID, 0.6),
+            };
 
-            MenuManager.MainMenu();
+            var gb = new Item(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID, 0.6).ToJson();
+
+            var hp = ItemUtils.MakeItem(ItemType.Misc.POTION, items);
+
+            //MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
 

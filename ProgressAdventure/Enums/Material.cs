@@ -15,6 +15,7 @@
         CLOTH,
         SILVER,
         GOLD,
-        ROTTEN_FLESH
+        ROTTEN_FLESH,
+        HEALING_LIQUID,
     }
 }

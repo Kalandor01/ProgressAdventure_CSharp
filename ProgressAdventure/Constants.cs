@@ -192,7 +192,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.2";
+        public const string SAVE_VERSION = "2.1.1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>
@@ -201,6 +201,10 @@ namespace ProgressAdventure
         /// In a fight, if no one took damage in X turns, the fight automaticaly ends.
         /// </summary>
         public const int FIGHT_GIVE_UP_TURN_NUMBER = 20;
+        /// <summary>
+        /// The amount of digits to round an item's amount to, to counteract bad float math.
+        /// </summary>
+        public const int ITEM_AMOUNT_ROUNDING_DIGITS = 4;
         #endregion
     }
 }

@@ -48,7 +48,7 @@
         public static class Misc
         {
             public static readonly ItemTypeID BOTTLE = misc[0];
-            public static readonly ItemTypeID HEALTH_POTION = misc[1];
+            public static readonly ItemTypeID POTION = misc[1];
             public static readonly ItemTypeID COIN = misc[2];
             public static readonly ItemTypeID MATERIAL = misc[3];
         }

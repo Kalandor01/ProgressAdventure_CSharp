@@ -178,7 +178,7 @@ namespace ProgressAdventure.Entity
         public static List<Item> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, null, 0.25),
+                new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
                 new LootFactory(ItemType.Misc.MATERIAL, Material.CLOTH, 0.25, 1, 3, 2),
                 new LootFactory(ItemType.Misc.MATERIAL, Material.TEETH, 0.35, 1, 5, 2),
                 new LootFactory(ItemType.Misc.COIN, Material.SILVER, 0.3, 1, 3, 3)

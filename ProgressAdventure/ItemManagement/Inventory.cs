@@ -70,7 +70,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amount">The amount of the items to add.</param>
         /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or no material was provided, when it was required.</exception>
         /// <returns><inheritdoc cref="Add(Item)"/></returns>
-        public bool Add(ItemTypeID itemType, Material? material, int amount = 1)
+        public bool Add(ItemTypeID itemType, Material material, int amount = 1)
         {
             return Add(new Item(itemType, material, amount));
         }
@@ -82,7 +82,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="material">The material of the item.</param>
         /// <param name="amount">The amount of the items to remove. If its null, it removes all items of the type.</param>
         /// <returns>If the item existed in the inventory.</returns>
-        public bool Remove(ItemTypeID itemType, Material? material, uint? amount = null)
+        public bool Remove(ItemTypeID itemType, Material material, uint? amount = null)
         {
             for (var x = 0; x < items.Count; x++)
             {
@@ -139,7 +139,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="itemType">The type of the item to use.</param>
         /// <param name="material">The material of the item to use.</param>
-        public bool Use(ItemTypeID itemType, Material? material)
+        public bool Use(ItemTypeID itemType, Material material)
         {
             for (int x = 0; x < items.Count; x++)
             {

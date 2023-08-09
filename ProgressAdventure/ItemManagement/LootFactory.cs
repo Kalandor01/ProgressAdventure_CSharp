@@ -15,7 +15,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The material of the item.
         /// </summary>
-        public Material? material;
+        public Material material;
         /// <summary>
         /// The chance for the entity to drop this item per roll.
         /// </summary>
@@ -45,22 +45,13 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amountMax"><inheritdoc cref="amountMax" path="//summary"/></param>
         /// <param name="rolls"><inheritdoc cref="rolls" path="//summary"/></param>
         /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or the material was required, but wasn't provided.</exception>
-        public LootFactory(ItemTypeID itemType, Material? material, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
+        public LootFactory(ItemTypeID itemType, Material material, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
         {
             var actualItemType = ItemUtils.ToItemType(itemType.GetHashCode());
             if (actualItemType is null)
             {
                 Logger.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(itemType));
-            }
-            if (
-                material is null &&
-                ItemUtils.itemAttributes.TryGetValue(itemType, out ItemAttributesDTO? itemAttributes) &&
-                !itemAttributes.canHaveMaterial
-            )
-            {
-                Logger.Log("Item material was not provided, but is required", $"item type: {itemType}", LogSeverity.ERROR);
-                throw new ArgumentException("Required material not provided", nameof(material));
             }
 
             this.itemType = (ItemTypeID)actualItemType;
