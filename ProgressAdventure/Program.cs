@@ -17,13 +17,13 @@ namespace ProgressAdventure
 
             var items = new List<AItem>
             {
-                new Item(ItemType.Misc.BOTTLE, Material.GLASS, 1.5),
-                new Item(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID, 0.2),
-                new Item(ItemType.Misc.COIN, Material.GOLD, 152),
-                new Item(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID, 0.6),
+                ItemUtils.CreateCompoumdItem(ItemType.Misc.BOTTLE, Material.GLASS, 1.5),
+                new MaterialItem(Material.HEALING_LIQUID, 0.2),
+                ItemUtils.CreateCompoumdItem(ItemType.Misc.COIN, Material.GOLD, 152),
+                new MaterialItem(Material.HEALING_LIQUID, 0.6),
             };
 
-            var gb = new Item(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID, 0.6).ToJson();
+            var gb = new MaterialItem(Material.HEALING_LIQUID, 0.6).ToJson();
 
             var hp = ItemUtils.MakeItem(ItemType.Misc.POTION, items);
 

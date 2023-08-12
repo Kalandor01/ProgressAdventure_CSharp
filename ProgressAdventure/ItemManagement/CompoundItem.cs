@@ -1,5 +1,5 @@
 ﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+using System.Collections;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -14,18 +14,13 @@ namespace ProgressAdventure.ItemManagement
         /// The parts making up this item.
         /// </summary>
         public List<AItem> Parts { get; private set; }
-
-        /// <summary>
-        /// If the amount of the item gets decreased, if it gets used.
-        /// </summary>
-        public bool Consumable { get; private set; }
         #endregion
 
         #region Constructors
         /// <summary>
         /// <inheritdoc cref="CompoundItem"/>
         /// </summary>
-        /// <param name="type"><inheritdoc cref="this.Type" path="//summary"/></param>
+        /// <param name="type"><inheritdoc cref="AItem.Type" path="//summary"/></param>
         /// <param name="parts"><inheritdoc cref="Parts" path="//summary"/></param>
         /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
         /// <exception cref="ArgumentException">Thrown if the item type is not a compound item type id, or the parts list doesn't have an element.</exception>
@@ -40,9 +35,9 @@ namespace ProgressAdventure.ItemManagement
 
             Type = (ItemTypeID)typeValue;
 
-            if (!ItemUtils.itemAttributes[Type].isCompoundItem)
+            if (Type == ItemUtils.MATERIAL_ITEM_TYPE)
             {
-                Logger.Log("Item type is a not compound item", $"type: {type}", LogSeverity.ERROR);
+                Logger.Log("Item type cannot be \"material\" for a compound item", null, LogSeverity.ERROR);
                 throw new ArgumentException("Item type is not a compound item type", nameof(type));
             }
 
@@ -68,13 +63,37 @@ namespace ProgressAdventure.ItemManagement
         {
             if (Amount > 0)
             {
-                if (Consumable)
-                {
-                    Amount--;
-                }
+                // DO THIS WITH TAGS!
+
+                //if (Consumable)
+                //{
+                Amount--;
+                //}
                 return true;
             }
             return false;
+        }
+        #endregion
+
+        #region Protected methods
+        protected override double GetMassMultiplier()
+        {
+            var totalMass = 0d;
+            foreach (var part in Parts)
+            {
+                totalMass += part.Mass;
+            }
+            return totalMass;
+        }
+
+        protected override double GetVolumeMultiplier()
+        {
+            var totalVolume = 0d;
+            foreach (var part in Parts)
+            {
+                totalVolume += part.Volume;
+            }
+            return totalVolume;
         }
         #endregion
 
@@ -84,27 +103,25 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private void SetAttributes()
         {
-            var attributes = ItemUtils.itemAttributes[Type];
+            var attributes = ItemUtils.compoundItemAttributes[Type];
             DisplayName = ItemUtils.ParseCompoundItemDisplayName(attributes.displayName, Parts);
-            Consumable = attributes.consumable;
         }
         #endregion
 
         #region Public overrides
         public override bool Equals(object? obj)
         {
-            return obj is CompoundItem item && Type == item.Type;
+            if (base.Equals(obj))
+            {
+                var item = (CompoundItem)obj;
+                return Parts.All(part => item.Parts.Any(part2 => part.Equals(part2) && part.Amount == part2.Amount));
+            }
+            return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Type, Parts);
-        }
-
-        public override string? ToString()
-        {
-            var amount = Amount != 1 && Amount > 0 ? " x" + Amount.ToString() + (Unit == ItemAmountUnit.AMOUNT ? "" : " " + Unit.ToString().ToLower()) : "";
-            return $"{DisplayName}{amount}";
+            return HashCode.Combine(Type, Parts, Amount);
         }
         #endregion
 
@@ -112,7 +129,7 @@ namespace ProgressAdventure.ItemManagement
         public override Dictionary<string, object?> ToJson()
         {
             string typeName;
-            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributesDTO? attributes))
+            if (ItemUtils.compoundItemAttributes.TryGetValue(Type, out CompoundItemAttributesDTO? attributes))
             {
                 typeName = attributes.typeName;
             }
@@ -126,6 +143,7 @@ namespace ProgressAdventure.ItemManagement
             {
                 ["type"] = typeName,
                 ["material"] = Material.ToString(),
+                ["parts"] = Parts.Select(part => part.ToJson()),
                 ["amount"] = Amount,
             };
         }
@@ -184,14 +202,21 @@ namespace ProgressAdventure.ItemManagement
                 ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType)
             )
             {
-                Material material;
+                var parts = new List<AItem>();
                 if (
-                    itemJson.TryGetValue("material", out var materialValue)
+                    itemJson.TryGetValue("parts", out var partsListJson)
                 )
                 {
-                    if (Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed))
+                    if (partsListJson is IEnumerable partsList)
                     {
-                        material = materialParsed;
+                        foreach (var partJson in partsList)
+                        {
+                            FromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
+                            if (part is not null)
+                            {
+                                parts.Add(part);
+                            }
+                        }
                     }
                     else
                     {
@@ -201,7 +226,7 @@ namespace ProgressAdventure.ItemManagement
                 }
                 else
                 {
-                    Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
+                    Logger.Log("Item parse error", "couldn't parse parts from json", LogSeverity.ERROR);
                     return false;
                 }
 
@@ -224,7 +249,7 @@ namespace ProgressAdventure.ItemManagement
 
                 try
                 {
-                    itemObject = new CompoundItem(itemType, new List<AItem>(), itemAmount);
+                    itemObject = new CompoundItem(itemType, parts, itemAmount);
                 }
                 catch (Exception ex)
                 {

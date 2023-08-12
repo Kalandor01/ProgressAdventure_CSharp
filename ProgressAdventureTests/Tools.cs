@@ -63,7 +63,8 @@ namespace ProgressAdventureTests
             RunTest(Tests.EntityUtilsFacingToMovementVectorDictionaryCheck, false);
             RunTest(Tests.EntityUtilsAttributeStatsChangeDictionaryCheck, false);
             RunTest(Tests.ItemUtilsMaterialPropertiesDictionaryCheck, false);
-            RunTest(Tests.ItemUtilsItemAttributesDictionaryCheck, false);
+            RunTest(Tests.ItemUtilsMaterialItemAttributesDictionaryCheck, false);
+            RunTest(Tests.ItemUtilsCompoundItemAttributesDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeIgnoreMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeResponseMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsSpecialKeyNameDictionaryCheck, false);
@@ -88,7 +89,8 @@ namespace ProgressAdventureTests
 
             RunAllDictionaryTests(false, false);
 
-            RunTest(Tests.AllItemTypesExistAndLoadable, false);
+            RunTest(Tests.AllMaterialItemTypesExistAndLoadable, false);
+            RunTest(Tests.AllCompoundItemTypesExistAndLoadable, false);
             RunTest(Tests.AllEntitiesLoadable, false);
 
             RunTest(Tests.BasicJsonConvertTest, false);

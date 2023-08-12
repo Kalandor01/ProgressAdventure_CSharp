@@ -8,5 +8,9 @@
         AMOUNT,
         KG,
         L,
+        /// <summary>
+        /// Meter cubed.
+        /// </summary>
+        M3,
     }
 }

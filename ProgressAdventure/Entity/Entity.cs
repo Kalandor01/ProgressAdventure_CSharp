@@ -51,7 +51,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The list of items that the <c>Entity</c> will drop on death.
         /// </summary>
-        public List<Item> drops;
+        public List<AItem> drops;
         /// <summary>
         /// The position of the entity in the world.
         /// </summary>
@@ -132,7 +132,7 @@ namespace ProgressAdventure.Entity
         public Entity(
             string name,
             EntityManagerStatsDTO stats,
-            List<Item>? drops = null,
+            List<AItem>? drops = null,
             string fileVersion = Constants.SAVE_VERSION
         )
             :this(
@@ -352,7 +352,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
@@ -514,9 +514,9 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly generated drops, specific to this entity type.
         /// </summary>
-        public static List<Item> GetDefaultDrops()
+        public static List<AItem> GetDefaultDrops()
         {
-            return new List<Item> { new Item(ItemType.Misc.COIN, Material.COPPER) };
+            return new List<AItem> { ItemUtils.CreateCompoumdItem(ItemType.Misc.COIN, Material.COPPER) };
         }
 
         /// <summary>
@@ -539,7 +539,7 @@ namespace ProgressAdventure.Entity
                 int? originalTeam,
                 int? currentTeam,
                 List<Attribute>? attributes,
-                List<Item>? drops,
+                List<AItem>? drops,
                 (long x, long y)? position,
                 Facing? facing
             )? entityData);
@@ -578,7 +578,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         )? entityData)
@@ -766,16 +766,16 @@ namespace ProgressAdventure.Entity
             }
 
             // drops
-            List<Item>? drops = null;
+            List<AItem>? drops = null;
             if (
                 entityJson.TryGetValue("drops", out var dropsJson) &&
                 dropsJson is IEnumerable dropList
             )
             {
-                drops = new List<Item>();
+                drops = new List<AItem>();
                 foreach (var dropJson in dropList)
                 {
-                    success &= Item.FromJson(dropJson as IDictionary<string, object?>, fileVersion, out Item? itemObject);
+                    success &= AItem.FromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
                     if (itemObject is not null)
                     {
                         drops.Add(itemObject);

@@ -30,7 +30,7 @@ namespace ProgressAdventure.Entity
                 int? originalTeam,
                 int? currentTeam,
                 List<Enums.Attribute>? attributes,
-                List<Item>? drops,
+                List<AItem>? drops,
                 (long x, long y)? position,
                 Facing? facing
             ) entityData,
@@ -48,7 +48,7 @@ namespace ProgressAdventure.Entity
         public Entity(
             string name,
             EntityManagerStatsDTO stats,
-            List<Item>? drops = null
+            List<AItem>? drops = null
         ) : base(name, stats, drops) { }
 
         public static bool FromJson(IDictionary<string, object?>? entityJson, string fileVersion, out TEntity? entityObject)

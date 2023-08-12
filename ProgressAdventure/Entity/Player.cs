@@ -77,7 +77,7 @@ namespace ProgressAdventure.Entity
                     0,
                     0,
                     new List<Attribute>(),
-                    new List<Item>(),
+                    new List<AItem>(),
                     position,
                     facing
                 ),
@@ -142,7 +142,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         ) entityData, IDictionary<string, object?>? miscData, string fileVersion)

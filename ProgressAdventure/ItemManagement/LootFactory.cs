@@ -69,9 +69,9 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="drops">A list of <c>LootFactory</c>s.</param>
         /// <returns></returns>
-        public static List<Item> LootManager(IEnumerable<LootFactory>? drops = null)
+        public static List<AItem> LootManager(IEnumerable<LootFactory>? drops = null)
         {
-            var loot = new List<Item>();
+            var loot = new List<AItem>();
             if (drops is not null)
             {
                 foreach (var drop in drops)
@@ -83,7 +83,11 @@ namespace ProgressAdventure.ItemManagement
                     }
                     if (num > 0)
                     {
-                        loot.Add(new Item(drop.itemType, drop.material, num));
+                        loot.Add(
+                            drop.itemType == ItemUtils.MATERIAL_ITEM_TYPE ?
+                                new MaterialItem(drop.material, num) :
+                                ItemUtils.CreateCompoumdItem(drop.itemType, drop.material, num)
+                        );
                     }
                 }
             }

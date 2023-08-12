@@ -4,43 +4,19 @@ using ProgressAdventure.Extensions;
 namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
-    /// Class storing an item.
+    /// Class storing a material as an item.
     /// </summary>
-    public class Item : AItem, IJsonConvertable<Item>
+    public class MaterialItem : AItem, IJsonConvertable<MaterialItem>
     {
-
-        #region Public properties
+        #region Public constructors
         /// <summary>
-        /// If the amount of the item gets decreased, if it gets used.
+        /// <inheritdoc cref="MaterialItem"/>
         /// </summary>
-        public bool Consumable { get; private set; }
-        #endregion
-
-        #region Constructors
-        /// <summary>
-        /// <inheritdoc cref="Item"/>
-        /// </summary>
-        /// <param name="type"><inheritdoc cref="this.Type" path="//summary"/></param>
-        /// <param name="material"><inheritdoc cref="this.Material" path="//summary"/></param>
+        /// <param name="material">The material.</param>
         /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or a compound item type.</exception>
-        public Item(ItemTypeID type, Material material, double amount = 1)
+        public MaterialItem(Material material, double amount = 1)
         {
-            var typeValue = ItemUtils.ToItemType(type.GetHashCode());
-            if (typeValue is null)
-            {
-                Logger.Log("Unknown item type", $"id: {type.GetHashCode()}", LogSeverity.ERROR);
-                throw new ArgumentException("Unknown item type", nameof(type));
-            }
-
-            Type = (ItemTypeID)typeValue;
-
-            if (ItemUtils.itemAttributes[Type].isCompoundItem)
-            {
-                Logger.Log("Item type is a compound item", $"type: {type}", LogSeverity.ERROR);
-                throw new ArgumentException("Item type is a compound item type", nameof(type));
-            }
-
+            Type = ItemUtils.MATERIAL_ITEM_TYPE;
             Material = material;
 
             SetAttributes();
@@ -57,13 +33,44 @@ namespace ProgressAdventure.ItemManagement
         {
             if (Amount > 0)
             {
-                if (Consumable)
-                {
+                // DO THIS WITH TAGS!
+
+                //if (Consumable)
+                //{
                     Amount--;
-                }
+                //}
                 return true;
             }
             return false;
+        }
+        #endregion
+
+        #region Protected methods
+        protected override double GetMassMultiplier()
+        {
+            if (Unit == ItemAmountUnit.KG)
+            {
+                return 1;
+            }
+
+            // L / M3 (/ amount???)
+            return ItemUtils.materialProperties[Material].density * (Unit == ItemAmountUnit.L ? 0.001 : 1);
+        }
+
+        protected override double GetVolumeMultiplier()
+        {
+            if (Unit == ItemAmountUnit.M3)
+            {
+                return 1;
+            }
+
+            if (Unit == ItemAmountUnit.L)
+            {
+                return 0.001;
+            }
+
+            // KG (/ amount???)
+            return ItemUtils.materialProperties[Material].density;
         }
         #endregion
 
@@ -73,56 +80,24 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private void SetAttributes()
         {
-            var attributes = ItemUtils.itemAttributes[Type];
+            var attributes = ItemUtils.materialItemAttributes[Material];
             Unit = attributes.unit;
             DisplayName = attributes.displayName;
-            Consumable = attributes.consumable;
-        }
-        #endregion
-
-        #region Public overrides
-        public override bool Equals(object? obj)
-        {
-            return obj is Item item && Type == item.Type;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Type, Material);
-        }
-
-        public override string? ToString()
-        {
-            var type = Material.ToString()?.Capitalize().Replace("_", " ");
-            var name = Type == ItemType.Misc.MATERIAL ? "" : " " + DisplayName;
-            var amount = Amount != 1 && Amount > 0 ? " x" + Amount.ToString() + (Unit == ItemAmountUnit.AMOUNT ? "" : " " + Unit.ToString().ToLower()) : "";
-            return $"{type}{name}{amount}";
         }
         #endregion
 
         #region JsonConvert
         public override Dictionary<string, object?> ToJson()
         {
-            string typeName;
-            if (ItemUtils.itemAttributes.TryGetValue(Type, out ItemAttributesDTO? attributes))
-            {
-                typeName = attributes.typeName;
-            }
-            else
-            {
-                typeName = ItemUtils.ItemIDToTypeName(Type);
-                Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
-            }
-
             return new Dictionary<string, object?>
             {
-                ["type"] = typeName,
+                ["type"] = ItemUtils.MATERIAL_TYPE_NAME,
                 ["material"] = Material.ToString(),
                 ["amount"] = Amount,
             };
         }
 
-        public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out Item? itemObject)
+        public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out MaterialItem? itemObject)
         {
             itemObject = null;
             if (itemJson is null)
@@ -203,9 +178,9 @@ namespace ProgressAdventure.ItemManagement
                     double.TryParse(amountValue?.ToString(), out itemAmount)
                 )
                 {
-                    if (itemAmount < 1)
+                    if (itemAmount <= 0)
                     {
-                        Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.ERROR);
+                        Logger.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
                         return false;
                     }
                 }
@@ -216,7 +191,7 @@ namespace ProgressAdventure.ItemManagement
 
                 try
                 {
-                    itemObject = new Item(itemType, material, itemAmount);
+                    itemObject = new MaterialItem(material, itemAmount);
                 }
                 catch (Exception ex)
                 {

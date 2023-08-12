@@ -10,29 +10,63 @@ namespace ProgressAdventure.ItemManagement
     /// </summary>
     public static class ItemUtils
     {
+        #region Internal fields
+        /// <summary>
+        /// The item type for a material.
+        /// </summary>
+        internal static readonly ItemTypeID MATERIAL_ITEM_TYPE = ItemType.Misc.MATERIAL;
+        /// <summary>
+        /// The type name of a material item.
+        /// </summary>
+        internal static readonly string MATERIAL_TYPE_NAME = ItemIDToTypeName(MATERIAL_ITEM_TYPE);
+        #endregion
+
         #region Public dicts
         /// <summary>
         /// The dictionary pairing up item types, to their attributes.
         /// </summary>
-        public static readonly Dictionary<ItemTypeID, ItemAttributesDTO> itemAttributes = new()
+        public static readonly Dictionary<ItemTypeID, CompoundItemAttributesDTO> compoundItemAttributes = new()
         {
             //weapons
-            [ItemType.Weapon.SWORD] = new ItemAttributesDTO(ItemType.Weapon.SWORD),
-            [ItemType.Weapon.BOW] = new ItemAttributesDTO(ItemType.Weapon.BOW, "*/0MC/* bow", true),
-            [ItemType.Weapon.ARROW] = new ItemAttributesDTO(ItemType.Weapon.ARROW),
-            [ItemType.Weapon.CLUB] = new ItemAttributesDTO(ItemType.Weapon.CLUB),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new ItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "*/0MC/* club with */1ML/* teeth", true),
+            [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD),
+            [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW),
+            [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW),
+            [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "*/0MC/* club with */1ML/*"),
             //defence
-            [ItemType.Defence.SHIELD] = new ItemAttributesDTO(ItemType.Defence.SHIELD),
-            [ItemType.Defence.HELMET] = new ItemAttributesDTO(ItemType.Defence.HELMET),
-            [ItemType.Defence.CHESTPLATE] = new ItemAttributesDTO(ItemType.Defence.CHESTPLATE),
-            [ItemType.Defence.PANTS] = new ItemAttributesDTO(ItemType.Defence.PANTS),
-            [ItemType.Defence.BOOTS] = new ItemAttributesDTO(ItemType.Defence.BOOTS),
+            [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD),
+            [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET),
+            [ItemType.Defence.CHESTPLATE] = new CompoundItemAttributesDTO(ItemType.Defence.CHESTPLATE),
+            [ItemType.Defence.PANTS] = new CompoundItemAttributesDTO(ItemType.Defence.PANTS),
+            [ItemType.Defence.BOOTS] = new CompoundItemAttributesDTO(ItemType.Defence.BOOTS),
             //misc
-            [ItemType.Misc.BOTTLE] = new ItemAttributesDTO(ItemType.Misc.BOTTLE),
-            [ItemType.Misc.POTION] = new ItemAttributesDTO(ItemType.Misc.POTION, "*/1MC/* in */0ML/* bottle", true, consumable: true),
-            [ItemType.Misc.COIN] = new ItemAttributesDTO(ItemType.Misc.COIN),
-            [ItemType.Misc.MATERIAL] = new ItemAttributesDTO(ItemType.Misc.MATERIAL, unit: ItemAmountUnit.KG),
+            [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE),
+            [ItemType.Misc.POTION] = new CompoundItemAttributesDTO(ItemType.Misc.POTION, "*/1MC/* in */0ML/* bottle"),
+            [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN),
+            [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, ItemAmountUnit.KG),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up material types, to their item attributes.
+        /// </summary>
+        public static readonly Dictionary<Material, MaterialItemAttributesDTO> materialItemAttributes = new()
+        {
+            //weapons
+            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS),
+            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH),
+            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER),
+            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS),
+            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD),
+            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON),
+            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER),
+            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH),
+            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER),
+            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL),
+            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE),
+            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH),
+            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD),
+            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL),
+            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, ItemAmountUnit.L),
         };
 
         /// <summary>
@@ -63,9 +97,17 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public static readonly Dictionary<ItemTypeID, List<IngredientDTO>> itemRecipes = new()
         {
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(ItemType.Misc.MATERIAL, Material.TEETH, 1) },
-            [ItemType.Misc.POTION] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(ItemType.Misc.MATERIAL, Material.HEALING_LIQUID , 0.5) },
-            [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.MATERIAL, 0.5) },
+            // weapon
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(Material.TEETH, 1) },
+            // defence
+            [ItemType.Defence.SHIELD] = new List<IngredientDTO> { new IngredientDTO(null, 0.5) },
+            [ItemType.Defence.HELMET] = new List<IngredientDTO> { new IngredientDTO(null, 0.5) },
+            [ItemType.Defence.CHESTPLATE] = new List<IngredientDTO> { new IngredientDTO(null, 0.5) },
+            [ItemType.Defence.PANTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.5) },
+            [ItemType.Defence.BOOTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.5) },
+            // misc
+            [ItemType.Misc.POTION] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID , 0.5) },
+            [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(null, 0.5) },
         };
         #endregion
 
@@ -191,7 +233,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (!string.IsNullOrWhiteSpace(itemTypeName))
             {
-                foreach (var itemAttribute in itemAttributes)
+                foreach (var itemAttribute in compoundItemAttributes)
                 {
                     if (itemAttribute.Value.typeName == itemTypeName)
                     {
@@ -317,56 +359,163 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
+        /// Gets the unit conversion multiplier, between the current item's unit, and the target unit, so that: 1 [item's unit] = [multiplier] [target unit].
+        /// </summary>
+        /// <param name="item">The item to get the properties from.</param>
+        /// <param name="targetUnit">The unit to convert to.</param>
+        public static double ConvertAmountToUnitMultiplier(AItem item, ItemAmountUnit targetUnit)
+        {
+            if (
+                item.Unit == targetUnit ||
+                item.Unit == ItemAmountUnit.AMOUNT ||
+                targetUnit == ItemAmountUnit.AMOUNT
+            )
+            {
+                return 1;
+            }
+
+            var itemUnit = item.Unit;
+
+            double multiplier;
+
+            // L -- KG
+            if (
+                (itemUnit == ItemAmountUnit.L && targetUnit == ItemAmountUnit.KG) ||
+                (targetUnit == ItemAmountUnit.L && itemUnit == ItemAmountUnit.KG)
+            )
+            {
+                multiplier = (item.Volume / item.Mass) * 1000;
+                return itemUnit == ItemAmountUnit.L ? multiplier : 1 / multiplier;
+            }
+            // M3 -- KG
+            if (
+                (itemUnit == ItemAmountUnit.M3 && targetUnit == ItemAmountUnit.KG) ||
+                (targetUnit == ItemAmountUnit.KG && itemUnit == ItemAmountUnit.M3)
+            )
+            {
+                multiplier = item.Volume / item.Mass;
+                return itemUnit == ItemAmountUnit.M3 ? multiplier : 1 / multiplier;
+            }
+            // M3 -- L
+            if (
+                (itemUnit == ItemAmountUnit.M3 && targetUnit == ItemAmountUnit.L) ||
+                (targetUnit == ItemAmountUnit.L && itemUnit == ItemAmountUnit.M3)
+            )
+            {
+                multiplier = 1000;
+                return itemUnit == ItemAmountUnit.M3 ? multiplier : 1 / multiplier;
+            }
+
+            return 1;
+        }
+
+        /// <summary>
+        /// Returns the amount of items that the inputed item would have, if it had the target unit.
+        /// </summary>
+        /// <param name="item">The item, who's amount to convert.</param>
+        /// <param name="targetUnit">The unit to convert to.</param>
+        public static double ConvertAmountToUnit(AItem item, ItemAmountUnit targetUnit)
+        {
+            return item.Amount * ConvertAmountToUnitMultiplier(item, targetUnit);
+        }
+
+        /// <summary>
         /// Tries to create a compound item, from a list of ingredients.
         /// </summary>
         /// <param name="targetItem">The item type to try to create.</param>
         /// <param name="items">The list of items to use, as the input for the recipe.</param>
-        public static CompoundItem? MakeItem(ItemTypeID targetItem, List<AItem> items)
+        /// <param name="amount">How much of the item to create.</param>
+        public static CompoundItem? MakeItem(ItemTypeID targetItem, List<AItem> items, int amount = 1)
         {
-            CompoundItem? resultItem = null;
-            if (itemRecipes.TryGetValue(targetItem, out List<IngredientDTO>? ingredients))
+            if (!itemRecipes.TryGetValue(targetItem, out List<IngredientDTO>? ingredients))
             {
-                // get required items from the list
-                var requiredItems = new List<AItem>();
-
-                foreach (var ingredient in ingredients)
-                {
-                    var itemFound = false;
-                    foreach (var item in items)
-                    {
-                        if (
-                            item.Type == ingredient.itemType &&
-                            (ingredient.material is null || item.Material == ingredient.material) &&
-                            item.Amount >= ingredient.amount &&
-                            !requiredItems.Contains(item)
-                        )
-                        {
-                            requiredItems.Add(item);
-                            itemFound = true;
-                            break;
-                        }
-                    }
-
-                    if (!itemFound)
-                    {
-                        return null;
-                    }
-                }
-
-                // create the item
-                var parts = new List<AItem>();
-                for (int x = 0; x < ingredients.Count; x++)
-                {
-                    var usedItem = requiredItems[x].DeepCopy();
-                    requiredItems[x].Amount -= ingredients[x].amount;
-
-                    usedItem.Amount = ingredients[x].amount;
-                    parts.Add(usedItem);
-                }
-
-                resultItem = new CompoundItem(targetItem, parts, 1);
+                return null;
             }
-            return resultItem;
+
+            // get required items from the list
+            var requiredItems = new List<AItem>();
+
+            foreach (var ingredient in ingredients)
+            {
+                var itemFound = false;
+                foreach (var item in items)
+                {
+                    if (
+                        item.Type == ingredient.itemType &&
+                        (ingredient.material is null || item.Material == ingredient.material) &&
+                        (ingredient.unit is not null ? ConvertAmountToUnit(item, (ItemAmountUnit)ingredient.unit) : 1) >= ingredient.amount * amount &&
+                        !requiredItems.Contains(item)
+                    )
+                    {
+                        requiredItems.Add(item);
+                        itemFound = true;
+                        break;
+                    }
+                }
+
+                if (!itemFound)
+                {
+                    return null;
+                }
+            }
+
+            // create the item
+            var parts = new List<AItem>();
+            for (int x = 0; x < ingredients.Count; x++)
+            {
+                var usedItem = requiredItems[x].DeepCopy();
+                requiredItems[x].Amount -= ingredients[x].amount * amount;
+
+                usedItem.Amount = ingredients[x].amount;
+                parts.Add(usedItem);
+            }
+
+            return new CompoundItem(targetItem, parts, amount);
+        }
+
+        /// <summary>
+        /// Creates a new compound item from the target type.
+        /// </summary>
+        /// <param name="targetItem">The item type to create.</param>
+        /// <param name="materials">The materials to use, for the parts of the item, if posible.</param>
+        /// <param name="amount">How much of the item to create.</param>
+        public static CompoundItem CreateCompoumdItem(ItemTypeID targetItem, List<Material?> materials, double amount = 1)
+        {
+            // not craftable
+            if (!itemRecipes.TryGetValue(targetItem, out List<IngredientDTO>? ingredients))
+            {
+                return new CompoundItem(targetItem, new List<AItem> { new MaterialItem(materials?.First() ?? Material.WOOD) }, amount);
+            }
+
+            // get parts
+            var parts = new List<AItem>();
+
+            for (var x = 0; x < ingredients.Count; x++)
+            {
+                var ingredient = ingredients[x];
+                var material = ingredient.material ?? (materials is not null && materials.Count > x ? materials[x] : null);
+                AItem part;
+                if (ingredient.itemType == MATERIAL_ITEM_TYPE)
+                {
+                    part = new MaterialItem(material ?? Material.WOOD, ingredient.amount);
+                }
+                else
+                {
+                    part = CreateCompoumdItem(ingredient.itemType, material, ingredient.amount);
+                }
+                part.Amount = ingredient.unit is not null ? ConvertAmountToUnit(part, (ItemAmountUnit)ingredient.unit) : part.Amount;
+                parts.Add(part);
+            }
+
+            // create item
+            return new CompoundItem(targetItem, parts, amount);
+        }
+
+        /// <inheritdoc cref="CreateCompoumdItem(ItemTypeID, List{Material?}?, double)"/>
+        /// <param name="material">The material to use, for the material of the item, if posible.</param>
+        public static CompoundItem CreateCompoumdItem(ItemTypeID targetItem, Material? material = null, double amount = 1)
+        {
+            return CreateCompoumdItem(targetItem, new List<Material?> { material }, amount);
         }
         #endregion
     }

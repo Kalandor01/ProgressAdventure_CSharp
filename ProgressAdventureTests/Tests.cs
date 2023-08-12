@@ -160,18 +160,47 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
-        /// Checks if the ItemUtils, item attributes dictionary contains all required keys and correct values.
+        /// Checks if the ItemUtils, material item attributes dictionary contains all required keys and correct values.
         /// </summary>
-        public static TestResultDTO? ItemUtilsItemAttributesDictionaryCheck()
+        public static TestResultDTO? ItemUtilsMaterialItemAttributesDictionaryCheck()
         {
-            var requiredKeys = ItemUtils.GetAllItemTypes();
-            var checkedDictionary = ItemUtils.itemAttributes;
+            var requiredKeys = Enum.GetValues<Material>();
+            var checkedDictionary = ItemUtils.materialItemAttributes;
 
             var existingValues = new List<string>();
 
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out ItemAttributesDTO? value))
+                if (checkedDictionary.TryGetValue(key, out MaterialItemAttributesDTO? value))
+                {
+                    if (value.typeName is null)
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The type name in the dictionary at \"{key}\" is null.");
+                    }
+                    existingValues.Add(value.typeName);
+                }
+                else
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the ItemUtils, compound item attributes dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? ItemUtilsCompoundItemAttributesDictionaryCheck()
+        {
+            var requiredKeys = ItemUtils.GetAllItemTypes();
+            var checkedDictionary = ItemUtils.compoundItemAttributes;
+
+            var existingValues = new List<string>();
+
+            foreach (var key in requiredKeys)
+            {
+                if (checkedDictionary.TryGetValue(key, out CompoundItemAttributesDTO? value))
                 {
                     if (value.typeName is null)
                     {
@@ -317,26 +346,26 @@ namespace ProgressAdventureTests
         #endregion
 
         /// <summary>
-        /// Checks if all item IDs can be turned into items.
+        /// Checks if all material enums values can be turned into material items.
         /// </summary>
-        public static TestResultDTO? AllItemTypesExistAndLoadable()
+        public static TestResultDTO? AllMaterialItemTypesExistAndLoadable()
         {
             var itemAmount = 3;
 
-            var allItems = new List<Item>();
+            var allItems = new List<MaterialItem>();
 
             // all item IDs can turn into items
-            foreach (var itemID in ItemUtils.GetAllItemTypes())
+            foreach (var material in Enum.GetValues<Material>())
             {
-                var attributes = ItemUtils.itemAttributes[itemID];
-                Item item;
+                var attributes = ItemUtils.materialItemAttributes[material];
+                MaterialItem item;
                 try
                 {
-                    item = new Item(itemID, attributes.canHaveMaterial ? Material.IRON : null, itemAmount);
+                    item = new MaterialItem(material, amount: itemAmount);
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
+                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{material}\": " + ex);
                 }
 
                 allItems.Add(item);
@@ -345,17 +374,19 @@ namespace ProgressAdventureTests
             // items loadable from json and are the same as before load
             foreach (var item in allItems)
             {
-                Item? loadedItem;
+                MaterialItem loadedItem;
 
                 try
                 {
                     var itemJson = item.ToJson();
-                    var success = Item.FromJson(itemJson, PAConstants.SAVE_VERSION, out loadedItem);
+                    var success = AItem.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
 
-                    if (loadedItem is null || !success)
+                    if (loadedAItem is null || !success)
                     {
                         throw new ArgumentNullException(item.Type.ToString());
                     }
+
+                    loadedItem = (MaterialItem)loadedAItem;
                 }
                 catch (Exception ex)
                 {
@@ -364,9 +395,83 @@ namespace ProgressAdventureTests
 
                 if (
                     loadedItem.Type == item.Type &&
+                    loadedItem.Material == item.Material &&
                     loadedItem.Amount == item.Amount &&
                     loadedItem.DisplayName == item.DisplayName &&
-                    loadedItem.Consumable == item.Consumable
+                    loadedItem.Unit == item.Unit &&
+                    loadedItem.Mass == item.Mass &&
+                    loadedItem.Volume == item.Volume
+                )
+                {
+                    continue;
+                }
+
+                return new TestResultDTO(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if all item IDs can be turned into compound items.
+        /// </summary>
+        public static TestResultDTO? AllCompoundItemTypesExistAndLoadable()
+        {
+            var itemAmount = 3;
+
+            var allItems = new List<CompoundItem>();
+
+            // all item IDs can turn into items
+            foreach (var itemID in ItemUtils.GetAllItemTypes())
+            {
+                if (itemID != ItemType.Misc.MATERIAL)
+                {
+                    var attributes = ItemUtils.compoundItemAttributes[itemID];
+                    CompoundItem item;
+                    try
+                    {
+                        item = ItemUtils.CreateCompoumdItem(itemID, amount: itemAmount);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
+                    }
+
+                    allItems.Add(item);
+                }
+            }
+
+            // items loadable from json and are the same as before load
+            foreach (var item in allItems)
+            {
+                CompoundItem loadedItem;
+
+                try
+                {
+                    var itemJson = item.ToJson();
+                    var success = AItem.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
+
+                    if (loadedAItem is null || !success)
+                    {
+                        throw new ArgumentNullException(item.Type.ToString());
+                    }
+
+                    loadedItem = (CompoundItem)loadedAItem;
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
+                }
+
+                if (
+                    loadedItem.Type == item.Type &&
+                    loadedItem.Material == item.Material &&
+                    loadedItem.Amount == item.Amount &&
+                    loadedItem.DisplayName == item.DisplayName &&
+                    loadedItem.Unit == item.Unit &&
+                    loadedItem.Mass == item.Mass &&
+                    loadedItem.Volume == item.Volume &&
+                    item.Parts.All(part => loadedItem.Parts.Any(part2 => part.Equals(part2)))
                 )
                 {
                     continue;

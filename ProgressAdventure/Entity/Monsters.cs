@@ -37,11 +37,11 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly generated drops, specific to this entity type.
         /// </summary>
-        public static List<Item> GetDefaultDrops()
+        public static List<AItem> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
                 new LootFactory(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
-                new LootFactory(ItemType.Misc.MATERIAL, Material.CLOTH, 0.15, 0, 1, 3),
+                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.15, 0, 1, 3),
                 new LootFactory(ItemType.Misc.COIN, Material.COPPER, 0.35, 0, 4, 3)
             });
         }
@@ -65,7 +65,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
@@ -106,11 +106,11 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly generated drops, specific to this entity type.
         /// </summary>
-        public static List<Item> GetDefaultDrops()
+        public static List<AItem> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
                 new LootFactory(ItemType.Weapon.SWORD, Material.STONE, 0.2),
-                new LootFactory(ItemType.Misc.MATERIAL, Material.ROTTEN_FLESH, 0.55, 0, 3),
+                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.ROTTEN_FLESH, 0.55, 0, 3),
                 new LootFactory(ItemType.Misc.COIN, Material.COPPER, 0.4, 0, 5, 4)
             });
         }
@@ -134,7 +134,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
@@ -175,12 +175,12 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly generated drops, specific to this entity type.
         /// </summary>
-        public static List<Item> GetDefaultDrops()
+        public static List<AItem> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
                 new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
-                new LootFactory(ItemType.Misc.MATERIAL, Material.CLOTH, 0.25, 1, 3, 2),
-                new LootFactory(ItemType.Misc.MATERIAL, Material.TEETH, 0.35, 1, 5, 2),
+                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.25, 1, 3, 2),
+                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.TEETH, 0.35, 1, 5, 2),
                 new LootFactory(ItemType.Misc.COIN, Material.SILVER, 0.3, 1, 3, 3)
             });
         }
@@ -204,7 +204,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
@@ -256,7 +256,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Returns the newly generated drops, specific to this entity type.
         /// </summary>
-        public static List<Item> GetDefaultDrops()
+        public static List<AItem> GetDefaultDrops()
         {
             return LootFactory.LootManager(new List<LootFactory> {
                 new LootFactory(ItemType.Misc.COIN, Material.GOLD, 0.8, 1, 10, 10),
@@ -286,7 +286,7 @@ namespace ProgressAdventure.Entity
             int? originalTeam,
             int? currentTeam,
             List<Attribute>? attributes,
-            List<Item>? drops,
+            List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
         ) entityData, IDictionary<string, object?>? miscData, string fileVersion)

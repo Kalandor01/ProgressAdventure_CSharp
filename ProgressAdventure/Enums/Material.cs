@@ -1,5 +1,8 @@
 ﻿namespace ProgressAdventure.Enums
 {
+    /// <summary>
+    /// All existing materials.
+    /// </summary>
     public enum Material
     {
         WOOD,

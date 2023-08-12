@@ -7,13 +7,13 @@ namespace ProgressAdventure.ItemManagement
     public class Inventory : IJsonConvertable<Inventory>
     {
         #region Public fields
-        public List<Item> items;
+        public List<AItem> items;
         #endregion
 
         #region Constructors
-        public Inventory(List<Item>? items = null)
+        public Inventory(List<AItem>? items = null)
         {
-            this.items = items ?? new List<Item>();
+            this.items = items ?? new List<AItem>();
         }
         #endregion
 
@@ -23,7 +23,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="itemID">The item type to search for.</param>
         /// <param name="material">The material to search for.</param>
-        public Item? FindByType(ItemTypeID itemID, Material? material)
+        public AItem? FindByType(ItemTypeID itemID, Material? material)
         {
             foreach (var currItem in items)
             {
@@ -39,7 +39,7 @@ namespace ProgressAdventure.ItemManagement
         /// Tries to find an item in the inventory, based on the input item's type and material.
         /// </summary>
         /// <param name="item">The item whose type nad material to search for.</param>
-        public Item? FindByType(Item item)
+        public AItem? FindByType(AItem item)
         {
             return FindByType(item.Type, item.Material);
         }
@@ -49,7 +49,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="item">The item to add.</param>
         /// <returns>If the item already exists in the inventory.</returns>
-        public bool Add(Item item)
+        public bool Add(AItem item)
         {
             var foundItem = FindByType(item);
             if (foundItem is not null)
@@ -63,16 +63,33 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
-        /// <inheritdoc cref="Add(Item)"/>
+        /// <inheritdoc cref="Add(AItem)"/><br/>
+        /// Fro adding a new material item.
+        /// </summary>
+        /// <param name="material">The material of the item.</param>
+        /// <param name="amount">The amount of the items to add.</param>
+        /// <returns><inheritdoc cref="Add(AItem)"/></returns>
+        public bool AddNewMaterialItem(Material material, int amount = 1)
+        {
+            return Add(new MaterialItem(material, amount));
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Add(AItem)"/><br/>
+        /// Fro adding a new compound item.
         /// </summary>
         /// <param name="itemType">The type of the item to add.</param>
         /// <param name="material">The material of the item.</param>
         /// <param name="amount">The amount of the items to add.</param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or no material was provided, when it was required.</exception>
-        /// <returns><inheritdoc cref="Add(Item)"/></returns>
-        public bool Add(ItemTypeID itemType, Material material, int amount = 1)
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
+        /// <returns><inheritdoc cref="Add(AItem)"/></returns>
+        public bool AddNewCompoundItem(ItemTypeID itemType, Material material, int amount = 1)
         {
-            return Add(new Item(itemType, material, amount));
+            if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
+            {
+                return AddNewMaterialItem(material, amount);
+            }
+            return Add(ItemUtils.CreateCompoumdItem(itemType, material, amount));
         }
 
         /// <summary>
@@ -107,7 +124,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="loot">The list of items to add.</param>
         /// <param name="looterName">Wether to write out what was picked up by who.</param>
-        public void Loot(IEnumerable<Item> loot, string? looterName = null)
+        public void Loot(IEnumerable<AItem> loot, string? looterName = null)
         {
             foreach (var item in loot)
             {
@@ -145,7 +162,8 @@ namespace ProgressAdventure.ItemManagement
             {
                 if (items.ElementAt(x).Type == itemType && items.ElementAt(x).Material == material)
                 {
-                    items.ElementAt(x).Use();
+                    // add back use???
+                    // here
                     if (items.ElementAt(x).Amount == 0)
                     {
                         items.RemoveAt(x);
@@ -189,10 +207,10 @@ namespace ProgressAdventure.ItemManagement
             )
             {
                 var success = true;
-                var items = new List<Item>();
+                var items = new List<AItem>();
                 foreach (var itemJson in itemList)
                 {
-                    success &= Item.FromJson(itemJson as IDictionary<string, object?>, fileVersion, out Item? item);
+                    success &= AItem.FromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? item);
                     if (item is not null)
                     {
                         items.Add(item);

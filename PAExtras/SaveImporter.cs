@@ -8,6 +8,7 @@ using System.Text;
 using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
+using ItemType = PAExtras.ItemType;
 
 namespace PAExtras
 {
