@@ -70,7 +70,7 @@ namespace ProgressAdventure.ItemManagement
             }
 
             // KG (/ amount???)
-            return ItemUtils.materialProperties[Material].density;
+            return 1 / ItemUtils.materialProperties[Material].density;
         }
         #endregion
 
@@ -87,16 +87,6 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvert
-        public override Dictionary<string, object?> ToJson()
-        {
-            return new Dictionary<string, object?>
-            {
-                ["type"] = ItemUtils.MATERIAL_TYPE_NAME,
-                ["material"] = Material.ToString(),
-                ["amount"] = Amount,
-            };
-        }
-
         public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out MaterialItem? itemObject)
         {
             itemObject = null;
@@ -131,12 +121,12 @@ namespace ProgressAdventure.ItemManagement
                 if (!Tools.IsUpToDate(newFileVersion, fileVersion))
                 {
                     // item material
-                    if (
-                        itemJson.TryGetValue("type", out var typeValue) &&
-                        ItemUtils._legacyItemNameMaterialMap.TryGetValue(typeValue?.ToString() ?? "", out (string itemType, string? material) newItemattributes))
+                    if (itemJson.TryGetValue("type", out var typeValue) &&
+                        ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed)
+                    )
                     {
-                        itemJson["type"] = newItemattributes.itemType;
-                        itemJson["material"] = newItemattributes.material;
+                        itemJson["type"] = "misc/material";
+                        itemJson["material"] = materialItemFixed;
                     }
 
                     Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
@@ -146,65 +136,54 @@ namespace ProgressAdventure.ItemManagement
             }
 
             //convert
+            Material material;
             if (
-                itemJson.TryGetValue("type", out var typeNameValue) &&
-                ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType)
+                itemJson.TryGetValue("material", out var materialValue)
             )
             {
-                Material material;
-                if (
-                    itemJson.TryGetValue("material", out var materialValue)
-                )
+                if (Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed))
                 {
-                    if (Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed))
-                    {
-                        material = materialParsed;
-                    }
-                    else
-                    {
-                        Logger.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
-                        return false;
-                    }
+                    material = materialParsed;
                 }
                 else
                 {
-                    Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
+                    Logger.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
                     return false;
                 }
-
-                double itemAmount = 1;
-                if (
-                    itemJson.TryGetValue("amount", out var amountValue) &&
-                    double.TryParse(amountValue?.ToString(), out itemAmount)
-                )
-                {
-                    if (itemAmount <= 0)
-                    {
-                        Logger.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
-                        return false;
-                    }
-                }
-                else
-                {
-                    Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
-                }
-
-                try
-                {
-                    itemObject = new MaterialItem(material, itemAmount);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
-                    return false;
-                }
-                return true;
             }
             else
             {
-                Logger.Log("Item parse error", "couldn't parse item type from json", LogSeverity.ERROR);
+                Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
                 return false;
             }
+
+            double itemAmount = 1;
+            if (
+                itemJson.TryGetValue("amount", out var amountValue) &&
+                double.TryParse(amountValue?.ToString(), out itemAmount)
+            )
+            {
+                if (itemAmount <= 0)
+                {
+                    Logger.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
+                    return false;
+                }
+            }
+            else
+            {
+                Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+            }
+
+            try
+            {
+                itemObject = new MaterialItem(material, itemAmount);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                return false;
+            }
+            return true;
         }
         #endregion
     }

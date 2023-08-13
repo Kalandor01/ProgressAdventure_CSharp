@@ -20,5 +20,7 @@
         GOLD,
         ROTTEN_FLESH,
         HEALING_LIQUID,
+        FLINT,
+        SILK,
     }
 }

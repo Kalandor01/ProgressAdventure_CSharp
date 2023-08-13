@@ -35,7 +35,7 @@ namespace PAExtras
             ["LEATHER_TUNIC"] = ItemType.Defence.LEATHER_TUNIC,
             ["LEATHER_PANTS"] = ItemType.Defence.LEATHER_PANTS,
             ["LEATHER_BOOTS"] = ItemType.Defence.LEATHER_BOOTS,
-            ["BOOTLE"] = ItemType.Material.BOOTLE,
+            ["BOTTLE"] = ItemType.Material.BOOTLE,
             ["WOOL"] = ItemType.Material.WOOL,
             ["CLOTH"] = ItemType.Material.CLOTH,
             ["WOOD"] = ItemType.Material.WOOD,

@@ -91,7 +91,7 @@ namespace ProgressAdventure
             }
             if (!Globals.exiting)
             {
-                InitiateFight();
+                //InitiateFight();
                 SaveGame();
             }
             // SaveGame() maybe instead of the auto save

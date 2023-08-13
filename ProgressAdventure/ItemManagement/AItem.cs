@@ -22,6 +22,11 @@ namespace ProgressAdventure.ItemManagement
         /// The volume of the item, if the amount is 1.
         /// </summary>
         protected double? _volumeMultiplier;
+
+        /// <summary>
+        /// The average density of the item in KG/M^3.
+        /// </summary>
+        protected double? _density;
         #endregion
 
         #region Public properties
@@ -98,7 +103,7 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
-        /// The total mass of the item in KGs.
+        /// The total mass of the item in KG.
         /// </summary>
         public double Mass
         {
@@ -109,13 +114,24 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
-        /// The total volume of the item in M3s.
+        /// The total volume of the item in M^3.
         /// </summary>
         public double Volume
         {
             get
             {
                 return VolumeMultiplier * Amount;
+            }
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="_density" path="//summary"/>
+        /// </summary>
+        public double Density
+        {
+            get
+            {
+                return _density ?? MassMultiplier / VolumeMultiplier;
             }
         }
         #endregion
@@ -208,12 +224,19 @@ namespace ProgressAdventure.ItemManagement
                 if (!Tools.IsUpToDate(newFileVersion, fileVersion))
                 {
                     // item material
-                    if (
-                        itemJson.TryGetValue("type", out var typeValue) &&
-                        ItemUtils._legacyItemNameMaterialMap.TryGetValue(typeValue?.ToString() ?? "", out (string itemType, string? material) newItemattributes))
+                    if (itemJson.TryGetValue("type", out var typeValue))
                     {
-                        itemJson["type"] = newItemattributes.itemType;
-                        itemJson["material"] = newItemattributes.material;
+                        if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson))
+                        {
+                            itemJson["type"] = compoundItemFixedJson.typeName;
+                            itemJson["material"] = "WOOD";
+                            itemJson["parts"] = compoundItemFixedJson.partsJson;
+                        }
+                        else if (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed))
+                        {
+                            itemJson["type"] = "misc/material";
+                            itemJson["material"] = materialItemFixed;
+                        }
                     }
 
                     Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
@@ -223,10 +246,13 @@ namespace ProgressAdventure.ItemManagement
             }
 
             //convert
-            if (
-                itemJson.TryGetValue("type", out var typeNameValue) &&
-                ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType)
-            )
+            if (!itemJson.TryGetValue("type", out var typeNameValue))
+            {
+                Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
+                return false;
+            }
+
+            if (ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
             {
                 bool success;
                 if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
@@ -242,7 +268,7 @@ namespace ProgressAdventure.ItemManagement
             }
             else
             {
-                Logger.Log("Item parse error", "couldn't parse item type from json", LogSeverity.ERROR);
+                Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
                 return false;
             }
         }

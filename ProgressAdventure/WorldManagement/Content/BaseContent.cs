@@ -135,20 +135,23 @@ namespace ProgressAdventure.WorldManagement.Content
         }
 
         /// <summary>
-        /// Load a content object from the content json.
+        /// Tries to load a content object from the content json, and returns, if it was successful without any warnings.
         /// </summary>
         /// <typeparam name="T">The content type to return.</typeparam>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="contentJson">The json representation of the content.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="contentObject">The content object that was loaded.</param>
         /// <exception cref="ArgumentException">Thrown if the content type cannot be created.</exception>
-        protected static T LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion)
+        protected static bool LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out T contentObject)
             where T : BaseContent
         {
             var contentTypeMap = WorldUtils.contentTypeMap[typeof(T)];
             var contentTypeID = contentTypeMap.First().Key.Super;
             Type contentType;
             string? contentName = null;
+            var success = true;
+
             if (contentJson is not null)
             {
                 // get content subtype
@@ -164,6 +167,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 {
                     Logger.Log("Content parse error", "couldn't get content type from json", LogSeverity.ERROR);
                     contentType = contentTypeMap.First().Value;
+                    success = false;
                 }
                 // get content name
                 if (
@@ -175,16 +179,20 @@ namespace ProgressAdventure.WorldManagement.Content
                 else
                 {
                     Logger.Log("Content parse error", "couldn't get content name from json", LogSeverity.WARN);
+                    success = false;
                 }
             }
             else
             {
                 Logger.Log("Content parse error", "content json was null", LogSeverity.ERROR);
                 contentType = contentTypeMap.First().Value;
+                success = false;
             }
+
             // get content
             var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson }) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
-            return (T)content;
+            contentObject = (T)content;
+            return success;
         }
         #endregion
     }

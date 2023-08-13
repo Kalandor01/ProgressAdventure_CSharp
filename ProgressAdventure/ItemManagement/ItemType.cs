@@ -47,10 +47,14 @@
         private static readonly ItemTypeID misc = all[2];
         public static class Misc
         {
-            public static readonly ItemTypeID BOTTLE = misc[0];
-            public static readonly ItemTypeID POTION = misc[1];
-            public static readonly ItemTypeID COIN = misc[2];
-            public static readonly ItemTypeID MATERIAL = misc[3];
+            public static readonly ItemTypeID MATERIAL = misc[0];
+            public static readonly ItemTypeID BOTTLE = misc[1];
+            public static readonly ItemTypeID FILLED_BOTTLE = misc[2];
+            public static readonly ItemTypeID COIN = misc[3];
+            public static readonly ItemTypeID SWORD_HILT = misc[4];
+            public static readonly ItemTypeID SWORD_BLADE = misc[5];
+            public static readonly ItemTypeID ARROW_TIP = misc[6];
+            public static readonly ItemTypeID ROD = misc[7];
         }
     }
 }

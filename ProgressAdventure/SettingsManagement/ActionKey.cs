@@ -141,12 +141,12 @@ namespace ProgressAdventure.SettingsManagement
                 var keyJson = new Dictionary<string, object>()
                 {
                     ["key"] = (int)key.Key,
-                    ["keyChar"] = key.KeyChar,
+                    ["key_char"] = key.KeyChar,
                     ["modifiers"] = (int)key.Modifiers
                 };
                 keyListJson.Add(keyJson);
             }
-            return new Dictionary<string, object?> { [actionType.ToString()] = keyListJson };
+            return new Dictionary<string, object?> { [actionType.ToString().ToLower()] = keyListJson };
         }
 
         public static bool FromJson(IDictionary<string, object?>? actionKeyJson, string fileVersion, out ActionKey? actionKeyObject)
@@ -161,9 +161,29 @@ namespace ProgressAdventure.SettingsManagement
                 return false;
             }
 
+            //correct data
+            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
+            {
+                Logger.Log($"Action key json data is old", "correcting data");
+                // 2.1.1 -> 2.2
+                var newFileVersion = "2.2";
+                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
+                {
+                    // item material
+                    if (actionKeyJson.TryGetValue("keyChar", out var kcRename))
+                    {
+                        actionKeyJson["key_char"] = kcRename;
+                    }
+
+                    Logger.Log("Corrected action key json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    fileVersion = newFileVersion;
+                }
+                Logger.Log($"Action key json data corrected");
+            }
+
             var actionJson = actionKeyJson.First();
             if (
-                Enum.TryParse(actionJson.Key, out ActionType actionType) &&
+                Enum.TryParse(actionJson.Key.ToUpper(), out ActionType actionType) &&
                 Enum.IsDefined(actionType) &&
                 actionJson.Value is IEnumerable actionKeyList
             )
@@ -177,7 +197,7 @@ namespace ProgressAdventure.SettingsManagement
                         actionDict is not null &&
                         Enum.TryParse(actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out ConsoleKey keyEnum) &&
                         Enum.IsDefined(keyEnum) &&
-                        char.TryParse(actionDict.TryGetValue("keyChar", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
+                        char.TryParse(actionDict.TryGetValue("key_char", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
                         int.TryParse(actionDict.TryGetValue("modifiers", out var modValue) ? modValue.ToString() : null, out int keyMods)
                         )
                     {

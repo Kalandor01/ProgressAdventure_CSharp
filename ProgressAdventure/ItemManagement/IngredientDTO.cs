@@ -63,7 +63,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/><br/>
         /// Amount does nothing (the same as null).</param>
         /// <exception cref="ArgumentException">Thrown, if the item type is material, and the unit is amount.</exception>
-        public IngredientDTO(ItemTypeID itemType, Material? material = null, double amount = 1, ItemAmountUnit? unit =  null)
+        public IngredientDTO(ItemTypeID itemType, Material? material = null, double amount = 1, ItemAmountUnit? unit = null)
         {
             this.itemType = itemType;
             this.material = material;
@@ -85,6 +85,8 @@ namespace ProgressAdventure.ItemManagement
                     Logger.Log("Ingredient amount missmatch", "ingredient unit type is amount, but requires a non-whole amount, corrected", LogSeverity.WARN);
                 }
             }
+
+            this.unit = unit;
         }
         #endregion
     }

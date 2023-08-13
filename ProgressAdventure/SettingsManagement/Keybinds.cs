@@ -150,7 +150,7 @@ namespace ProgressAdventure.SettingsManagement
             foreach (var keybind in KeybindList)
             {
                 var kbJson = keybind.ToJson().First();
-                keybindsJson.Add(kbJson.Key, kbJson.Value);
+                keybindsJson.Add(kbJson.Key.ToLower(), kbJson.Value);
             }
             return keybindsJson;
         }

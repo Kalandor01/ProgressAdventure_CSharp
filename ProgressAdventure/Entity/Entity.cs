@@ -413,17 +413,17 @@ namespace ProgressAdventure.Entity
             {
                 ["type"] = EntityUtils.GetEntityTypeName(this),
                 ["name"] = name,
-                ["baseMaxHp"] = baseMaxHp,
-                ["currentHp"] = CurrentHp,
-                ["baseAttack"] = baseAttack,
-                ["baseDefence"] = baseDefence,
-                ["baseAgility"] = baseAgility,
-                ["originalTeam"] = originalTeam,
-                ["currentTeam"] = currentTeam,
+                ["base_max_hp"] = baseMaxHp,
+                ["current_hp"] = CurrentHp,
+                ["base_attack"] = baseAttack,
+                ["base_defence"] = baseDefence,
+                ["base_agility"] = baseAgility,
+                ["original_team"] = originalTeam,
+                ["current_team"] = currentTeam,
                 ["attributes"] = attributesProcessed,
                 ["drops"] = dropsJson,
-                ["xPos"] = position.x,
-                ["yPos"] = position.y,
+                ["x_position"] = position.x,
+                ["y_position"] = position.y,
                 ["facing"] = (int)facing,
             };
         }
@@ -608,6 +608,51 @@ namespace ProgressAdventure.Entity
                     Logger.Log("Corrected entity json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
                     fileVersion = newFileVersion;
                 }
+                // 2.1.1 -> 2.2
+                newFileVersion = "2.2";
+                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
+                {
+                    // snake case keys
+                    if (entityJson.TryGetValue("baseMaxHp", out object? baseMaxHpRename))
+                    {
+                        entityJson["base_max_hp"] = baseMaxHpRename;
+                    }
+                    if (entityJson.TryGetValue("currentHp", out object? chRename))
+                    {
+                        entityJson["current_hp"] = chRename;
+                    }
+                    if (entityJson.TryGetValue("baseAttack", out object? baRename))
+                    {
+                        entityJson["base_attack"] = baRename;
+                    }
+                    if (entityJson.TryGetValue("baseDefence", out object? bdRename))
+                    {
+                        entityJson["base_defence"] = bdRename;
+                    }
+                    if (entityJson.TryGetValue("baseAgility", out object? ba2Rename))
+                    {
+                        entityJson["base_agility"] = ba2Rename;
+                    }
+                    if (entityJson.TryGetValue("originalTeam", out object? otRename))
+                    {
+                        entityJson["original_team"] = otRename;
+                    }
+                    if (entityJson.TryGetValue("currentTeam", out object? ctRename))
+                    {
+                        entityJson["current_team"] = ctRename;
+                    }
+                    if (entityJson.TryGetValue("xPos", out object? xpRename))
+                    {
+                        entityJson["x_position"] = xpRename;
+                    }
+                    if (entityJson.TryGetValue("yPos", out object? ypRnename))
+                    {
+                        entityJson["y_position"] = ypRnename;
+                    }
+
+                    Logger.Log("Corrected entity json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    fileVersion = newFileVersion;
+                }
                 Logger.Log("Entity json data corrected");
             }
 
@@ -633,7 +678,7 @@ namespace ProgressAdventure.Entity
             // max hp
             int? baseMaxHp = null;
             if (
-                entityJson.TryGetValue("baseMaxHp", out var baseMaxHpValue) &&
+                entityJson.TryGetValue("base_max_hp", out var baseMaxHpValue) &&
                 int.TryParse(baseMaxHpValue?.ToString(), out int maxHpValue)
             )
             {
@@ -648,7 +693,7 @@ namespace ProgressAdventure.Entity
             // current hp
             int? currentHp = null;
             if (
-                entityJson.TryGetValue("currentHp", out var currentHpValueStr) &&
+                entityJson.TryGetValue("current_hp", out var currentHpValueStr) &&
                 int.TryParse(currentHpValueStr?.ToString(), out int currentHpValue)
             )
             {
@@ -663,7 +708,7 @@ namespace ProgressAdventure.Entity
             // attack
             int? baseAttack = null;
             if (
-                entityJson.TryGetValue("baseAttack", out var baseAttackValue) &&
+                entityJson.TryGetValue("base_attack", out var baseAttackValue) &&
                 int.TryParse(baseAttackValue?.ToString(), out int attackValue)
             )
             {
@@ -678,7 +723,7 @@ namespace ProgressAdventure.Entity
             // defence
             int? baseDefence = null;
             if (
-                entityJson.TryGetValue("baseDefence", out var baseDefenceValue) &&
+                entityJson.TryGetValue("base_defence", out var baseDefenceValue) &&
                 int.TryParse(baseDefenceValue?.ToString(), out int defenceValue)
             )
             {
@@ -693,7 +738,7 @@ namespace ProgressAdventure.Entity
             // agility
             int? baseAgility = null;
             if (
-                entityJson.TryGetValue("baseAgility", out var baseAgilityValue) &&
+                entityJson.TryGetValue("base_agility", out var baseAgilityValue) &&
                 int.TryParse(baseAgilityValue?.ToString(), out int agilityValue)
             )
             {
@@ -708,7 +753,7 @@ namespace ProgressAdventure.Entity
             // original team
             int? originalTeam = null;
             if (
-                entityJson.TryGetValue("originalTeam", out var originalTeamValueStr) &&
+                entityJson.TryGetValue("original_team", out var originalTeamValueStr) &&
                 int.TryParse(originalTeamValueStr?.ToString(), out int originalTeamValue)
             )
             {
@@ -723,7 +768,7 @@ namespace ProgressAdventure.Entity
             // current team
             int? currentTeam = null;
             if (
-                entityJson.TryGetValue("currentTeam", out var currentTeamValueStr) &&
+                entityJson.TryGetValue("current_team", out var currentTeamValueStr) &&
                 int.TryParse(currentTeamValueStr?.ToString(), out int currentTeamValue)
             )
             {
@@ -791,8 +836,8 @@ namespace ProgressAdventure.Entity
             // position
             (long x, long y)? position = null;
             if (
-                entityJson.TryGetValue("xPos", out var xPositionValue) &&
-                entityJson.TryGetValue("yPos", out var yPositionValue) &&
+                entityJson.TryGetValue("x_position", out var xPositionValue) &&
+                entityJson.TryGetValue("y_position", out var yPositionValue) &&
                 long.TryParse(xPositionValue?.ToString(), out long xPosition) &&
                 long.TryParse(yPositionValue?.ToString(), out long yPosition)
             )

@@ -14,6 +14,7 @@ namespace PAExtras
             //SaveImporter.ImportSave("new save_1");
             //SaveImporter.ImportSave("save2_1");
             //SaveImporter.ImportSave("test");
+            SaveImporter.ImportSave("all items + world");
 
 
 
@@ -36,7 +37,7 @@ namespace PAExtras
 
 
 
-            Tools.LoadBackupMenu();
+            //Tools.LoadBackupMenu();
 
             Console.WriteLine();
         }

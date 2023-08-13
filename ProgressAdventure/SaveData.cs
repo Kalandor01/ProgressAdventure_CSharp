@@ -74,9 +74,9 @@ namespace ProgressAdventure
         public static Dictionary<string, object?> DisplayDataToJson()
         {
             return new Dictionary<string, object?> {
-                ["saveVersion"] = Constants.SAVE_VERSION,
-                ["displayName"] = displaySaveName,
-                ["lastSave"] = LastSave,
+                ["save_version"] = Constants.SAVE_VERSION,
+                ["display_name"] = displaySaveName,
+                ["last_save"] = LastSave,
                 ["playtime"] = GetPlaytime(),
                 ["playerName"] = player.name
             };
@@ -88,9 +88,9 @@ namespace ProgressAdventure
         public static Dictionary<string, object?> MainDataToJson()
         {
             return new Dictionary<string, object?> {
-                ["saveVersion"] = Constants.SAVE_VERSION,
-                ["displayName"] = displaySaveName,
-                ["lastSave"] = LastSave,
+                ["save_version"] = Constants.SAVE_VERSION,
+                ["display_name"] = displaySaveName,
+                ["last_save"] = LastSave,
                 ["playtime"] = GetPlaytime(),
                 ["player"] = player.ToJson(),
                 ["randomStates"] = RandomStates.ToJson()

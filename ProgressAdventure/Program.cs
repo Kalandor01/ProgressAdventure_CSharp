@@ -15,19 +15,7 @@ namespace ProgressAdventure
 
             //SaveManager.CreateSaveData("test", "me");
 
-            var items = new List<AItem>
-            {
-                ItemUtils.CreateCompoumdItem(ItemType.Misc.BOTTLE, Material.GLASS, 1.5),
-                new MaterialItem(Material.HEALING_LIQUID, 0.2),
-                ItemUtils.CreateCompoumdItem(ItemType.Misc.COIN, Material.GOLD, 152),
-                new MaterialItem(Material.HEALING_LIQUID, 0.6),
-            };
-
-            var gb = new MaterialItem(Material.HEALING_LIQUID, 0.6).ToJson();
-
-            var hp = ItemUtils.MakeItem(ItemType.Misc.POTION, items);
-
-            //MenuManager.MainMenu();
+            MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
 

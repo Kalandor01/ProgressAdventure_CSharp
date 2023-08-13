@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 
 namespace ProgressAdventure.WorldManagement
@@ -134,8 +135,8 @@ namespace ProgressAdventure.WorldManagement
 
             var tileJson = new Dictionary<string, object?>
             {
-                ["xPos"] = relativePosition.x,
-                ["yPos"] = relativePosition.y,
+                ["x_position"] = relativePosition.x,
+                ["y_position"] = relativePosition.y,
                 ["visited"] = Visited,
                 ["terrain"] = terrainJson,
                 ["structure"] = structureJson,
@@ -145,30 +146,60 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Converts the json representation of the tile into a tile object.
+        /// Tries to convert the json representation of the tile into a tile object, and returns if it was succesful without any warnings.
         /// </summary>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="tileJson">The json representation of the tile.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        public static Tile? FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? tileJson, string fileVersion)
+        /// <param name="tileObject">The object representation of the json.</param>
+        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? tileJson, string fileVersion, out Tile? tileObject)
         {
+            tileObject = null;
             if (tileJson is null)
             {
-                Logger.Log("Tile parse error", "tile json is null", Enums.LogSeverity.ERROR);
-                return null;
+                Logger.Log("Tile parse error", "tile json is null", LogSeverity.ERROR);
+                return false;
+            }
+
+            //correct data
+            var correctedFileVersion = fileVersion;
+            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, correctedFileVersion))
+            {
+                Logger.Log($"Tile json data is old", "correcting data");
+                // 2.1.1 -> 2.2
+                var newFileVersion = "2.2";
+                if (!Tools.IsUpToDate(newFileVersion, correctedFileVersion))
+                {
+                    // snake case rename
+                    if (tileJson.TryGetValue("xPos", out var xpRename))
+                    {
+                        tileJson["x_position"] = xpRename;
+                    }
+                    if (tileJson.TryGetValue("yPos", out var ypRename))
+                    {
+                        tileJson["y_position"] = ypRename;
+                    }
+
+                    Logger.Log("Corrected tile json data", $"{correctedFileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    correctedFileVersion = newFileVersion;
+                }
+                Logger.Log($"Tile json data corrected");
             }
 
             // x and y
             if (!(
-                tileJson.TryGetValue("xPos", out object? xPosValue) &&
+                tileJson.TryGetValue("x_position", out object? xPosValue) &&
                 long.TryParse(xPosValue?.ToString(), out long xPos) &&
-                tileJson.TryGetValue("yPos", out object? yPosValue) &&
+                tileJson.TryGetValue("y_position", out object? yPosValue) &&
                 long.TryParse(yPosValue?.ToString(), out long yPos)
             ))
             {
-                Logger.Log("Tile parse error", "tile coordinates cannot be parsed", Enums.LogSeverity.ERROR);
-                return null;
+                Logger.Log("Tile parse error", "tile coordinates cannot be parsed", LogSeverity.ERROR);
+                return false;
             }
+
+            var success = true;
+
             // visited
             int? visited = null;
             if (
@@ -180,45 +211,54 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode visited from json. Recreacting...", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode visited from json. Recreacting...", LogSeverity.WARN);
+                success = false;
             }
+
             // terrain
             TerrainContent? terrain = null;
             if (
                 tileJson.TryGetValue("terrain", out object? terrainJson)
             )
             {
-                terrain = TerrainContent.FromJson(chunkRandom, terrainJson as IDictionary<string, object?>, fileVersion);
+                success &= TerrainContent.FromJson(chunkRandom, terrainJson as IDictionary<string, object?>, fileVersion, out terrain);
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode terrain from json. Recreacting...", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode terrain from json. Recreacting...", LogSeverity.WARN);
+                success = false;
             }
+
             // structure
             StructureContent? structure = null;
             if (
                 tileJson.TryGetValue("structure", out object? structureJson)
             )
             {
-                structure = StructureContent.FromJson(chunkRandom, structureJson as IDictionary<string, object?>, fileVersion);
+                success &= StructureContent.FromJson(chunkRandom, structureJson as IDictionary<string, object?>, fileVersion, out structure);
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode structure from json. Recreacting...", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode structure from json. Recreacting...", LogSeverity.WARN);
+                success = false;
             }
+
             // population
             PopulationContent? population = null;
             if (
                 tileJson.TryGetValue("population", out object? populationJson)
             )
             {
-                population = PopulationContent.FromJson(chunkRandom, populationJson as IDictionary<string, object?>, fileVersion);
+                success &= PopulationContent.FromJson(chunkRandom, populationJson as IDictionary<string, object?>, fileVersion, out population);
             }
             else
             {
-                Logger.Log("Tile decode error", "couldn't decode population from json. Recreacting...", Enums.LogSeverity.WARN);
+                Logger.Log("Tile decode error", "couldn't decode population from json. Recreacting...", LogSeverity.WARN);
+                success = false;
             }
-            return new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);
+
+            tileObject = new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);
+            return success;
         }
         #endregion
     }

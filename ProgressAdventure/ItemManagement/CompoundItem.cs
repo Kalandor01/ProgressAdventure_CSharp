@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using System.Collections;
 
 namespace ProgressAdventure.ItemManagement
@@ -78,16 +79,31 @@ namespace ProgressAdventure.ItemManagement
         #region Protected methods
         protected override double GetMassMultiplier()
         {
+            if (Unit == ItemAmountUnit.KG)
+            {
+                return 1;
+            }
+
             var totalMass = 0d;
             foreach (var part in Parts)
             {
                 totalMass += part.Mass;
             }
-            return totalMass;
+            return totalMass * (Unit == ItemAmountUnit.L ? 0.001 : 1);
         }
 
         protected override double GetVolumeMultiplier()
         {
+            if (Unit == ItemAmountUnit.M3)
+            {
+                return 1;
+            }
+
+            if (Unit == ItemAmountUnit.L)
+            {
+                return 0.001;
+            }
+
             var totalVolume = 0d;
             foreach (var part in Parts)
             {
@@ -114,7 +130,9 @@ namespace ProgressAdventure.ItemManagement
             if (base.Equals(obj))
             {
                 var item = (CompoundItem)obj;
-                return Parts.All(part => item.Parts.Any(part2 => part.Equals(part2) && part.Amount == part2.Amount));
+                return Parts.Count == item.Parts.Count &&
+                    Parts.First().Equals(item.Parts.First()) &&
+                    Parts.UnorderedSequenceEqual(item.Parts, (part1, part2) => part1.Amount == part2.Amount);
             }
             return false;
         }
@@ -128,6 +146,8 @@ namespace ProgressAdventure.ItemManagement
         #region JsonConvert
         public override Dictionary<string, object?> ToJson()
         {
+            var itemJson = base.ToJson();
+
             string typeName;
             if (ItemUtils.compoundItemAttributes.TryGetValue(Type, out CompoundItemAttributesDTO? attributes))
             {
@@ -139,13 +159,10 @@ namespace ProgressAdventure.ItemManagement
                 Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
             }
 
-            return new Dictionary<string, object?>
-            {
-                ["type"] = typeName,
-                ["material"] = Material.ToString(),
-                ["parts"] = Parts.Select(part => part.ToJson()),
-                ["amount"] = Amount,
-            };
+            itemJson["type"] = typeName;
+            itemJson["parts"] = Parts.Select(part => part.ToJson());
+
+            return itemJson;
         }
 
         public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out CompoundItem? itemObject)
@@ -184,10 +201,12 @@ namespace ProgressAdventure.ItemManagement
                     // item material
                     if (
                         itemJson.TryGetValue("type", out var typeValue) &&
-                        ItemUtils._legacyItemNameMaterialMap.TryGetValue(typeValue?.ToString() ?? "", out (string itemType, string? material) newItemattributes))
+                        ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson)
+                    )
                     {
-                        itemJson["type"] = newItemattributes.itemType;
-                        itemJson["material"] = newItemattributes.material;
+                        itemJson["type"] = compoundItemFixedJson.typeName;
+                        itemJson["material"] = "WOOD";
+                        itemJson["parts"] = compoundItemFixedJson.partsJson;
                     }
 
                     Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
@@ -197,15 +216,16 @@ namespace ProgressAdventure.ItemManagement
             }
 
             //convert
-            if (
-                itemJson.TryGetValue("type", out var typeNameValue) &&
-                ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType)
-            )
+            if (!itemJson.TryGetValue("type", out var typeNameValue))
+            {
+                Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
+                return false;
+            }
+
+            if (ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
             {
                 var parts = new List<AItem>();
-                if (
-                    itemJson.TryGetValue("parts", out var partsListJson)
-                )
+                if (itemJson.TryGetValue("parts", out var partsListJson))
                 {
                     if (partsListJson is IEnumerable partsList)
                     {
@@ -220,13 +240,13 @@ namespace ProgressAdventure.ItemManagement
                     }
                     else
                     {
-                        Logger.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
+                        Logger.Log("Item parse error", "parts list is not a list", LogSeverity.ERROR);
                         return false;
                     }
                 }
                 else
                 {
-                    Logger.Log("Item parse error", "couldn't parse parts from json", LogSeverity.ERROR);
+                    Logger.Log("Item parse error", "couldn't find parts in json", LogSeverity.ERROR);
                     return false;
                 }
 
@@ -260,7 +280,7 @@ namespace ProgressAdventure.ItemManagement
             }
             else
             {
-                Logger.Log("Item parse error", "couldn't parse item type from json", LogSeverity.ERROR);
+                Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
                 return false;
             }
         }

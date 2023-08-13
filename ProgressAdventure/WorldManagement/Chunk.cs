@@ -115,11 +115,14 @@ namespace ProgressAdventure.WorldManagement
         /// If null, it will make one using the save name in <c>SaveData</c>.</param>
         /// <param name="expected">If the chunk is expected to exist.<br/>
         /// ONLY ALTERS THE LOGS DISPLAYED, IF THE CHUNK DOESN'T EXIST.</param>
-        public static Chunk? FromFile((long x, long y) position, string? saveFolderName = null, bool expected = true)
+        public static bool FromFile((long x, long y) position, out Chunk? chunk, string? saveFolderName = null, bool expected = true)
         {
             saveFolderName ??= SaveData.saveName;
             var chunkFileName = GetChunkFileName(position);
             Dictionary<string, object?>? chunkJson;
+            chunk = null;
+            var success = true;
+
             try
             {
                 chunkJson = Tools.DecodeSaveShort(GetChunkFilePath(chunkFileName, saveFolderName), expected: expected);
@@ -129,17 +132,17 @@ namespace ProgressAdventure.WorldManagement
                 if (e is FormatException)
                 {
                     Logger.Log("Chunk parse error", "chunk couldn't be parsed", LogSeverity.ERROR);
-                    return null;
+                    return false;
                 }
                 else if (e is FileNotFoundException)
                 {
                     Logger.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                    return null;
+                    return false;
                 }
                 else if (e is DirectoryNotFoundException)
                 {
                     Logger.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                    return null;
+                    return false;
                 }
                 throw;
             }
@@ -147,27 +150,52 @@ namespace ProgressAdventure.WorldManagement
             if (chunkJson is null)
             {
                 Logger.Log("Chunk parse error", "chunk json is null", LogSeverity.ERROR);
-                return null;
+                return false;
             }
 
             //file version
             string? fileVersion = null;
-            if (
-                chunkJson.TryGetValue("fileVersion", out object? fileVersionValue) &&
-                fileVersionValue is not null
-            )
+            if (chunkJson.TryGetValue("save_version", out object? versionValue) && versionValue is not null)
             {
-                fileVersion = fileVersionValue.ToString();
+                fileVersion = versionValue.ToString();
             }
+            else if (chunkJson.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
+            {
+                Logger.Log("Old style chunk version (< 2.2)", $"chunk name: {chunkFileName}", LogSeverity.WARN);
+
+                fileVersion = versionValueBackup.ToString();
+            }
+
             if (fileVersion is null)
             {
-                Logger.Log("Chunk parse error", "couldn't parse file version, assuming minimum", LogSeverity.WARN);
+                Logger.Log("Chunk parse error", $"couldn't parse file version, assuming minimum, chunk file name: {chunkFileName}", LogSeverity.WARN);
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
+            }
+
+            //correct data
+            var correctedFileVersion = fileVersion;
+            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, correctedFileVersion))
+            {
+                Logger.Log($"Chunk file json data is old", "correcting data");
+                // 2.1.1 -> 2.2
+                var newFileVersion = "2.2";
+                if (!Tools.IsUpToDate(newFileVersion, correctedFileVersion))
+                {
+                    // snake case rename
+                    if (chunkJson.TryGetValue("chunkRandom", out var crRename))
+                    {
+                        chunkJson["chunk_random"] = crRename;
+                    }
+
+                    Logger.Log("Corrected chunk file json data", $"{correctedFileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                    correctedFileVersion = newFileVersion;
+                }
+                Logger.Log($"Chunk file json data corrected");
             }
 
             // chunk seed
             SplittableRandom? chunkRandomGenerator = null;
-            if (chunkJson.TryGetValue("chunkRandom", out object? chunkRandom))
+            if (chunkJson.TryGetValue("chunk_random", out object? chunkRandom))
             {
                 if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
                 {
@@ -176,11 +204,13 @@ namespace ProgressAdventure.WorldManagement
                 else
                 {
                     Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
+                    success = false;
                 }
             }
             else
             {
                 Logger.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
+                success = false;
             }
             chunkRandomGenerator ??= GetChunkRandom(position);
 
@@ -190,14 +220,15 @@ namespace ProgressAdventure.WorldManagement
                 tilesListValue is IEnumerable tilesList
             )
             {
-                var tiles = TilesFromJson(chunkRandomGenerator, position, tilesList, fileVersion);
+                success &= TilesFromJson(chunkRandomGenerator, position, tilesList, fileVersion, out Dictionary<string, Tile> tiles);
                 Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
-                return new Chunk(position, tiles, chunkRandomGenerator);
+                chunk = new Chunk(position, tiles, chunkRandomGenerator);
+                return success;
             }
             else
             {
                 Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
-                return null;
+                return false;
             }
         }
 
@@ -292,19 +323,22 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Loads the list of tiles, from a chunk file's json.
+        /// Tries to load the list of tiles, from a chunk file's json, and returns if it succeded without warning.
         /// </summary>
         /// <param name="chunkRandom">The chunk's random generator.</param>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
         /// <param name="tileListJson">A list of tiles is a json representation.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        private static Dictionary<string, Tile> TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable tileListJson, string fileVersion)
+        /// <param name="tiles">The decoded dictionary of tile objects.</param>
+        private static bool TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable tileListJson, string fileVersion, out Dictionary<string, Tile> tiles)
         {
             chunkRandom ??= GetChunkRandom(absolutePosition);
-            var tiles = new Dictionary<string, Tile>();
+            tiles = new Dictionary<string, Tile>();
+            var success = true;
+
             foreach (var tileJson in tileListJson)
             {
-                var tile = Tile.FromJson(chunkRandom, tileJson as IDictionary<string, object?>, fileVersion);
+                success &= Tile.FromJson(chunkRandom, tileJson as IDictionary<string, object?>, fileVersion, out Tile? tile);
                 if (tile is not null)
                 {
                     tiles.Add(GetTileDictName(tile.relativePosition), tile);
@@ -312,7 +346,8 @@ namespace ProgressAdventure.WorldManagement
             }
             var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
             Logger.Log("Loaded chunk tiles from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
-            return tiles;
+            
+            return success;
         }
         #endregion
 
@@ -326,8 +361,8 @@ namespace ProgressAdventure.WorldManagement
             }
             return new Dictionary<string, object?>
             {
-                ["fileVersion"] = Constants.SAVE_VERSION,
-                ["chunkRandom"] = Tools.SerializeRandom(ChunkRandomGenerator),
+                ["file_version"] = Constants.SAVE_VERSION,
+                ["chunk_random"] = Tools.SerializeRandom(ChunkRandomGenerator),
                 ["tiles"] = tilesJson,
             };
         }

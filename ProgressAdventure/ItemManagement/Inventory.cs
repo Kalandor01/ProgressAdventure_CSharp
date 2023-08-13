@@ -64,32 +64,43 @@ namespace ProgressAdventure.ItemManagement
 
         /// <summary>
         /// <inheritdoc cref="Add(AItem)"/><br/>
-        /// Fro adding a new material item.
+        /// For adding a new material item to the inventory.
         /// </summary>
         /// <param name="material">The material of the item.</param>
         /// <param name="amount">The amount of the items to add.</param>
         /// <returns><inheritdoc cref="Add(AItem)"/></returns>
-        public bool AddNewMaterialItem(Material material, int amount = 1)
+        public bool Add(Material material, int amount = 1)
         {
             return Add(new MaterialItem(material, amount));
         }
 
         /// <summary>
         /// <inheritdoc cref="Add(AItem)"/><br/>
-        /// Fro adding a new compound item.
+        /// For adding a new compound item to the inventory.
         /// </summary>
         /// <param name="itemType">The type of the item to add.</param>
-        /// <param name="material">The material of the item.</param>
+        /// <param name="materials">The list of materials, for parts of the item.</param>
         /// <param name="amount">The amount of the items to add.</param>
         /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
         /// <returns><inheritdoc cref="Add(AItem)"/></returns>
-        public bool AddNewCompoundItem(ItemTypeID itemType, Material material, int amount = 1)
+        public bool Add(ItemTypeID itemType, List<Material?> materials, int amount = 1)
         {
             if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
             {
-                return AddNewMaterialItem(material, amount);
+                return Add(materials.First() ?? Material.WOOD, amount);
             }
-            return Add(ItemUtils.CreateCompoumdItem(itemType, material, amount));
+            return Add(ItemUtils.CreateCompoumdItem(itemType, materials, amount));
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Add(AItem)"/><br/>
+        /// For adding a new compound item to the inventory.
+        /// </summary>
+        /// <inheritdoc cref="Add(ItemTypeID, List{Material?}, int)"/>
+        /// <param name="material">The material of the item.</param>
+        public bool Add(ItemTypeID itemType, Material material, int amount = 1)
+        {
+            return Add(itemType, new List<Material?> { material }, amount);
         }
 
         /// <summary>
