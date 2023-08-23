@@ -155,7 +155,7 @@ namespace ProgressAdventure.WorldManagement
 
             //file version
             string? fileVersion = null;
-            if (chunkJson.TryGetValue("save_version", out object? versionValue) && versionValue is not null)
+            if (chunkJson.TryGetValue("file_version", out object? versionValue) && versionValue is not null)
             {
                 fileVersion = versionValue.ToString();
             }

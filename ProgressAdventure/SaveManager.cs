@@ -71,11 +71,12 @@ namespace ProgressAdventure
         /// <param name="saveName">The name of the save folder.</param>
         /// <param name="backupChoice">If the user can choose, whether to backup the save, or not.</param>
         /// <param name="automaticBackup">If the save folder should be backed up or not. (only applies if <c>backupChoice</c> is false)</param>
+        /// <param name="savesFolderPath">The path to the saves folder. By default, the current saves folder.</param>
         /// <exception cref="FileNotFoundException">Thrown, if the save file doesn't exist.</exception>
         /// <exception cref="FileLoadException">Thrown, if the save file doesn't have a save version.</exception>
-        public static void LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true)
+        public static void LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true, string? savesFolderPath = null)
         {
-            var saveFolderPath = Tools.GetSaveFolderPath(saveName);
+            var saveFolderPath = savesFolderPath is not null ? Path.Join(savesFolderPath, saveName) : Tools.GetSaveFolderPath(saveName);
             Dictionary<string, object?>? data;
 
             if (Directory.Exists(saveFolderPath))
@@ -171,11 +172,12 @@ namespace ProgressAdventure
         /// <summary>
         /// Gets all save files from the save folder, and proceses them for display.
         /// </summary>
-        public static List<(string saveName, string displayText)> GetSavesData()
+        /// <param name="savesFolderPath">The path of the saves folder.</param>
+        public static List<(string saveName, string displayText)> GetSavesData(string? savesFolderPath = null)
         {
             Tools.RecreateSavesFolder();
             // read saves
-            var folders = GetSaveFolders();
+            var folders = GetSaveFolders(savesFolderPath);
             var datas = GetFoldersDisplayData(folders);
             // process file data
             var datasProcessed = new List<(string saveName, string displayText)>();
@@ -368,10 +370,11 @@ namespace ProgressAdventure
         /// <summary>
         /// Gets all folders from the saves folder.
         /// </summary>
-        private static List<string> GetSaveFolders()
+        /// <param name="savesFolderPath">The path of the saves folder.</param>
+        private static List<string> GetSaveFolders(string? savesFolderPath = null)
         {
             var folders = new List<string>();
-            var folderPaths = Directory.GetDirectories(Constants.SAVES_FOLDER_PATH);
+            var folderPaths = Directory.GetDirectories(savesFolderPath ?? Constants.SAVES_FOLDER_PATH);
             var dataFileName = $"{Constants.SAVE_FILE_NAME_DATA}.{Constants.SAVE_EXT}";
             foreach (var folderPath in folderPaths)
             {

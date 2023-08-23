@@ -27,6 +27,10 @@ namespace ProgressAdventure
         };
         #endregion
 
+        #region Public fields
+        private static bool defaultWriteOut = false;
+        #endregion
+
         #region Public functions
         /// <summary>
         /// Progress Adventure logger.
@@ -36,7 +40,7 @@ namespace ProgressAdventure
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
         /// <param name="newLine">Whether to write a new line before the message. or not.</param>
-        public static void Log(string message, string? detail = "", LogSeverity severity = LogSeverity.INFO, bool writeOut = false, bool newLine = false)
+        public static void Log(string message, string? detail = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             try
             {
@@ -54,7 +58,7 @@ namespace ProgressAdventure
                         }
                         f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {detail}\n");
                     }
-                    if (writeOut)
+                    if (writeOut is null ? defaultWriteOut : (bool)writeOut)
                     {
                         if (newLine)
                         {
@@ -103,6 +107,19 @@ namespace ProgressAdventure
                 {
                     Log($"Logging {(Constants.LOGGING_ENABLED ? "enabled" : "disabled")}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Sets the <c>defaultWriteOut</c>.
+        /// </summary>
+        /// <param name="value">The value to set the <c>defaultWriteOut</c>.</param>
+        public static void ChangeDefaultWriteOut(bool value)
+        {
+            if (defaultWriteOut != value)
+            {
+                defaultWriteOut = value;
+                Log($"Logging write out {(value ? "enabled" : "disabled")}");
             }
         }
 

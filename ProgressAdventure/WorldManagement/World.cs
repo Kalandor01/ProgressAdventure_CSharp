@@ -11,7 +11,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// The currently loaded dictionary of chunks.
         /// </summary>
-        public static Dictionary<string, Chunk> Chunks {  get; private set; }
+        public static Dictionary<string, Chunk> Chunks { get; private set; }
         #endregion
 
         #region "Constructors"
@@ -21,7 +21,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="chunks">The dictionary of chunks.</param>
         public static void Initialise(Dictionary<string, Chunk>? chunks = null)
         {
-            Logger.Log("Generating World");
+            Logger.Log($"{(chunks is null ? "Generating" : "Loading")} world", (chunks is null ? null : $"{chunks.Count} chunks"));
             Chunks = chunks ?? new Dictionary<string, Chunk>();
         }
         #endregion
@@ -82,7 +82,7 @@ namespace ProgressAdventure.WorldManagement
                     {
                         var chunk = Chunks.ElementAt(x).DeepCopy();
                         chunkData.Add(chunk.Key, chunk.Value);
-                        Console.Write($"\r{showProgressText}{Math.Round((double)(x + 1) / Chunks.Count * 100, 1)}%");
+                        Console.Write($"\r{showProgressText}{Math.Round((double)(x + 1) / Chunks.Count * 100, 1)}%              ");
                     }
                     Console.WriteLine($"\r{showProgressText}-COPYING...DONE!                         \r");
                 }
@@ -198,7 +198,7 @@ namespace ProgressAdventure.WorldManagement
                 for (var x = 0; x < chunkNum; x++)
                 {
                     FindChunkInFolder(existingChunks[x], saveFolderName);
-                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%");
+                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%              ");
                 }
                 Console.WriteLine($"\r{showProgressText}DONE!                       ");
             }

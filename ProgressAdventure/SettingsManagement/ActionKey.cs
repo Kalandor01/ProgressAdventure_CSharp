@@ -126,6 +126,11 @@ namespace ProgressAdventure.SettingsManagement
             return true;
         }
 
+        public override int GetHashCode()
+        {
+            return (actionType, Keys, ignoreModes).GetHashCode();
+        }
+
         public override string ToString()
         {
             return actionType.ToString() + ": " + string.Join(", ", Names);

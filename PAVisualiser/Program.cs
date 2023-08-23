@@ -1,22 +1,41 @@
 ﻿using ProgressAdventure.Enums;
+using System;
 using System.Text;
+using System.Threading;
+using System.Windows;
+using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
 using PAUtils = ProgressAdventure.Utils;
-using Logger = ProgressAdventure.Logger;
 
 namespace PAVisualiser
 {
-    internal class Program
+    internal static class Program
     {
         /// <summary>
         /// The main function for the program.
         /// </summary>
         static void MainFunction()
         {
-            
 
+        }
 
-            Console.WriteLine();
+        /// <summary>
+        /// Shows the main window.
+        /// </summary>
+        static void ShowMainWindow()
+        {
+            var windowThread = new Thread(ShowMainWindowThread);
+            windowThread.SetApartmentState(ApartmentState.STA);
+            windowThread.Start();
+        }
+
+        [STAThread]
+        static void ShowMainWindowThread()
+        {
+            Thread.CurrentThread.Name = Constants.VISUALISER_WINDOW_THREAD_NAME;
+            var mainWindow = new MainWindow();
+            var application = new Application();
+            application.Run(mainWindow);
         }
 
         /// <summary>
@@ -28,6 +47,7 @@ namespace PAVisualiser
 
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
             Logger.LogNewLine();
+            Logger.ChangeDefaultWriteOut(true);
             Console.WriteLine("Loading...");
 
             if (!PAUtils.TryEnableAnsiCodes())
@@ -100,11 +120,12 @@ namespace PAVisualiser
             }
             while (!exitGame);
         }
-
-        static void Main(string[] args)
+        
+        public static void Main()
         {
             PreloadingErrorHandler();
             MainErrorHandler();
+            ShowMainWindow();
         }
     }
 }

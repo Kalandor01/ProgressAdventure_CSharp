@@ -78,7 +78,7 @@ namespace ProgressAdventure
                 ["display_name"] = displaySaveName,
                 ["last_save"] = LastSave,
                 ["playtime"] = GetPlaytime(),
-                ["playerName"] = player.name
+                ["player_name"] = player.name
             };
         }
 
@@ -93,7 +93,7 @@ namespace ProgressAdventure
                 ["last_save"] = LastSave,
                 ["playtime"] = GetPlaytime(),
                 ["player"] = player.ToJson(),
-                ["randomStates"] = RandomStates.ToJson()
+                ["random_states"] = RandomStates.ToJson()
             };
         }
 

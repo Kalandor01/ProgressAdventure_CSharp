@@ -137,6 +137,11 @@ namespace ProgressAdventure.SettingsManagement
             return true;
         }
 
+        public override int GetHashCode()
+        {
+            return KeybindList.GetHashCode();
+        }
+
         public override string ToString()
         {
             return string.Join("\n", KeybindList);

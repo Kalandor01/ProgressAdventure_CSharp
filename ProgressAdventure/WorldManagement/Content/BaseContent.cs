@@ -67,6 +67,22 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             Logger.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
+
+        /// <summary>
+        /// Returns the name of the type of this content.
+        /// </summary>
+        public string GetTypeName()
+        {
+            return WorldUtils.contentTypeIDTextMap[type];
+        }
+
+        /// <summary>
+        /// Returns the name of the subtype of this content.
+        /// </summary>
+        public string GetSubtypeName()
+        {
+            return WorldUtils.contentTypeIDSubtypeTextMap[type][subtype];
+        }
         #endregion
 
         #region Protected methods
