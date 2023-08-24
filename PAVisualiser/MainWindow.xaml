@@ -10,15 +10,25 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
-            <RowDefinition Height="19*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="18*" />
         </Grid.RowDefinitions>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Select" Click="SelectSaveCommand"/>
-                <MenuItem Header="_Close" Click="CloseSaveCommand"/>
-                <MenuItem Header="_Save"/>
+        <Menu DockPanel.Dock="Top" Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Header="Select" Click="SelectSaveCommand"/>
+                <MenuItem Header="Close" Click="CloseSaveCommand"/>
+                <MenuItem Header="Save"/>
             </MenuItem>
         </Menu>
+        <StackPanel Orientation="Horizontal" Grid.Row="1">
+            <Label x:Name="centerTextBox"></Label>
+            <Label x:Name="diameterTextBox"></Label>
+            <Button x:Name="revealAreaButton" Click="RevealAreaCommand" IsEnabled="False">Reveal visible area</Button>
+            <Button x:Name="toggleLoggingWriteOut" Click="ToggleLoggingWriteOutCommand">Toggle logging in console: True</Button>
+            <CheckBox x:Name="terrainLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Terrain layer</CheckBox>
+            <CheckBox x:Name="structureLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Structure layer</CheckBox>
+            <CheckBox x:Name="populationLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Population layer</CheckBox>
+        </StackPanel>
         <Grid x:Name="worldGrid" Grid.Row="2"></Grid>
     </Grid>
 </Window>

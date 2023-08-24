@@ -21,6 +21,7 @@ namespace PAVisualiser
         public static class Colors
         {
             public static readonly Color RED = Color.FromArgb(255, 255, 0, 0);
+            public static readonly Color DARK_RED = Color.FromArgb(255, 150, 0, 0);
             public static readonly Color GREEN = Color.FromArgb(255, 0, 255, 0);
             public static readonly Color BLUE = Color.FromArgb(255, 0, 0, 255);
             public static readonly Color BROWN = Color.FromArgb(255, 61, 42, 27);

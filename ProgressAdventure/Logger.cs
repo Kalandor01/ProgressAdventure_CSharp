@@ -27,8 +27,32 @@ namespace ProgressAdventure
         };
         #endregion
 
-        #region Public fields
-        private static bool defaultWriteOut = false;
+        #region Private fields
+        /// <summary>
+        /// The default value for is the logs should be writen out to the console.
+        /// </summary>
+        private static bool _defaultWriteOut = false;
+        #endregion
+
+        #region Public properties
+        /// <summary>
+        /// <inheritdoc cref="_defaultWriteOut" path="//summary"/>
+        /// </summary>
+        public static bool DefaultWriteOut
+        {
+            get
+            {
+                return _defaultWriteOut;
+            }
+            set
+            {
+                if (_defaultWriteOut != value)
+                {
+                    _defaultWriteOut = value;
+                    Log($"Logging write out {(value ? "enabled" : "disabled")}");
+                }
+            }
+        }
         #endregion
 
         #region Public functions
@@ -58,7 +82,7 @@ namespace ProgressAdventure
                         }
                         f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {detail}\n");
                     }
-                    if (writeOut is null ? defaultWriteOut : (bool)writeOut)
+                    if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
                     {
                         if (newLine)
                         {
@@ -107,19 +131,6 @@ namespace ProgressAdventure
                 {
                     Log($"Logging {(Constants.LOGGING_ENABLED ? "enabled" : "disabled")}");
                 }
-            }
-        }
-
-        /// <summary>
-        /// Sets the <c>defaultWriteOut</c>.
-        /// </summary>
-        /// <param name="value">The value to set the <c>defaultWriteOut</c>.</param>
-        public static void ChangeDefaultWriteOut(bool value)
-        {
-            if (defaultWriteOut != value)
-            {
-                defaultWriteOut = value;
-                Log($"Logging write out {(value ? "enabled" : "disabled")}");
             }
         }
 

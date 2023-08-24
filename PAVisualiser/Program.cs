@@ -47,7 +47,7 @@ namespace PAVisualiser
 
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
             Logger.LogNewLine();
-            Logger.ChangeDefaultWriteOut(true);
+            Logger.DefaultWriteOut = true;
             Console.WriteLine("Loading...");
 
             if (!PAUtils.TryEnableAnsiCodes())
