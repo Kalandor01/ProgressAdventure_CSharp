@@ -10,17 +10,17 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="18*" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="37*" />
         </Grid.RowDefinitions>
-        <Menu DockPanel.Dock="Top" Grid.Row="0">
+        <Menu DockPanel.Dock="Top" Grid.Row="0" Panel.ZIndex="100">
             <MenuItem Header="File">
                 <MenuItem Header="Select" Click="SelectSaveCommand"/>
                 <MenuItem Header="Close" Click="CloseSaveCommand"/>
                 <MenuItem Header="Save"/>
             </MenuItem>
         </Menu>
-        <StackPanel Orientation="Horizontal" Grid.Row="1">
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Panel.ZIndex="100" Background="White">
             <Label x:Name="centerTextBox"></Label>
             <Label x:Name="diameterTextBox"></Label>
             <Button x:Name="revealAreaButton" Click="RevealAreaCommand" IsEnabled="False">Reveal visible area</Button>

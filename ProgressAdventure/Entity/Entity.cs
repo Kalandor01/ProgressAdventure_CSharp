@@ -328,7 +328,7 @@ namespace ProgressAdventure.Entity
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
             var typeLine = GetType() != typeof(Player) ? $"\nSpecies: {EntityUtils.GetEntityTypeName(this)}" : "";
-            return $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\nAttributes: {attributes}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {drops}";
+            return $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\nAttributes: {string.Join(", ", attributes)}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {string.Join("\n, ", drops.Select(d => $"\t{d}"))}";
         }
         #endregion
 

@@ -12,7 +12,7 @@ namespace ProgressAdventure
         /// Dictionary mapping logging severities to their logging values.<br/>
         /// A log will actualy happen, if the current logging level is lower than the loggin level of the message.
         /// </summary>
-        public static readonly Dictionary<LogSeverity, int> loggingValuesMap = new()
+        internal static readonly Dictionary<LogSeverity, int> loggingValuesMap = new()
         {
             [LogSeverity.MINIMAL] = -1,
             [LogSeverity.DEBUG] = (int)LogSeverity.DEBUG,

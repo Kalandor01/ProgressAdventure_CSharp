@@ -83,6 +83,16 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             return WorldUtils.contentTypeIDSubtypeTextMap[type][subtype];
         }
+
+        /// <summary>
+        /// Tries to get a property from the object, based on the property name provided.
+        /// </summary>
+        /// <param name="propertyName">The name of the property to search for.</param>
+        /// <param name="property">The value of the property if it was found.</param>
+        public bool TryGetExtraProperty(string propertyName, out object? property)
+        {
+            return ToJson().TryGetValue(propertyName, out property);
+        }
         #endregion
 
         #region Protected methods

@@ -1,4 +1,6 @@
-﻿using ProgressAdventure.Enums;
+﻿using ProgressAdventure;
+using ProgressAdventure.Enums;
+using ProgressAdventure.WorldManagement;
 using System;
 using System.Text;
 using System.Threading;
@@ -16,7 +18,8 @@ namespace PAVisualiser
         /// </summary>
         static void MainFunction()
         {
-
+            Logger.DefaultWriteOut = false;
+            LegacyVisualiser.SaveVisualizer("test save");
         }
 
         /// <summary>
@@ -124,8 +127,15 @@ namespace PAVisualiser
         public static void Main()
         {
             PreloadingErrorHandler();
-            MainErrorHandler();
-            ShowMainWindow();
+
+            if (MenuManager.AskYesNoUIQuestion("Open visualiser GUI?"))
+            {
+                ShowMainWindow();
+            }
+            else
+            {
+                MainErrorHandler();
+            }
         }
     }
 }

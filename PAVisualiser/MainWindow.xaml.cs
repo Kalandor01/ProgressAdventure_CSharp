@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using PAConstants = ProgressAdventure.Constants;
 
@@ -18,41 +19,24 @@ namespace PAVisualiser
     /// </summary>
     public partial class MainWindow : Window
     {
-        #region Config dictionaries
-        private static readonly Dictionary<ContentTypeID, Color> contentSubtypeColorMap = new()
-        {
-            [ContentType.Terrain.FIELD] = Constants.Colors.GREEN,
-            [ContentType.Terrain.OCEAN] = Constants.Colors.LIGHT_BLUE,
-            [ContentType.Terrain.SHORE] = Constants.Colors.LIGHTER_BLUE,
-            [ContentType.Terrain.MOUNTAIN] = Constants.Colors.LIGHT_GRAY,
-
-            [ContentType.Structure.VILLAGE] = Constants.Colors.LIGHT_BROWN,
-            [ContentType.Structure.KINGDOM] = Constants.Colors.BROWN,
-            [ContentType.Structure.BANDIT_CAMP] = Constants.Colors.DARK_RED,
-
-            [ContentType.Population.DWARF] = Constants.Colors.LIGHT_GRAY,
-            [ContentType.Population.HUMAN] = Constants.Colors.SKIN,
-            [ContentType.Population.DEMON] = Constants.Colors.DARK_RED,
-            [ContentType.Population.ELF] = Constants.Colors.DARK_GREEN,
-        };
-        #endregion
-
         #region Private fields
+        private static readonly double WORLD_MOVE_CONSTANT = 0.2;
+
         private bool selectedSave = false;
-        private (long x, long y) center;
-        private long radius;
-        private List<WorldLayers> layers;
+        private (double x, double y) center;
+        private double worldGridScale;
+        private List<WorldLayer> layers;
         #endregion
 
         #region Public constructors
         public MainWindow()
         {
             center = (0, 0);
-            radius = 3;
-            layers = new List<WorldLayers> { WorldLayers.Terrain };
+            worldGridScale = 1;
+            layers = new List<WorldLayer> { WorldLayer.Terrain };
 
-            KeyDown += new System.Windows.Input.KeyEventHandler(WorldGridMoveCommand);
-            MouseWheel += new System.Windows.Input.MouseWheelEventHandler(WorldGridZoomCommand);
+            KeyDown += new KeyEventHandler(WorldGridMoveCommand);
+            MouseWheel += new MouseWheelEventHandler(WorldGridZoomCommand);
 
             InitializeComponent();
             DataContext = this;
@@ -114,8 +98,8 @@ namespace PAVisualiser
             selectedSave = true;
 
             center = (0, 0);
-            radius = 3;
-            RenderWorldArea();
+            worldGridScale = 1;
+            RenderWorldArea(layers, null);
         }
 
         private void CloseSaveCommand(object sender, RoutedEventArgs e)
@@ -124,17 +108,13 @@ namespace PAVisualiser
             ClearWorldGrid();
         }
 
-        private void WorldGridZoomCommand(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        private void WorldGridZoomCommand(object sender, MouseWheelEventArgs e)
         {
             var scrollUp = e.Delta > 0;
+            worldGridScale *= scrollUp ? 1.1 : 0.9;
+            worldGrid.RenderTransform = new ScaleTransform(worldGridScale, worldGridScale, center.x, center.y);
 
-            var newRadius = Math.Clamp(radius + (scrollUp ? -1 : 1), 1, long.MaxValue);
-
-            if (newRadius !=  radius)
-            {
-                radius = newRadius;
-                RenderWorldArea();
-            }
+            UpdateViewTextboxes();
         }
 
         private void RebuildLayersCommand(object sender, RoutedEventArgs e)
@@ -142,37 +122,59 @@ namespace PAVisualiser
             RebuildLayers();
         }
 
-        private void WorldGridMoveCommand(object sender, System.Windows.Input.KeyEventArgs e)
+        private void WorldGridMoveCommand(object sender, KeyEventArgs e)
         {
             var key = e.Key;
 
             var newCenter = center;
 
+            var scaleModifierMultiplier = (worldGridScale > 1 ? 1.0 : -1.0) / (Math.Abs(worldGridScale - 1) + 1);
+            var scaleModifier = WORLD_MOVE_CONSTANT * scaleModifierMultiplier;
+
             switch (key)
             {
-                case System.Windows.Input.Key.Up:
-                    newCenter.y++;
+                case Key.W:
+                    newCenter.y -= scaleModifier;
                     break;
-                case System.Windows.Input.Key.Down:
-                    newCenter.y--;
+                case Key.S:
+                    newCenter.y += scaleModifier;
                     break;
-                case System.Windows.Input.Key.Left:
-                    newCenter.x--;
+                case Key.A:
+                    newCenter.x -= scaleModifier;
                     break;
-                case System.Windows.Input.Key.Right:
-                    newCenter.x++;
+                case Key.D:
+                    newCenter.x += scaleModifier;
                     break;
                 default:
                     return;
             }
 
             center = newCenter;
-            RenderWorldArea();
+            worldGrid.RenderTransform = new ScaleTransform(worldGridScale, worldGridScale);
+            worldGrid.RenderTransformOrigin = new Point(center.x, center.y);
+
+            UpdateViewTextboxes();
         }
 
         private void RevealAreaCommand(object sender, RoutedEventArgs e)
         {
-            RevealArea((center.x - radius, center.y - radius, center.x + radius, center.y + radius));
+            var corners = World.GetCorners();
+
+            if (corners is null)
+            {
+                return;
+            }
+
+            var worldWidth = corners.Value.maxX - corners.Value.minX;
+            var totalTorenderedWorldSize = 1 / worldGridScale;
+            var revealAreaWidth = worldWidth * totalTorenderedWorldSize;
+
+            RevealArea((
+                (long)(revealAreaWidth + (-1 * center.x) * worldWidth),
+                (long)(revealAreaWidth + (center.y - 1) * worldWidth),
+                (long)(revealAreaWidth + (-1 * center.x + 1) * worldWidth),
+                (long)(revealAreaWidth + center.y * worldWidth)
+            ));
             RenderWorldArea();
         }
 
@@ -194,18 +196,18 @@ namespace PAVisualiser
 
         private void RebuildLayers()
         {
-            var newLayers = new List<WorldLayers>();
+            var newLayers = new List<WorldLayer>();
             if (terrainLayerCheckBox.IsChecked == true)
             {
-                newLayers.Add(WorldLayers.Terrain);
+                newLayers.Add(WorldLayer.Terrain);
             }
             if (structureLayerCheckBox.IsChecked == true)
             {
-                newLayers.Add(WorldLayers.Structure);
+                newLayers.Add(WorldLayer.Structure);
             }
             if (populationLayerCheckBox.IsChecked == true)
             {
-                newLayers.Add(WorldLayers.Population);
+                newLayers.Add(WorldLayer.Population);
             }
 
             layers = newLayers;
@@ -216,8 +218,10 @@ namespace PAVisualiser
             }
         }
 
-        private void RenderWorldArea(List<WorldLayers> layers, (long minX, long minY, long maxX, long maxY)? corners = null)
+        private void RenderWorldArea(List<WorldLayer> layers, (long minX, long minY, long maxX, long maxY)? corners = null)
         {
+            UpdateViewTextboxes();
+
             corners ??= World.GetCorners();
 
             if (corners is null)
@@ -237,7 +241,7 @@ namespace PAVisualiser
                 ClearWorldGrid();
 
                 // columns
-                for (long y = minY; y < maxY + 1; y++)
+                for (long x = minX; x < maxX + 1; x++)
                 {
                     var cd = new ColumnDefinition
                     {
@@ -247,7 +251,7 @@ namespace PAVisualiser
                 }
 
                 // rows
-                for (long x = minX; x < maxX + 1; x++)
+                for (long y = minY; y < maxY + 1; y++)
                 {
                     var rd = new RowDefinition
                     {
@@ -262,12 +266,18 @@ namespace PAVisualiser
             }
 
             // world
+            if (!layers.Any())
+            {
+                return;
+            }
+
             foreach (var chunk in World.Chunks)
             {
                 foreach (var tile in chunk.Value.tiles)
                 {
-                    var xPos = chunk.Value.basePosition.x + tile.Value.relativePosition.x;
-                    var yPos = chunk.Value.basePosition.y + tile.Value.relativePosition.y;
+                    var tileObj = tile.Value;
+                    var xPos = chunk.Value.basePosition.x + tileObj.relativePosition.x;
+                    var yPos = chunk.Value.basePosition.y + tileObj.relativePosition.y;
 
                     if (
                         xPos > maxX || xPos < minX ||
@@ -277,35 +287,61 @@ namespace PAVisualiser
                         continue;
                     }
 
-                    ContentTypeID contentSubtype;
+                    BaseContent tileContent;
 
-                    if (layers.Contains(WorldLayers.Population) && tile.Value.population.subtype != ContentType.Population.NONE)
+                    if (layers.Contains(WorldLayer.Population) && tileObj.population.subtype != ContentType.Population.NONE)
                     {
-                        contentSubtype = tile.Value.population.subtype;
+                        tileContent = tileObj.population;
                     }
-                    else if (layers.Contains(WorldLayers.Structure) && tile.Value.structure.subtype != ContentType.Structure.NONE)
+                    else if (layers.Contains(WorldLayer.Structure) && tileObj.structure.subtype != ContentType.Structure.NONE)
                     {
-                        contentSubtype = tile.Value.structure.subtype;
+                        tileContent = tileObj.structure;
                     }
-                    else if (layers.Contains(WorldLayers.Terrain))
+                    else if (layers.Contains(WorldLayer.Terrain))
                     {
-                        contentSubtype = tile.Value.terrain.subtype;
+                        tileContent = tileObj.terrain;
                     }
                     else
                     {
                         continue;
                     }
 
-                    Color color = Constants.Colors.RED;
-                    contentSubtypeColorMap.TryGetValue(contentSubtype, out color);
+                    var color = VisualiserUtils.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
 
-                    var content = new Canvas()
+                    var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out object? height) ?
+                        $"(height: {height})" :
+                        (tileObj.terrain.TryGetExtraProperty("depth", out object? depth) ? $"(depth: {depth})" : "");
+                    var tooltipContent = new StackPanel()
                     {
-                        Background = new SolidColorBrush(color),
+                        Children =
+                        {
+                            new Label() { Content = $"Chunk seed: {Tools.SerializeRandom(chunk.Value.ChunkRandomGenerator)}" },
+                            new Label() { Content = $"Terrain: {tileObj.terrain.GetSubtypeName()} {extraTerrainData}" },
+                        }
+                    };
+
+                    if (tileObj.structure.subtype != ContentType.Structure.NONE)
+                    {
+                        var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out object? population) ? $"(population: {population})" : "";
+                        tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} {extraStructureData}" });
+                    }
+                    if (tileObj.population.subtype != ContentType.Population.NONE)
+                    {
+                        tooltipContent.Children.Add(new Label() { Content = $"Population: {tileObj.population.GetSubtypeName()} ({tileObj.population.amount})" });
+                    }
+
+                    var content = new Label()
+                    {
+                        Background = new SolidColorBrush(color.ToMediaColor()),
+                        Content = tileContent.Name,
+                        ToolTip = new ToolTip()
+                        {
+                            Content = tooltipContent,
+                        }
                     };
 
                     var column = xPos - minX;
-                    var row = worldGrid.RowDefinitions.Count - 1 - (yPos - minY);
+                    var row = worldGrid.RowDefinitions.Count - (yPos - minY);
 
                     Grid.SetColumn(content, (int)column);
                     Grid.SetRow(content, (int)row);
@@ -318,26 +354,30 @@ namespace PAVisualiser
 
         private void UpdateViewTextboxes()
         {
-            centerTextBox.Content = $"Center: {center.x}, {center.y}";
-            diameterTextBox.Content = $"Zoom diameter: {radius * 2 + 1}";
+            centerTextBox.Content = $"Center: {Math.Round(center.x, 3)}, {Math.Round(center.y, 3)}";
+            diameterTextBox.Content = $"Zoom scale: {Math.Round(worldGridScale, 3)}";
         }
 
-        private void RenderWorldArea(List<WorldLayers> layers, (long x, long y) center, long extraRadius)
+        private void RenderWorldArea(List<WorldLayer> layers, (long x, long y) center, long extraRadius)
         {
-            UpdateViewTextboxes();
             RenderWorldArea(layers, (center.x - extraRadius, center.y - extraRadius, center.x + extraRadius, center.y + extraRadius));
         }
 
         private void RenderWorldArea()
         {
-            RenderWorldArea(layers, center, radius);
+            RenderWorldArea(layers, null);
         }
 
         private void RevealArea((long minX, long minY, long maxX, long maxY) corners)
         {
+            if (!selectedSave)
+            {
+                return;
+            }
+
             for (long x = corners.minX; x < corners.maxX + 1; x++)
             {
-                for (long y = corners.minX; y < corners.maxX + 1; y++)
+                for (long y = corners.minY; y < corners.maxY + 1; y++)
                 {
                     World.TryGetChunk((x, y), out Chunk chunk);
                     chunk.TryGetTile((x, y), out _);

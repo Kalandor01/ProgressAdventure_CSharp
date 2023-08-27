@@ -1,6 +1,6 @@
 ﻿namespace PAVisualiser
 {
-    public enum WorldLayers
+    public enum WorldLayer
     {
         Terrain,
         Structure,
