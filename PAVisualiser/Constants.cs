@@ -1,4 +1,7 @@
-﻿namespace PAVisualiser
+﻿using System.IO;
+using PAConstants = ProgressAdventure.Constants;
+
+namespace PAVisualiser
 {
     /// <summary>
     /// Object for storing constants.
@@ -17,12 +20,9 @@
         #endregion
 
         #region Misc
-        public static readonly string EXPORT_FOLDER = "visualised_saves";
-        public static readonly string EXPORT_DATA_FILE = "data.txt";
-        public static readonly string EXPORT_TERRAIN_FILE = "terrain.png";
-        public static readonly string EXPORT_STRUCTURE_FILE = "structure.png";
-        public static readonly string EXPORT_POPULATOIN_FILE = "population.png";
-        public static readonly string EXPORT_COMBINED_FILE = "combined.png";
+        public const string EXPORT_FOLDER = "visualised_saves";
+        public static readonly string EXPORT_FOLDER_PATH = Path.Join(PAConstants.ROOT_FOLDER, EXPORT_FOLDER);
+        public const string EXPORT_DATA_FILE = "data.txt";
         #endregion
 
         public static class Colors

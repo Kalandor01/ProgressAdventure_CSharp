@@ -306,7 +306,7 @@ namespace PAVisualiser
                         continue;
                     }
 
-                    var color = VisualiserUtils.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
+                    var color = VisualiserTools.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
 
                     var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out object? height) ?
                         $"(height: {height})" :

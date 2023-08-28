@@ -1,22 +1,23 @@
 ﻿using ProgressAdventure;
+using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
+using SaveFileManager;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
-using PAUtils = ProgressAdventure.Utils;
 using PATools = ProgressAdventure.Tools;
-using System.Linq;
-using ProgressAdventure.Extensions;
-using ProgressAdventure.Entity;
+using PAUtils = ProgressAdventure.Utils;
 
 namespace PAVisualiser
 {
     public static class LegacyVisualiser
     {
+        #region Public function
         public static ColorData GetTileColor(Tile tile, WorldLayer layer, Dictionary<ContentTypeID, long> tileTypeCounts, double opacityMultiplier = 1)
         {
             ContentTypeID subtype;
@@ -42,7 +43,7 @@ namespace PAVisualiser
                 tileTypeCounts[subtype] = 1;
             }
 
-            ColorData rawColor = VisualiserUtils.contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
+            ColorData rawColor = VisualiserTools.contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
 
             return new ColorData(rawColor.R, rawColor.G, rawColor.B, (byte)Math.Clamp(rawColor.A * opacityMultiplier, 0, 255));
         }
@@ -94,32 +95,7 @@ namespace PAVisualiser
             return (tileTypeCounts, totalTileCount);
         }
 
-        private static void CombineImageWithNewLayerImage(List<WorldLayer> layers, WorldLayer layer, Image? image, Dictionary<WorldLayer,(Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)> layerCounts)
-        {
-            if (layers.Contains(layer))
-            {
-                var structureTileTypeCounts = CreateWorldLayerImage(layer, out Bitmap? structureImage, layers.Count);
-
-                if (structureTileTypeCounts is null || structureImage is null)
-                {
-                    return;
-                }
-
-                layerCounts.Add(layer, ((Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount))structureTileTypeCounts);
-
-                if (image is null)
-                {
-                    image = structureImage;
-                }
-                else
-                {
-                    var grfx = Graphics.FromImage(image);
-                    grfx.DrawImage(structureImage, 0, 0);
-                }
-            }
-        }
-
-        public static Dictionary<WorldLayer, (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)> CreateCombinedImage(List<WorldLayer> layers, out Image? image)
+        public static Dictionary<WorldLayer, (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
         {
             image = null;
 
@@ -127,7 +103,7 @@ namespace PAVisualiser
 
             foreach (var layer in Enum.GetValues<WorldLayer>())
             {
-                CombineImageWithNewLayerImage(layers, layer, image, layerCounts);
+                CombineImageWithNewLayerImage(layers, layer, ref image, layerCounts);
             }
 
             return layerCounts;
@@ -136,7 +112,7 @@ namespace PAVisualiser
         public static void MakeImage(List<WorldLayer> layers, string exportPath)
         {
             Console.Write("Generating image...");
-            var tileTypeCounts = CreateCombinedImage(layers, out Image? image);
+            var tileTypeCounts = CreateCombinedImage(layers, out Bitmap? image);
             Console.WriteLine("DONE!");
 
             if (tileTypeCounts is null || image is null)
@@ -150,7 +126,7 @@ namespace PAVisualiser
                 txt.AppendLine($"{layer.Key} tile types:");
                 foreach (var type in layer.Value.tileTypeCounts)
                 {
-                    txt.AppendLine($"\t{type.Key}: {type.Value}");
+                    txt.AppendLine($"\t{type.Key.ToString()?.Split(".").Last()}: {type.Value}");
                 }
                 txt.AppendLine($"\tTOTAL: {layer.Value.totalTileCount}\n");
             }
@@ -165,11 +141,10 @@ namespace PAVisualiser
         /// <param name="saveName">The name of the save to read.</param>
         public static void SaveVisualizer(string saveName)
         {
-            var saveFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveName);
             var now = DateTime.Now;
             var visualizedSaveFolderName = $"{saveName}_{PAUtils.MakeDate(now)}_{PAUtils.MakeTime(now, ";")}";
             var displayVisualizedSavePath = Path.Join(Constants.EXPORT_FOLDER, visualizedSaveFolderName);
-            var visualizedSavePath = Path.Join(PAConstants.ROOT_FOLDER, displayVisualizedSavePath);
+            var visualizedSavePath = Path.Join(Constants.EXPORT_FOLDER_PATH, visualizedSaveFolderName);
 
             // load
             try
@@ -187,60 +162,102 @@ namespace PAVisualiser
             txt.AppendLine($"---------------------------------------------------------------------------------------------------------------");
             txt.AppendLine($"EXPORTED DATA FROM \"{SaveData.saveName}\"");
             txt.AppendLine($"Loaded {PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}:");
-            txt.AppendLine($"Save name: {SaveData.saveName}");
-            txt.AppendLine($"Display save name: {SaveData.displaySaveName}");
-            txt.AppendLine($"Last saved: {PAUtils.MakeDate(SaveData.LastSave, ".")} {PAUtils.MakeTime(SaveData.LastSave)}");
-            txt.AppendLine($"\nPlayer:\n{SaveData.player}");
-            txt.AppendLine($"\nMain seed: {PATools.SerializeRandom(RandomStates.MainRandom)}");
-            txt.AppendLine($"World seed: {PATools.SerializeRandom(RandomStates.WorldRandom)}");
-            txt.AppendLine($"Misc seed: {PATools.SerializeRandom(RandomStates.MiscRandom)}");
-            txt.AppendLine($"Chunk seed modifier: {PATools.SerializeRandom(RandomStates.WorldRandom)}");
-            txt.AppendLine($"\nTile type noise seeds:\n{string.Join("\n", RandomStates.TileTypeNoiseSeeds.Select(ttns => $"{ttns.Key.ToString().Capitalize()} seed: {ttns.Value}"))}");
+            txt.AppendLine(VisualiserTools.GetGeneralSaveData());
             txt.Append("\n---------------------------------------------------------------------------------------------------------------");
             PAUtils.PressKey(txt.ToString());
-            //ans = sfm.UI_list(["Yes", "No"], f"Do you want export the data from \"{save_name}\" into \"{join(display_visualized_save_path, EXPORT_DATA_FILE)}\"?").display()
-            //if ans == 0:
-            //    ts.recreate_folder(EXPORT_FOLDER)
-            //    ts.recreate_folder(visualized_save_name, join(ROOT_FOLDER, EXPORT_FOLDER))
-            //    with open(join(visualized_save_path, EXPORT_DATA_FILE), "a") as f:
-            //        f.write(text + "\n\n")
+            if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.saveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
+            {
+                PATools.RecreateFolder(Constants.EXPORT_FOLDER);
+                PATools.RecreateFolder(visualizedSaveFolderName, Constants.EXPORT_FOLDER_PATH);
+                File.AppendAllText(Path.Join(visualizedSavePath, Constants.EXPORT_DATA_FILE), $"{txt}\n\n");
+            }
 
 
-            //ans = sfm.UI_list(["Yes", "No"], f"Do you want export the world data from \"{save_name}\" into an image at \"{display_visualized_save_path}\"?").display()
-            //if ans == 0:
-            //    ts.recreate_folder(EXPORT_FOLDER)
-            //    ts.recreate_folder(visualized_save_name, join(ROOT_FOLDER, EXPORT_FOLDER))
-            //    // get chunks data
-            //    World.load_all_chunks_from_folder(show_progress_text = "Getting chunk data...")
-            //    // fill
-            //    ans = sfm.UI_list(["No", "Yes"], f"Do you want to fill in ALL tiles in ALL generated chunks?").display()
-            //    if ans == 1:
-            //        ans = sfm.UI_list(["No", "Yes"], f"Do you want to generates the rest of the chunks in a way that makes the world rectangle shaped?").display()
-            //        if ans == 1:
-            //            print("Generating chunks...", end = "", flush = True)
-            //            World.make_rectangle()
-            //            print("DONE!")
-            //        World.fill_all_chunks("Filling chunks...")
-            //    // generate images
-            //    // terrain
-            //    ans = sfm.UI_list(["Yes", "No"], f"Do you want export the terrain data into \"{EXPORT_TERRAIN_FILE}\"?").display()
-            //    if ans == 0:
-            //        make_img("terrain", EXPORT_TERRAIN_FILE)
-            //        input()
-            //    // structure
-            //    ans = sfm.UI_list(["Yes", "No"], f"Do you want export the structure data into \"{EXPORT_STRUCTURE_FILE}\"?").display()
-            //    if ans == 0:
-            //        make_img("structure", EXPORT_STRUCTURE_FILE)
-            //        input()
-            //    // population
-            //    ans = sfm.UI_list(["Yes", "No"], f"Do you want export the population data into \"{EXPORT_POPULATOIN_FILE}\"?").display()
-            //    if ans == 0:
-            //        make_img("population", EXPORT_POPULATOIN_FILE)
-            //        input()
-            //    ans = sfm.UI_list(["Yes", "No"], f"Do you want export a combined image into \"{EXPORT_COMBINED_FILE}\"?").display()
-            //    if ans == 0:
-            //        make_combined_img(EXPORT_COMBINED_FILE)
-            //        input()
+            if (!MenuManager.AskYesNoUIQuestion($"Do you want export the world data from \"{SaveData.saveName}\" into an image at \"{displayVisualizedSavePath}\"?"))
+            {
+                return;
+            }
+
+            // get chunks data
+            PATools.RecreateFolder(Constants.EXPORT_FOLDER);
+            PATools.RecreateFolder(visualizedSaveFolderName, Constants.EXPORT_FOLDER_PATH);
+            World.LoadAllChunksFromFolder(showProgressText: "Getting chunk data...");
+
+            // make rectangle
+            if (MenuManager.AskYesNoUIQuestion($"Do you want to generates the rest of the chunks in a way that makes the world rectangle shaped?", false))
+            {
+                World.MakeRectangle("Generating chunks...");
+            }
+
+            // fill
+            if (MenuManager.AskYesNoUIQuestion($"Do you want to fill in ALL tiles in ALL generated chunks?", false))
+            {
+                World.FillAllChunks("Filling chunks...");
+            }
+
+            // select layers
+            var layers = Enum.GetValues<WorldLayer>();
+            var layerElements = new List<BaseUI?>();
+            foreach (var layer in layers)
+            {
+                layerElements.Add(new Toggle(true, $"{layer.ToString().Capitalize()}: "));
+            }
+            layerElements.Add(null);
+            layerElements.Add(new Button(new UIAction(GenerateImageCommand, new List<object?> { layerElements, layers, visualizedSavePath }), text: "Generate image"));
+
+            new OptionsUI(layerElements, "Select the layers to export the data and image from:").Display();
         }
+        #endregion
+
+        #region Pivate fields
+        private static void CombineImageWithNewLayerImage(List<WorldLayer> layers, WorldLayer layer, ref Bitmap? image, Dictionary<WorldLayer, (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)> layerCounts)
+        {
+            if (!layers.Contains(layer))
+            {
+                return;
+            }
+
+            var structureTileTypeCounts = CreateWorldLayerImage(layer, out Bitmap? structureImage, 1.0 / layers.Count);
+
+            if (structureTileTypeCounts is null || structureImage is null)
+            {
+                return;
+            }
+
+            layerCounts.Add(layer, ((Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount))structureTileTypeCounts);
+
+            if (image is null)
+            {
+                image = structureImage;
+            }
+            else
+            {
+                var graphics = Graphics.FromImage(image);
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                graphics.DrawImage(structureImage, 0, 0);
+            }
+        }
+
+        private static void GenerateImageCommand(List<BaseUI?> layerElements, WorldLayer[] layers, string visualizedSavePath)
+        {
+            // get selected layers
+            var selectedLayers = new List<WorldLayer>();
+            for (int x = 0; x < layers.Length; x++)
+            {
+                if (((layerElements[x] as Toggle)?.Value) ?? false)
+                {
+                    selectedLayers.Add(layers[x]);
+                }
+            }
+
+            // generate image
+            if (selectedLayers.Any())
+            {
+                var imageName = string.Join("-", selectedLayers) + ".png";
+                MakeImage(selectedLayers, Path.Join(visualizedSavePath, imageName));
+                PAUtils.PressKey($"Generated image as \"{imageName}\"");
+            }
+        }
+        #endregion
     }
 }

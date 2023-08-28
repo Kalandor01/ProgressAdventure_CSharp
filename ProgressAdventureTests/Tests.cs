@@ -21,7 +21,7 @@ namespace ProgressAdventureTests
         public static TestResultDTO? LoggerLoggingValuesDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<LogSeverity>();
-            var checkedDictionary = Logger.loggingValuesMap;
+            var checkedDictionary = Tools.GetInternalFieldFromStaticClass<Dictionary<LogSeverity, int>>(typeof(Logger), "loggingValuesMap");
             var existingValues = new List<int>();
 
             foreach (var key in requiredKeys)

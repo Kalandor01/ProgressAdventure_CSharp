@@ -207,9 +207,9 @@ namespace ProgressAdventure
             var response = new OptionsUI(menuElements, " Other options").Display(Settings.Keybinds.KeybindList);
             if (response is not null)
             {
-                var newAutoSaveValue = autoSaveElement.value == 1;
-                _ = Tools.TryParseLogSeverityFromValue(loggingValues.ElementAt(loggingElement.value), out LogSeverity newLoggingLevel);
-                var newColoredTextValue = coloredTextElement.value == 1;
+                var newAutoSaveValue = autoSaveElement.Value;
+                _ = Tools.TryParseLogSeverityFromValue(loggingValues.ElementAt(loggingElement.Value), out LogSeverity newLoggingLevel);
+                var newColoredTextValue = coloredTextElement.Value;
 
                 Settings.AutoSave = newAutoSaveValue;
                 Settings.LoggingLevel = newLoggingLevel;
@@ -247,9 +247,9 @@ namespace ProgressAdventure
             var response = new OptionsUI(askSettingsElements, " Question popups").Display(Settings.Keybinds.KeybindList);
             if (response is not null)
             {
-                Settings.AskDeleteSave = askDeleteSaveElement.value == 1;
-                Settings.AskRegenerateSave = askRegenerateSaveElement.value == 1;
-                Settings.DefBackupAction = backupActionValues.ElementAt(defBackupActionElement.value);
+                Settings.AskDeleteSave = askDeleteSaveElement.Value;
+                Settings.AskRegenerateSave = askRegenerateSaveElement.Value;
+                Settings.DefBackupAction = backupActionValues.ElementAt(defBackupActionElement.Value);
             }
         }
 

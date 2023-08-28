@@ -31,14 +31,14 @@ namespace ProgressAdventure.Extensions
             }
             _displayValues = displayValues;
 
-            this.value = Math.Clamp(value, 0, displayValues.Count() - 1);
+            Value = Math.Clamp(value, 0, displayValues.Count() - 1);
         }
         #endregion
 
         #region Overrides
         protected override string MakeValue(OptionsUI? optionsUI = null)
         {
-            return _displayValues.ElementAt(value);
+            return _displayValues.ElementAt(Value);
         }
         #endregion
     }

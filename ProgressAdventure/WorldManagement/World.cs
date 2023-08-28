@@ -283,7 +283,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Generates ALL not yet generated tiles in ALL chunks.
         /// </summary>
-        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
+        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while working.</param>
         public static void FillAllChunks(string? showProgressText = null)
         {
             if (showProgressText is not null)
@@ -293,9 +293,9 @@ namespace ProgressAdventure.WorldManagement
                 for (var x = 0; x < chunkNum; x++)
                 {
                     Chunks.ElementAt(x).Value.FillChunk();
-                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%");
+                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%     ");
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                       ");
+                Console.WriteLine($"\r{showProgressText}DONE!                 ");
             }
             else
             {
@@ -349,19 +349,40 @@ namespace ProgressAdventure.WorldManagement
         /// Generates chunks in a way that makes the world rectangle shaped.
         /// </summary>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
-        public static void MakeRectangle(string? saveFolderName = null)
+        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while working.</param>
+        public static void MakeRectangle(string? saveFolderName = null, string? showProgressText = null)
         {
-            var cornersTemp = GetCorners();
-            if (cornersTemp is null)
+            var corners = GetCorners();
+            if (corners is null)
             {
                 return;
             }
-            var (minX, minY, maxX, maxY) = cornersTemp.Value;
-            for (long x = minX; x < maxX + 1; x += Constants.CHUNK_SIZE)
+
+            var (minX, minY, maxX, maxY) = corners.Value;
+
+            if (showProgressText is not null)
             {
-                for (long y = minY; y < maxY + 1; y += Constants.CHUNK_SIZE)
+                var chunkNum = (maxX - minX) / (double)Constants.CHUNK_SIZE * ((maxY - minY) / (double)Constants.CHUNK_SIZE);
+                var columnNum = (maxY - minY) / (double)Constants.CHUNK_SIZE;
+                Console.Write(showProgressText + "              ");
+                for (var x = minX; x <= maxX; x += Constants.CHUNK_SIZE)
                 {
-                    TryGetChunkAll((x, y), out _, saveFolderName);
+                    for (long y = minY; y <= maxY; y += Constants.CHUNK_SIZE)
+                    {
+                        TryGetChunkAll((x, y), out _, saveFolderName);
+                        Console.Write($"\r{showProgressText}{Math.Round((((x - minX) / (double)Constants.CHUNK_SIZE) * columnNum + ((y - minY) / (double)Constants.CHUNK_SIZE)) / chunkNum * 100, 1)}%      ");
+                    }
+                }
+                Console.WriteLine($"\r{showProgressText}DONE!                ");
+            }
+            else
+            {
+                for (var x = minX; x <= maxX; x += Constants.CHUNK_SIZE)
+                {
+                    for (var y = minY; y <= maxY; y += Constants.CHUNK_SIZE)
+                    {
+                        TryGetChunkAll((x, y), out _, saveFolderName);
+                    }
                 }
             }
         }
