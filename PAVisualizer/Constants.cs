@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using PAConstants = ProgressAdventure.Constants;
 
-namespace PAVisualiser
+namespace PAVisualizer
 {
     /// <summary>
     /// Object for storing constants.
@@ -10,18 +10,18 @@ namespace PAVisualiser
     {
         #region Threads
         /// <summary>
-        /// The display name of the save visualiser thread.
+        /// The display name of the save visualizer thread.
         /// </summary>
         public const string VISUALIZER_THREAD_NAME = "Visualizer";
         /// <summary>
-        /// The display name of the save visualiser window thread.
+        /// The display name of the save visualizer window thread.
         /// </summary>
-        public const string VISUALISER_WINDOW_THREAD_NAME = "VisualiserWindow";
+        public const string VISUALIZER_WINDOW_THREAD_NAME = "VisualizerWindow";
         #endregion
 
         #region Misc
-        public const string EXPORT_FOLDER = "visualised_saves";
-        public static readonly string EXPORT_FOLDER_PATH = Path.Join(PAConstants.ROOT_FOLDER, EXPORT_FOLDER);
+        public const string VISUALIZED_SAVES_DATA_FOLDER = "visualized_saves";
+        public static readonly string VISUALIZED_SAVES_DATA_FOLDER_PATH = Path.Join(PAConstants.ROOT_FOLDER, VISUALIZED_SAVES_DATA_FOLDER);
         public const string EXPORT_DATA_FILE = "data.txt";
         #endregion
 

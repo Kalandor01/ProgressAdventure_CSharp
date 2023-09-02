@@ -1,7 +1,7 @@
 ﻿using DrawingColor = System.Drawing.Color;
 using MediaColor = System.Windows.Media.Color;
 
-namespace PAVisualiser
+namespace PAVisualizer
 {
     public readonly struct ColorData
     {

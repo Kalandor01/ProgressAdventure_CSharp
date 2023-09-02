@@ -11,8 +11,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using PAConstants = ProgressAdventure.Constants;
+using PAUtils = ProgressAdventure.Utils;
+using PATools = ProgressAdventure.Tools;
 
-namespace PAVisualiser
+namespace PAVisualizer
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -22,10 +24,59 @@ namespace PAVisualiser
         #region Private fields
         private static readonly double WORLD_MOVE_CONSTANT = 0.2;
 
-        private bool selectedSave = false;
+        private bool _selectedSave;
+        private bool _isWorldVisible;
+        private bool _tileCountsNeedToBeRefreshed;
+
+        private string saveName;
+        private DateTime lastWorldChange;
+        private Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> worldTileTypeCounts;
+        private string worldInfoString;
+        
         private (double x, double y) center;
         private double worldGridScale;
         private List<WorldLayer> layers;
+        #endregion
+
+        #region Public properties
+        public bool SelectedSave
+        {
+            get => _selectedSave;
+            private set
+            {
+                _selectedSave = value;
+
+                closeMenuItem.IsEnabled = SelectedSave;
+                createImageMenuItem.IsEnabled = SelectedSave;
+                showSaveInfoMenuItem.IsEnabled = SelectedSave;
+                showWorldInfoMenuItem.IsEnabled = SelectedSave;
+                createSaveMenuItem.IsEnabled = SelectedSave;
+            }
+        }
+        public bool IsWorldVisible
+        {
+            get => _isWorldVisible && SelectedSave;
+            private set
+            {
+                _isWorldVisible = value;
+
+                revealAreaButton.IsEnabled = IsWorldVisible;
+            }
+        }
+
+        private bool TileCountsNeedToBeRefreshed
+        {
+            get => _tileCountsNeedToBeRefreshed;
+            set
+            {
+                _tileCountsNeedToBeRefreshed = value;
+
+                if (!value)
+                {
+                    worldInfoString = VisualizerTools.GetDisplayTileCountsData(worldTileTypeCounts);
+                }
+            }
+        }
         #endregion
 
         #region Public constructors
@@ -34,12 +85,19 @@ namespace PAVisualiser
             center = (0, 0);
             worldGridScale = 1;
             layers = new List<WorldLayer> { WorldLayer.Terrain };
+            saveName = string.Empty;
+            worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>();
+            worldInfoString = string.Empty;
+            TileCountsNeedToBeRefreshed = true;
 
             KeyDown += new KeyEventHandler(WorldGridMoveCommand);
             MouseWheel += new MouseWheelEventHandler(WorldGridZoomCommand);
 
             InitializeComponent();
             DataContext = this;
+
+            SelectedSave = false;
+            IsWorldVisible = false;
 
             terrainLayerCheckBox.IsChecked = true;
             structureLayerCheckBox.IsChecked = true;
@@ -51,39 +109,16 @@ namespace PAVisualiser
         #region Commands
         private void SelectSaveCommand(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new OpenFileDialog
-            {
-                InitialDirectory = Directory.GetCurrentDirectory(),
-            };
+            var saveStrings = VisualizerTools.GetSaveFolderFromFileDialog(this);
 
-            if (openFileDialog.ShowDialog(this) != true)
+            if (saveStrings is null)
             {
                 return;
             }
-
-            var saveFolderDataPath = openFileDialog.FileName;
-            if (Path.GetExtension(saveFolderDataPath) != "." + PAConstants.SAVE_EXT)
-            {
-                return;
-            }
-
-            var saveFolderPath = Path.GetDirectoryName(saveFolderDataPath);
-            if (saveFolderPath is null)
-            {
-                return;
-            }
-
-            var savesFolderPath = Directory.GetParent(saveFolderPath);
-            if (savesFolderPath is null)
-            {
-                return;
-            }
-
-            var saveName = saveFolderPath.Split(Path.DirectorySeparatorChar).Last();
 
             try
             {
-                SaveManager.LoadSave(saveName, false, false, savesFolderPath.FullName);
+                SaveManager.LoadSave(saveStrings.Value.saveFolderName, false, false, saveStrings.Value.saveFolderPath);
             }
             catch (Exception ex)
             {
@@ -93,9 +128,12 @@ namespace PAVisualiser
                 }
             }
 
-            World.LoadAllChunksFromFolder(saveName);
+            saveName = saveStrings.Value.saveFolderName;
+            World.LoadAllChunksFromFolder(saveName, "Loading chunks...");
 
-            selectedSave = true;
+            SelectedSave = true;
+            lastWorldChange = DateTime.Now;
+            TileCountsNeedToBeRefreshed = true;
 
             center = (0, 0);
             worldGridScale = 1;
@@ -104,12 +142,63 @@ namespace PAVisualiser
 
         private void CloseSaveCommand(object sender, RoutedEventArgs e)
         {
-            selectedSave = false;
+            SelectedSave = false;
             ClearWorldGrid();
+        }
+
+        private void CreateSaveCommand(object sender, RoutedEventArgs e)
+        {
+            if (!SelectedSave)
+            {
+                return;
+            }
+
+            SaveManager.MakeSave(false, "Saving...");
+        }
+
+        private void CreateImageCommand(object sender, RoutedEventArgs e)
+        {
+            if (!SelectedSave || !layers.Any())
+            {
+                return;
+            }
+
+            PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER, PAConstants.ROOT_FOLDER);
+
+            var visualizedSaveFolderName = $"{saveName}_{PAUtils.MakeDate(lastWorldChange)}_{PAUtils.MakeTime(lastWorldChange, ";")}";
+            var visualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName);
+
+            PATools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
+
+            var imageName = string.Join("-", layers) + ".png";
+            ConsoleVisualizer.MakeImage(layers, Path.Join(visualizedSavePath, imageName));
+        }
+
+        private void ShowSaveInfoCommand(object sender, RoutedEventArgs e)
+        {
+            if (!SelectedSave)
+            {
+                return;
+            }
+            new SaveInfoWindow().ShowDialog();
+        }
+
+        private void ShowWorldInfoCommand(object sender, RoutedEventArgs e)
+        {
+            if (!SelectedSave)
+            {
+                return;
+            }
+            new WorldInfoWindow(worldInfoString).ShowDialog();
         }
 
         private void WorldGridZoomCommand(object sender, MouseWheelEventArgs e)
         {
+            if (!SelectedSave)
+            {
+                return;
+            }
+
             var scrollUp = e.Delta > 0;
             worldGridScale *= scrollUp ? 1.1 : 0.9;
             worldGrid.RenderTransform = new ScaleTransform(worldGridScale, worldGridScale, center.x, center.y);
@@ -124,6 +213,11 @@ namespace PAVisualiser
 
         private void WorldGridMoveCommand(object sender, KeyEventArgs e)
         {
+            if (!SelectedSave)
+            {
+                return;
+            }
+
             var key = e.Key;
 
             var newCenter = center;
@@ -158,6 +252,11 @@ namespace PAVisualiser
 
         private void RevealAreaCommand(object sender, RoutedEventArgs e)
         {
+            if (!SelectedSave)
+            {
+                return;
+            }
+
             var corners = World.GetCorners();
 
             if (corners is null)
@@ -188,7 +287,7 @@ namespace PAVisualiser
         #region Private Methods
         private void ClearWorldGrid()
         {
-            revealAreaButton.IsEnabled = false;
+            IsWorldVisible = false;
             worldGrid.ColumnDefinitions.Clear();
             worldGrid.RowDefinitions.Clear();
             worldGrid.Children.Clear();
@@ -212,14 +311,66 @@ namespace PAVisualiser
 
             layers = newLayers;
 
-            if (selectedSave)
+            if (SelectedSave)
             {
                 RenderWorldArea();
             }
         }
 
+        private void AppendTileCounts(Tile tile)
+        {
+            if (
+                worldTileTypeCounts.TryGetValue(WorldLayer.Terrain, out Dictionary<ContentTypeID, long>? tCounts) &&
+                tCounts is not null &&
+                tCounts.ContainsKey(tile.terrain.subtype)
+            )
+            {
+                worldTileTypeCounts[WorldLayer.Terrain][tile.terrain.subtype]++;
+            }
+            else
+            {
+                worldTileTypeCounts[WorldLayer.Terrain][tile.terrain.subtype] = 1;
+            }
+
+            if (
+                worldTileTypeCounts.TryGetValue(WorldLayer.Structure, out Dictionary<ContentTypeID, long>? sCounts) &&
+                sCounts is not null &&
+                sCounts.ContainsKey(tile.structure.subtype)
+            )
+            {
+                worldTileTypeCounts[WorldLayer.Structure][tile.structure.subtype]++;
+            }
+            else
+            {
+                worldTileTypeCounts[WorldLayer.Structure][tile.structure.subtype] = 1;
+            }
+
+            if (
+                worldTileTypeCounts.TryGetValue(WorldLayer.Population, out Dictionary<ContentTypeID, long>? pCounts) &&
+                pCounts is not null &&
+                pCounts.ContainsKey(tile.population.subtype)
+            )
+            {
+                worldTileTypeCounts[WorldLayer.Population][tile.population.subtype]++;
+            }
+            else
+            {
+                worldTileTypeCounts[WorldLayer.Population][tile.population.subtype] = 1;
+            }
+        }
+
         private void RenderWorldArea(List<WorldLayer> layers, (long minX, long minY, long maxX, long maxY)? corners = null)
         {
+            if (TileCountsNeedToBeRefreshed)
+            {
+                worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>
+                {
+                    [WorldLayer.Terrain] = new Dictionary<ContentTypeID, long>(),
+                    [WorldLayer.Structure] = new Dictionary<ContentTypeID, long>(),
+                    [WorldLayer.Population] = new Dictionary<ContentTypeID, long>(),
+                };
+            }
+
             UpdateViewTextboxes();
 
             corners ??= World.GetCorners();
@@ -276,6 +427,12 @@ namespace PAVisualiser
                 foreach (var tile in chunk.Value.tiles)
                 {
                     var tileObj = tile.Value;
+
+                    if (TileCountsNeedToBeRefreshed)
+                    {
+                        AppendTileCounts(tileObj);
+                    }
+
                     var xPos = chunk.Value.basePosition.x + tileObj.relativePosition.x;
                     var yPos = chunk.Value.basePosition.y + tileObj.relativePosition.y;
 
@@ -306,7 +463,7 @@ namespace PAVisualiser
                         continue;
                     }
 
-                    var color = VisualiserTools.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
+                    var color = VisualizerTools.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
 
                     var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out object? height) ?
                         $"(height: {height})" :
@@ -315,7 +472,7 @@ namespace PAVisualiser
                     {
                         Children =
                         {
-                            new Label() { Content = $"Chunk seed: {Tools.SerializeRandom(chunk.Value.ChunkRandomGenerator)}" },
+                            new Label() { Content = $"Chunk seed: {PATools.SerializeRandom(chunk.Value.ChunkRandomGenerator)}" },
                             new Label() { Content = $"Terrain: {tileObj.terrain.GetSubtypeName()} {extraTerrainData}" },
                         }
                     };
@@ -349,7 +506,8 @@ namespace PAVisualiser
                 }
             }
 
-            revealAreaButton.IsEnabled = true;
+            IsWorldVisible = true;
+            TileCountsNeedToBeRefreshed = false;
         }
 
         private void UpdateViewTextboxes()
@@ -370,7 +528,7 @@ namespace PAVisualiser
 
         private void RevealArea((long minX, long minY, long maxX, long maxY) corners)
         {
-            if (!selectedSave)
+            if (!SelectedSave)
             {
                 return;
             }
@@ -383,6 +541,8 @@ namespace PAVisualiser
                     chunk.TryGetTile((x, y), out _);
                 }
             }
+            lastWorldChange = DateTime.Now;
+            TileCountsNeedToBeRefreshed = true;
         }
         #endregion
     }

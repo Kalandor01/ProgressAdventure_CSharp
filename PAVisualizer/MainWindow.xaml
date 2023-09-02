@@ -1,12 +1,12 @@
-﻿<Window x:Class="PAVisualiser.MainWindow"
+﻿<Window x:Class="PAVisualizer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PAVisualiser"
+        xmlns:local="clr-namespace:PAVisualizer"
+        d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         mc:Ignorable="d"
-        Title="Save world viewer" Height="850" Width="800"
-        DataContext="MainWindow}">
+        Title="Save world viewer" Height="850" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
@@ -15,15 +15,18 @@
         </Grid.RowDefinitions>
         <Menu DockPanel.Dock="Top" Grid.Row="0" Panel.ZIndex="100">
             <MenuItem Header="File">
-                <MenuItem Header="Select" Click="SelectSaveCommand"/>
-                <MenuItem Header="Close" Click="CloseSaveCommand"/>
-                <MenuItem Header="Save"/>
+                <MenuItem x:Name="selectMenuItem" Header="Select" Click="SelectSaveCommand"/>
+                <MenuItem x:Name="closeMenuItem" Header="Close" Click="CloseSaveCommand"/>
+                <MenuItem x:Name="createImageMenuItem" Header="Create image based on seleced layers" Click="CreateImageCommand"/>
+                <MenuItem x:Name="showSaveInfoMenuItem" Header="Save info" Click="ShowSaveInfoCommand"/>
+                <MenuItem x:Name="showWorldInfoMenuItem" Header="World info" Click="ShowWorldInfoCommand"/>
+                <MenuItem x:Name="createSaveMenuItem" Header="Save" Click="CreateSaveCommand"/>
             </MenuItem>
         </Menu>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Panel.ZIndex="100" Background="White">
             <Label x:Name="centerTextBox"></Label>
             <Label x:Name="diameterTextBox"></Label>
-            <Button x:Name="revealAreaButton" Click="RevealAreaCommand" IsEnabled="False">Reveal visible area</Button>
+            <Button x:Name="revealAreaButton" Click="RevealAreaCommand">Reveal visible area</Button>
             <Button x:Name="toggleLoggingWriteOut" Click="ToggleLoggingWriteOutCommand">Toggle logging in console: True</Button>
             <CheckBox x:Name="terrainLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Terrain layer</CheckBox>
             <CheckBox x:Name="structureLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Structure layer</CheckBox>

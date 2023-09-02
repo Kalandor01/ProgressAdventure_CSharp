@@ -54,16 +54,5 @@ namespace PAExtras
         /// </summary>
         public const long TILE_NOISE_DIVISION = 200;
         #endregion
-
-        #region Other
-        /// <summary>
-        /// The display name of the testing thread.
-        /// </summary>
-        public const string TEST_THREAD_NAME = "Test";
-        /// <summary>
-        /// The display name of the save visualiser thread.
-        /// </summary>
-        public const string VISUALIZER_THREAD_NAME = "Visualizer";
-        #endregion
     }
 }

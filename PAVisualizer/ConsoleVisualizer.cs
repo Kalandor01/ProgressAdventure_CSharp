@@ -13,9 +13,9 @@ using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
 using PAUtils = ProgressAdventure.Utils;
 
-namespace PAVisualiser
+namespace PAVisualizer
 {
-    public static class LegacyVisualiser
+    public static class ConsoleVisualizer
     {
         #region Public function
         public static ColorData GetTileColor(Tile tile, WorldLayer layer, Dictionary<ContentTypeID, long> tileTypeCounts, double opacityMultiplier = 1)
@@ -43,7 +43,7 @@ namespace PAVisualiser
                 tileTypeCounts[subtype] = 1;
             }
 
-            ColorData rawColor = VisualiserTools.contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
+            ColorData rawColor = VisualizerTools.contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
 
             return new ColorData(rawColor.R, rawColor.G, rawColor.B, (byte)Math.Clamp(rawColor.A * opacityMultiplier, 0, 255));
         }
@@ -55,13 +55,12 @@ namespace PAVisualiser
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
-        public static (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)? CreateWorldLayerImage(WorldLayer layer, out Bitmap? image, double opacityMultiplier = 1)
+        public static Dictionary<ContentTypeID, long>? CreateWorldLayerImage(WorldLayer layer, out Bitmap? image, double opacityMultiplier = 1)
         {
             (int x, int y) tileSize = (1, 1);
 
 
             var tileTypeCounts = new Dictionary<ContentTypeID, long>();
-            var totalTileCount = 0L;
 
             var worldCorners = World.GetCorners();
 
@@ -87,19 +86,27 @@ namespace PAVisualiser
                     var startX = x * tileSize.x;
                     var startY = size.y - y * tileSize.y - 1;
                     // find type
-                    totalTileCount++;
                     var color = GetTileColor(tile, layer, tileTypeCounts, opacityMultiplier);
-                    drawer.DrawRectangle(new Pen(color.ToDrawingColor()), startX, startY, tileSize.x, tileSize.y);
+
+                    if (tileSize.x > 2 && tileSize.y > 2)
+                    {
+                        drawer.FillRectangle(new SolidBrush(color.ToDrawingColor()), startX + 10, startY + 10, tileSize.x, tileSize.y);
+                    }
+                    else
+                    {
+                        (float x, float y) actualTileSize = (tileSize.x < 2 ? 0.5f : tileSize.x, tileSize.y < 2 ? 0.5f : tileSize.y);
+                        drawer.DrawRectangle(new Pen(color.ToDrawingColor()), startX, startY, actualTileSize.x, actualTileSize.y);
+                    }
                 }
             }
-            return (tileTypeCounts, totalTileCount);
+            return tileTypeCounts;
         }
 
-        public static Dictionary<WorldLayer, (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
+        public static Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
         {
             image = null;
 
-            var layerCounts = new Dictionary<WorldLayer, (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)>();
+            var layerCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>();
 
             foreach (var layer in Enum.GetValues<WorldLayer>())
             {
@@ -120,40 +127,31 @@ namespace PAVisualiser
                 return;
             }
 
-            var txt = new StringBuilder();
-            foreach (var layer in tileTypeCounts)
-            {
-                txt.AppendLine($"{layer.Key} tile types:");
-                foreach (var type in layer.Value.tileTypeCounts)
-                {
-                    txt.AppendLine($"\t{type.Key.ToString()?.Split(".").Last()}: {type.Value}");
-                }
-                txt.AppendLine($"\tTOTAL: {layer.Value.totalTileCount}\n");
-            }
-            Console.WriteLine(txt);
+            Console.WriteLine(VisualizerTools.GetDisplayTileCountsData(tileTypeCounts));
 
             image.Save(exportPath);
         }
 
         /// <summary>
-        /// Visualises the data in a save file.
+        /// Visualizes the data in a save file.
         /// </summary>
         /// <param name="saveName">The name of the save to read.</param>
-        public static void SaveVisualizer(string saveName)
+        /// <param name="savesFolderPath">The path to the saves folder.</param>
+        public static void SaveVisualizer(string saveName, string? savesFolderPath = null)
         {
             var now = DateTime.Now;
             var visualizedSaveFolderName = $"{saveName}_{PAUtils.MakeDate(now)}_{PAUtils.MakeTime(now, ";")}";
-            var displayVisualizedSavePath = Path.Join(Constants.EXPORT_FOLDER, visualizedSaveFolderName);
-            var visualizedSavePath = Path.Join(Constants.EXPORT_FOLDER_PATH, visualizedSaveFolderName);
+            var displayVisualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER, visualizedSaveFolderName);
+            var visualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName);
 
             // load
             try
             {
-                SaveManager.LoadSave(saveName, false, false);
+                SaveManager.LoadSave(saveName, false, false, savesFolderPath);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"ERROR: {e}");
+                PAUtils.PressKey($"ERROR: {e}");
                 return;
             }
 
@@ -162,13 +160,13 @@ namespace PAVisualiser
             txt.AppendLine($"---------------------------------------------------------------------------------------------------------------");
             txt.AppendLine($"EXPORTED DATA FROM \"{SaveData.saveName}\"");
             txt.AppendLine($"Loaded {PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}:");
-            txt.AppendLine(VisualiserTools.GetGeneralSaveData());
+            txt.AppendLine(VisualizerTools.GetDisplayGeneralSaveData());
             txt.Append("\n---------------------------------------------------------------------------------------------------------------");
             PAUtils.PressKey(txt.ToString());
             if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.saveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
             {
-                PATools.RecreateFolder(Constants.EXPORT_FOLDER);
-                PATools.RecreateFolder(visualizedSaveFolderName, Constants.EXPORT_FOLDER_PATH);
+                PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
+                PATools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
                 File.AppendAllText(Path.Join(visualizedSavePath, Constants.EXPORT_DATA_FILE), $"{txt}\n\n");
             }
 
@@ -179,14 +177,14 @@ namespace PAVisualiser
             }
 
             // get chunks data
-            PATools.RecreateFolder(Constants.EXPORT_FOLDER);
-            PATools.RecreateFolder(visualizedSaveFolderName, Constants.EXPORT_FOLDER_PATH);
+            PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
+            PATools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
             World.LoadAllChunksFromFolder(showProgressText: "Getting chunk data...");
 
             // make rectangle
             if (MenuManager.AskYesNoUIQuestion($"Do you want to generates the rest of the chunks in a way that makes the world rectangle shaped?", false))
             {
-                World.MakeRectangle("Generating chunks...");
+                World.MakeRectangle(null, "Generating chunks...");
             }
 
             // fill
@@ -210,31 +208,41 @@ namespace PAVisualiser
         #endregion
 
         #region Pivate fields
-        private static void CombineImageWithNewLayerImage(List<WorldLayer> layers, WorldLayer layer, ref Bitmap? image, Dictionary<WorldLayer, (Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount)> layerCounts)
+        private static double GetLayerOpacity(List<WorldLayer> layers, WorldLayer currentLayer)
         {
-            if (!layers.Contains(layer))
+            if (layers.Count < 2)
+            {
+                return 1;
+            }
+
+            return 1.0 / (layers.IndexOf(currentLayer) + 1);
+        }
+
+        private static void CombineImageWithNewLayerImage(List<WorldLayer> layers, WorldLayer currentLayer, ref Bitmap? image, Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> layerCounts)
+        {
+            if (!layers.Contains(currentLayer))
             {
                 return;
             }
 
-            var structureTileTypeCounts = CreateWorldLayerImage(layer, out Bitmap? structureImage, 1.0 / layers.Count);
+            var newTileTypeCounts = CreateWorldLayerImage(currentLayer, out Bitmap? newImage, GetLayerOpacity(layers, currentLayer));
 
-            if (structureTileTypeCounts is null || structureImage is null)
+            if (newTileTypeCounts is null || newImage is null)
             {
                 return;
             }
 
-            layerCounts.Add(layer, ((Dictionary<ContentTypeID, long> tileTypeCounts, long totalTileCount))structureTileTypeCounts);
+            layerCounts.Add(currentLayer, newTileTypeCounts);
 
             if (image is null)
             {
-                image = structureImage;
+                image = newImage;
             }
             else
             {
                 var graphics = Graphics.FromImage(image);
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                graphics.DrawImage(structureImage, 0, 0);
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                graphics.DrawImage(newImage, 0, 0);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using ProgressAdventure;
 using ProgressAdventure.Enums;
-using ProgressAdventure.WorldManagement;
 using System;
 using System.Text;
 using System.Threading;
@@ -9,7 +8,7 @@ using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
 using PAUtils = ProgressAdventure.Utils;
 
-namespace PAVisualiser
+namespace PAVisualizer
 {
     internal static class Program
     {
@@ -19,7 +18,7 @@ namespace PAVisualiser
         static void MainFunction()
         {
             Logger.DefaultWriteOut = false;
-            LegacyVisualiser.SaveVisualizer("test save");
+            ConsoleVisualizer.SaveVisualizer("test save");
         }
 
         /// <summary>
@@ -35,7 +34,7 @@ namespace PAVisualiser
         [STAThread]
         static void ShowMainWindowThread()
         {
-            Thread.CurrentThread.Name = Constants.VISUALISER_WINDOW_THREAD_NAME;
+            Thread.CurrentThread.Name = Constants.VISUALIZER_WINDOW_THREAD_NAME;
             var mainWindow = new MainWindow();
             var application = new Application();
             application.Run(mainWindow);
@@ -128,7 +127,7 @@ namespace PAVisualiser
         {
             PreloadingErrorHandler();
 
-            if (MenuManager.AskYesNoUIQuestion("Open visualiser GUI?"))
+            if (MenuManager.AskYesNoUIQuestion("Open visualizer GUI?"))
             {
                 ShowMainWindow();
             }

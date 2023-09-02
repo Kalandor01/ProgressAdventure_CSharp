@@ -1,15 +1,19 @@
-﻿using ProgressAdventure;
+﻿using Microsoft.Win32;
+using ProgressAdventure;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement.Content;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows;
+using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
 using PAUtils = ProgressAdventure.Utils;
 
-namespace PAVisualiser
+namespace PAVisualizer
 {
-    public static class VisualiserTools
+    public static class VisualizerTools
     {
         #region Config dictionaries
         /// <summary>
@@ -37,7 +41,7 @@ namespace PAVisualiser
         #endregion
 
         #region Public functions
-        public static string GetGeneralSaveData()
+        public static string GetDisplayGeneralSaveData()
         {
             var txt = new StringBuilder();
             txt.AppendLine($"Save name: {SaveData.saveName}");
@@ -50,6 +54,58 @@ namespace PAVisualiser
             txt.AppendLine($"Chunk seed modifier: {PATools.SerializeRandom(RandomStates.WorldRandom)}");
             txt.Append($"\nTile type noise seeds:\n{string.Join("\n", RandomStates.TileTypeNoiseSeeds.Select(ttns => $"{ttns.Key.ToString().Capitalize()} seed: {ttns.Value}"))}");
             return txt.ToString();
+        }
+
+        public static string GetDisplayTileCountsData(Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> tileTypeCounts)
+        {
+            var txt = new StringBuilder();
+            foreach (var layer in tileTypeCounts)
+            {
+                var total = 0L;
+                txt.AppendLine($"{layer.Key} tile types:");
+                foreach (var type in layer.Value)
+                {
+                    txt.AppendLine($"\t{type.Key.ToString()?.Split(".").Last()}: {type.Value}");
+                    total += type.Value;
+                }
+                txt.AppendLine($"\tTOTAL: {total}\n");
+            }
+            return txt.ToString();
+        }
+
+        public static (string saveFolderName, string saveFolderPath)? GetSaveFolderFromFileDialog(Window window)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                InitialDirectory = PAConstants.SAVES_FOLDER_PATH,
+            };
+
+            if (openFileDialog.ShowDialog(window) != true)
+            {
+                return null;
+            }
+
+            var saveFolderDataPath = openFileDialog.FileName;
+            if (Path.GetExtension(saveFolderDataPath) != "." + PAConstants.SAVE_EXT)
+            {
+                return null;
+            }
+
+            var saveFolderPath = Path.GetDirectoryName(saveFolderDataPath);
+            if (saveFolderPath is null)
+            {
+                return null;
+            }
+
+            var savesFolderPath = Directory.GetParent(saveFolderPath);
+            if (savesFolderPath is null)
+            {
+                return null;
+            }
+
+            var saveName = saveFolderPath.Split(Path.DirectorySeparatorChar).Last();
+
+            return (saveName, savesFolderPath.FullName);
         }
         #endregion
     }

@@ -1,4 +1,4 @@
-﻿namespace PAVisualiser
+﻿namespace PAVisualizer
 {
     public enum WorldLayer
     {
