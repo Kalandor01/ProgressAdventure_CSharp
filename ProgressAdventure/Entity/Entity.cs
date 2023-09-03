@@ -445,9 +445,15 @@ namespace ProgressAdventure.Entity
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        public static bool FromJson<T>(IDictionary<string, object?>? entityJson, string fileVersion, out T? entityObject)
+        public static bool FromJsonWithoutGeneralCorrection<T>(IDictionary<string, object?>? entityJson, string fileVersion, out T? entityObject)
             where T : Entity<T>
         {
+            if (entityJson is null)
+            {
+                entityObject = null;
+                return false;
+            }
+
             var success = AnyEntityFromJsonPrivate(typeof(T), entityJson, fileVersion, out Entity? entity);
             entityObject = (T?)entity;
             return success;
@@ -461,38 +467,32 @@ namespace ProgressAdventure.Entity
         /// <param name="entityObject">The converted entity object.</param>
         public static bool AnyEntityFromJson(IDictionary<string, object?>? entityJson, string fileVersion, out Entity? entityObject)
         {
+            entityObject = null;
             if (entityJson is null)
             {
                 Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
-                entityObject = null;
                 return false;
             }
 
             if (
-                entityJson.TryGetValue("type", out object? entityTypeValue) &&
-                entityTypeValue is not null
+                !entityJson.TryGetValue("type", out object? entityTypeValue) ||
+                entityTypeValue is null
             )
             {
-                if (
-                    EntityUtils.entityTypeMap.TryGetValue(entityTypeValue.ToString() ?? "", out Type? entityType) &&
-                    entityType is not null
-                )
-                {
-                    return AnyEntityFromJsonPrivate(entityType, entityJson, fileVersion, out entityObject);
-                }
-                else
-                {
-                    Logger.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
-                    entityObject = null;
-                    return false;
-                }
-            }
-            else
-            {
                 Logger.Log("Entity parse error", "entity type json is null", LogSeverity.ERROR);
-                entityObject = null;
                 return false;
             }
+
+            if (
+                !EntityUtils.entityTypeMap.TryGetValue(entityTypeValue.ToString() ?? "", out Type? entityType) ||
+                entityType is null
+            )
+            {
+                Logger.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
+                return false;
+            }
+
+            return AnyEntityFromJsonPrivate(entityType, entityJson, fileVersion, out entityObject);
         }
 
         /// <summary>
@@ -527,7 +527,7 @@ namespace ProgressAdventure.Entity
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        private static bool AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?>? entityJson, string fileVersion, out Entity? entityObject)
+        private static bool AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?> entityJson, string fileVersion, out Entity? entityObject)
         {
             var success = FromJsonPrivate(entityJson, fileVersion, out (
                 string? name,
@@ -542,13 +542,7 @@ namespace ProgressAdventure.Entity
                 List<AItem>? drops,
                 (long x, long y)? position,
                 Facing? facing
-            )? entityData);
-
-            if (entityData is null || entityJson is null)
-            {
-                entityObject = null;
-                return false;
-            }
+            ) entityData);
 
             // get entity
             var constructor = entityType.GetConstructor(
@@ -568,7 +562,7 @@ namespace ProgressAdventure.Entity
         /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityData">The basic data of the entity.</param>
-        private static bool FromJsonPrivate(IDictionary<string, object?>? entityJson, string fileVersion, out (
+        private static bool FromJsonPrivate(IDictionary<string, object?> entityJson, string fileVersion, out (
             string? name,
             int? baseMaxHp,
             int? currentHp,
@@ -581,82 +575,8 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
-        )? entityData)
+        ) entityData)
         {
-            if (entityJson is null)
-            {
-                Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
-                entityData = null;
-                return false;
-            }
-
-
-            //correct data
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
-            {
-                Logger.Log("Entity json data is old", "correcting data");
-                // 2.1 -> 2.1.1
-                var newFileVersion = "2.1.1";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // renamed speed to agility
-                    if (entityJson.TryGetValue("baseSpeed", out object? baseSpeedValue))
-                    {
-                        entityJson["baseAgility"] = baseSpeedValue;
-                    }
-
-                    Logger.Log("Corrected entity json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                // 2.1.1 -> 2.2
-                newFileVersion = "2.2";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // snake case keys
-                    if (entityJson.TryGetValue("baseMaxHp", out object? baseMaxHpRename))
-                    {
-                        entityJson["base_max_hp"] = baseMaxHpRename;
-                    }
-                    if (entityJson.TryGetValue("currentHp", out object? chRename))
-                    {
-                        entityJson["current_hp"] = chRename;
-                    }
-                    if (entityJson.TryGetValue("baseAttack", out object? baRename))
-                    {
-                        entityJson["base_attack"] = baRename;
-                    }
-                    if (entityJson.TryGetValue("baseDefence", out object? bdRename))
-                    {
-                        entityJson["base_defence"] = bdRename;
-                    }
-                    if (entityJson.TryGetValue("baseAgility", out object? ba2Rename))
-                    {
-                        entityJson["base_agility"] = ba2Rename;
-                    }
-                    if (entityJson.TryGetValue("originalTeam", out object? otRename))
-                    {
-                        entityJson["original_team"] = otRename;
-                    }
-                    if (entityJson.TryGetValue("currentTeam", out object? ctRename))
-                    {
-                        entityJson["current_team"] = ctRename;
-                    }
-                    if (entityJson.TryGetValue("xPos", out object? xpRename))
-                    {
-                        entityJson["x_position"] = xpRename;
-                    }
-                    if (entityJson.TryGetValue("yPos", out object? ypRnename))
-                    {
-                        entityJson["y_position"] = ypRnename;
-                    }
-
-                    Logger.Log("Corrected entity json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                Logger.Log("Entity json data corrected");
-            }
-
-            //convert
             var success = true;
 
             // name
@@ -820,7 +740,7 @@ namespace ProgressAdventure.Entity
                 drops = new List<AItem>();
                 foreach (var dropJson in dropList)
                 {
-                    success &= AItem.FromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
+                    success &= Tools.FromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
                     if (itemObject is not null)
                     {
                         drops.Add(itemObject);

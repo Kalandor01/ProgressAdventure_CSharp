@@ -9,7 +9,7 @@ namespace ProgressAdventure.Entity
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public class Entity<TEntity> : Entity, IJsonConvertable<TEntity>
-        where TEntity : Entity<TEntity>
+        where TEntity : Entity<TEntity>, IJsonConvertable<TEntity>
     {
         /// <summary>
         /// <inheritdoc cref="Entity"/><br/>
@@ -51,9 +51,64 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops = null
         ) : base(name, stats, drops) { }
 
-        public static bool FromJson(IDictionary<string, object?>? entityJson, string fileVersion, out TEntity? entityObject)
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> BaseVersionCorrecters { get; } = new()
         {
-            return FromJson<TEntity>(entityJson, fileVersion, out entityObject);
+            // 2.1 -> 2.1.1
+            (oldJson =>
+            {
+                // renamed speed to agility
+                if (oldJson.TryGetValue("baseSpeed", out object? baseSpeedValue))
+                {
+                    oldJson["baseAgility"] = baseSpeedValue;
+                }
+            }, "2.1.1"),
+            // 2.1.1 -> 2.2
+            (oldJson =>
+            {
+                // snake case keys
+                if (oldJson.TryGetValue("baseMaxHp", out object? baseMaxHpRename))
+                {
+                    oldJson["base_max_hp"] = baseMaxHpRename;
+                }
+                if (oldJson.TryGetValue("currentHp", out object? chRename))
+                {
+                    oldJson["current_hp"] = chRename;
+                }
+                if (oldJson.TryGetValue("baseAttack", out object? baRename))
+                {
+                    oldJson["base_attack"] = baRename;
+                }
+                if (oldJson.TryGetValue("baseDefence", out object? bdRename))
+                {
+                    oldJson["base_defence"] = bdRename;
+                }
+                if (oldJson.TryGetValue("baseAgility", out object? ba2Rename))
+                {
+                    oldJson["base_agility"] = ba2Rename;
+                }
+                if (oldJson.TryGetValue("originalTeam", out object? otRename))
+                {
+                    oldJson["original_team"] = otRename;
+                }
+                if (oldJson.TryGetValue("currentTeam", out object? ctRename))
+                {
+                    oldJson["current_team"] = ctRename;
+                }
+                if (oldJson.TryGetValue("xPos", out object? xpRename))
+                {
+                    oldJson["x_position"] = xpRename;
+                }
+                if (oldJson.TryGetValue("yPos", out object? ypRnename))
+                {
+                    oldJson["y_position"] = ypRnename;
+                }
+            }, "2.2"),
+        };
+
+        static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref TEntity? convertedObject)
+        {
+            Tools.CorrectJsonData<TEntity>(ref objectJson, BaseVersionCorrecters, fileVersion);
+            return FromJsonWithoutGeneralCorrection(objectJson, fileVersion, out convertedObject);
         }
     }
 }

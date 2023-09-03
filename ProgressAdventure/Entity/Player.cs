@@ -8,7 +8,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// The player entity.
     /// </summary>
-    public class Player : Entity<Player>
+    public class Player : Entity<Player>, IJsonConvertable<Player>
     {
         #region Public fields
         /// <summary>
@@ -124,6 +124,19 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region JsonConvertable
+        #region Protected properties
+        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>  MiscVersionCorrecters { get; } = new()
+        {
+            // 2.0 -> 2.0.1
+            (oldJson =>
+            {
+                // inventory items in dictionary
+                oldJson.TryGetValue("inventory", out object? inventoryJson);
+                oldJson["inventory"] = new Dictionary<string, object?>() { ["items"] = inventoryJson };
+            }, "2.0.1"),
+        };
+        #endregion
+
         #region Constructors
         /// <summary>
         /// <inheritdoc cref="Player"/><br/>
@@ -159,31 +172,14 @@ namespace ProgressAdventure.Entity
 
         protected override void FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
-            //correct data
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
-            {
-                Logger.Log("Player json data is old", "correcting data");
-                // 2.0 -> 2.0.1
-                var newFileVersion = "2.0.1";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // inventory items in dictionary
-                    miscJson.TryGetValue("inventory", out object? inventoryJson);
-                    miscJson["inventory"] = new Dictionary<string, object?>() { ["items"] = inventoryJson };
+            Tools.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
 
-                    Logger.Log("Corrected player json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                Logger.Log("Player json data corrected");
-            }
-
-            //convert
             Inventory? inventoryTemp = null;
             if (
                 miscJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                Inventory.FromJson(inventoryValue as IDictionary<string, object?>, fileVersion, out inventoryTemp);
+                Tools.FromJson(inventoryValue as IDictionary<string, object?>, fileVersion, out inventoryTemp);
             }
             else
             {

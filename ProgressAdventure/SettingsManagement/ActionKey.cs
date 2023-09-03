@@ -138,6 +138,19 @@ namespace ProgressAdventure.SettingsManagement
         #endregion
 
         #region JsonConvert
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<ActionKey>.VersionCorrecters { get; } = new()
+        {
+            // 2.1.1 -> 2.2
+            (oldJson =>
+            {
+                // key rename
+                if (oldJson.TryGetValue("keyChar", out var kcRename))
+                {
+                    oldJson["key_char"] = kcRename;
+                }
+            }, "2.2"),
+        };
+
         public Dictionary<string, object?> ToJson()
         {
             var keyListJson = new List<Dictionary<string, object>>();
@@ -154,39 +167,16 @@ namespace ProgressAdventure.SettingsManagement
             return new Dictionary<string, object?> { [actionType.ToString().ToLower()] = keyListJson };
         }
 
-        public static bool FromJson(IDictionary<string, object?>? actionKeyJson, string fileVersion, out ActionKey? actionKeyObject)
+        static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(IDictionary<string, object?> actionKeyJson, string fileVersion, ref ActionKey? actionKeyObject)
         {
-            if (
-                actionKeyJson is null ||
-                !actionKeyJson.Any()
-            )
+            if (!actionKeyJson.Any())
             {
                 Logger.Log("Action key parse error", "action key json is null", LogSeverity.WARN);
-                actionKeyObject = null;
                 return false;
             }
 
-            //correct data
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
-            {
-                Logger.Log($"Action key json data is old", "correcting data");
-                // 2.1.1 -> 2.2
-                var newFileVersion = "2.2";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // item material
-                    if (actionKeyJson.TryGetValue("keyChar", out var kcRename))
-                    {
-                        actionKeyJson["key_char"] = kcRename;
-                    }
-
-                    Logger.Log("Corrected action key json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                Logger.Log($"Action key json data corrected");
-            }
-
             var actionJson = actionKeyJson.First();
+
             if (
                 Enum.TryParse(actionJson.Key.ToUpper(), out ActionType actionType) &&
                 Enum.IsDefined(actionType) &&
@@ -223,7 +213,6 @@ namespace ProgressAdventure.SettingsManagement
             else
             {
                 Logger.Log("Action key parse error", $"couldn't parse action from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
-                actionKeyObject = null;
                 return false;
             }
         }

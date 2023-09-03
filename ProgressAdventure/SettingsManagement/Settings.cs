@@ -193,18 +193,18 @@ namespace ProgressAdventure.SettingsManagement
         public static Keybinds GetKeybins()
         {
             var keybindsDict = SettingsManager(SettingsKey.KEYBINDS);
-            Keybinds keybinds;
+            Keybinds? keybinds;
             try
             {
-                Keybinds.FromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
+                Tools.FromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
             }
             catch (Exception e)
             {
                 Logger.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + e.ToString(), LogSeverity.ERROR);
-                keybinds = new Keybinds(SettingsUtils.GetDefaultKeybindList());
+                keybinds = new Keybinds();
                 SettingsManager(SettingsKey.KEYBINDS, keybinds.ToJson());
             }
-            return keybinds;
+            return keybinds ?? new Keybinds();
         }
 
         /// <summary>
@@ -330,7 +330,7 @@ namespace ProgressAdventure.SettingsManagement
                     Keybinds? oldKb = null;
                     try
                     {
-                        Keybinds.FromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
+                        Tools.FromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
                     }
                     catch (Exception e)
                     {

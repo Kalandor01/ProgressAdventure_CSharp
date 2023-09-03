@@ -209,33 +209,29 @@ namespace ProgressAdventure.ItemManagement
             return new Dictionary<string, object?> { ["items"] = itemsListJson };
         }
 
-        public static bool FromJson(IDictionary<string, object?>? inventoryJson, string fileVersion, out Inventory? inventory)
+        static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(IDictionary<string, object?> inventoryJson, string fileVersion, ref Inventory? inventory)
         {
             if (
-                inventoryJson is not null &&
-                inventoryJson.TryGetValue("items", out object? itemsJson) &&
-                itemsJson is IEnumerable itemList
+                !inventoryJson.TryGetValue("items", out object? itemsJson) ||
+                itemsJson is not IEnumerable itemList
             )
             {
-                var success = true;
-                var items = new List<AItem>();
-                foreach (var itemJson in itemList)
-                {
-                    success &= AItem.FromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? item);
-                    if (item is not null)
-                    {
-                        items.Add(item);
-                    }
-                }
-                inventory = new Inventory(items);
-                return success;
-            }
-            else
-            {
                 Logger.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
-                inventory = null;
                 return false;
             }
+
+            var success = true;
+            var items = new List<AItem>();
+            foreach (var itemJson in itemList)
+            {
+                success &= Tools.FromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? item);
+                if (item is not null)
+                {
+                    items.Add(item);
+                }
+            }
+            inventory = new Inventory(items);
+            return success;
         }
         #endregion
     }

@@ -158,7 +158,7 @@ namespace ProgressAdventure
             _ = TimeSpan.TryParse(data["playtime"]?.ToString(), out var playtime);
             // player
             var playerData = data["player"] as IDictionary<string, object?>;
-            Player.FromJson(playerData, saveVersion, out Player? player);
+            Tools.FromJson(playerData, saveVersion, out Player? player);
             Logger.Log("Loaded save data from json", $"save name: {saveName}");
 
             // PREPARING

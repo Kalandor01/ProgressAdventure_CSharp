@@ -9,6 +9,7 @@ using SaveFileManager;
 using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
+using PATools = ProgressAdventure.Tools;
 
 namespace ProgressAdventureTests
 {
@@ -379,7 +380,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     var itemJson = item.ToJson();
-                    var success = AItem.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
+                    var success = PATools.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
 
                     if (loadedAItem is null || !success)
                     {
@@ -449,7 +450,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     var itemJson = item.ToJson();
-                    var success = AItem.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
+                    var success = PATools.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
 
                     if (loadedAItem is null || !success)
                     {

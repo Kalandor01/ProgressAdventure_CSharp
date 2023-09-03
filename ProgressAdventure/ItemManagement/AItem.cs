@@ -180,6 +180,44 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvert
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<AItem>.VersionCorrecters { get; } = new()
+        {
+            // 2.0.2 -> 2.1
+            (oldJson =>
+            {
+                // inventory items in dictionary
+                if (
+                    oldJson.TryGetValue("type", out var typeIDValue) &&
+                    int.TryParse(typeIDValue?.ToString(), out int itemID) &&
+                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName)
+                )
+                {
+                    oldJson["type"] = itemName;
+                }
+            }, "2.1"),
+            // 2.1.1 -> 2.2
+            (oldJson =>
+            {
+                // item material
+                if (!oldJson.TryGetValue("type", out var typeValue))
+                {
+                    return;
+                }
+
+                if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson))
+                {
+                    oldJson["type"] = compoundItemFixedJson.typeName;
+                    oldJson["material"] = "WOOD";
+                    oldJson["parts"] = compoundItemFixedJson.partsJson;
+                }
+                else if (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed))
+                {
+                    oldJson["type"] = "misc/material";
+                    oldJson["material"] = materialItemFixed;
+                }
+            }, "2.2"),
+        };
+
         public virtual Dictionary<string, object?> ToJson()
         {
             return new Dictionary<string, object?>
@@ -190,62 +228,8 @@ namespace ProgressAdventure.ItemManagement
             };
         }
 
-        public static bool FromJson(IDictionary<string, object?>? itemJson, string fileVersion, out AItem? itemObject)
+        static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref AItem? itemObject)
         {
-            itemObject = null;
-            if (itemJson is null)
-            {
-                Logger.Log("Item parse error", "item json is null", LogSeverity.ERROR);
-                return false;
-            }
-
-            //correct data
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
-            {
-                Logger.Log($"Item json data is old", "correcting data");
-                // 2.0.2 -> 2.1
-                var newFileVersion = "2.1";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // inventory items in dictionary
-                    if (
-                        itemJson.TryGetValue("type", out var typeIDValue) &&
-                        int.TryParse(typeIDValue?.ToString(), out int itemID) &&
-                        ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName))
-                    {
-                        itemJson["type"] = itemName;
-                    }
-
-                    Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                // 2.1.1 -> 2.2
-                newFileVersion = "2.2";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // item material
-                    if (itemJson.TryGetValue("type", out var typeValue))
-                    {
-                        if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson))
-                        {
-                            itemJson["type"] = compoundItemFixedJson.typeName;
-                            itemJson["material"] = "WOOD";
-                            itemJson["parts"] = compoundItemFixedJson.partsJson;
-                        }
-                        else if (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed))
-                        {
-                            itemJson["type"] = "misc/material";
-                            itemJson["material"] = materialItemFixed;
-                        }
-                    }
-
-                    Logger.Log("Corrected item json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                Logger.Log($"Item json data corrected");
-            }
-
-            //convert
             if (!itemJson.TryGetValue("type", out var typeNameValue))
             {
                 Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
@@ -257,12 +241,12 @@ namespace ProgressAdventure.ItemManagement
                 bool success;
                 if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
                 {
-                    success = MaterialItem.FromJson(itemJson, fileVersion, out MaterialItem? materialObj);
+                    success = Tools.FromJson(itemJson, fileVersion, out MaterialItem? materialObj);
                     itemObject = materialObj;
                     return success;
                 }
 
-                success = CompoundItem.FromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
+                success = Tools.FromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
                 itemObject = compoundObj;
                 return success;
             }

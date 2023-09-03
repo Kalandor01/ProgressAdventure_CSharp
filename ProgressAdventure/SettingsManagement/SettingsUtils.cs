@@ -154,7 +154,7 @@ namespace ProgressAdventure.SettingsManagement
             {
                 [SettingsKey.AUTO_SAVE.ToString()] = true,
                 [SettingsKey.LOGGING_LEVEL.ToString()] = 0,
-                [SettingsKey.KEYBINDS.ToString()] = new Keybinds(GetDefaultKeybindList()).ToJson(),
+                [SettingsKey.KEYBINDS.ToString()] = new Keybinds().ToJson(),
                 [SettingsKey.ASK_DELETE_SAVE.ToString()] = true,
                 [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = true,
                 [SettingsKey.DEF_BACKUP_ACTION.ToString()] = -1,

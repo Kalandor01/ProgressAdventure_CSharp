@@ -595,6 +595,60 @@ namespace ProgressAdventure
             // v. <=
             return false;
         }
+
+        /// <summary>
+        /// Tries to convert the json representation of the object to an object format.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="convertedObject">The object representation of the json.</param>
+        /// <returns>If the conversion was succesfull without any warnings.</returns>
+        public static bool FromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion, out T? convertedObject)
+            where T : IJsonConvertable<T>
+        {
+            return T.FromJson(objectJson, fileVersion, out convertedObject);
+        }
+
+        /// <summary>
+        /// Corrects the json data to a specific version.
+        /// </summary>
+        /// <param name="objectJsonCorrecter">The correcter function.</param>
+        /// <param name="objectJson">The json data to correct.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="newFileVersion">The version number, this function will correct the json data to.</param>
+        public static void CorrectJsonDataVersion<T>(Action<IDictionary<string, object?>> objectJsonCorrecter, ref IDictionary<string, object?> objectJson, ref string fileVersion, string newFileVersion)
+        {
+            if (!IsUpToDate(newFileVersion, fileVersion))
+            {
+                objectJsonCorrecter(objectJson);
+
+                Logger.Log($"Corrected {typeof(T)} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                fileVersion = newFileVersion;
+            }
+        }
+
+        /// <summary>
+        /// Mimics the CorrectJsonData() part of the FromJson() function.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static void CorrectJsonData<T>(
+            ref IDictionary<string, object?> objectJson,
+            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion)
+        {
+            if (IsUpToDate(Constants.SAVE_VERSION, fileVersion))
+            {
+                return;
+            }
+
+            Logger.Log($"{typeof(T)} json data is old", "correcting data");
+            foreach (var (objectJsonCorrecter, newFileVersion) in correcters)
+            {
+                CorrectJsonDataVersion<T>(objectJsonCorrecter, ref objectJson, ref fileVersion, newFileVersion);
+            }
+            Logger.Log($"{typeof(T)} json data corrected");
+        }
         #endregion
         #endregion
 

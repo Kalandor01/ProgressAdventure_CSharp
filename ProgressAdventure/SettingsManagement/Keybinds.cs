@@ -1,5 +1,4 @@
 ﻿using ProgressAdventure.Enums;
-using System.Text;
 
 namespace ProgressAdventure.SettingsManagement
 {
@@ -42,8 +41,12 @@ namespace ProgressAdventure.SettingsManagement
             {
                 Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
             }
+
             KeybindList = actions ?? SettingsUtils.GetDefaultKeybindList();
         }
+
+        public Keybinds()
+            : this(SettingsUtils.GetDefaultKeybindList()) { }
         #endregion
 
         #region Public methods
@@ -160,20 +163,13 @@ namespace ProgressAdventure.SettingsManagement
             return keybindsJson;
         }
 
-        public static bool FromJson(IDictionary<string, object?>? keybindsJson, string fileVersion, out Keybinds keybinds)
+        static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(IDictionary<string, object?> keybindsJson, string fileVersion, ref Keybinds? keybinds)
         {
-            if (keybindsJson is null)
-            {
-                Logger.Log("Keybinds parse error", "keybinds json is null", LogSeverity.WARN);
-                keybinds = new Keybinds(null);
-                return false;
-            }
-
             var success = true;
             var actions = new List<ActionKey>();
             foreach (var actionJson in keybindsJson)
             {
-                success &= ActionKey.FromJson(
+                success &= Tools.FromJson(
                     new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value },
                     fileVersion,
                     out ActionKey? actionKey
