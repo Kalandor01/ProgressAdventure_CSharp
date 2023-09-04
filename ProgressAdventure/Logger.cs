@@ -14,7 +14,7 @@ namespace ProgressAdventure
         /// </summary>
         internal static readonly Dictionary<LogSeverity, int> loggingValuesMap = new()
         {
-            [LogSeverity.MINIMAL] = -1,
+            [LogSeverity.DISABLED] = -1,
             [LogSeverity.DEBUG] = (int)LogSeverity.DEBUG,
             [LogSeverity.INFO] = (int)LogSeverity.INFO,
             [LogSeverity.WARN] = (int)LogSeverity.WARN,
@@ -32,6 +32,14 @@ namespace ProgressAdventure
         /// The default value for is the logs should be writen out to the console.
         /// </summary>
         private static bool _defaultWriteOut = false;
+        /// <summary>
+        /// If logging is enabled or not.
+        /// </summary>
+        private static bool _isLoggingEnabled = true;
+        /// <summary>
+        /// The current logging level.
+        /// </summary>
+        private static LogSeverity _loggingLevel = LogSeverity.DEBUG;
         #endregion
 
         #region Public properties
@@ -53,6 +61,22 @@ namespace ProgressAdventure
                 }
             }
         }
+
+        /// <summary>
+        /// <inheritdoc cref="_isLoggingEnabled" path="//summary"/>
+        /// </summary>
+        public static bool LoggingEnabled { get => _isLoggingEnabled; private set => _isLoggingEnabled = value; }
+
+        /// <summary>
+        /// <inheritdoc cref="_loggingLevel" path="//summary"/>
+        /// </summary>
+        public static LogSeverity LoggingLevel {
+            get => _loggingLevel;
+            set
+            {
+                ChangeLoggingLevel(value);
+            }
+        }
         #endregion
 
         #region Public functions
@@ -60,15 +84,15 @@ namespace ProgressAdventure
         /// Progress Adventure logger.
         /// </summary>
         /// <param name="message">The message to log.</param>
-        /// <param name="detail">The details of the message.</param>
+        /// <param name="details">The details of the message.</param>
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
         /// <param name="newLine">Whether to write a new line before the message. or not.</param>
-        public static void Log(string message, string? detail = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        public static void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             try
             {
-                if (Constants.LOGGING_ENABLED && loggingValuesMap[Constants.LOGGING_LEVEL] <= loggingValuesMap[severity])
+                if (LoggingEnabled && loggingValuesMap[LoggingLevel] <= loggingValuesMap[severity])
                 {
                     var now = DateTime.Now;
                     var currentDate = Utils.MakeDate(now);
@@ -80,7 +104,7 @@ namespace ProgressAdventure
                         {
                             f.Write("\n");
                         }
-                        f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {detail}\n");
+                        f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n");
                     }
                     if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
                     {
@@ -88,13 +112,13 @@ namespace ProgressAdventure
                         {
                             Console.WriteLine();
                         }
-                        Console.WriteLine($"{Path.Join(Constants.LOGS_FOLDER, $"{currentDate}.{Constants.LOG_EXT}")} -> [{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {detail}");
+                        Console.WriteLine($"{Path.Join(Constants.LOGS_FOLDER, $"{currentDate}.{Constants.LOG_EXT}")} -> [{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}");
                     }
                 }
             }
             catch (Exception e)
             {
-                if (Constants.LOGGING_ENABLED)
+                if (LoggingEnabled)
                 {
                     try
                     {
@@ -111,37 +135,13 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled or not.
-        /// </summary>
-        /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
-        public static void ChangeLoggingLevel(LogSeverity value)
-        {
-            if (Constants.LOGGING_LEVEL != value)
-            {
-                // logging level
-                var oldLoggingLevel = Constants.LOGGING_LEVEL;
-                var logginValue = loggingValuesMap[value];
-                Constants.LOGGING_LEVEL = value;
-                Log("Logging level changed", $"{oldLoggingLevel} -> {Constants.LOGGING_LEVEL}");
-                
-                // logging
-                var oldLogging = Constants.LOGGING_ENABLED;
-                Constants.LOGGING_ENABLED = logginValue != -1;
-                if (Constants.LOGGING_ENABLED != oldLogging)
-                {
-                    Log($"Logging {(Constants.LOGGING_ENABLED ? "enabled" : "disabled")}");
-                }
-            }
-        }
-
-        /// <summary>
         /// Puts a newline in the logs.
         /// </summary>
         public static void LogNewLine()
         {
             try
             {
-                if (Constants.LOGGING_ENABLED)
+                if (LoggingEnabled)
                 {
                     Tools.RecreateLogsFolder();
                     using var f = File.AppendText(Path.Join(Constants.LOGS_FOLDER_PATH, $"{Utils.MakeDate(DateTime.Now)}.{Constants.LOG_EXT}"));
@@ -150,10 +150,36 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                if (Constants.LOGGING_ENABLED)
+                if (LoggingEnabled)
                 {
                     using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
                     f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOG NEW LINE CRASHED]\t: |{e}|\n");
+                }
+            }
+        }
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled or not.
+        /// </summary>
+        /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
+        private static void ChangeLoggingLevel(LogSeverity value)
+        {
+            if (_loggingLevel != value)
+            {
+                // logging level
+                var oldLoggingLevel = _loggingLevel;
+                var logginValue = loggingValuesMap[value];
+                _loggingLevel = value;
+                Log("Logging level changed", $"{oldLoggingLevel} -> {_loggingLevel}");
+
+                // logging enabled
+                var oldLogging = LoggingEnabled;
+                LoggingEnabled = logginValue != -1;
+                if (LoggingEnabled != oldLogging)
+                {
+                    Log($"Logging {(LoggingEnabled ? "enabled" : "disabled")}");
                 }
             }
         }

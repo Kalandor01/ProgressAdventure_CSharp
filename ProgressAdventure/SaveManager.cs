@@ -113,7 +113,7 @@ namespace ProgressAdventure
                 // old save version key
                 if (data.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
                 {
-                    Logger.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.WARN);
+                    Logger.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
 
                     saveVersion = (string)versionValueBackup;
                 }
@@ -289,7 +289,7 @@ namespace ProgressAdventure
                     // old save version key
                     if (data.data.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
                     {
-                        Logger.Log("Old style save version (< 2.2)", $"save name: {data.folderName}", LogSeverity.WARN);
+                        Logger.Log("Old style save version (< 2.2)", $"save name: {data.folderName}", LogSeverity.INFO);
 
                         saveVersion = (string)versionValueBackup;
                     }

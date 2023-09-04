@@ -398,6 +398,7 @@ namespace PAExtras
 
             return new Dictionary<string, object>
             {
+                ["saveVersion"] = "2.0",
                 ["chunkRandom"] = PATools.SerializeRandom(GetChunkRandom(basePosition, chunkSeedMod, tileNoiseGenerators)),
                 ["tiles"] = correctedTiles,
             };

@@ -13,8 +13,8 @@
         /// <summary>
         /// Logging level for REPRESENTING MINIMAL/NO LOGGING ONLY!!!<br/>
         /// DON'T USE WHEN CALLING <c>Logger.Log()</c>!!!<br/>
-        /// Represents (almost) no logging.
+        /// Represents no logging (except before this value loads from the settings file).
         /// </summary>
-        MINIMAL = 100,
+        DISABLED = 100,
     }
 }

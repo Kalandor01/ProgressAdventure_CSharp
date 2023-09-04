@@ -7,7 +7,7 @@ namespace ProgressAdventure.WorldManagement
     /// <summary>
     /// An object representing a chunk, containing a list of tiles.
     /// </summary>
-    public class Chunk : IJsonReadable
+    public class Chunk : IJsonConvertable<Chunk>
     {
         #region Public fields
         /// <summary>
@@ -121,7 +121,6 @@ namespace ProgressAdventure.WorldManagement
             var chunkFileName = GetChunkFileName(position);
             Dictionary<string, object?>? chunkJson;
             chunk = null;
-            var success = true;
 
             try
             {
@@ -161,7 +160,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else if (chunkJson.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
             {
-                Logger.Log("Old style chunk version (< 2.2)", $"chunk name: {chunkFileName}", LogSeverity.WARN);
+                Logger.Log("Old style chunk version (< 2.2)", $"chunk name: {chunkFileName}", LogSeverity.INFO);
 
                 fileVersion = versionValueBackup.ToString();
             }
@@ -172,64 +171,12 @@ namespace ProgressAdventure.WorldManagement
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
-            //correct data
-            var correctedFileVersion = fileVersion;
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, correctedFileVersion))
-            {
-                Logger.Log($"Chunk file json data is old", "correcting data");
-                // 2.1.1 -> 2.2
-                var newFileVersion = "2.2";
-                if (!Tools.IsUpToDate(newFileVersion, correctedFileVersion))
-                {
-                    // snake case rename
-                    if (chunkJson.TryGetValue("chunkRandom", out var crRename))
-                    {
-                        chunkJson["chunk_random"] = crRename;
-                    }
+            chunkJson.Add("position_x", position.x);
+            chunkJson.Add("position_y", position.y);
 
-                    Logger.Log("Corrected chunk file json data", $"{correctedFileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    correctedFileVersion = newFileVersion;
-                }
-                Logger.Log($"Chunk file json data corrected");
-            }
-
-            // chunk seed
-            SplittableRandom? chunkRandomGenerator = null;
-            if (chunkJson.TryGetValue("chunk_random", out object? chunkRandom))
-            {
-                if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
-                {
-                    chunkRandomGenerator = chunkRandomValue;
-                }
-                else
-                {
-                    Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
-                    success = false;
-                }
-            }
-            else
-            {
-                Logger.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
-                success = false;
-            }
-            chunkRandomGenerator ??= GetChunkRandom(position);
-
-            // tiles
-            if (
-                chunkJson.TryGetValue("tiles", out object? tilesListValue) &&
-                tilesListValue is IEnumerable tilesList
-            )
-            {
-                success &= TilesFromJson(chunkRandomGenerator, position, tilesList, fileVersion, out Dictionary<string, Tile> tiles);
-                Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
-                chunk = new Chunk(position, tiles, chunkRandomGenerator);
-                return success;
-            }
-            else
-            {
-                Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
-                return false;
-            }
+            var success = Tools.FromJson(chunkJson, fileVersion, out chunk);
+            Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
+            return success;
         }
 
         /// <summary>
@@ -352,6 +299,19 @@ namespace ProgressAdventure.WorldManagement
         #endregion
 
         #region JsonConvert
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<Chunk>.VersionCorrecters { get; } = new()
+        {
+            // 2.1.1 -> 2.2
+            (oldJson =>
+            {
+                // snake case rename
+                if (oldJson.TryGetValue("chunkRandom", out var crRename))
+                {
+                    oldJson["chunk_random"] = crRename;
+                }
+            }, "2.2"),
+        };
+
         public Dictionary<string, object?> ToJson()
         {
             var tilesJson = new List<Dictionary<string, object?>>();
@@ -365,6 +325,67 @@ namespace ProgressAdventure.WorldManagement
                 ["chunk_random"] = Tools.SerializeRandom(ChunkRandomGenerator),
                 ["tiles"] = tilesJson,
             };
+        }
+
+        static bool IJsonConvertable<Chunk>.FromJsonWithoutCorrection(IDictionary<string, object?> chunkJson, string fileVersion, ref Chunk? chunkObject)
+        {
+            var success = true;
+
+            // position
+            if (
+                !chunkJson.TryGetValue("position_x", out object? posXString) ||
+                !chunkJson.TryGetValue("position_y", out object? posYString)
+            )
+            {
+                Logger.Log("Chunk parse error", "chunk position is null", LogSeverity.ERROR);
+                return false;
+            }
+
+            if (
+                !long.TryParse(posXString?.ToString(), out long posX) ||
+                !long.TryParse(posYString?.ToString(), out long posY)
+            )
+            {
+                Logger.Log("Chunk parse error", "chunk position couldn't be parsed", LogSeverity.ERROR);
+                return false;
+            }
+
+            (long x, long y) position = (posX, posY);
+
+            // chunk seed
+            SplittableRandom? chunkRandomGenerator = null;
+            if (chunkJson.TryGetValue("chunk_random", out object? chunkRandom))
+            {
+                if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
+                {
+                    chunkRandomGenerator = chunkRandomValue;
+                }
+                else
+                {
+                    Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
+                    success = false;
+                }
+            }
+            else
+            {
+                Logger.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
+                success = false;
+            }
+            chunkRandomGenerator ??= GetChunkRandom(position);
+
+            // tiles
+            if (
+                !chunkJson.TryGetValue("tiles", out object? tilesListValue) ||
+                tilesListValue is not IEnumerable tilesList
+            )
+            {
+                Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
+                return false;
+            }
+
+            success &= TilesFromJson(chunkRandomGenerator, position, tilesList, fileVersion, out Dictionary<string, Tile> tiles);
+            chunkObject = new Chunk(position, tiles, chunkRandomGenerator);
+            return success;
         }
         #endregion
     }

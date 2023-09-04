@@ -66,7 +66,7 @@ namespace ProgressAdventure.SettingsManagement
                 SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
                 _loggingLevel = GetLoggingLevel();
 
-                Logger.ChangeLoggingLevel(LoggingLevel);
+                Logger.LoggingLevel = LoggingLevel;
             }
         }
         /// <summary>

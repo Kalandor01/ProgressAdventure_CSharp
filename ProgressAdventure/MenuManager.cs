@@ -87,7 +87,7 @@ namespace ProgressAdventure
         /// </summary>
         private static readonly List<(int value, string name)> loggingSeveritiesList = new()
         {
-            (Logger.loggingValuesMap[LogSeverity.MINIMAL], LogSeverity.MINIMAL.ToString()),
+            (Logger.loggingValuesMap[LogSeverity.DISABLED], "MINIMAL"),
             (Logger.loggingValuesMap[LogSeverity.FATAL], LogSeverity.FATAL.ToString()),
             (Logger.loggingValuesMap[LogSeverity.ERROR], LogSeverity.ERROR.ToString()),
             (Logger.loggingValuesMap[LogSeverity.WARN], LogSeverity.WARN.ToString()),
