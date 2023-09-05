@@ -30,32 +30,9 @@ namespace ProgressAdventure
                 return false;
             }
 
-            CorrectJsonData(ref objectJson, fileVersion);
+            Tools.CorrectJsonData<T>(ref objectJson, T.VersionCorrecters, fileVersion);
 
             return T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
-        }
-        #endregion
-
-        #region Protected virtual functions
-        /// <summary>
-        /// Tries to correct the json data of the object, if it's out of date.
-        /// </summary>
-        /// <param name="objectJson">The json representation of the object.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        protected static void CorrectJsonData(ref IDictionary<string, object?> objectJson, string fileVersion)
-        {
-            //correct data
-            if (Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
-            {
-                return;
-            }
-
-            Logger.Log($"{typeof(T)} json data is old", "correcting data");
-            foreach (var (objectJsonCorrecter, newFileVersion) in T.VersionCorrecters)
-            {
-                Tools.CorrectJsonDataVersion<T>(objectJsonCorrecter, ref objectJson, ref fileVersion, newFileVersion);
-            }
-            Logger.Log($"{typeof(T)} json data corrected");
         }
         #endregion
 

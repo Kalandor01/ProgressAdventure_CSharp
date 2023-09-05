@@ -628,16 +628,18 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Mimics the CorrectJsonData() part of the FromJson() function.
+        /// Tries to correct the json data of the object, if it's out of date.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="correcters">The list of function to use, to correct the old json data.</param>
         public static void CorrectJsonData<T>(
             ref IDictionary<string, object?> objectJson,
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
-            string fileVersion)
+            string fileVersion
+        )
         {
-            if (IsUpToDate(Constants.SAVE_VERSION, fileVersion))
+            if (!correcters.Any() || IsUpToDate(Constants.SAVE_VERSION, fileVersion) || IsUpToDate(correcters.Last().newFileVersion, fileVersion))
             {
                 return;
             }

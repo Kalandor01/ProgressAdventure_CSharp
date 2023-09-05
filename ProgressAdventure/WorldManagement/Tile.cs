@@ -126,6 +126,25 @@ namespace ProgressAdventure.WorldManagement
         #endregion
 
         #region JsonConvert
+        #region Protected properties
+        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new()
+        {
+            // 2.1.1 -> 2.2
+            (oldJson =>
+            {
+                // snake case rename
+                if (oldJson.TryGetValue("xPos", out var xpRename))
+                {
+                    oldJson["x_position"] = xpRename;
+                }
+                if (oldJson.TryGetValue("yPos", out var ypRename))
+                {
+                    oldJson["y_position"] = ypRename;
+                }
+            }, "2.2"),
+        };
+        #endregion
+
         public Dictionary<string, object?> ToJson()
         {
             var terrainJson = terrain.ToJson();
@@ -161,30 +180,7 @@ namespace ProgressAdventure.WorldManagement
                 return false;
             }
 
-            //correct data
-            var correctedFileVersion = fileVersion;
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, correctedFileVersion))
-            {
-                Logger.Log($"Tile json data is old", "correcting data");
-                // 2.1.1 -> 2.2
-                var newFileVersion = "2.2";
-                if (!Tools.IsUpToDate(newFileVersion, correctedFileVersion))
-                {
-                    // snake case rename
-                    if (tileJson.TryGetValue("xPos", out var xpRename))
-                    {
-                        tileJson["x_position"] = xpRename;
-                    }
-                    if (tileJson.TryGetValue("yPos", out var ypRename))
-                    {
-                        tileJson["y_position"] = ypRename;
-                    }
-
-                    Logger.Log("Corrected tile json data", $"{correctedFileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    correctedFileVersion = newFileVersion;
-                }
-                Logger.Log($"Tile json data corrected");
-            }
+            Tools.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
 
             // x and y
             if (!(
