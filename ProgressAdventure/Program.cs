@@ -1,6 +1,7 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.ItemManagement;
-using ProgressAdventure.WorldManagement;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.SettingsManagement;
+using ProgressAdventure.SettingsManagement;
 using System.Text;
 
 namespace ProgressAdventure
@@ -44,7 +45,9 @@ namespace ProgressAdventure
 
             Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
-            SettingsManagement.Settings.Initialise();
+            Settings.Initialise();
+            KeybindUtils.colorEnabled = Settings.EnableColoredText;
+            PACommon.Constants.SAVE_VERSION = Constants.SAVE_VERSION;
             Globals.Initialise();
         }
 

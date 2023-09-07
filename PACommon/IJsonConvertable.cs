@@ -1,6 +1,6 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon.Enums;
 
-namespace ProgressAdventure
+namespace PACommon
 {
     /// <summary>
     /// Interface for classes that can be converted to and from json.

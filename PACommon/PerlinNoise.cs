@@ -1,7 +1,7 @@
 ﻿using NPrng;
 using NPrng.Generators;
 
-namespace ProgressAdventure
+namespace PACommon
 {
     /// <summary>
     /// A perlin noise generator, capable of generating 2D perlin noise.<br/>

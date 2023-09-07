@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
+using PACommon;
+using PACommon.Extensions;
 using ProgressAdventure;
-using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement.Content;
 using System.Collections.Generic;
 using System.IO;
@@ -8,8 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using PAConstants = ProgressAdventure.Constants;
-using PATools = ProgressAdventure.Tools;
-using PAUtils = ProgressAdventure.Utils;
+using PATools = PACommon.Tools;
 
 namespace PAVisualizer
 {
@@ -46,7 +46,7 @@ namespace PAVisualizer
             var txt = new StringBuilder();
             txt.AppendLine($"Save name: {SaveData.saveName}");
             txt.AppendLine($"Display save name: {SaveData.displaySaveName}");
-            txt.AppendLine($"Last saved: {PAUtils.MakeDate(SaveData.LastSave, ".")} {PAUtils.MakeTime(SaveData.LastSave)}");
+            txt.AppendLine($"Last saved: {Utils.MakeDate(SaveData.LastSave, ".")} {Utils.MakeTime(SaveData.LastSave)}");
             txt.AppendLine($"\nPlayer:\n{SaveData.player}");
             txt.AppendLine($"\nMain seed: {PATools.SerializeRandom(RandomStates.MainRandom)}");
             txt.AppendLine($"World seed: {PATools.SerializeRandom(RandomStates.WorldRandom)}");

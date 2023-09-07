@@ -1,5 +1,8 @@
 ﻿using NPrng.Generators;
+using PACommon;
+using PACommon.Enums;
 using ProgressAdventure.Enums;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
 {
@@ -53,8 +56,8 @@ namespace ProgressAdventure
         )
         {
             var tempMainRandom = mainRandom ?? new SplittableRandom();
-            var tempWorldRandom = worldRandom ?? Tools.MakeRandomGenerator(tempMainRandom);
-            var tempMiscRandom = miscRandom ?? Tools.MakeRandomGenerator(tempMainRandom);
+            var tempWorldRandom = worldRandom ?? PACTools.MakeRandomGenerator(tempMainRandom);
+            var tempMiscRandom = miscRandom ?? PACTools.MakeRandomGenerator(tempMainRandom);
             UpdateSeedValues(
                 tempMainRandom,
                 tempWorldRandom,
@@ -172,6 +175,34 @@ namespace ProgressAdventure
         #endregion
 
         #region JsonConversion
+        private static readonly List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> versionCorrecters = new()
+        {
+            // 2.0.1 -> 2.0.2
+            (oldJson => {
+                // snake case rename
+                if (oldJson.TryGetValue("mainRandom", out var mrRename))
+                {
+                    oldJson["main_random"] = mrRename;
+                }
+                if (oldJson.TryGetValue("worldRandom", out var wrRename))
+                {
+                    oldJson["world_random"] = wrRename;
+                }
+                if (oldJson.TryGetValue("miscRandom", out var mr2Rename))
+                {
+                    oldJson["misc_random"] = mr2Rename;
+                }
+                if (oldJson.TryGetValue("tileTypeNoiseSeeds", out var ttnsRename))
+                {
+                    oldJson["tile_type_noise_seeds"] = ttnsRename;
+                }
+                if (oldJson.TryGetValue("chunkSeedModifier", out var csmRename))
+                {
+                    oldJson["chunk_seed_modifier"] = csmRename;
+                }
+            }, "2.0.2"),
+        };
+
         /// <summary>
         /// Returns a json representation of the <c>RandomState</c>.
         /// </summary>
@@ -179,9 +210,9 @@ namespace ProgressAdventure
         {
             return new Dictionary<string, object?>
             {
-                ["main_random"] = Tools.SerializeRandom(MainRandom),
-                ["world_random"] = Tools.SerializeRandom(WorldRandom),
-                ["misc_random"] = Tools.SerializeRandom(MiscRandom),
+                ["main_random"] = PACTools.SerializeRandom(MainRandom),
+                ["world_random"] = PACTools.SerializeRandom(WorldRandom),
+                ["misc_random"] = PACTools.SerializeRandom(MiscRandom),
                 ["tile_type_noise_seeds"] = TileTypeNoiseSeeds,
                 ["chunk_seed_modifier"] = ChunkSeedModifier,
             };
@@ -190,55 +221,29 @@ namespace ProgressAdventure
         /// <summary>
         /// Converts the json representation of the object to object format.
         /// </summary>
-        /// <param name="randomStatesJson">The json representation of the RandomState.</param>
+        /// <param name="randomStatesJson">The json representation of the SaveData.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         public static bool FromJson(IDictionary<string, object?>? randomStatesJson, string fileVersion)
         {
             if (randomStatesJson is null)
             {
-                Logger.Log("Random states parse error", "random states json is null", LogSeverity.WARN);
+                Logger.Log($"{typeof(RandomStates)} parse error", $"{typeof(RandomStates).ToString().ToLower()} json is null", LogSeverity.ERROR);
                 Initialise();
                 return false;
             }
 
+            PACTools.CorrectJsonData(typeof(SaveData).ToString(), ref randomStatesJson, versionCorrecters, fileVersion);
 
-            //correct data
-            if (!Tools.IsUpToDate(Constants.SAVE_VERSION, fileVersion))
-            {
-                Logger.Log($"Random states json data is old", "correcting data");
-                // 2.1.1 -> 2.2
-                var newFileVersion = "2.2";
-                if (!Tools.IsUpToDate(newFileVersion, fileVersion))
-                {
-                    // snake case rename
-                    if (randomStatesJson.TryGetValue("mainRandom", out var mrRename))
-                    {
-                        randomStatesJson["main_random"] = mrRename;
-                    }
-                    if (randomStatesJson.TryGetValue("worldRandom", out var wrRename))
-                    {
-                        randomStatesJson["world_random"] = wrRename;
-                    }
-                    if (randomStatesJson.TryGetValue("miscRandom", out var mr2Rename))
-                    {
-                        randomStatesJson["misc_random"] = mr2Rename;
-                    }
-                    if (randomStatesJson.TryGetValue("tileTypeNoiseSeeds", out var ttnsRename))
-                    {
-                        randomStatesJson["tile_type_noise_seeds"] = ttnsRename;
-                    }
-                    if (randomStatesJson.TryGetValue("chunkSeedModifier", out var csmRename))
-                    {
-                        randomStatesJson["chunk_seed_modifier"] = csmRename;
-                    }
+            return FromJsonWithoutCorrection(randomStatesJson, fileVersion);
+        }
 
-                    Logger.Log("Corrected random states json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                    fileVersion = newFileVersion;
-                }
-                Logger.Log($"Random states json data corrected");
-            }
-
-
+        /// <summary>
+        /// Converts the json representation of the object to object format.
+        /// </summary>
+        /// <param name="randomStatesJson">The json representation of the RandomState.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        private static bool FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion)
+        {
             var success = true;
             SplittableRandom? mainRandom = null;
             SplittableRandom? worldRandom = null;
@@ -249,7 +254,7 @@ namespace ProgressAdventure
             // main random
             if (randomStatesJson.TryGetValue("main_random", out object? mainRandomValue))
             {
-                success &= Tools.TryDeserializeRandom(mainRandomValue?.ToString(), out mainRandom);
+                success &= PACTools.TryDeserializeRandom(mainRandomValue?.ToString(), out mainRandom);
             }
             else
             {
@@ -259,7 +264,7 @@ namespace ProgressAdventure
             // world random
             if (randomStatesJson.TryGetValue("world_random", out object? worldRandomValue))
             {
-                success &= Tools.TryDeserializeRandom(worldRandomValue?.ToString(), out worldRandom);
+                success &= PACTools.TryDeserializeRandom(worldRandomValue?.ToString(), out worldRandom);
             }
             else
             {
@@ -269,7 +274,7 @@ namespace ProgressAdventure
             // misc random
             if (randomStatesJson.TryGetValue("misc_random", out object? miscRandomValue))
             {
-                success &= Tools.TryDeserializeRandom(miscRandomValue?.ToString(), out miscRandom);
+                success &= PACTools.TryDeserializeRandom(miscRandomValue?.ToString(), out miscRandom);
             }
             else
             {

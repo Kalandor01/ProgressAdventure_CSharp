@@ -1,5 +1,6 @@
 ﻿using NPrng.Generators;
-using ProgressAdventure.Enums;
+using PACommon;
+using PACommon.Enums;
 
 namespace ProgressAdventure.WorldManagement.Content
 {

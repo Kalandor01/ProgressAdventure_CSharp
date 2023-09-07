@@ -1,8 +1,7 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using System.Text;
-using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
-using PAUtils = ProgressAdventure.Utils;
 
 namespace ProgressAdventureTests
 {
@@ -16,7 +15,7 @@ namespace ProgressAdventureTests
             Tools.RunAllTests();
 
 
-            PAUtils.PressKey();
+            Utils.PressKey();
         }
 
         /// <summary>
@@ -30,7 +29,7 @@ namespace ProgressAdventureTests
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
 
-            if (!PAUtils.TryEnableAnsiCodes())
+            if (!Utils.TryEnableAnsiCodes())
             {
                 Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
             }
@@ -58,7 +57,7 @@ namespace ProgressAdventureTests
                 Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
                 if (PAConstants.ERROR_HANDLING)
                 {
-                    PAUtils.PressKey("ERROR: " + e.Message);
+                    Utils.PressKey("ERROR: " + e.Message);
                 }
                 throw;
             }
@@ -88,7 +87,7 @@ namespace ProgressAdventureTests
                     if (PAConstants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
-                        var ans = PAUtils.Input("Restart?(Y/N): ");
+                        var ans = Utils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
                             Logger.Log("Restarting instance");

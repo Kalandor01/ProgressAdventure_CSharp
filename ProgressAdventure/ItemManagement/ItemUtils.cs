@@ -1,7 +1,10 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
+using ProgressAdventure.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -343,7 +346,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public static List<ItemTypeID> GetAllItemTypes()
         {
-            return Tools.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
+            return PACTools.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
         }
 
         /// <summary>
@@ -409,7 +412,7 @@ namespace ProgressAdventure.ItemManagement
             var name = itemTypeID.ToString();
             if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
-                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", Enums.LogSeverity.ERROR);
+                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
             }
             else
             {

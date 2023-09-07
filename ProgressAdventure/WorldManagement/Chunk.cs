@@ -1,6 +1,8 @@
 ﻿using NPrng.Generators;
-using ProgressAdventure.Enums;
+using PACommon;
+using PACommon.Enums;
 using System.Collections;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -174,7 +176,7 @@ namespace ProgressAdventure.WorldManagement
             chunkJson.Add("position_x", position.x);
             chunkJson.Add("position_y", position.y);
 
-            var success = Tools.FromJson(chunkJson, fileVersion, out chunk);
+            var success = PACTools.FromJson(chunkJson, fileVersion, out chunk);
             Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
             return success;
         }
@@ -322,7 +324,7 @@ namespace ProgressAdventure.WorldManagement
             return new Dictionary<string, object?>
             {
                 ["file_version"] = Constants.SAVE_VERSION,
-                ["chunk_random"] = Tools.SerializeRandom(ChunkRandomGenerator),
+                ["chunk_random"] = PACTools.SerializeRandom(ChunkRandomGenerator),
                 ["tiles"] = tilesJson,
             };
         }
@@ -356,7 +358,7 @@ namespace ProgressAdventure.WorldManagement
             SplittableRandom? chunkRandomGenerator = null;
             if (chunkJson.TryGetValue("chunk_random", out object? chunkRandom))
             {
-                if (Tools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
+                if (PACTools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
                 {
                     chunkRandomGenerator = chunkRandomValue;
                 }

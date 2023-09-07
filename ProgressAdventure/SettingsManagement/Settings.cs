@@ -1,4 +1,7 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon;
+using PACommon.Enums;
+using ProgressAdventure.Enums;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.SettingsManagement
 {
@@ -62,7 +65,7 @@ namespace ProgressAdventure.SettingsManagement
             get => _loggingLevel;
             set
             {
-                var loggingLevelValue = (long)Logger.loggingValuesMap[value];
+                var loggingLevelValue = (long)Logger.GetSeverityValue(value);
                 SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
                 _loggingLevel = GetLoggingLevel();
 
@@ -180,7 +183,7 @@ namespace ProgressAdventure.SettingsManagement
         public static LogSeverity GetLoggingLevel()
         {
             _ = int.TryParse(SettingsManager(SettingsKey.LOGGING_LEVEL).ToString(), out int logLevel);
-            if (!Tools.TryParseLogSeverityFromValue(logLevel, out LogSeverity severity))
+            if (!Logger.TryParseSeverityValue(logLevel, out LogSeverity severity))
             {
                 Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
             }
@@ -196,7 +199,7 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds? keybinds;
             try
             {
-                Tools.FromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
+                PACTools.FromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
             }
             catch (Exception e)
             {
@@ -330,7 +333,7 @@ namespace ProgressAdventure.SettingsManagement
                     Keybinds? oldKb = null;
                     try
                     {
-                        Tools.FromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
+                        PACTools.FromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
                     }
                     catch (Exception e)
                     {

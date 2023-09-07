@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure
+﻿namespace PACommon
 {
     /// <summary>
     /// Interface for classes that can be converted to json.

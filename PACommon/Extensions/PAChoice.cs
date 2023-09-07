@@ -1,6 +1,6 @@
 ﻿using SaveFileManager;
 
-namespace ProgressAdventure.Extensions
+namespace PACommon.Extensions
 {
     public class PAChoice : Choice
     {

@@ -1,47 +1,17 @@
-﻿using ProgressAdventure.Enums;
-using SaveFileManager;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.SettingsManagement;
+using ProgressAdventure.Enums;
 using System.Collections;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventure.SettingsManagement
 {
     /// <summary>
     /// Class for storing a key for keybinds.
     /// </summary>
-    public class ActionKey : KeyAction, IJsonConvertable<ActionKey>
+    public class ActionKey : AActionKey<ActionType>, IJsonConvertable<ActionKey>
     {
-        #region Public fields
-        /// <summary>
-        /// The type of the action.
-        /// </summary>
-        public ActionType actionType;
-        /// <summary>
-        /// A list indicating if a key in a list conflicts with another key in the keybinds.
-        /// </summary>
-        public List<bool> conflicts;
-        #endregion
-
-        #region Public properties
-        /// <summary>
-        /// The keys that can be pressed to trigger this action.
-        /// </summary>
-#pragma warning disable CS0108 // Hiding was intended
-        public IEnumerable<ConsoleKeyInfo> Keys
-#pragma warning restore CS0108 // Hiding was intended
-        {
-            get => base.Keys;
-            set {
-                base.Keys = value.Distinct();
-                UpdateNames();
-                conflicts = Keys.Select(k => false).ToList();
-            }
-        }
-
-        /// <summary>
-        /// The display names of the keys.
-        /// </summary>
-        public List<string> Names { get; private set; }
-        #endregion
-
         #region Constructors
         /// <summary>
         /// <inheritdoc cref="ActionKey"/>
@@ -51,42 +21,11 @@ namespace ProgressAdventure.SettingsManagement
         /// <exception cref="ArgumentException"></exception>
         public ActionKey(ActionType actionType, IEnumerable<ConsoleKeyInfo> keys)
             : base(
+                  actionType,
                   SettingsUtils.actionTypeResponseMapping[actionType],
                   keys,
                   SettingsUtils.actionTypeIgnoreMapping[actionType]
-            )
-        {
-            if (!keys.Any())
-            {
-                Logger.Log("No keys in keys list!", severity:LogSeverity.FATAL);
-                throw new ArgumentException("No keys in keys list!", nameof(keys));
-            }
-            this.actionType = actionType;
-            conflicts = Keys.Select(k => false).ToList();
-            Keys = keys;
-        }
-        #endregion
-
-        #region Public methods
-        /// <summary>
-        /// Updates the display name of the key.
-        /// </summary>
-        public void UpdateNames()
-        {
-            Names = new List<string>();
-            foreach (var key in Keys)
-            {
-                Names.Add(SettingsUtils.GetKeyName(key));
-            }
-        }
-
-        /// <summary>
-        /// Waits for a keypress, and returns, if it matches the <c>ActionKey</c>.
-        /// </summary>
-        public bool IsKey()
-        {
-            return Keys.Contains(Console.ReadKey(true));
-        }
+            ) { }
         #endregion
 
         #region Public overrides
@@ -101,7 +40,7 @@ namespace ProgressAdventure.SettingsManagement
                 return true;
             }
             var akObj = (ActionKey)obj;
-            if (actionType != akObj.actionType || !response.Equals(akObj.response))
+            if (ActionType != akObj.ActionType || !response.Equals(akObj.response))
             {
                 return false;
             }
@@ -128,12 +67,12 @@ namespace ProgressAdventure.SettingsManagement
 
         public override int GetHashCode()
         {
-            return (actionType, Keys, ignoreModes).GetHashCode();
+            return (ActionType, Keys, ignoreModes).GetHashCode();
         }
 
         public override string ToString()
         {
-            return actionType.ToString() + ": " + string.Join(", ", Names);
+            return ActionType.ToString() + ": " + string.Join(", ", Names);
         }
         #endregion
 
@@ -164,7 +103,7 @@ namespace ProgressAdventure.SettingsManagement
                 };
                 keyListJson.Add(keyJson);
             }
-            return new Dictionary<string, object?> { [actionType.ToString().ToLower()] = keyListJson };
+            return new Dictionary<string, object?> { [ActionType.ToString().ToLower()] = keyListJson };
         }
 
         static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(IDictionary<string, object?> actionKeyJson, string fileVersion, ref ActionKey? actionKeyObject)

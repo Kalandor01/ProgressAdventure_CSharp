@@ -1,4 +1,4 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon.Enums;
 
 namespace ProgressAdventureTests
 {

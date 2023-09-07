@@ -1,6 +1,9 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
+using ProgressAdventure.Enums;
 using System.Collections;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -223,7 +226,7 @@ namespace ProgressAdventure.ItemManagement
 
             foreach (var partJson in partsList)
             {
-                Tools.FromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
+                PACTools.FromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
                 if (part is not null)
                 {
                     parts.Add(part);

@@ -1,14 +1,13 @@
 ﻿using NPrng.Generators;
-using ProgressAdventure;
-using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
 using ProgressAdventure.ItemManagement;
 using System.Collections;
 using System.Text;
-using Logger = ProgressAdventure.Logger;
 using PAConstants = ProgressAdventure.Constants;
+using PACTools = PACommon.Tools;
 using PATools = ProgressAdventure.Tools;
-using ItemType = PAExtras.ItemType;
 
 namespace PAExtras
 {
@@ -111,7 +110,7 @@ namespace PAExtras
             // display data
             try
             {
-                return PATools.DeserializeJson(dataFileLines[lineNum]);
+                return PACTools.DeserializeJson(dataFileLines[lineNum]);
             }
             catch (Exception)
             {
@@ -223,9 +222,9 @@ namespace PAExtras
 
             dataLine["randomStates"] = new Dictionary<string, object>
             {
-                ["mainRandom"] = PATools.SerializeRandom(mainRandom),
-                ["worldRandom"] = PATools.SerializeRandom(worldRandom),
-                ["miscRandom"] = PATools.SerializeRandom(miscRandom),
+                ["mainRandom"] = PACTools.SerializeRandom(mainRandom),
+                ["worldRandom"] = PACTools.SerializeRandom(worldRandom),
+                ["miscRandom"] = PACTools.SerializeRandom(miscRandom),
                 ["tileTypeNoiseSeeds"] = ttnSeeds,
                 ["chunkSeedModifier"] = chunkSeedModifier,
             };
@@ -240,7 +239,7 @@ namespace PAExtras
         private static SplittableRandom? ParseRandomFromString(string rawString)
         {
             var randomState = Convert.ToBase64String(Encoding.UTF8.GetBytes(rawString));
-            return PATools.DeserializeRandom(randomState);
+            return PACTools.DeserializeRandom(randomState);
         }
 
         /// <summary>
@@ -399,7 +398,7 @@ namespace PAExtras
             return new Dictionary<string, object>
             {
                 ["saveVersion"] = "2.0",
-                ["chunkRandom"] = PATools.SerializeRandom(GetChunkRandom(basePosition, chunkSeedMod, tileNoiseGenerators)),
+                ["chunkRandom"] = PACTools.SerializeRandom(GetChunkRandom(basePosition, chunkSeedMod, tileNoiseGenerators)),
                 ["tiles"] = correctedTiles,
             };
         }

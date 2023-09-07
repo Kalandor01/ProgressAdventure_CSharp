@@ -1,24 +1,22 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+﻿using PACommon.Extensions;
 using SaveFileManager;
 using System.Text;
 
-namespace ProgressAdventure.SettingsManagement
+namespace PACommon.SettingsManagement
 {
     /// <summary>
     /// Object for the <c>OptionsUI</c> method.<br/>
     /// When used as input in the <c>OptionsUI</c> function, it draws a field for one keypress, that can be selected to edit it's value in place, with the enter action.<br/>
     /// Structure: [<c>preText</c>][<c>value</c>][<c>postValue</c>]
     /// </summary>
-    public class KeyField : BaseUI
+    public class KeyField<T> : BaseUI
+        where T : notnull, Enum
     {
         #region Public fields
-#pragma warning disable CS0108 // Hiding was intended
         /// <summary>
         /// The current value of the object.
         /// </summary>
-        public ActionKey value;
-#pragma warning restore CS0108 // Hiding was intended
+        public new AActionKey<T> Value;
         /// <summary>
         /// A function to return the status of the key, the user inputed.
         /// </summary>
@@ -43,29 +41,29 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         /// <param name="key">The key that the user inputed.</param>
         /// <param name="keyField">The <c>KeyField</c> that the called this function.</param>
-        public delegate (TextFieldValidatorStatus status, string? message) ValidatorDelegate(ConsoleKeyInfo key, KeyField keyField);
+        public delegate (TextFieldValidatorStatus status, string? message) ValidatorDelegate(ConsoleKeyInfo key, KeyField<T> keyField);
         /// <summary>
         /// <inheritdoc cref="displayValueFunction" path="//summary"/>
         /// </summary>
         /// <inheritdoc cref="BaseUI.MakeSpecial"/>
         /// <param name="keyField">The <c>KeyField</c>, that called the function.</param>
-        public delegate string DisplayValueDelegate(KeyField keyField, string icons, OptionsUI? optionsUI = null);
+        public delegate string DisplayValueDelegate(KeyField<T> keyField, string icons, OptionsUI? optionsUI = null);
         #endregion
 
         #region Constructors
         /// <summary>
         /// <inheritdoc cref="KeyField"/>
         /// </summary>
-        /// <param name="value"><inheritdoc cref="value" path="//summary"/></param>
+        /// <param name="value"><inheritdoc cref="Value" path="//summary"/></param>
         /// <param name="actionType"><inheritdoc cref="actionType" path="//summary"/></param>
         /// <param name="validatorFunction"><inheritdoc cref="validatorFunction" path="//summary"/></param>
         /// <param name="keyNum"><inheritdoc cref="keyNum" path="//summary"/></param>
         /// <param name="lengthAsDisplayLength"><inheritdoc cref="lengthAsDisplayLength" path="//summary"/></param>
         /// <inheritdoc cref="BaseUI(int, string, string, bool, string, bool)"/>
-        public KeyField(ActionKey value, string preText = "", string postValue = "", bool multiline = false, ValidatorDelegate? validatorFunction = null, DisplayValueDelegate? displayValueFunction = null, int keyNum = 1, bool lengthAsDisplayLength = true)
+        public KeyField(AActionKey<T> value, string preText = "", string postValue = "", bool multiline = false, ValidatorDelegate? validatorFunction = null, DisplayValueDelegate? displayValueFunction = null, int keyNum = 1, bool lengthAsDisplayLength = true)
             : base(-1, preText, "", false, postValue, multiline)
         {
-            this.value = value;
+            Value = value;
             this.validatorFunction = validatorFunction;
             this.displayValueFunction = displayValueFunction;
             this.keyNum = keyNum;
@@ -77,7 +75,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <inheritdoc cref="BaseUI.MakeSpecial"/>
         protected override string MakeSpecial(string icons, OptionsUI? optionsUI = null)
         {
-            return displayValueFunction is not null ? displayValueFunction(this, icons, optionsUI) : string.Join(", ", value.Names);
+            return displayValueFunction is not null ? displayValueFunction(this, icons, optionsUI) : string.Join(", ", Value.Names);
         }
 
         /// <inheritdoc cref="BaseUI.HandleAction"/>
@@ -93,13 +91,13 @@ namespace ProgressAdventure.SettingsManagement
                     {
                         var pressedKey = Console.ReadKey();
                         keys.Add(pressedKey);
-                        Console.Write(SettingsUtils.GetKeyName(pressedKey));
+                        Console.Write(KeybindUtils.GetKeyName(pressedKey));
                         if (x < keyNum - 1)
                         {
                             Console.Write(", ");
                         }
                     }
-                    value.Keys = keys;
+                    Value.Keys = keys;
                 }
                 else
                 {
@@ -119,13 +117,13 @@ namespace ProgressAdventure.SettingsManagement
                             if (validatorFunction is null)
                             {
                                 keys.Add(newValue);
-                                value.Keys = keys;
+                                Value.Keys = keys;
                             }
                             else
                             {
-                                var keysBak = value.Keys.DeepCopy();
+                                var keysBak = Value.Keys.DeepCopy();
                                 keys.Add(newValue);
-                                value.Keys = keys;
+                                Value.Keys = keys;
                                 var (status, message) = validatorFunction(newValue, this);
                                 if (message != null)
                                 {
@@ -147,7 +145,7 @@ namespace ProgressAdventure.SettingsManagement
                                 }
                                 if (status != TextFieldValidatorStatus.VALID)
                                 {
-                                    value.Keys = keysBak;
+                                    Value.Keys = keysBak;
                                     keys = keysBak.ToList();
                                 }
                                 else if (status == TextFieldValidatorStatus.RETRY)
@@ -185,7 +183,6 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="optionsUI">The <c>OptionsUI</c>, that includes this object.</param>
         private int GetLineNumberAfterTextFieldValue(OptionsUI optionsUI)
         {
-            var foundTextField = false;
             var txt = new StringBuilder();
 
             // current object's line
@@ -199,37 +196,39 @@ namespace ProgressAdventure.SettingsManagement
             }
             txt.Append(optionsUI.cursorIcon.sIconR);
 
+            // get displayed range
+            int endIndex;
+            if (optionsUI.scrollSettings.maxElements == -1 || optionsUI.scrollSettings.maxElements >= optionsUI.elements.Count())
+            {
+                endIndex = optionsUI.elements.Count();
+            }
+            else
+            {
+                endIndex = Math.Clamp(optionsUI.startIndex + optionsUI.scrollSettings.maxElements, 0, optionsUI.elements.Count());
+            }
+
             // lines after current object
-            for (var x = 0; x < optionsUI.elements.Count(); x++)
+            for (var x = optionsUI.selected + 1; x < endIndex; x++)
             {
                 var element = optionsUI.elements.ElementAt(x);
-                if (foundTextField)
+                if (element is not null)
                 {
-                    if (element is not null && typeof(BaseUI).IsAssignableFrom(element.GetType()))
-                    {
-                        txt.Append(element.MakeText(
-                            optionsUI.cursorIcon.icon,
-                            optionsUI.cursorIcon.iconR,
-                            optionsUI
-                        ));
-                    }
-                    else if (element is null)
-                    {
-                        txt.Append('\n');
-                    }
-                    else
-                    {
-                        txt.Append(element.ToString() + "\n");
-                    }
+                    txt.Append(element.MakeText(
+                        optionsUI.cursorIcon.icon,
+                        optionsUI.cursorIcon.iconR,
+                        optionsUI
+                    ));
+                }
+                else if (element is null)
+                {
+                    txt.Append('\n');
                 }
                 else
                 {
-                    if (element == this)
-                    {
-                        foundTextField = true;
-                    }
+                    txt.Append(element.ToString() + "\n");
                 }
             }
+            txt.Append(endIndex == optionsUI.elements.Count() ? optionsUI.scrollSettings.scrollIcon.bottomEndIndicator : optionsUI.scrollSettings.scrollIcon.bottomContinueIndicator);
             txt.Append('\n');
 
             return txt.ToString().Count(c => c == '\n') + 1;
@@ -267,7 +266,7 @@ namespace ProgressAdventure.SettingsManagement
 
             foreach (var key in keys)
             {
-                Console.Write(SettingsUtils.GetKeyName(key) + ", ");
+                Console.Write(KeybindUtils.GetKeyName(key) + ", ");
             }
 
             var (Left, Top) = Console.GetCursorPosition();

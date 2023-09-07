@@ -2,7 +2,7 @@
 using System.Text;
 using SFMUtils = SaveFileManager.Utils;
 
-namespace ProgressAdventure.Extensions
+namespace PACommon.Extensions
 {
     /// <summary>
     /// An object for displaying 1 <c>BaseUI</c> object.

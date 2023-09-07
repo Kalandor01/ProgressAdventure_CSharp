@@ -2,7 +2,7 @@
 using System.IO.Compression;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
-using PAUtils = ProgressAdventure.Utils;
+using PACUtils = PACommon.Utils;
 
 namespace PAExtras
 {
@@ -140,7 +140,7 @@ namespace PAExtras
                         chunk.FillChunk();
                     }
                     Console.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round(  ((double)(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1) % (chunkNum / numberOfSaves)) / (chunkNum / numberOfSaves) * 100, 1)}%");
-                    if (PAUtils.Mod(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1, chunkNum / numberOfSaves) == 0)
+                    if (PACUtils.Mod(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1, chunkNum / numberOfSaves) == 0)
                     {
                         saveNum++;
                         Console.WriteLine($"\r({saveNum}/{numberOfSaves})Filling chunks...DONE!           ");
@@ -183,7 +183,7 @@ namespace PAExtras
         /// <param name="alignToMin">Whether to align to the minimum or the maximum border.</param>
         public static long ChunkAlign(long coordinate, bool alignToMin = true)
         {
-            return alignToMin ? PAUtils.FloorRound(coordinate, PAConstants.CHUNK_SIZE) : PAUtils.CeilRound(coordinate, PAConstants.CHUNK_SIZE);
+            return alignToMin ? PACUtils.FloorRound(coordinate, PAConstants.CHUNK_SIZE) : PACUtils.CeilRound(coordinate, PAConstants.CHUNK_SIZE);
         }
 
         /// <summary>
@@ -224,16 +224,16 @@ namespace PAExtras
 
             if (!backupFiles.Any())
             {
-                PAUtils.PressKey("No backups found!");
+                PACUtils.PressKey("No backups found!");
                 return;
             }
 
             while (true)
             {
                 var lines = new List<string?>();
-                foreach (var file in backupFiles)
+                foreach (var (_, saveName, backupDate) in backupFiles)
                 {
-                    lines.Add($"{file.saveName}: {PAUtils.MakeDate(file.backupDate, ".")} {PAUtils.MakeTime(file.backupDate)}");
+                    lines.Add($"{saveName}: {PACUtils.MakeDate(backupDate, ".")} {PACUtils.MakeTime(backupDate)}");
                     lines.Add(null);
                 }
                 var option = (int)new SaveFileManager.UIList(lines, " Backup loading", null, false, true, null, true).Display();
@@ -246,7 +246,7 @@ namespace PAExtras
                 {
                     var (fileName, saveName, _) = backupFiles.ElementAt(option);
                     Unzip(Path.Join(PAConstants.BACKUPS_FOLDER_PATH, fileName), PAConstants.SAVES_FOLDER_PATH, true, saveName);
-                    PAUtils.PressKey($"\n{fileName} loaded!");
+                    PACUtils.PressKey($"\n{fileName} loaded!");
                     if (ProgressAdventure.MenuManager.AskYesNoUIQuestion("Do you want to regenerate the save file?"))
                     {
                         ProgressAdventure.MenuManager.RegenerateSaveFile(saveName, false);

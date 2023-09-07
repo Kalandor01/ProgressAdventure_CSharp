@@ -1,6 +1,6 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon.Enums;
 
-namespace ProgressAdventure
+namespace PACommon
 {
     /// <summary>
     /// Contains functions for logging.
@@ -63,6 +63,11 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// If the logger should log the milisecond in time.
+        /// </summary>
+        public static bool LogMS { get; set; }
+
+        /// <summary>
         /// <inheritdoc cref="_isLoggingEnabled" path="//summary"/>
         /// </summary>
         public static bool LoggingEnabled { get => _isLoggingEnabled; private set => _isLoggingEnabled = value; }
@@ -96,7 +101,7 @@ namespace ProgressAdventure
                 {
                     var now = DateTime.Now;
                     var currentDate = Utils.MakeDate(now);
-                    var currentTime = Utils.MakeTime(now, writeMs: Constants.LOG_MS);
+                    var currentTime = Utils.MakeTime(now, writeMs: LogMS);
                     Tools.RecreateLogsFolder();
                     using (var f = File.AppendText(Path.Join(Constants.LOGS_FOLDER_PATH, $"{currentDate}.{Constants.LOG_EXT}")))
                     {
@@ -182,6 +187,31 @@ namespace ProgressAdventure
                     Log($"Logging {(LoggingEnabled ? "enabled" : "disabled")}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Tries to turn the int value of the log severity into a <c>LogSeverity</c> enum, and returns the success.
+        /// </summary>
+        /// <param name="severityValue">The log sevrity's int representation.</param>
+        /// <param name="severity">The sevrity, that got parsed, or created.</param>
+        public static bool TryParseSeverityValue(int severityValue, out LogSeverity severity)
+        {
+            foreach (var loggingValue in loggingValuesMap)
+            {
+                if (loggingValue.Value == severityValue)
+                {
+                    severity = loggingValue.Key;
+                    return true;
+                }
+            }
+
+            severity = LogSeverity.DEBUG;
+            return false;
+        }
+
+        public static int GetSeverityValue(LogSeverity severity)
+        {
+            return loggingValuesMap[severity];
         }
         #endregion
     }

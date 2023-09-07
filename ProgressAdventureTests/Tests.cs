@@ -1,7 +1,10 @@
-﻿using ProgressAdventure;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
+using PACommon.SettingsManagement;
+using ProgressAdventure;
 using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
@@ -9,7 +12,7 @@ using SaveFileManager;
 using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
-using PATools = ProgressAdventure.Tools;
+using PATools = PACommon.Tools;
 
 namespace ProgressAdventureTests
 {
@@ -288,7 +291,7 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? SettingsUtilsSpecialKeyNameDictionaryCheck()
         {
-            var checkedDictionary = SettingsUtils.specialKeyNameMap;
+            var checkedDictionary = KeybindUtils.specialKeyNameMap;
 
             var existingKeys = new List<ConsoleKey>();
             var existingValues = new List<string>();

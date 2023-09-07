@@ -1,28 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Label="Normalise stack trace file locations">
-    <PathMap>$(MSBuildProjectDirectory)=.\\$(MSBuildProjectName)</PathMap>
-  </PropertyGroup>
-  
-
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NPrng" Version="1.0.0.2" />
     <PackageReference Include="PInvoke.Kernel32" Version="0.7.124" />
-    <PackageReference Include="RandomSentence" Version="1.1.1.2" />
     <PackageReference Include="SaveFileManager" Version="1.2.0" />
-  </ItemGroup>
-  
-
-  <ItemGroup>
-    <ProjectReference Include="..\PACommon\PACommon.csproj" />
   </ItemGroup>
 
 </Project>

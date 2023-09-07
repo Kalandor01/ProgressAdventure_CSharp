@@ -1,4 +1,7 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon;
+using PACommon.Enums;
+using ProgressAdventure.Enums;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -241,12 +244,12 @@ namespace ProgressAdventure.ItemManagement
                 bool success;
                 if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
                 {
-                    success = Tools.FromJson(itemJson, fileVersion, out MaterialItem? materialObj);
+                    success = PACTools.FromJson(itemJson, fileVersion, out MaterialItem? materialObj);
                     itemObject = materialObj;
                     return success;
                 }
 
-                success = Tools.FromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
+                success = PACTools.FromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
                 itemObject = compoundObj;
                 return success;
             }

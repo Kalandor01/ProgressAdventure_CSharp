@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAExtras", "PAExtras\PAExtr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProgressAdventureTests", "ProgressAdventureTests\ProgressAdventureTests.csproj", "{041DB2F9-7A91-4BB7-88BB-23FA76D17D7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAVisualizer", "PAVisualizer\PAVisualizer.csproj", "{3B03F656-52AB-4205-9605-A888D04EEEF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAVisualizer", "PAVisualizer\PAVisualizer.csproj", "{3B03F656-52AB-4205-9605-A888D04EEEF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PACommon", "PACommon\PACommon.csproj", "{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{3B03F656-52AB-4205-9605-A888D04EEEF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B03F656-52AB-4205-9605-A888D04EEEF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B03F656-52AB-4205-9605-A888D04EEEF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

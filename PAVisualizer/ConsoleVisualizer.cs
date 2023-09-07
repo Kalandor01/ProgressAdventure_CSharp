@@ -1,5 +1,5 @@
-﻿using ProgressAdventure;
-using ProgressAdventure.Extensions;
+﻿using PACommon.Extensions;
+using ProgressAdventure;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
 using SaveFileManager;
@@ -10,8 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
-using PATools = ProgressAdventure.Tools;
-using PAUtils = ProgressAdventure.Utils;
+using PACTools = PACommon.Tools;
+using Utils = PACommon.Utils;
 
 namespace PAVisualizer
 {
@@ -140,7 +140,7 @@ namespace PAVisualizer
         public static void SaveVisualizer(string saveName, string? savesFolderPath = null)
         {
             var now = DateTime.Now;
-            var visualizedSaveFolderName = $"{saveName}_{PAUtils.MakeDate(now)}_{PAUtils.MakeTime(now, ";")}";
+            var visualizedSaveFolderName = $"{saveName}_{Utils.MakeDate(now)}_{Utils.MakeTime(now, ";")}";
             var displayVisualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER, visualizedSaveFolderName);
             var visualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName);
 
@@ -151,7 +151,7 @@ namespace PAVisualizer
             }
             catch (Exception e)
             {
-                PAUtils.PressKey($"ERROR: {e}");
+                Utils.PressKey($"ERROR: {e}");
                 return;
             }
 
@@ -162,11 +162,11 @@ namespace PAVisualizer
             txt.AppendLine($"Loaded {PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}:");
             txt.AppendLine(VisualizerTools.GetDisplayGeneralSaveData());
             txt.Append("\n---------------------------------------------------------------------------------------------------------------");
-            PAUtils.PressKey(txt.ToString());
+            Utils.PressKey(txt.ToString());
             if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.saveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
             {
-                PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
-                PATools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
+                PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
+                PACTools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
                 File.AppendAllText(Path.Join(visualizedSavePath, Constants.EXPORT_DATA_FILE), $"{txt}\n\n");
             }
 
@@ -177,8 +177,8 @@ namespace PAVisualizer
             }
 
             // get chunks data
-            PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
-            PATools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
+            PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
+            PACTools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
             World.LoadAllChunksFromFolder(showProgressText: "Getting chunk data...");
 
             // make rectangle
@@ -263,7 +263,7 @@ namespace PAVisualizer
             {
                 var imageName = string.Join("-", selectedLayers) + ".png";
                 MakeImage(selectedLayers, Path.Join(visualizedSavePath, imageName));
-                PAUtils.PressKey($"Generated image as \"{imageName}\"");
+                Utils.PressKey($"Generated image as \"{imageName}\"");
             }
         }
         #endregion

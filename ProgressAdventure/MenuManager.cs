@@ -1,9 +1,13 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
+using PACommon.SettingsManagement;
+using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using SaveFileManager;
 using SFMUtils = SaveFileManager.Utils;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
 {
@@ -87,12 +91,12 @@ namespace ProgressAdventure
         /// </summary>
         private static readonly List<(int value, string name)> loggingSeveritiesList = new()
         {
-            (Logger.loggingValuesMap[LogSeverity.DISABLED], "MINIMAL"),
-            (Logger.loggingValuesMap[LogSeverity.FATAL], LogSeverity.FATAL.ToString()),
-            (Logger.loggingValuesMap[LogSeverity.ERROR], LogSeverity.ERROR.ToString()),
-            (Logger.loggingValuesMap[LogSeverity.WARN], LogSeverity.WARN.ToString()),
-            (Logger.loggingValuesMap[LogSeverity.INFO], LogSeverity.INFO.ToString()),
-            (Logger.loggingValuesMap[LogSeverity.DEBUG], "ALL"),
+            (Logger.GetSeverityValue(LogSeverity.DISABLED), "MINIMAL"),
+            (Logger.GetSeverityValue(LogSeverity.FATAL), LogSeverity.FATAL.ToString()),
+            (Logger.GetSeverityValue(LogSeverity.ERROR), LogSeverity.ERROR.ToString()),
+            (Logger.GetSeverityValue(LogSeverity.WARN), LogSeverity.WARN.ToString()),
+            (Logger.GetSeverityValue(LogSeverity.INFO), LogSeverity.INFO.ToString()),
+            (Logger.GetSeverityValue(LogSeverity.DEBUG), "ALL"),
         };
 
         /// <summary>
@@ -116,9 +120,9 @@ namespace ProgressAdventure
         }
 
         /// <inheritdoc cref="KeyField.DisplayValueDelegate"/>
-        private static string KeybindValueDisplay(KeyField keyField, string icons, OptionsUI? optionsUI = null)
+        private static string KeybindValueDisplay(KeyField<ActionType> keyField, string icons, OptionsUI? optionsUI = null)
         {
-            return string.Join(", ", SettingsUtils.GetColoredNames(keyField.value));
+            return string.Join(", ", KeybindUtils.GetColoredNames(keyField.Value));
         }
         #endregion
 
@@ -134,11 +138,17 @@ namespace ProgressAdventure
             var elementList = new List<BaseUI?>();
             foreach (var actionType in Enum.GetValues<ActionType>())
             {
-                elementList.Add(new KeyField(
-                    tempKeybinds.GetActionKey(actionType),
+                var actionKey = tempKeybinds.GetActionKey(actionType);
+                if (actionKey is null)
+                {
+                    Logger.Log("Action type doesn't exist in keybind", $"action type: {actionType}", LogSeverity.WARN);
+                    actionKey = new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) });
+                }
+                elementList.Add(new KeyField<ActionType>(
+                    actionKey,
                     actionType.ToString().Capitalize() + ": ",
                     validatorFunction: KeybindChange,
-                    displayValueFunction: new KeyField.DisplayValueDelegate(KeybindValueDisplay),
+                    displayValueFunction: new KeyField<ActionType>.DisplayValueDelegate(KeybindValueDisplay),
                     keyNum: 2
                 ));
             }
@@ -184,7 +194,7 @@ namespace ProgressAdventure
             // logging
             var loggingValues = loggingSeveritiesList.Select(el => el.value);
             var loggingNames = loggingSeveritiesList.Select(el => el.name);
-            var currentLoggingValue = Logger.loggingValuesMap[Settings.LoggingLevel];
+            var currentLoggingValue = Logger.GetSeverityValue(Settings.LoggingLevel);
 
             var loggingValue = loggingValues.Count() - 1;
             for (var x = 0; x < loggingValues.Count(); x++)
@@ -208,7 +218,7 @@ namespace ProgressAdventure
             if (response is not null)
             {
                 var newAutoSaveValue = autoSaveElement.Value;
-                _ = Tools.TryParseLogSeverityFromValue(loggingValues.ElementAt(loggingElement.Value), out LogSeverity newLoggingLevel);
+                _ = Logger.TryParseSeverityValue(loggingValues.ElementAt(loggingElement.Value), out LogSeverity newLoggingLevel);
                 var newColoredTextValue = coloredTextElement.Value;
 
                 Settings.AutoSave = newAutoSaveValue;
@@ -405,7 +415,7 @@ namespace ProgressAdventure
         }
 
         /// <inheritdoc cref="KeyField.ValidatorDelegate"/>
-        private static (TextFieldValidatorStatus status, string? message) KeybindChange(ConsoleKeyInfo key, KeyField keyField)
+        private static (TextFieldValidatorStatus status, string? message) KeybindChange(ConsoleKeyInfo key, KeyField<ActionType> keyField)
         {
             tempKeybinds.UpdateKeybindConflicts();
             return (TextFieldValidatorStatus.VALID, null);

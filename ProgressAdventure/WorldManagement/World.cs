@@ -1,4 +1,6 @@
-﻿using ProgressAdventure.Extensions;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -185,9 +187,9 @@ namespace ProgressAdventure.WorldManagement
                         existingChunks.Add((posX, posY));
                         continue;
                     }
-                    Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", Enums.LogSeverity.WARN);
+                    Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
                 }
-                Logger.Log("Chunk file parse error", $"file name is not chunk file name", Enums.LogSeverity.WARN);
+                Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
             }
 
             // load chunks

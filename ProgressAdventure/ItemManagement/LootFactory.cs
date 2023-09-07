@@ -1,4 +1,7 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon;
+using PACommon.Enums;
+using ProgressAdventure.Enums;
+
 
 namespace ProgressAdventure.ItemManagement
 {

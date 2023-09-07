@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.Extensions
+﻿namespace PACommon.Extensions
 {
     public static class ICollectionExtensions
     {

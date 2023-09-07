@@ -1,5 +1,7 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+﻿using PACommon;
+using PACommon.Enums;
+using PACommon.Extensions;
+using ProgressAdventure.Enums;
 using System.Diagnostics;
 using Attribute = ProgressAdventure.Enums.Attribute;
 

@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.Enums
+﻿namespace PACommon.Enums
 {
     public enum LogSeverity : int
     {

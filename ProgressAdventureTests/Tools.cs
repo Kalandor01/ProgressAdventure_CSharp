@@ -1,11 +1,11 @@
-﻿using ProgressAdventure;
-using ProgressAdventure.Enums;
+﻿using PACommon;
+using PACommon.Enums;
+using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
 using System.Reflection;
 using System.Text;
-using Logger = ProgressAdventure.Logger;
-using PAUtils = ProgressAdventure.Utils;
 using PAConstants = ProgressAdventure.Constants;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventureTests
 {
@@ -115,7 +115,7 @@ namespace ProgressAdventureTests
         public static void PrintSummary()
         {
             var allPassed = testsSuccessful == testsRun;
-            var result = PAUtils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
+            var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
             Console.WriteLine($"\nFinished running test batch: {result} successful!");
             Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
@@ -186,7 +186,7 @@ namespace ProgressAdventureTests
         private static void EvaluateResult(string testName, TestResultDTO result)
         {
             var passed = result.resultType == LogSeverity.PASS;
-            var typeText = PAUtils.StylizedText(result.resultType.ToString(), passed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
+            var typeText = Utils.StylizedText(result.resultType.ToString(), passed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
             var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
 
             Console.WriteLine(typeText + messageText);

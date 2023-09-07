@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.Extensions
+﻿namespace PACommon.Extensions
 {
     /// <summary>
     /// Object for storing extensions for <c>Type</c>.

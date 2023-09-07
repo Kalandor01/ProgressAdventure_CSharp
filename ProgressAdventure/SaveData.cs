@@ -1,4 +1,7 @@
-﻿using ProgressAdventure.Entity;
+﻿using PACommon;
+using PACommon.Enums;
+using ProgressAdventure.Entity;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
 {
@@ -68,6 +71,40 @@ namespace ProgressAdventure
         #endregion
 
         #region Public functions
+        public static TimeSpan GetPlaytime()
+        {
+            return Playtime + DateTime.Now.Subtract(LastLoad);
+        }
+        #endregion
+
+        #region JsonConvert
+        private static readonly List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> versionCorrecters = new()
+        {
+            // 2.0.1 -> 2.0.2
+            (oldJson => {
+                // saved entity types
+                if (
+                    oldJson.TryGetValue("player", out object? playerJson) &&
+                    playerJson is IDictionary<string, object?> playerDict
+                )
+                {
+                    playerDict["type"] = "player";
+                }
+            }, "2.0.2"),
+            // 2.1.1 -> 2.2
+            (oldJson => {
+                // snake case rename
+                if (oldJson.TryGetValue("displayName", out object? dnRename))
+                {
+                    oldJson["display_name"] = dnRename;
+                }
+                if (oldJson.TryGetValue("lastSave", out object? lsRename))
+                {
+                    oldJson["last_save"] = lsRename;
+                }
+            }, "2.2"),
+        };
+
         /// <summary>
         /// Converts the data for the display part of the data file to a json format.
         /// </summary>
@@ -103,9 +140,46 @@ namespace ProgressAdventure
             return (DisplayDataToJson(), MainDataToJson());
         }
 
-        public static TimeSpan GetPlaytime()
+        /// <summary>
+        /// Converts the json representation of the object to object format.
+        /// </summary>
+        /// <param name="saveName">The name of the save file.</param>
+        /// <param name="saveDataJson">The json representation of the SaveData.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static bool FromJson(string saveName, IDictionary<string, object?>? saveDataJson, string fileVersion)
         {
-            return Playtime + DateTime.Now.Subtract(LastLoad);
+            if (saveDataJson is null)
+            {
+                Logger.Log($"{typeof(SaveData)} parse error", $"{typeof(SaveData).ToString().ToLower()} json is null", LogSeverity.ERROR);
+                Initialise(saveName);
+                return false;
+            }
+
+            PACTools.CorrectJsonData(typeof(SaveData).ToString(), ref saveDataJson, versionCorrecters, fileVersion);
+
+            return FromJsonWithoutCorrection(saveName, saveDataJson, fileVersion);
+        }
+
+        /// <summary>
+        /// Converts the json representation of the object to object format.
+        /// </summary>
+        /// <param name="saveName">The name of the save file.</param>
+        /// <param name="saveDataJson">The json representation of the RandomState.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        private static bool FromJsonWithoutCorrection(string saveName, IDictionary<string, object?> saveDataJson, string fileVersion)
+        {
+            // display name
+            var displayName = saveDataJson["display_name"] as string;
+            // last save
+            var lastSave = saveDataJson["last_save"] as DateTime?;
+            // playtime
+            _ = TimeSpan.TryParse(saveDataJson["playtime"]?.ToString(), out var playtime);
+            // player
+            var playerData = saveDataJson["player"] as IDictionary<string, object?>;
+            PACTools.FromJson(playerData, fileVersion, out Player? player);
+
+            Initialise(saveName, displayName, lastSave, playtime, player, false);
+            return true;
         }
         #endregion
     }

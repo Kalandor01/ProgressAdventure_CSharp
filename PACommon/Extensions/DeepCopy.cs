@@ -1,7 +1,7 @@
-﻿using ProgressAdventure.Extensions.ArrayExtensions;
+﻿using PACommon.Extensions.ArrayExtensions;
 using System.Reflection;
 
-namespace ProgressAdventure.Extensions
+namespace PACommon.Extensions
 {
     /// <summary>
     /// Object for storing extensions for <c>object</c>.<br/>

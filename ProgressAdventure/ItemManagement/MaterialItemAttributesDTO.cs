@@ -1,5 +1,5 @@
-﻿using ProgressAdventure.Enums;
-using ProgressAdventure.Extensions;
+﻿using PACommon.Extensions;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.ItemManagement
 {
