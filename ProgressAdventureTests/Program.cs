@@ -14,7 +14,6 @@ namespace ProgressAdventureTests
         {
             Tools.RunAllTests();
 
-
             Utils.PressKey();
         }
 

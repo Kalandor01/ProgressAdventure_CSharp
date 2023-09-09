@@ -68,6 +68,8 @@ namespace ProgressAdventureTests
             RunTest(Tests.SettingsUtilsActionTypeIgnoreMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsActionTypeResponseMappingDictionaryCheck, false);
             RunTest(Tests.SettingsUtilsSpecialKeyNameDictionaryCheck, false);
+            RunTest(Tests.SettingsUtilsSettingValueTypeMapDictionaryCheck, false);
+            RunTest(Tests.SettingsUtilsDefaultSettingsDictionaryCheck, false);
             RunTest(Tests.WorldUtilsTileNoiseOffsetsDictionaryCheck, false);
 
             Logger.Log("All dictionary tests finished runing");

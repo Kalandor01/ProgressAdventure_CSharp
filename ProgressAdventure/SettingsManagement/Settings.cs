@@ -174,7 +174,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static bool GetAutoSave()
         {
-            return (bool)SettingsManager(SettingsKey.AUTO_SAVE);
+            return (bool)GetFromSettingAsType(SettingsKey.AUTO_SAVE);
         }
 
         /// <summary>
@@ -182,10 +182,13 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static LogSeverity GetLoggingLevel()
         {
-            _ = int.TryParse(SettingsManager(SettingsKey.LOGGING_LEVEL).ToString(), out int logLevel);
-            if (!Logger.TryParseSeverityValue(logLevel, out LogSeverity severity))
+            if (
+                !TryGetFromSettingAsType(SettingsKey.LOGGING_LEVEL, out object logLevel) ||
+                !Logger.TryParseSeverityValue((int)(long)logLevel, out LogSeverity severity)
+                )
             {
                 Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
+                _ = Logger.TryParseSeverityValue((int)SettingsUtils.GetDefaultSettings()[SettingsKey.LOGGING_LEVEL.ToString()], out severity);
             }
             return severity;
         }
@@ -215,7 +218,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static bool GetAskDeleteSave()
         {
-            return (bool)SettingsManager(SettingsKey.ASK_DELETE_SAVE);
+            return (bool)GetFromSettingAsType(SettingsKey.ASK_DELETE_SAVE);
         }
 
         /// <summary>
@@ -223,7 +226,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static bool GetAskRegenerateSave()
         {
-            return (bool)SettingsManager(SettingsKey.ASK_REGENERATE_SAVE);
+            return (bool)GetFromSettingAsType(SettingsKey.ASK_REGENERATE_SAVE);
         }
 
         /// <summary>
@@ -231,8 +234,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static int GetDefBackupAction()
         {
-            _ = int.TryParse(SettingsManager(SettingsKey.DEF_BACKUP_ACTION).ToString(), out int defBackupAction);
-            return defBackupAction;
+            return (int)(long)GetFromSettingAsType(SettingsKey.DEF_BACKUP_ACTION);
         }
 
         /// <summary>
@@ -240,7 +242,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static bool GetEnableColoredText()
         {
-            return (bool)SettingsManager(SettingsKey.ENABLE_COLORED_TEXT);
+            return (bool)GetFromSettingAsType(SettingsKey.ENABLE_COLORED_TEXT);
         }
         #endregion
 
@@ -360,6 +362,36 @@ namespace ProgressAdventure.SettingsManagement
                 Logger.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
                 settings[settingsKeyName] = value;
                 Tools.EncodeSaveShort(settings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+            }
+        }
+
+        /// <summary>
+        /// Tries to get the value, associated with the key in the settings file, and returns if it's the expected type.
+        /// </summary>
+        /// <param name="settingsKey">The settings key to get the value from.</param>
+        /// <param name="value">The value returned from the settings file.</param>
+        private static bool TryGetFromSettingAsType(SettingsKey settingsKey, out object value)
+        {
+            value = SettingsManager(settingsKey);
+            return value.GetType() == SettingsUtils.settingValueTypeMap[settingsKey];
+        }
+
+        /// <summary>
+        /// Tries to get the value, associated with the key in the settings file, and returns it, or the default value, if it isn't the expected type.
+        /// </summary>
+        /// <param name="settingsKey">The settings key to get the value from.</param>
+        private static object GetFromSettingAsType(SettingsKey settingsKey)
+        {
+            if (TryGetFromSettingAsType(settingsKey, out object rawValue))
+            {
+                return rawValue;
+            }
+            else
+            {
+                Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.settingValueTypeMap[settingsKey]} but is {rawValue.GetType()}, correcting...", LogSeverity.WARN);
+                var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
+                SettingsManager(settingsKey, newValue);
+                return newValue;
             }
         }
         #endregion

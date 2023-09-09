@@ -93,7 +93,7 @@ namespace PACommon
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
         /// <param name="newLine">Whether to write a new line before the message. or not.</param>
-        public static void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        public static async void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             try
             {
@@ -103,13 +103,16 @@ namespace PACommon
                     var currentDate = Utils.MakeDate(now);
                     var currentTime = Utils.MakeTime(now, writeMs: LogMS);
                     Tools.RecreateLogsFolder();
-                    using (var f = File.AppendText(Path.Join(Constants.LOGS_FOLDER_PATH, $"{currentDate}.{Constants.LOG_EXT}")))
+                    string text =$"{(newLine ? "\n" : "")}[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n";
+                    while (true)
                     {
-                        if (newLine)
+                        try
                         {
-                            f.Write("\n");
+                            using var f = File.AppendText(Path.Join(Constants.LOGS_FOLDER_PATH, $"{currentDate}.{Constants.LOG_EXT}"));
+                            await f.WriteAsync(text);
+                            break;
                         }
-                        f.Write($"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n");
+                        catch (IOException) { }
                     }
                     if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
                     {
@@ -128,7 +131,7 @@ namespace PACommon
                     try
                     {
                         using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
-                        f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{e}|\n");
+                        await f.WriteAsync($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{e}|\n");
                     }
                     catch (Exception e2)
                     {
@@ -142,7 +145,7 @@ namespace PACommon
         /// <summary>
         /// Puts a newline in the logs.
         /// </summary>
-        public static void LogNewLine()
+        public static async void LogNewLine()
         {
             try
             {
@@ -150,7 +153,7 @@ namespace PACommon
                 {
                     Tools.RecreateLogsFolder();
                     using var f = File.AppendText(Path.Join(Constants.LOGS_FOLDER_PATH, $"{Utils.MakeDate(DateTime.Now)}.{Constants.LOG_EXT}"));
-                    f.Write("\n");
+                    await f.WriteAsync("\n");
                 }
             }
             catch (Exception e)
@@ -158,7 +161,7 @@ namespace PACommon
                 if (LoggingEnabled)
                 {
                     using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
-                    f.Write($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOG NEW LINE CRASHED]\t: |{e}|\n");
+                    await f.WriteAsync($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOG NEW LINE CRASHED]\t: |{e}|\n");
                 }
             }
         }

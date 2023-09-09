@@ -19,6 +19,7 @@ namespace ProgressAdventureTests
     public static class Tests
     {
         #region Dictionary/Enum tests
+        #region Logger
         /// <summary>
         /// Checks if the Logger, logging values dictionary contains all required keys and correct values.
         /// </summary>
@@ -49,7 +50,9 @@ namespace ProgressAdventureTests
 
             return null;
         }
+        #endregion
 
+        #region Entity
         /// <summary>
         /// Checks if the EntityUtils, facing to movement vector dictionary contains all required keys and correct values.
         /// </summary>
@@ -140,7 +143,9 @@ namespace ProgressAdventureTests
 
             return null;
         }
+        #endregion
 
+        #region Items
         /// <summary>
         /// Checks if the ItemUtils, material properties dictionary contains all required keys and correct values.
         /// </summary>
@@ -227,7 +232,9 @@ namespace ProgressAdventureTests
 
             return null;
         }
+        #endregion
 
+        #region Settings
         /// <summary>
         /// Checks if the SettingsUtils, action type ignore mapping dictionary contains all required keys and correct values.
         /// </summary>
@@ -321,6 +328,60 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
+        /// Checks if the SettingsUtils, setting value type map dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? SettingsUtilsSettingValueTypeMapDictionaryCheck()
+        {
+            var requiredKeys = Enum.GetValues<SettingsKey>();
+            var checkedDictionary = SettingsUtils.settingValueTypeMap;
+
+            foreach (var key in requiredKeys)
+            {
+                if (checkedDictionary.TryGetValue(key, out Type? value))
+                {
+                    if (value is null)
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
+                    }
+                }
+                else
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the SettingsUtils, <c>GetDefaultSettings()</c> dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? SettingsUtilsDefaultSettingsDictionaryCheck()
+        {
+            var requiredKeys = Enum.GetValues<SettingsKey>();
+            var checkedDictionary = SettingsUtils.GetDefaultSettings();
+
+            foreach (var key in requiredKeys)
+            {
+                if (checkedDictionary.TryGetValue(key.ToString(), out object? value))
+                {
+                    if (value is null)
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
+                    }
+                }
+                else
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region World
+        /// <summary>
         /// Checks if the WorldUtils, tile noise offsets dictionary contains all required keys and correct values.
         /// </summary>
         public static TestResultDTO? WorldUtilsTileNoiseOffsetsDictionaryCheck()
@@ -348,7 +409,9 @@ namespace ProgressAdventureTests
             return null;
         }
         #endregion
+        #endregion
 
+        #region Exists and loadable tests
         /// <summary>
         /// Checks if all material enums values can be turned into material items.
         /// </summary>
@@ -595,7 +658,9 @@ namespace ProgressAdventureTests
 
             return null;
         }
+        #endregion
 
+        #region Other tests
         /// <summary>
         /// NOT WORKING!!!<br/>
         /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.<br/>
@@ -613,5 +678,6 @@ namespace ProgressAdventureTests
 
             return new TestResultDTO(LogSeverity.PASS, "Not realy implemented!");
         }
+        #endregion
     }
 }

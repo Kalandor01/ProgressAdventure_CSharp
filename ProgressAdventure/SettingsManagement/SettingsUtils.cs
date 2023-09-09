@@ -31,6 +31,20 @@ namespace ProgressAdventure.SettingsManagement
             [ActionType.RIGHT] = Key.RIGHT,
             [ActionType.ENTER] = Key.ENTER
         };
+
+        /// <summary>
+        /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
+        /// </summary>
+        public static readonly Dictionary<SettingsKey, Type> settingValueTypeMap = new()
+        {
+            [SettingsKey.AUTO_SAVE] = typeof(bool),
+            [SettingsKey.LOGGING_LEVEL] = typeof(long),
+            [SettingsKey.KEYBINDS] = typeof(Dictionary<string, object?>),
+            [SettingsKey.ASK_DELETE_SAVE] = typeof(bool),
+            [SettingsKey.ASK_REGENERATE_SAVE] = typeof(bool),
+            [SettingsKey.DEF_BACKUP_ACTION] = typeof(long),
+            [SettingsKey.ENABLE_COLORED_TEXT] = typeof(bool),
+        };
         #endregion
 
         #region Public functions
