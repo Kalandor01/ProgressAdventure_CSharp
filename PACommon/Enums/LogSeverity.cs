@@ -15,6 +15,6 @@
         /// DON'T USE WHEN CALLING <c>Logger.Log()</c>!!!<br/>
         /// Represents no logging (except before this value loads from the settings file).
         /// </summary>
-        DISABLED = 100,
+        DISABLED = -1,
     }
 }

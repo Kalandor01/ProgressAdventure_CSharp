@@ -1,6 +1,6 @@
 ﻿using PACommon.Enums;
 
-namespace ProgressAdventureTests
+namespace PACommon
 {
     /// <summary>
     /// DTO used for storing the results of a test function.

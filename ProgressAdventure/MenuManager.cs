@@ -89,14 +89,14 @@ namespace ProgressAdventure
         /// <summary>
         /// A list of logging severities to choose from in the menu.
         /// </summary>
-        private static readonly List<(int value, string name)> loggingSeveritiesList = new()
+        private static readonly List<(LogSeverity value, string name)> loggingSeveritiesList = new()
         {
-            (Logger.GetSeverityValue(LogSeverity.DISABLED), "MINIMAL"),
-            (Logger.GetSeverityValue(LogSeverity.FATAL), LogSeverity.FATAL.ToString()),
-            (Logger.GetSeverityValue(LogSeverity.ERROR), LogSeverity.ERROR.ToString()),
-            (Logger.GetSeverityValue(LogSeverity.WARN), LogSeverity.WARN.ToString()),
-            (Logger.GetSeverityValue(LogSeverity.INFO), LogSeverity.INFO.ToString()),
-            (Logger.GetSeverityValue(LogSeverity.DEBUG), "ALL"),
+            (LogSeverity.DISABLED, "MINIMAL"),
+            (LogSeverity.FATAL, LogSeverity.FATAL.ToString()),
+            (LogSeverity.ERROR, LogSeverity.ERROR.ToString()),
+            (LogSeverity.WARN, LogSeverity.WARN.ToString()),
+            (LogSeverity.INFO, LogSeverity.INFO.ToString()),
+            (LogSeverity.DEBUG, "ALL"),
         };
 
         /// <summary>
@@ -192,20 +192,20 @@ namespace ProgressAdventure
             var autoSaveElement = new Toggle(Settings.AutoSave, "Auto save: ");
 
             // logging
-            var loggingValues = loggingSeveritiesList.Select(el => el.value);
-            var loggingNames = loggingSeveritiesList.Select(el => el.name);
-            var currentLoggingValue = Logger.GetSeverityValue(Settings.LoggingLevel);
+            var loggingSeverities = loggingSeveritiesList.Select(el => el.value);
+            var loggingSeverityNames = loggingSeveritiesList.Select(el => el.name);
+            var currentLoggingLevel = Settings.LoggingLevel;
 
-            var loggingValue = loggingValues.Count() - 1;
-            for (var x = 0; x < loggingValues.Count(); x++)
+            var loggingLevelIndex = loggingSeverities.Count() - 1;
+            for (var x = 0; x < loggingSeverities.Count(); x++)
             {
-                if (loggingValues.ElementAt(x) == currentLoggingValue)
+                if (loggingSeverities.ElementAt(x) == currentLoggingLevel)
                 {
-                    loggingValue = x;
+                    loggingLevelIndex = x;
                     break;
                 }
             }
-            var loggingElement = new PAChoice(loggingNames, loggingValue, "Logging: ");
+            var loggingElement = new PAChoice(loggingSeverityNames, loggingLevelIndex, "Logging: ");
 
             // enable colored text
             var coloredTextElement = new Toggle(Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
@@ -218,7 +218,7 @@ namespace ProgressAdventure
             if (response is not null)
             {
                 var newAutoSaveValue = autoSaveElement.Value;
-                _ = Logger.TryParseSeverityValue(loggingValues.ElementAt(loggingElement.Value), out LogSeverity newLoggingLevel);
+                var newLoggingLevel = loggingSeverities.ElementAt(loggingElement.Value);
                 var newColoredTextValue = coloredTextElement.Value;
 
                 Settings.AutoSave = newAutoSaveValue;

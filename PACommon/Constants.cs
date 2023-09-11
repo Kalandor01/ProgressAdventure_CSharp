@@ -8,6 +8,13 @@ namespace PACommon
     /// </summary>
     public class Constants
     {
+        #region Threads
+        /// <summary>
+        /// The display name of the tests thread.
+        /// </summary>
+        public const string TESTS_THREAD_NAME = "Tests";
+        #endregion
+
         #region Paths/folders/file names
         /// <summary>
         /// The path to the root folder.

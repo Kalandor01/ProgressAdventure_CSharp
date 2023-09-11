@@ -5,12 +5,7 @@
     /// </summary>
     public static class Constants
     {
-        #region Threads
-        /// <summary>
-        /// The display name of the tests thread.
-        /// </summary>
-        public const string TESTS_THREAD_NAME = "Tests";
-
+        #region Misc
         /// <summary>
         /// Whether to initialise Globals and Setting in the main preload.
         /// </summary>

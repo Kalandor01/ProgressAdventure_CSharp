@@ -13,45 +13,13 @@ using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventureTests
 {
     public static class Tests
     {
         #region Dictionary/Enum tests
-        #region Logger
-        /// <summary>
-        /// Checks if the Logger, logging values dictionary contains all required keys and correct values.
-        /// </summary>
-        public static TestResultDTO? LoggerLoggingValuesDictionaryCheck()
-        {
-            var requiredKeys = Enum.GetValues<LogSeverity>();
-            var checkedDictionary = Tools.GetInternalFieldFromStaticClass<Dictionary<LogSeverity, int>>(typeof(Logger), "loggingValuesMap");
-            var existingValues = new List<int>();
-
-            foreach (var key in requiredKeys)
-            {
-                if (checkedDictionary.TryGetValue(key, out int value))
-                {
-                    if (existingValues.Contains(value))
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
-                    }
-                    else
-                    {
-                        existingValues.Add(value);
-                    }
-                }
-                else
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
-                }
-            }
-
-            return null;
-        }
-        #endregion
-
         #region Entity
         /// <summary>
         /// Checks if the EntityUtils, facing to movement vector dictionary contains all required keys and correct values.
@@ -63,7 +31,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<Facing, (int x, int y)>>(typeof(EntityUtils), "facingToMovementVectorMap");
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Facing, (int x, int y)>>(typeof(EntityUtils), "facingToMovementVectorMap");
             }
             catch (Exception ex)
             {
@@ -113,7 +81,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)>>(typeof(EntityUtils), "attributeStatChangeMap");
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)>>(typeof(EntityUtils), "attributeStatChangeMap");
             }
             catch (Exception ex)
             {
@@ -391,7 +359,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Tools.GetInternalFieldFromStaticClass<IDictionary<TileNoiseType, double>>(typeof(WorldUtils), "_tileNoiseOffsets");
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<TileNoiseType, double>>(typeof(WorldUtils), "_tileNoiseOffsets");
             }
             catch (Exception ex)
             {
@@ -573,7 +541,7 @@ namespace ProgressAdventureTests
 
                 try
                 {
-                    entityTypeMap = Tools.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), entityTypeMapName);
+                    entityTypeMap = Utils.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), entityTypeMapName);
                 }
                 catch (Exception ex)
                 {

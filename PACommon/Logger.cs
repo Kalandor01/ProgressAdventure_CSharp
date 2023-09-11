@@ -7,26 +7,6 @@ namespace PACommon
     /// </summary>
     public static class Logger
     {
-        #region Public dicts
-        /// <summary>
-        /// Dictionary mapping logging severities to their logging values.<br/>
-        /// A log will actualy happen, if the current logging level is lower than the loggin level of the message.
-        /// </summary>
-        internal static readonly Dictionary<LogSeverity, int> loggingValuesMap = new()
-        {
-            [LogSeverity.DISABLED] = -1,
-            [LogSeverity.DEBUG] = (int)LogSeverity.DEBUG,
-            [LogSeverity.INFO] = (int)LogSeverity.INFO,
-            [LogSeverity.WARN] = (int)LogSeverity.WARN,
-            [LogSeverity.ERROR] = (int)LogSeverity.ERROR,
-            [LogSeverity.FATAL] = (int)LogSeverity.FATAL,
-
-            [LogSeverity.PASS] = (int)LogSeverity.PASS,
-            [LogSeverity.FAIL] = (int)LogSeverity.FAIL,
-            [LogSeverity.OTHER] = (int)LogSeverity.OTHER,
-        };
-        #endregion
-
         #region Private fields
         /// <summary>
         /// The default value for is the logs should be writen out to the console.
@@ -97,7 +77,7 @@ namespace PACommon
         {
             try
             {
-                if (LoggingEnabled && loggingValuesMap[LoggingLevel] <= loggingValuesMap[severity])
+                if (LoggingEnabled && (int)LoggingLevel <= (int)severity)
                 {
                     var now = DateTime.Now;
                     var currentDate = Utils.MakeDate(now);
@@ -143,6 +123,16 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Progress Adventure logger.<br/>
+        /// WILL log things out of order!
+        /// </summary>
+        /// <inheritdoc cref="Log(string, string?, LogSeverity, bool?, bool)"/>
+        public static void LogAsync(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        {
+            LogAsyncTask(Thread.CurrentThread.Name + "(async)", message, details, severity, writeOut, newLine);
+        }
+
+        /// <summary>
         /// Puts a newline in the logs.
         /// </summary>
         public static async void LogNewLine()
@@ -169,6 +159,24 @@ namespace PACommon
 
         #region Private functions
         /// <summary>
+        /// Progress Adventure logger.<br/>
+        /// WILL log things out of order!
+        /// </summary>
+        /// <param name="threadName">The name of the outer thread.</param>
+        /// <param name="message">The message to log.</param>
+        /// <param name="details">The details of the message.</param>
+        /// <param name="severity">The severity of the message.</param>
+        /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
+        /// <param name="newLine">Whether to write a new line before the message. or not.</param>
+        private static async void LogAsyncTask(string? threadName, string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        {
+            await Task.Run(() => {
+                Thread.CurrentThread.Name = threadName;
+                Log(message, details, severity, writeOut, newLine);
+            });
+        }
+
+        /// <summary>
         /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled or not.
         /// </summary>
         /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
@@ -177,17 +185,15 @@ namespace PACommon
             if (_loggingLevel != value)
             {
                 // logging level
-                var oldLoggingLevel = _loggingLevel;
-                var logginValue = loggingValuesMap[value];
+                Log("Logging level changed", $"{_loggingLevel} -> {value}");
                 _loggingLevel = value;
-                Log("Logging level changed", $"{oldLoggingLevel} -> {_loggingLevel}");
 
                 // logging enabled
-                var oldLogging = LoggingEnabled;
-                LoggingEnabled = logginValue != -1;
-                if (LoggingEnabled != oldLogging)
+                var newLoggingEnabled = (int)value != -1;
+                if (LoggingEnabled != newLoggingEnabled)
                 {
-                    Log($"Logging {(LoggingEnabled ? "enabled" : "disabled")}");
+                    Log($"Logging {(newLoggingEnabled ? "enabled" : "disabled")}");
+                    LoggingEnabled = newLoggingEnabled;
                 }
             }
         }
@@ -199,22 +205,17 @@ namespace PACommon
         /// <param name="severity">The sevrity, that got parsed, or created.</param>
         public static bool TryParseSeverityValue(int severityValue, out LogSeverity severity)
         {
-            foreach (var loggingValue in loggingValuesMap)
+            foreach (var loggingValue in Enum.GetValues<LogSeverity>())
             {
-                if (loggingValue.Value == severityValue)
+                if ((int)loggingValue == severityValue)
                 {
-                    severity = loggingValue.Key;
+                    severity = loggingValue;
                     return true;
                 }
             }
 
             severity = LogSeverity.DEBUG;
             return false;
-        }
-
-        public static int GetSeverityValue(LogSeverity severity)
-        {
-            return loggingValuesMap[severity];
         }
         #endregion
     }

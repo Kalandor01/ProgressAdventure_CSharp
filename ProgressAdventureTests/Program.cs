@@ -2,6 +2,7 @@
 using PACommon.Enums;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
+using PACConstants = PACommon.Constants;
 
 namespace ProgressAdventureTests
 {
@@ -12,9 +13,11 @@ namespace ProgressAdventureTests
         /// </summary>
         static void MainFunction()
         {
-            Tools.RunAllTests();
+            //Tools.RunAllTests();
+            Utils.RunAllTests(typeof(Tests), Tools.PrepareTest);
 
-            Utils.PressKey();
+
+            Utils.PressKey("DONE!");
         }
 
         /// <summary>
@@ -24,7 +27,7 @@ namespace ProgressAdventureTests
         {
             Console.OutputEncoding = Encoding.UTF8;
 
-            Thread.CurrentThread.Name = Constants.TESTS_THREAD_NAME;
+            Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
             Logger.LogNewLine();
             Console.WriteLine("Loading...");
 

@@ -65,7 +65,7 @@ namespace ProgressAdventure.SettingsManagement
             get => _loggingLevel;
             set
             {
-                var loggingLevelValue = (long)Logger.GetSeverityValue(value);
+                var loggingLevelValue = (long)value;
                 SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
                 _loggingLevel = GetLoggingLevel();
 

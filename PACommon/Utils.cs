@@ -1,5 +1,7 @@
-﻿using PInvoke;
+﻿using PACommon.Enums;
+using PInvoke;
 using System.Collections;
+using System.Reflection;
 using System.Text;
 
 namespace PACommon
@@ -301,6 +303,170 @@ namespace PACommon
             {
                 Console.WriteLine(new string('\t', recursionNum) + writable);
             }
+        }
+
+        /// <summary>
+        /// Runs an individual test.
+        /// </summary>
+        /// <param name="testFunction">The test to run.</param>
+        /// <param name="prepareTestFunction">The function to run before running a test.</param>
+        /// <param name="newLine">Whether to write a new line in the logs.</param>
+        /// <param name="testsRun">The amount of tests that have run so far.</param>
+        /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
+        public static void RunTest(Func<TestResultDTO?> testFunction, Action? prepareTestFunction, bool newLine, ref int testsRun, ref int testsSuccessful)
+        {
+            if (newLine)
+            {
+                Logger.LogNewLine();
+            }
+
+            var testName = testFunction.Method.Name;
+
+            Console.OutputEncoding = Encoding.UTF8;
+            Thread.CurrentThread.Name = $"{Constants.TESTS_THREAD_NAME}/{testName}";
+
+            prepareTestFunction?.Invoke();
+
+            Console.Write(testName + "...");
+            Logger.Log("Running...");
+
+            TestResultDTO result;
+            try
+            {
+                result = testFunction.Invoke() ?? new TestResultDTO();
+            }
+            catch (Exception ex)
+            {
+                EvaluateResult(testName, new TestResultDTO(LogSeverity.FATAL, ex.ToString()), ref testsRun, ref testsSuccessful);
+                return;
+            }
+            EvaluateResult(testName, result, ref testsRun, ref testsSuccessful);
+        }
+
+        /// <summary>
+        /// Runs an individual test.
+        /// </summary>
+        /// <param name="testFunction">The test to run.</param>
+        /// <param name="prepareTestFunction">The function to run before running a test.</param>
+        /// <param name="newLine">Whether to write a new line in the logs.</param>
+        public static void RunTest(Func<TestResultDTO?> testFunction, Action? prepareTestFunction, bool newLine = true)
+        {
+            int _ = 0;
+            RunTest(testFunction, prepareTestFunction, newLine, ref _, ref _);
+        }
+
+        /// <summary>
+        /// Runs all test functions from a class
+        /// </summary>
+        /// <param name="staticClass"></param>
+        /// <param name="prepareTestFunction">The function to run before running a test.</param>
+        public static void RunAllTests(Type staticClass, Action? prepareTestFunction = null)
+        {
+            if (
+                !staticClass.IsAbstract ||
+                !staticClass.IsSealed
+            )
+            {
+                Logger.Log($"\"{staticClass}\" is not static", null, LogSeverity.ERROR);
+                return;
+            }
+
+            var testsRun = 0;
+            var testsSuccessful = 0;
+
+            Logger.LogNewLine();
+            Logger.Log($"Runing all tests from \"{staticClass}\"");
+
+            var methods = staticClass.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            foreach (var method in methods)
+            {
+                if (
+                    method.ReturnType == typeof(TestResultDTO?) &&
+                    method.GetParameters().Length == 0
+                )
+                {
+                    RunTest(method.CreateDelegate<Func<TestResultDTO?>>(), prepareTestFunction, false, ref testsRun, ref testsSuccessful);
+                }
+            }
+
+            Logger.Log("All tests finished runing");
+            var allPassed = testsSuccessful == testsRun;
+            var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? Constants.Colors.GREEN : Constants.Colors.RED);
+            Console.WriteLine($"\nFinished running test batch: {result} successful!");
+            Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
+        }
+        #endregion
+
+        #region Internal functions
+
+        /// <summary>
+        /// Gets an internal field from a non-static class.
+        /// </summary>
+        /// <typeparam name="T">The type of the internal field.</typeparam>
+        /// <typeparam name="TClass">The type of the class to get the field from.</typeparam>
+        /// <param name="fieldName">The name of the internal field.</param>
+        /// <param name="instance">The instance to get the field from.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the field is null.</exception>
+        public static T GetInternalFieldFromNonStaticClass<T, TClass>(TClass instance, string fieldName)
+            where TClass : class
+        {
+            return GetInternalFieldFromClass<T>(instance.GetType(), fieldName, instance);
+        }
+
+        /// <summary>
+        /// Gets an internal field from a static class.
+        /// </summary>
+        /// <typeparam name="T">The type of the internal field.</typeparam>
+        /// <param name="classType">The type of the static class to get the field from.</param>
+        /// <param name="fieldName">The name of the internal field.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the field is null.</exception>
+        /// <exception cref="ArgumentException">Thrown if the class is not a static class.</exception>
+        public static T GetInternalFieldFromStaticClass<T>(Type classType, string fieldName)
+        {
+            if (
+                !classType.IsAbstract ||
+                !classType.IsSealed
+            )
+            {
+                throw new ArgumentException("The class is not a static class.", nameof(classType));
+            }
+            return GetInternalFieldFromClass<T>(classType, fieldName);
+        }
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// Evaluates the results of a test.
+        /// </summary>
+        /// <param name="testName">The name of the test.</param>
+        /// <param name="result">The result of the test.</param>
+        /// <param name="testsRun">The amount of tests that have run so far.</param>
+        /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
+        private static void EvaluateResult(string testName, TestResultDTO result, ref int testsRun, ref int testsSuccessful)
+        {
+            var passed = result.resultType == LogSeverity.PASS;
+            var typeText = StylizedText(result.resultType.ToString(), passed ? Constants.Colors.GREEN : Constants.Colors.RED);
+            var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+
+            Console.WriteLine(typeText + messageText);
+            Logger.Log(testName, result.resultType + (messageText), result.resultType);
+            testsRun++;
+            testsSuccessful += passed ? 1 : 0;
+
+            Thread.CurrentThread.Name = Constants.TESTS_THREAD_NAME;
+        }
+
+        /// <summary>
+        /// Gets an internal field from a class.
+        /// </summary>
+        /// <typeparam name="T">The type of the internal field.</typeparam>
+        /// <param name="fieldName">The name of the internal field.</param>
+        /// <param name="instance">The instance to get the field from. If null, it assumes, that the class in a static class.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the field is null.</exception>
+        private static T GetInternalFieldFromClass<T>(Type classType, string fieldName, object? instance = null)
+        {
+            var field = classType?.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(instance);
+            return field is null ? throw new ArgumentNullException(nameof(field), "The internal filed is null.") : (T)field;
         }
         #endregion
     }
