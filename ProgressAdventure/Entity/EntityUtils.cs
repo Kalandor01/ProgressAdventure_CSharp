@@ -590,6 +590,69 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
+        /// Writes out the teams, and entities in those teams.
+        /// </summary>
+        /// <param name="teams">The teams of entities, the fight should happen between.</param>
+        /// <param name="totalCount">The total number of entities.</param>
+        private static void WriteOutFightTeams(Dictionary<string, List<Entity>> teams, int totalCount)
+        {
+            var oneEntityTeamExists = false;
+            if (teams.Count < totalCount)
+            {
+                foreach (var team in teams)
+                {
+                    if (team.Value.Count > 1)
+                    {
+                        Console.WriteLine($"\nTeam {team.Key}:\n");
+                        foreach (var entity in team.Value)
+                        {
+                            Console.Write($"\t{entity.GetFullNameWithSpecies()}");
+                            if (entity.originalTeam != entity.currentTeam)
+                            {
+                                Console.Write(" (Switched to this side!)");
+                            }
+                            Console.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
+                        }
+                    }
+                    else
+                    {
+                        oneEntityTeamExists = true;
+                    }
+                }
+            }
+            else
+            {
+                oneEntityTeamExists = true;
+            }
+            if (oneEntityTeamExists)
+            {
+                Console.WriteLine("Other entities:\n");
+                foreach (var team in teams)
+                {
+                    if (!team.Value.Any())
+                    {
+                        Logger.Log("Fight log", $"no entity in team \"{team.Key}\", did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
+                        return;
+                    }
+
+                    if (team.Value.Count == 1)
+                    {
+                        foreach (var entity in team.Value)
+                        {
+                            Console.Write($"{entity.GetFullNameWithSpecies()}");
+                            if (entity.originalTeam != entity.currentTeam)
+                            {
+                                Console.Write(" (Switched to this side!)");
+                            }
+                            Console.WriteLine($"\nHP: {entity.CurrentHp}\nAttack: {entity.Attack}\nDefence: {entity.Defence}\nAgility: {entity.Agility}\n");
+                        }
+                    }
+                }
+            }
+            Console.WriteLine();
+        }
+
+        /// <summary>
         /// Creates a fight between multiple teams, but it doesn't check for correctnes of the teams.
         /// </summary>
         /// <param name="teams">The teams of entities, the fight should happen between.</param>
@@ -616,60 +679,7 @@ namespace ProgressAdventure.Entity
             // entities write out
             if (writeOut)
             {
-                var oneEntityTeamExists = false;
-                if (teams.Count < totalCount)
-                {
-                    foreach (var team in teams)
-                    {
-                        if (team.Value.Count > 1)
-                        {
-                            Console.WriteLine($"\nTeam {team.Key}:\n");
-                            foreach (var entity in team.Value)
-                            {
-                                Console.Write($"\t{entity.GetFullNameWithSpecies()}");
-                                if (entity.originalTeam != entity.currentTeam)
-                                {
-                                    Console.Write(" (Switched to this side!)");
-                                }
-                                Console.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
-                            }
-                        }
-                        else
-                        {
-                            oneEntityTeamExists = true;
-                        }
-                    }
-                }
-                else
-                {
-                    oneEntityTeamExists = true;
-                }
-                if (oneEntityTeamExists)
-                {
-                    Console.WriteLine("Other entities:\n");
-                    foreach (var team in teams)
-                    {
-                        if (!team.Value.Any())
-                        {
-                            Logger.Log("Fight log", $"no entity in team \"{team.Key}\", did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
-                            return;
-                        }
-
-                        if (team.Value.Count == 1)
-                        {
-                            foreach (var entity in team.Value)
-                            {
-                                Console.Write($"{entity.GetFullNameWithSpecies()}");
-                                if (entity.originalTeam != entity.currentTeam)
-                                {
-                                    Console.Write(" (Switched to this side!)");
-                                }
-                                Console.WriteLine($"\nHP: {entity.CurrentHp}\nAttack: {entity.Attack}\nDefence: {entity.Defence}\nAgility: {entity.Agility}\n");
-                            }
-                        }
-                    }
-                }
-                Console.WriteLine();
+                WriteOutFightTeams(teams, totalCount);
             }
 
             // fight
@@ -778,104 +788,108 @@ namespace ProgressAdventure.Entity
             {
                 Console.WriteLine("\nResults:\n");
             }
-            if (no_damage_in_x_turns < Constants.FIGHT_GIVE_UP_TURN_NUMBER)
-            {
-                var winTeamName = teamCounts.First().Key;
-                if (playerTeam is null || winTeamName != playerTeam)
-                {
-                    if (teams[winTeamName].Count > 1)
-                    {
-                        Logger.Log("Fight log", $"team {winTeamName} won");
-                        if (writeOut)
-                        {
-                            Console.WriteLine($"team {winTeamName} won");
-                        }
-                    }
-                    else
-                    {
-                        Logger.Log("Fight log", $"entity {teams[winTeamName].First().FullName} won");
-                        if (writeOut)
-                        {
-                            Console.WriteLine($"{teams[winTeamName].First().FullName} won");
-                        }
-                    }
-                }
-                if (playerTeam is not null)
-                {
-                    // player team dead
-                    if (winTeamName != playerTeam)
-                    {
-                        if (isPlayerInTeam)
-                        {
-                            Logger.Log("Fight log", "player team defeated");
-                            if (writeOut)
-                            {
-                                Console.WriteLine($"{player?.FullName}'s team was defeated");
-                            }
-                        }
-                        else
-                        {
-                            Logger.Log("Fight log", "player defeated");
-                            if (writeOut)
-                            {
-                                Console.WriteLine($"{player?.FullName} was defeated");
-                            }
-                        }
-                    }
-                    // player team won
-                    else
-                    {
-                        if (isPlayerInTeam)
-                        {
-                            Logger.Log("Fight log", "player team won");
-                            if (writeOut)
-                            {
-                                Console.WriteLine($"{player?.FullName}'s team won");
-                            }
-                        }
-                        else
-                        {
-                            Logger.Log("Fight log", "player won");
-                            if (writeOut)
-                            {
-                                Console.WriteLine($"{player?.FullName} won");
-                            }
-                        }
-                        if (player?.CurrentHp == 0)
-                        {
-                            Logger.Log("Fight log", "player died");
-                            if (writeOut)
-                            {
-                                Console.WriteLine($"{player.FullName} died");
-                            }
-                        }
-                        // loot
-                        else
-                        {
-                            foreach (var team in teams)
-                            {
-                                foreach (var entity in team.Value)
-                                {
-                                    if (entity.CurrentHp == 0 && !entity.Equals(player))
-                                    {
-                                        player?.inventory.Loot(entity.drops, writeOut ? player.FullName : null);
-                                    }
-                                }
-                            }
-                        }
-                        if (writeOut)
-                        {
-                            player?.Stats();
-                        }
-                    }
-                }
-            }
-            else
+            // teams gave up
+            if (no_damage_in_x_turns >= Constants.FIGHT_GIVE_UP_TURN_NUMBER)
             {
                 Logger.Log("Fight log", $"no damage was dealt for {no_damage_in_x_turns} turns, so the fight automaticaly ended");
                 if (writeOut)
                 {
                     Console.WriteLine("Everyone got bored, so the fight ends in a stalemate.");
+                }
+                return;
+            }
+
+            // winning team/entity
+            var winTeamName = teamCounts.First().Key;
+            if (playerTeam is null || winTeamName != playerTeam)
+            {
+                if (teams[winTeamName].Count > 1)
+                {
+                    Logger.Log("Fight log", $"team {winTeamName} won");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"team {winTeamName} won");
+                    }
+                }
+                else
+                {
+                    Logger.Log("Fight log", $"entity {teams[winTeamName].First().FullName} won");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{teams[winTeamName].First().FullName} won");
+                    }
+                }
+            }
+
+            if (playerTeam is null)
+            {
+                return;
+            }
+
+            // player team dead
+            if (winTeamName != playerTeam)
+            {
+                if (isPlayerInTeam)
+                {
+                    Logger.Log("Fight log", "player team defeated");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{player?.FullName}'s team was defeated");
+                    }
+                }
+                else
+                {
+                    Logger.Log("Fight log", "player defeated");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{player?.FullName} was defeated");
+                    }
+                }
+            }
+            // player team won
+            else
+            {
+                if (isPlayerInTeam)
+                {
+                    Logger.Log("Fight log", "player team won");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{player?.FullName}'s team won");
+                    }
+                }
+                else
+                {
+                    Logger.Log("Fight log", "player won");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{player?.FullName} won");
+                    }
+                }
+                if (player?.CurrentHp == 0)
+                {
+                    Logger.Log("Fight log", "player died");
+                    if (writeOut)
+                    {
+                        Console.WriteLine($"{player.FullName} died");
+                    }
+                }
+                // loot
+                else
+                {
+                    foreach (var team in teams)
+                    {
+                        foreach (var entity in team.Value)
+                        {
+                            if (entity.CurrentHp == 0 && !entity.Equals(player))
+                            {
+                                player?.inventory.Loot(entity.drops, writeOut ? player.FullName : null);
+                            }
+                        }
+                    }
+                }
+                if (writeOut)
+                {
+                    player?.Stats();
                 }
             }
         }

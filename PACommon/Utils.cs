@@ -182,6 +182,122 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Tries to get an int from the front of the string, or the first char, and then chops it of from the passed in string.<br/>
+        /// Treats the "." and the "-" in numbers as a character.
+        /// </summary>
+        /// <param name="str">The string to search.</param>
+        /// <param name="result"></param>
+        /// <returns>If the returned result is an int or not.</returns>
+        public static bool GetFirstCharOrInt(ref string str, out string result)
+        {
+            if (str == "")
+            {
+                result = "";
+                return false;
+            }
+
+            if (int.TryParse(str, out int resInt))
+            {
+                str = "";
+                result = resInt.ToString();
+                return true;
+            }
+
+            for (int x = 0; x < str.Length; x++)
+            {
+                if (!int.TryParse(str[..(x + 1)], out _))
+                {
+                    if (x == 0)
+                    {
+                        result = str[0].ToString();
+                        str = str[1..];
+                        return false;
+                    }
+
+                    result = str[..x].ToString();
+                    str = str[x..];
+                    return true;
+                }
+            }
+
+            result = "";
+            str = "";
+            return false;
+        }
+
+        /// <summary>
+        /// Returns if the current version string is equal or higher than the minimum version.
+        /// </summary>
+        /// <param name="minimumVersion">The minimum version number to qualify for being up to date.</param>
+        /// <param name="currentVersion">The version number to check.</param>
+        public static bool IsUpToDate(string minimumVersion, string currentVersion)
+        {
+            if (minimumVersion == currentVersion)
+            {
+                return true;
+            }
+
+            var version = currentVersion.Split(".");
+            var minVersion = minimumVersion.Split(".");
+
+            for (int x = 0; x < version.Length; x++)
+            {
+                // min v. shorter
+                if (minVersion.Length < (x + 1))
+                {
+                    return true;
+                }
+
+                if (version[x] == minVersion[x])
+                {
+                    continue;
+                }
+
+                // both numbers
+                if (
+                    int.TryParse(version[x], out int versionInt) &&
+                    int.TryParse(minVersion[x], out int minVersionInt
+                )
+                )
+                {
+                    return versionInt > minVersionInt;
+                }
+
+                // string version comparison
+                var versionPart = version[x];
+                var minVersionPart = minVersion[x];
+                while (versionPart != "")
+                {
+                    // min v. shorter
+                    if (minVersionPart == "")
+                    {
+                        return true;
+                    }
+
+                    var isVersionPartPieceInt = GetFirstCharOrInt(ref versionPart, out string versionPartResult);
+                    var isMinVersionPartPieceInt = GetFirstCharOrInt(ref minVersionPart, out string minVersionPartResult);
+
+                    if (versionPartResult == minVersionPartResult)
+                    {
+                        continue;
+                    }
+
+                    // numbers > letters
+                    if (isMinVersionPartPieceInt != isVersionPartPieceInt)
+                    {
+                        return isMinVersionPartPieceInt;
+                    }
+
+                    return isVersionPartPieceInt ?
+                        int.Parse(versionPartResult) > int.Parse(minVersionPartResult) :
+                        new string[] { versionPartResult, minVersionPartResult }.Order().First() == minVersionPartResult;
+                }
+            }
+            // v. <=
+            return false;
+        }
+
+        /// <summary>
         /// Adds together two vectors.
         /// </summary>
         /// <param name="vector1">The 1. vector to add together.</param>

@@ -176,7 +176,7 @@ namespace ProgressAdventure.WorldManagement
             chunkJson.Add("position_x", position.x);
             chunkJson.Add("position_y", position.y);
 
-            var success = PACTools.FromJson(chunkJson, fileVersion, out chunk);
+            var success = PACTools.TryFromJson(chunkJson, fileVersion, out chunk);
             Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
             return success;
         }

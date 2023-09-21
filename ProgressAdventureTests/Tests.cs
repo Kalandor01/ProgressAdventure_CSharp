@@ -8,11 +8,12 @@ using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
+using ProgressAdventure.WorldManagement.Content;
 using SaveFileManager;
 using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
-using PATools = PACommon.Tools;
+using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventureTests
@@ -106,6 +107,59 @@ namespace ProgressAdventureTests
                 else
                 {
                     return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the EntityUtils, entity type map dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? EntityUtilsEntityTypeMapDictionaryCheck()
+        {
+            // get all classes that implement Entity
+            var entityType = typeof(Entity);
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var unfilteredTypes = paAssembly.GetTypes().Where(entityType.IsAssignableFrom);
+            var filteredTypes = unfilteredTypes.Where(type => !type.IsAbstract && !type.IsInterface);
+
+            var requiredValues = filteredTypes.ToList();
+            IDictionary<string, Type> checkedDictionary;
+
+            try
+            {
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), "entityTypeMap");
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+            }
+
+            var existingKeys = new List<string>();
+
+            foreach (var value in requiredValues)
+            {
+                if (checkedDictionary.Values.Contains(value))
+                {
+                    var key = checkedDictionary.FirstOrDefault(x => x.Value == value).Key;
+                    if (string.IsNullOrWhiteSpace(key))
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary key at value \"{value}\" is null or whitespace.");
+                    }
+
+                    if (existingKeys.Contains(key))
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the key \"{key}\", associated with \"{value}\".");
+                    }
+                    else
+                    {
+                        existingKeys.Add(key);
+                    }
+                }
+                else
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a key for \"{value}\".");
                 }
             }
 
@@ -376,6 +430,131 @@ namespace ProgressAdventureTests
 
             return null;
         }
+
+        /// <summary>
+        /// Checks if the WorldUtils, content type map dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? WorldUtilsContentTypeMapDictionaryCheck()
+        {
+            // get all classes that directly implement BaseContent directly
+            var baseContentType = typeof(BaseContent);
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var unfilteredTypes = paAssembly.GetTypes().Where(baseContentType.IsAssignableFrom);
+            var filteredTypes = unfilteredTypes.Where(type => type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType);
+
+            var requiredKeys = filteredTypes.ToList();
+            IDictionary<Type, Dictionary<ContentTypeID, Type>> checkedDictionary;
+
+            try
+            {
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Type, Dictionary<ContentTypeID, Type>>>(typeof(WorldUtils), "contentTypeMap");
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+            }
+
+            foreach (var key in requiredKeys)
+            {
+                if (!checkedDictionary.TryGetValue(key, out Dictionary<ContentTypeID, Type>? value))
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+
+                if (value is null)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                }
+
+                var unfilteredSubTypes = paAssembly.GetTypes().Where(key.IsAssignableFrom);
+                var filteredSubTypes = unfilteredSubTypes.Where(type => !type.IsAbstract && !type.IsInterface);
+
+                var requiredValues = filteredSubTypes.ToList();
+                var existingSubKeys = new List<ContentTypeID>();
+
+                foreach (var subValue in requiredValues)
+                {
+                    if (value.ContainsValue(subValue))
+                    {
+                        var subKey = value.FirstOrDefault(x => x.Value == subValue).Key;
+                        if (!WorldUtils.TryParseContentType(subKey.GetHashCode(), out _))
+                        {
+                            return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary key at value \"{subValue}\" is not a valid ContentTypeID.");
+                        }
+
+                        if (existingSubKeys.Contains(subKey))
+                        {
+                            return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary already contains the key \"{subKey}\", associated with \"{subValue}\".");
+                        }
+                        else
+                        {
+                            existingSubKeys.Add(subKey);
+                        }
+                    }
+                    else
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary doesn't contain a key for \"{subValue}\".");
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the WorldUtils, content type property map dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? WorldUtilsContentTypePropertyMapDictionaryCheck()
+        {
+            // get all classes that directly implement BaseContent directly
+            var baseContentType = typeof(BaseContent);
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var unfilteredTypes = paAssembly.GetTypes().Where(baseContentType.IsAssignableFrom);
+            var filteredTypes = unfilteredTypes.Where(type => type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType);
+
+            var requiredKeys = filteredTypes.ToList();
+            IDictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> checkedDictionary;
+
+            try
+            {
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>>>(typeof(WorldUtils), "_contentTypePropertyMap");
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+            }
+
+            foreach (var key in requiredKeys)
+            {
+                if (!checkedDictionary.TryGetValue(key, out Dictionary<Type, Dictionary<TileNoiseType, double>>? value))
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+
+                if (value is null)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                }
+
+                var unfilteredSubTypes = paAssembly.GetTypes().Where(key.IsAssignableFrom);
+                var filteredSubTypes = unfilteredSubTypes.Where(type => !type.IsAbstract && !type.IsInterface);
+
+                var requiredSubKeys = filteredSubTypes.ToList();
+
+                foreach (var subKey in requiredSubKeys)
+                {
+                    if (!value.TryGetValue(subKey, out Dictionary<TileNoiseType, double>? subValue))
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    }
+
+                    if (value is null)
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                    }
+                }
+            }
+            return null;
+        }
         #endregion
         #endregion
 
@@ -414,7 +593,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     var itemJson = item.ToJson();
-                    var success = PATools.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
+                    var success = PACTools.TryFromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
 
                     if (loadedAItem is null || !success)
                     {
@@ -484,7 +663,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     var itemJson = item.ToJson();
-                    var success = PATools.FromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
+                    var success = PACTools.TryFromJson(itemJson, PAConstants.SAVE_VERSION, out AItem? loadedAItem);
 
                     if (loadedAItem is null || !success)
                     {
@@ -636,13 +815,50 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? BasicJsonConvertTest()
         {
+            // list of classes that implement "IJsonConvertable<T>"!
+            var testObjects = new List<IJsonReadable>
+            {
+                new Caveman(),
+                new Ghoul(),
+                new Troll(),
+                new Dragon(),
+                new Player(),
+                new CompoundItem(ItemType.Weapon.SWORD, new List<AItem> { new MaterialItem(Material.CLOTH) }),
+                new Inventory(),
+                new MaterialItem(Material.FLINT),
+                new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo() }),
+                new Keybinds(),
+                new Chunk((1, 1)),
+            };
+
             RandomStates.Initialise();
 
+            // get all classes that implement IJsonConvertable<T>
             var jsonConvertableType = typeof(IJsonConvertable<>);
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
             var unfilteredTypes = paAssembly.GetTypes().Where(jsonConvertableType.IsGenericAssignableFromType);
-            var filteredTypes = unfilteredTypes.Where(type => type != typeof(IJsonConvertable<>));
+            var filteredTypes = unfilteredTypes.Where(type => !type.IsAbstract && !type.IsInterface);
 
+            //check if all mocked classes are correct and present
+            if (filteredTypes.Count() != testObjects.Count)
+            {
+                var diff = testObjects.Count - filteredTypes.Count();
+                return new TestResultDTO(LogSeverity.FAIL, $"There are {Math.Abs(diff)} {(diff > 0 ? "more" : "less")} test objects in the test objects list than there should be.");
+            }
+            foreach (var testObject in testObjects)
+            {
+                if (!filteredTypes.Any(type => type == testObject.GetType()))
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The {testObject.GetType()} type object should not be in the test objects list.");
+                }
+            }
+
+            //to/from json
+            foreach (var testObject in testObjects)
+            {
+                var objJson = testObject.ToJson();
+                //PACTools.FromJson<T>(objJson, PAConstants.SAVE_VERSION);
+            }
 
             return new TestResultDTO(LogSeverity.PASS, "Not realy implemented!");
         }

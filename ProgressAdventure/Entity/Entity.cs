@@ -432,11 +432,14 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// Converts the misc data of the entity from a json version.
+        /// Converts the misc data of the entity from a json version, and returns if it succeded without warnings.
         /// </summary>
         /// <param name="miscJson">The json representation of the misc data for the specific entity type.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        protected virtual void FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion) { }
+        protected virtual bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
+        {
+            return true;
+        }
         #endregion
 
         #region Functions
@@ -743,7 +746,7 @@ namespace ProgressAdventure.Entity
                 drops = new List<AItem>();
                 foreach (var dropJson in dropList)
                 {
-                    success &= PACTools.FromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
+                    success &= PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
                     if (itemObject is not null)
                     {
                         drops.Add(itemObject);

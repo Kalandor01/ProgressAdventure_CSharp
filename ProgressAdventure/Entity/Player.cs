@@ -11,7 +11,7 @@ namespace ProgressAdventure.Entity
     /// <summary>
     /// The player entity.
     /// </summary>
-    public class Player : Entity<Player>, IJsonConvertable<Player>
+    public class Player : Entity<Player>
     {
         #region Public fields
         /// <summary>
@@ -173,8 +173,9 @@ namespace ProgressAdventure.Entity
             return playerJson;
         }
 
-        protected override void FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
+        protected override bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
+            var success = true;
             PACTools.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
 
             Inventory? inventoryTemp = null;
@@ -182,13 +183,15 @@ namespace ProgressAdventure.Entity
                 miscJson.TryGetValue("inventory", out var inventoryValue)
             )
             {
-                PACTools.FromJson(inventoryValue as IDictionary<string, object?>, fileVersion, out inventoryTemp);
+                success &= PACTools.TryFromJson(inventoryValue as IDictionary<string, object?>, fileVersion, out inventoryTemp);
             }
             else
             {
                 Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
+                success = false;
             }
             inventory = inventoryTemp ?? new Inventory();
+            return success;
         }
         #endregion
         #endregion

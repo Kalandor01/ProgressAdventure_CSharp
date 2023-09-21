@@ -20,9 +20,6 @@ namespace ProgressAdventure
             MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
-
-
-            Console.WriteLine();
         }
 
         /// <summary>

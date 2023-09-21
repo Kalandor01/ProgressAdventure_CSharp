@@ -227,7 +227,7 @@ namespace ProgressAdventure.ItemManagement
             var items = new List<AItem>();
             foreach (var itemJson in itemList)
             {
-                success &= PACTools.FromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? item);
+                success &= PACTools.TryFromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? item);
                 if (item is not null)
                 {
                     items.Add(item);

@@ -10,7 +10,7 @@ namespace ProgressAdventure.Entity
     /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData, IDictionary<string, object?>? miscData, string fileVersion) for FromJson<T>() to work.
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
-    public class Entity<TEntity> : Entity, IJsonConvertable<TEntity>
+    public abstract class Entity<TEntity> : Entity, IJsonConvertable<TEntity>
         where TEntity : Entity<TEntity>, IJsonConvertable<TEntity>
     {
         /// <summary>

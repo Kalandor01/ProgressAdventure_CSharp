@@ -176,7 +176,7 @@ namespace ProgressAdventure
             _ = TimeSpan.TryParse(saveDataJson["playtime"]?.ToString(), out var playtime);
             // player
             var playerData = saveDataJson["player"] as IDictionary<string, object?>;
-            PACTools.FromJson(playerData, fileVersion, out Player? player);
+            PACTools.TryFromJson(playerData, fileVersion, out Player? player);
 
             Initialise(saveName, displayName, lastSave, playtime, player, false);
             return true;

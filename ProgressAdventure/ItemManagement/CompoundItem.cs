@@ -226,7 +226,7 @@ namespace ProgressAdventure.ItemManagement
 
             foreach (var partJson in partsList)
             {
-                PACTools.FromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
+                PACTools.TryFromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
                 if (part is not null)
                 {
                     parts.Add(part);

@@ -58,7 +58,7 @@ namespace ProgressAdventure.SettingsManagement
             var actions = new List<ActionKey>();
             foreach (var actionJson in keybindsJson)
             {
-                success &= PACTools.FromJson(
+                success &= PACTools.TryFromJson(
                     new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value },
                     fileVersion,
                     out ActionKey? actionKey

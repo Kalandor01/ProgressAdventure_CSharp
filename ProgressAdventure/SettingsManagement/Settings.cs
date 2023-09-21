@@ -202,7 +202,7 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds? keybinds;
             try
             {
-                PACTools.FromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
+                PACTools.TryFromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
             }
             catch (Exception e)
             {
@@ -335,7 +335,7 @@ namespace ProgressAdventure.SettingsManagement
                     Keybinds? oldKb = null;
                     try
                     {
-                        PACTools.FromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
+                        PACTools.TryFromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
                     }
                     catch (Exception e)
                     {

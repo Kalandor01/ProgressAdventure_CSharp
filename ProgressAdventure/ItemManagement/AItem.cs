@@ -244,12 +244,12 @@ namespace ProgressAdventure.ItemManagement
                 bool success;
                 if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
                 {
-                    success = PACTools.FromJson(itemJson, fileVersion, out MaterialItem? materialObj);
+                    success = PACTools.TryFromJson(itemJson, fileVersion, out MaterialItem? materialObj);
                     itemObject = materialObj;
                     return success;
                 }
 
-                success = PACTools.FromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
+                success = PACTools.TryFromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
                 itemObject = compoundObj;
                 return success;
             }

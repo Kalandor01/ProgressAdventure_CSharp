@@ -166,7 +166,7 @@ namespace ProgressAdventure
                 // backup
                 if (backupChoice)
                 {
-                    var isOlder = !PACTools.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
+                    var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
                     Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
                     var ans = (int)new UIList(new string[] { "Yes", "No" }, $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?").Display(Settings.Keybinds.KeybindList);
                     if (ans == 0)
@@ -174,7 +174,7 @@ namespace ProgressAdventure
                         Tools.CreateBackup(saveName);
                     }
                     // correct too old save version
-                    if (isOlder && !PACTools.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion))
+                    if (isOlder && !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion))
                     {
                         Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
                         fileVersion = Constants.OLDEST_SAVE_VERSION;

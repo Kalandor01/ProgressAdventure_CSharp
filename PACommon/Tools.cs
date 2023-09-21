@@ -361,66 +361,28 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Returns if the current version string is equal or higher than the minimum version.<br/>
-        /// If the version number string has a letter in it, it only checks if the min version string also has one.
-        /// </summary>
-        /// <param name="minimumVersion">The minimum version number to qualify for being up to date.</param>
-        /// <param name="currentVersion">The version number to check.</param>
-        public static bool IsUpToDate(string minimumVersion, string currentVersion)
-        {
-            if (minimumVersion == currentVersion)
-            {
-                return true;
-            }
-
-            var version = currentVersion.Split(".");
-            var minVersion = minimumVersion.Split(".");
-
-            for (int x = 0; x < version.Length; x++)
-            {
-                // min v. shorter
-                if (minVersion.Length < (x + 1))
-                {
-                    return true;
-                }
-                var vIsNum = int.TryParse(version[x], out int vInt);
-                var minIsNum = int.TryParse(minVersion[x], out int minInt);
-                if (vIsNum && minIsNum)
-                {
-                    // v. > min v. ?
-                    if (vInt > minInt)
-                    {
-                        return true;
-                    }
-                    // v. < min v. ?
-                    else if (vInt < minInt)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (vIsNum != minIsNum)
-                    {
-                        return !vIsNum;
-                    }
-                }
-            }
-            // v. <=
-            return false;
-        }
-
-        /// <summary>
         /// Tries to convert the json representation of the object to an object format.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static bool FromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion, out T? convertedObject)
+        public static bool TryFromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion, out T? convertedObject)
             where T : IJsonConvertable<T>
         {
             return T.FromJson(objectJson, fileVersion, out convertedObject);
+        }
+
+        /// <summary>
+        /// Converts the json representation of the object to an object format.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static T? FromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion)
+            where T : IJsonConvertable<T>
+        {
+            T.FromJson(objectJson, fileVersion, out T? convertedObject);
+            return convertedObject;
         }
 
         /// <summary>
@@ -433,7 +395,7 @@ namespace PACommon
         /// <param name="newFileVersion">The version number, this function will correct the json data to.</param>
         public static void CorrectJsonDataVersion(string objectName, Action<IDictionary<string, object?>> objectJsonCorrecter, ref IDictionary<string, object?> objectJson, ref string fileVersion, string newFileVersion)
         {
-            if (!IsUpToDate(newFileVersion, fileVersion))
+            if (!Utils.IsUpToDate(newFileVersion, fileVersion))
             {
                 objectJsonCorrecter(objectJson);
 
@@ -456,7 +418,7 @@ namespace PACommon
             string fileVersion
         )
         {
-            if (!correcters.Any() || IsUpToDate(Constants.SAVE_VERSION, fileVersion) || IsUpToDate(correcters.Last().newFileVersion, fileVersion))
+            if (!correcters.Any() || Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion) || Utils.IsUpToDate(correcters.Last().newFileVersion, fileVersion))
             {
                 return;
             }
