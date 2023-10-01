@@ -50,12 +50,17 @@ namespace PACommon
         /// <summary>
         /// <inheritdoc cref="_isLoggingEnabled" path="//summary"/>
         /// </summary>
-        public static bool LoggingEnabled { get => _isLoggingEnabled; private set => _isLoggingEnabled = value; }
+        public static bool LoggingEnabled
+        {
+            get => _isLoggingEnabled;
+            private set => _isLoggingEnabled = value;
+        }
 
         /// <summary>
         /// <inheritdoc cref="_loggingLevel" path="//summary"/>
         /// </summary>
-        public static LogSeverity LoggingLevel {
+        public static LogSeverity LoggingLevel
+        {
             get => _loggingLevel;
             set
             {

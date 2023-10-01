@@ -217,7 +217,7 @@ namespace ProgressAdventure.WorldManagement.Content
             }
 
             // get content
-            var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson }) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
+            var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson }) ?? throw new ArgumentException(message: $"Couldn't create content object from type \"{contentType}\"!", null, null);
             contentObject = (T)content;
             return success;
         }

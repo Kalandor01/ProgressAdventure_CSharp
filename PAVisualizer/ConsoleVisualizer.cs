@@ -18,36 +18,6 @@ namespace PAVisualizer
     public static class ConsoleVisualizer
     {
         #region Public function
-        public static ColorData GetTileColor(Tile tile, WorldLayer layer, Dictionary<ContentTypeID, long> tileTypeCounts, double opacityMultiplier = 1)
-        {
-            ContentTypeID subtype;
-            if (layer == WorldLayer.Structure)
-            {
-                subtype = tile.structure.subtype;
-            }
-            else if (layer == WorldLayer.Population)
-            {
-                subtype = tile.population.subtype;
-            }
-            else
-            {
-                subtype = tile.terrain.subtype;
-            }
-
-            if (tileTypeCounts.ContainsKey(subtype))
-            {
-                tileTypeCounts[subtype]++;
-            }
-            else
-            {
-                tileTypeCounts[subtype] = 1;
-            }
-
-            ColorData rawColor = VisualizerTools.contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
-
-            return new ColorData(rawColor.R, rawColor.G, rawColor.B, (byte)Math.Clamp(rawColor.A * opacityMultiplier, 0, 255));
-        }
-
         /// <summary>
         /// Genarates an image, representing the different types of tiles, and their placements in the world.
         /// </summary>
@@ -55,7 +25,7 @@ namespace PAVisualizer
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
-        public static Dictionary<ContentTypeID, long>? CreateWorldLayerImage(WorldLayer layer, out Bitmap? image, double opacityMultiplier = 1)
+        public static Dictionary<ContentTypeID, long> CreateWorldLayerImage(WorldLayer layer, out Bitmap image, double opacityMultiplier = 1)
         {
             (int x, int y) tileSize = (1, 1);
 
@@ -66,8 +36,8 @@ namespace PAVisualizer
 
             if (worldCorners is null)
             {
-                image = null;
-                return null;
+                image = new Bitmap(1, 1);
+                return tileTypeCounts;
             }
 
             var (minX, minY, maxX, maxY) = worldCorners.Value;
@@ -86,7 +56,16 @@ namespace PAVisualizer
                     var startX = x * tileSize.x;
                     var startY = size.y - y * tileSize.y - 1;
                     // find type
-                    var color = GetTileColor(tile, layer, tileTypeCounts, opacityMultiplier);
+                    var subtype = VisualizerTools.GetLayerSubtype(tile, layer);
+                    if (tileTypeCounts.ContainsKey(subtype))
+                    {
+                        tileTypeCounts[subtype]++;
+                    }
+                    else
+                    {
+                        tileTypeCounts[subtype] = 1;
+                    }
+                    var color = VisualizerTools.GetTileColor(subtype, opacityMultiplier);
 
                     if (tileSize.x > 2 && tileSize.y > 2)
                     {
@@ -102,6 +81,12 @@ namespace PAVisualizer
             return tileTypeCounts;
         }
 
+        /// <summary>
+        /// Creates a combined image of the world showing the provided layers.
+        /// </summary>
+        /// <param name="layers">The layers to show.</param>
+        /// <param name="image">The created image</param>
+        /// <returns>The tile count for all tile types, for each layer.</returns>
         public static Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
         {
             image = null;
@@ -110,12 +95,30 @@ namespace PAVisualizer
 
             foreach (var layer in Enum.GetValues<WorldLayer>())
             {
-                CombineImageWithNewLayerImage(layers, layer, ref image, layerCounts);
+                if (!layers.Contains(layer))
+                {
+                    continue;
+                }
+
+                var layerTileTypeCounts = CreateWorldLayerImage(layer, out Bitmap layerImage, VisualizerTools.GetLayerOpacity(layers, layer));
+                layerCounts.Add(layer, layerTileTypeCounts);
+
+                if (image is null)
+                {
+                    image = layerImage;
+                    continue;
+                }
+                VisualizerTools.CombineImages(ref image, layerImage);
             }
 
             return layerCounts;
         }
 
+        /// <summary>
+        /// Creates a combined image of the world showing the provided layers, saves the image using the provided path, and displays the tile type counts for each layer.
+        /// </summary>
+        /// <param name="layers">The layers to use.</param>
+        /// <param name="exportPath">The path to export the image to.</param>
         public static void MakeImage(List<WorldLayer> layers, string exportPath)
         {
             Console.Write("Generating image...");
@@ -208,44 +211,6 @@ namespace PAVisualizer
         #endregion
 
         #region Pivate fields
-        private static double GetLayerOpacity(List<WorldLayer> layers, WorldLayer currentLayer)
-        {
-            if (layers.Count < 2)
-            {
-                return 1;
-            }
-
-            return 1.0 / (layers.IndexOf(currentLayer) + 1);
-        }
-
-        private static void CombineImageWithNewLayerImage(List<WorldLayer> layers, WorldLayer currentLayer, ref Bitmap? image, Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> layerCounts)
-        {
-            if (!layers.Contains(currentLayer))
-            {
-                return;
-            }
-
-            var newTileTypeCounts = CreateWorldLayerImage(currentLayer, out Bitmap? newImage, GetLayerOpacity(layers, currentLayer));
-
-            if (newTileTypeCounts is null || newImage is null)
-            {
-                return;
-            }
-
-            layerCounts.Add(currentLayer, newTileTypeCounts);
-
-            if (image is null)
-            {
-                image = newImage;
-            }
-            else
-            {
-                var graphics = Graphics.FromImage(image);
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                graphics.DrawImage(newImage, 0, 0);
-            }
-        }
-
         private static void GenerateImageCommand(List<BaseUI?> layerElements, WorldLayer[] layers, string visualizedSavePath)
         {
             // get selected layers

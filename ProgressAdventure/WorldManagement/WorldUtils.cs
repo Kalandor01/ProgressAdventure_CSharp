@@ -271,12 +271,10 @@ namespace ProgressAdventure.WorldManagement
         /// Calculates the best tile type for the space depending on the perlin noise values.
         /// </summary>
         /// <typeparam name="T">The content type to reurn.</typeparam>
-        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
         /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
         /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the content type cannot be created.</exception>
-        public static T CalculateClosestContent<T>(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
+        public static Type CalculateClosestContentType<T>(IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
             where T : BaseContent
         {
             noStructureDLOverride ??= noStructureDifferenceLimit;
@@ -313,6 +311,22 @@ namespace ProgressAdventure.WorldManagement
             {
                 minDiffContentType = typeof(NoPopulation);
             }
+            return minDiffContentType;
+        }
+
+        /// <summary>
+        /// Calculates the best content for the space depending on the perlin noise values.
+        /// </summary>
+        /// <typeparam name="T">The content type to reurn.</typeparam>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
+        /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
+        /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
+        /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the content type cannot be created.</exception>
+        public static T CalculateClosestContent<T>(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
+            where T : BaseContent
+        {
+            var minDiffContentType = CalculateClosestContentType<T>(noiseValues, noStructureDLOverride, noPopulationDLOverride);
             var contentObj = Activator.CreateInstance(minDiffContentType, new object?[] {chunkRandom, null, null}) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
             return (T)contentObj;
         }

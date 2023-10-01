@@ -82,6 +82,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 chunkRandom ??= Chunk.GetChunkRandom((absoluteX, absoluteY));
                 var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
+                WorldUtils.ShiftNoiseValues(noiseValues);
                 terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(chunkRandom, noiseValues);
                 if (structure is null)
                 {
@@ -215,9 +216,7 @@ namespace ProgressAdventure.WorldManagement
 
             // terrain
             TerrainContent? terrain = null;
-            if (
-                tileJson.TryGetValue("terrain", out object? terrainJson)
-            )
+            if (tileJson.TryGetValue("terrain", out object? terrainJson))
             {
                 success &= TerrainContent.FromJson(chunkRandom, terrainJson as IDictionary<string, object?>, fileVersion, out terrain);
             }
@@ -229,9 +228,7 @@ namespace ProgressAdventure.WorldManagement
 
             // structure
             StructureContent? structure = null;
-            if (
-                tileJson.TryGetValue("structure", out object? structureJson)
-            )
+            if (tileJson.TryGetValue("structure", out object? structureJson))
             {
                 success &= StructureContent.FromJson(chunkRandom, structureJson as IDictionary<string, object?>, fileVersion, out structure);
             }
@@ -243,9 +240,7 @@ namespace ProgressAdventure.WorldManagement
 
             // population
             PopulationContent? population = null;
-            if (
-                tileJson.TryGetValue("population", out object? populationJson)
-            )
+            if (tileJson.TryGetValue("population", out object? populationJson))
             {
                 success &= PopulationContent.FromJson(chunkRandom, populationJson as IDictionary<string, object?>, fileVersion, out population);
             }

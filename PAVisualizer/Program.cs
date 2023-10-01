@@ -17,7 +17,8 @@ namespace PAVisualizer
         static void MainFunction()
         {
             Logger.DefaultWriteOut = false;
-            ConsoleVisualizer.SaveVisualizer("test save");
+            //ConsoleVisualizer.SaveVisualizer("test save");
+            ContentTypeDistributionVisualizer.Visualize();
         }
 
         /// <summary>

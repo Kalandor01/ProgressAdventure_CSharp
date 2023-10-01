@@ -544,12 +544,84 @@ namespace ProgressAdventureTests
                 {
                     if (!value.TryGetValue(subKey, out Dictionary<TileNoiseType, double>? subValue))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary doesn't contain a value for \"{subKey}\".");
                     }
 
-                    if (value is null)
+                    if (subValue is null)
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                        return new TestResultDTO(LogSeverity.FAIL, $"The value of the sub-dictionary at \"{subKey}\" is null.");
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the WorldUtils, content type ID (subtype) text map dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? WorldUtilsContentTypeIDTextMapDictionaryCheck()
+        {
+            // get all classes that directly implement BaseContent directly
+            var subtypes = WorldUtils.GetAllContentTypes();
+            var requiredKeys = new List<ContentTypeID>();
+
+            var subTypeDict = new Dictionary<ContentTypeID, List<ContentTypeID>>();
+
+            foreach (var subType in subtypes)
+            {
+                if (!requiredKeys.Contains(subType.Super))
+                {
+                    requiredKeys.Add(subType.Super);
+                    subTypeDict[subType.Super] = new List<ContentTypeID>();
+                }
+                subTypeDict[subType.Super].Add(subType);
+            }
+            
+            IDictionary<ContentTypeID, string> checkedBaseTypeMap;
+            IDictionary<ContentTypeID, Dictionary<ContentTypeID, string>> checkedDictionary;
+
+            try
+            {
+                checkedBaseTypeMap = Utils.GetInternalFieldFromStaticClass<IDictionary<ContentTypeID, string>>(typeof(WorldUtils), "contentTypeIDTextMap");
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+            }
+
+            try
+            {
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<ContentTypeID, Dictionary<ContentTypeID, string>>>(typeof(WorldUtils), "contentTypeIDSubtypeTextMap");
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+            }
+
+            foreach (var key in requiredKeys)
+            {
+                if (!checkedDictionary.TryGetValue(key, out Dictionary<ContentTypeID, string>? value))
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+
+                if (value is null)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                }
+
+                var requiredSubKeys = subTypeDict[key];
+
+                foreach (var subKey in requiredSubKeys)
+                {
+                    if (!value.TryGetValue(subKey, out string? subValue))
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary doesn't contain a value for \"{subKey}\".");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(subValue))
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"The value of the sub-dictionary at \"{subKey}\" is null or whitespace.");
                     }
                 }
             }

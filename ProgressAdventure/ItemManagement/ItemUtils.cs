@@ -13,121 +13,7 @@ namespace ProgressAdventure.ItemManagement
     /// </summary>
     public static class ItemUtils
     {
-        #region Internal fields
-        /// <summary>
-        /// The item type for a material.
-        /// </summary>
-        internal static readonly ItemTypeID MATERIAL_ITEM_TYPE = ItemType.Misc.MATERIAL;
-        /// <summary>
-        /// The type name of a material item.
-        /// </summary>
-        internal static readonly string MATERIAL_TYPE_NAME = ItemIDToTypeName(MATERIAL_ITEM_TYPE);
-        #endregion
-
-        #region Public dicts
-        /// <summary>
-        /// The dictionary pairing up item types, to their attributes.
-        /// </summary>
-        public static readonly Dictionary<ItemTypeID, CompoundItemAttributesDTO> compoundItemAttributes = new()
-        {
-            //weapons
-            [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD),
-            [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW),
-            [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW),
-            [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "*/0MC/* club with */1ML/*"),
-            //defence
-            [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD),
-            [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET),
-            [ItemType.Defence.CHESTPLATE] = new CompoundItemAttributesDTO(ItemType.Defence.CHESTPLATE),
-            [ItemType.Defence.PANTS] = new CompoundItemAttributesDTO(ItemType.Defence.PANTS),
-            [ItemType.Defence.BOOTS] = new CompoundItemAttributesDTO(ItemType.Defence.BOOTS),
-            //misc
-            [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, ItemAmountUnit.KG),
-            [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE),
-            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.FILLED_BOTTLE, "*/0ML/* bottle of */1MC/*"),
-            [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN),
-            [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE),
-            [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT),
-            [ItemType.Misc.ARROW_TIP] = new CompoundItemAttributesDTO(ItemType.Misc.ARROW_TIP),
-            [ItemType.Misc.ROD] = new CompoundItemAttributesDTO(ItemType.Misc.ROD),
-        };
-
-        /// <summary>
-        /// The dictionary pairing up material types, to their item attributes.
-        /// </summary>
-        public static readonly Dictionary<Material, MaterialItemAttributesDTO> materialItemAttributes = new()
-        {
-            //weapons
-            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS),
-            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH),
-            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER),
-            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS),
-            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD),
-            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON),
-            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER),
-            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH),
-            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER),
-            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL),
-            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE),
-            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH),
-            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD),
-            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL),
-            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, ItemAmountUnit.L),
-            [Material.FLINT] = new MaterialItemAttributesDTO(Material.FLINT),
-            [Material.SILK] = new MaterialItemAttributesDTO(Material.SILK),
-        };
-
-        /// <summary>
-        /// The dictionary pairing up material types, to their properties.
-        /// </summary>
-        public static readonly Dictionary<Material, MaterialPropertiesDTO> materialProperties = new()
-        {
-            //weapons
-            [Material.BRASS] = new MaterialPropertiesDTO(8730),
-            [Material.CLOTH] = new MaterialPropertiesDTO(1550),
-            [Material.COPPER] = new MaterialPropertiesDTO(8960),
-            [Material.GLASS] = new MaterialPropertiesDTO(2500),
-            [Material.GOLD] = new MaterialPropertiesDTO(19300),
-            [Material.IRON] = new MaterialPropertiesDTO(7874),
-            [Material.LEATHER] = new MaterialPropertiesDTO(800),
-            [Material.ROTTEN_FLESH] = new MaterialPropertiesDTO(1000),
-            [Material.SILVER] = new MaterialPropertiesDTO(10490),
-            [Material.STEEL] = new MaterialPropertiesDTO(7900),
-            [Material.STONE] = new MaterialPropertiesDTO(2650),
-            [Material.TEETH] = new MaterialPropertiesDTO(2900),
-            [Material.WOOD] = new MaterialPropertiesDTO(600),
-            [Material.WOOL] = new MaterialPropertiesDTO(1241),
-            [Material.HEALING_LIQUID] = new MaterialPropertiesDTO(1015),
-            [Material.SILK] = new MaterialPropertiesDTO(1400),
-            [Material.FLINT] = new MaterialPropertiesDTO(2596),
-        };
-
-        /// <summary>
-        /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
-        /// </summary>
-        public static readonly Dictionary<ItemTypeID, List<IngredientDTO>> itemRecipes = new()
-        {
-            // weapon
-            [ItemType.Weapon.SWORD] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.SWORD_BLADE, 1), new IngredientDTO(ItemType.Misc.SWORD_HILT, 1) },
-            [ItemType.Weapon.BOW] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ROD, 1), new IngredientDTO(ItemType.Misc.ROD, 1) },
-            [ItemType.Weapon.ARROW] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ARROW_TIP, 1), new IngredientDTO(ItemType.Misc.ROD, 1) },
-            [ItemType.Weapon.CLUB] = new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) },
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(Material.TEETH, 1, ItemAmountUnit.KG) },
-            // defence
-            [ItemType.Defence.SHIELD] = new List<IngredientDTO> { new IngredientDTO(null, 0.6, ItemAmountUnit.M3) },
-            [ItemType.Defence.HELMET] = new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) },
-            [ItemType.Defence.CHESTPLATE] = new List<IngredientDTO> { new IngredientDTO(null, 0.9, ItemAmountUnit.M3) },
-            [ItemType.Defence.PANTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.7, ItemAmountUnit.M3) },
-            [ItemType.Defence.BOOTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.4, ItemAmountUnit.M3) },
-            // misc
-            [ItemType.Misc.FILLED_BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID , 0.5, ItemAmountUnit.L) },
-            [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(null, 0.1, ItemAmountUnit.M3) },
-            [ItemType.Misc.COIN] = new List<IngredientDTO> { new IngredientDTO(null, 0.02, ItemAmountUnit.M3) },
-        };
-        #endregion
-
-        #region Internal dicts
+        #region Json conversion dicts
         /// <summary>
         /// The dictionary pairing up old item type IDs, to their name.
         /// </summary>
@@ -337,6 +223,120 @@ namespace ProgressAdventure.ItemManagement
             ["material/teeth"] = "teeth",
             //misc
             ["misc/rotten_flesh"] = "rotten_flesh",
+        };
+        #endregion
+
+        #region Internal fields
+        /// <summary>
+        /// The item type for a material.
+        /// </summary>
+        internal static readonly ItemTypeID MATERIAL_ITEM_TYPE = ItemType.Misc.MATERIAL;
+        /// <summary>
+        /// The type name of a material item.
+        /// </summary>
+        internal static readonly string MATERIAL_TYPE_NAME = ItemIDToTypeName(MATERIAL_ITEM_TYPE);
+        #endregion
+
+        #region Public dicts
+        /// <summary>
+        /// The dictionary pairing up item types, to their attributes.
+        /// </summary>
+        public static readonly Dictionary<ItemTypeID, CompoundItemAttributesDTO> compoundItemAttributes = new()
+        {
+            //weapons
+            [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD),
+            [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW),
+            [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW),
+            [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "*/0MC/* club with */1ML/*"),
+            //defence
+            [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD),
+            [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET),
+            [ItemType.Defence.CHESTPLATE] = new CompoundItemAttributesDTO(ItemType.Defence.CHESTPLATE),
+            [ItemType.Defence.PANTS] = new CompoundItemAttributesDTO(ItemType.Defence.PANTS),
+            [ItemType.Defence.BOOTS] = new CompoundItemAttributesDTO(ItemType.Defence.BOOTS),
+            //misc
+            [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, ItemAmountUnit.KG),
+            [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE),
+            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.FILLED_BOTTLE, "*/0ML/* bottle of */1MC/*"),
+            [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN),
+            [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE),
+            [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT),
+            [ItemType.Misc.ARROW_TIP] = new CompoundItemAttributesDTO(ItemType.Misc.ARROW_TIP),
+            [ItemType.Misc.ROD] = new CompoundItemAttributesDTO(ItemType.Misc.ROD),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up material types, to their item attributes.
+        /// </summary>
+        public static readonly Dictionary<Material, MaterialItemAttributesDTO> materialItemAttributes = new()
+        {
+            //weapons
+            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS),
+            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH),
+            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER),
+            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS),
+            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD),
+            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON),
+            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER),
+            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH),
+            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER),
+            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL),
+            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE),
+            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH),
+            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD),
+            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL),
+            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, ItemAmountUnit.L),
+            [Material.FLINT] = new MaterialItemAttributesDTO(Material.FLINT),
+            [Material.SILK] = new MaterialItemAttributesDTO(Material.SILK),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up material types, to their properties.
+        /// </summary>
+        public static readonly Dictionary<Material, MaterialPropertiesDTO> materialProperties = new()
+        {
+            //weapons
+            [Material.BRASS] = new MaterialPropertiesDTO(8730),
+            [Material.CLOTH] = new MaterialPropertiesDTO(1550),
+            [Material.COPPER] = new MaterialPropertiesDTO(8960),
+            [Material.GLASS] = new MaterialPropertiesDTO(2500),
+            [Material.GOLD] = new MaterialPropertiesDTO(19300),
+            [Material.IRON] = new MaterialPropertiesDTO(7874),
+            [Material.LEATHER] = new MaterialPropertiesDTO(800),
+            [Material.ROTTEN_FLESH] = new MaterialPropertiesDTO(1000),
+            [Material.SILVER] = new MaterialPropertiesDTO(10490),
+            [Material.STEEL] = new MaterialPropertiesDTO(7900),
+            [Material.STONE] = new MaterialPropertiesDTO(2650),
+            [Material.TEETH] = new MaterialPropertiesDTO(2900),
+            [Material.WOOD] = new MaterialPropertiesDTO(600),
+            [Material.WOOL] = new MaterialPropertiesDTO(1241),
+            [Material.HEALING_LIQUID] = new MaterialPropertiesDTO(1015),
+            [Material.SILK] = new MaterialPropertiesDTO(1400),
+            [Material.FLINT] = new MaterialPropertiesDTO(2596),
+        };
+
+        /// <summary>
+        /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
+        /// </summary>
+        public static readonly Dictionary<ItemTypeID, List<IngredientDTO>> itemRecipes = new()
+        {
+            // weapon
+            [ItemType.Weapon.SWORD] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.SWORD_BLADE, 1), new IngredientDTO(ItemType.Misc.SWORD_HILT, 1) },
+            [ItemType.Weapon.BOW] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ROD, 1), new IngredientDTO(ItemType.Misc.ROD, 1) },
+            [ItemType.Weapon.ARROW] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ARROW_TIP, 1), new IngredientDTO(ItemType.Misc.ROD, 1) },
+            [ItemType.Weapon.CLUB] = new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) },
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(Material.TEETH, 1, ItemAmountUnit.KG) },
+            // defence
+            [ItemType.Defence.SHIELD] = new List<IngredientDTO> { new IngredientDTO(null, 0.6, ItemAmountUnit.M3) },
+            [ItemType.Defence.HELMET] = new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) },
+            [ItemType.Defence.CHESTPLATE] = new List<IngredientDTO> { new IngredientDTO(null, 0.9, ItemAmountUnit.M3) },
+            [ItemType.Defence.PANTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.7, ItemAmountUnit.M3) },
+            [ItemType.Defence.BOOTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.4, ItemAmountUnit.M3) },
+            // misc
+            [ItemType.Misc.FILLED_BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID , 0.5, ItemAmountUnit.L) },
+            [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(null, 0.1, ItemAmountUnit.M3) },
+            [ItemType.Misc.COIN] = new List<IngredientDTO> { new IngredientDTO(null, 0.02, ItemAmountUnit.M3) },
         };
         #endregion
 
