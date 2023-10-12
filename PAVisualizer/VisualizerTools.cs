@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using PACommon;
 using PACommon.Extensions;
 using ProgressAdventure;
@@ -10,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
@@ -44,6 +45,106 @@ namespace PAVisualizer
         #endregion
 
         #region Public functions
+        #region File dialog
+        /// <summary>
+        /// A function to return, if the path of the file/folder, that the user selected is valid or not.
+        /// </summary>
+        /// <param name="rawText">The raw user input to correct.</param>
+        public delegate bool FileDialogPathValidatorDelegate(string? selectedPath);
+
+        /// <summary>
+        /// Whether the user chose a file/folder from the file dialog.
+        /// </summary>
+        private static bool fileDialogResponseRecived = false;
+
+        /// <summary>
+        /// The path of the file/folder that the user chose.
+        /// </summary>
+        private static string? fileDialogSelectedPath = null;
+
+        /// <summary>
+        /// Opens a file dialog, in the saves folder, and if the user selected a file ending in the save extension, it returns the name of the file, and the path of the folder containing it.
+        /// </summary>
+        /// <param name="window">The window to center the dialog over.</param>
+        /// <param name="initialDirectory">The initial dialog of the file dialog.</param>
+        /// <param name="isSelectFolder">Whether to make the user select a folder or a file.</param>
+        public static string? GetPathFromFileDialog(
+            Window? window = null,
+            string? initialDirectory = null,
+            bool isSelectFolder = false
+        )
+        {
+            var fileDialog = new CommonOpenFileDialog()
+            {
+                IsFolderPicker = isSelectFolder,
+            };
+
+            if (initialDirectory is not null)
+            {
+                fileDialog.InitialDirectory = initialDirectory;
+            }
+
+            CommonFileDialogResult showDialogResponse;
+            if (window is null)
+            {
+                showDialogResponse = fileDialog.ShowDialog();
+            }
+            else
+            {
+                showDialogResponse = fileDialog.ShowDialog(window);
+            }
+
+            return showDialogResponse == CommonFileDialogResult.Ok ? fileDialog.FileName : null;
+        }
+
+        /// <summary>
+        /// Opens a file dialog menu and makes the user select a file/folder, and returns the path of the selected file/folder.
+        /// </summary>
+        /// <param name="fileDialogPathValidator">The function to check if the returned path is valid.</param>
+        /// <param name="initialDirectory">The initial dialog of the file dialog.</param>
+        /// <param name="isSelectFolder">Whether to make the user select a folder or a file.</param>
+        public static string? FileDialogInConsoleMode(
+            FileDialogPathValidatorDelegate? fileDialogPathValidator = null,
+            string? initialDirectory = null,
+            bool isSelectFolder = false
+        )
+        {
+            do
+            {
+                fileDialogResponseRecived = false;
+                fileDialogSelectedPath = null;
+
+                var windowThread = new Thread(() => ShowFileDialogThread(initialDirectory, isSelectFolder));
+                windowThread.SetApartmentState(ApartmentState.STA);
+                windowThread.Start();
+
+                do
+                {
+                    Thread.Sleep(100);
+                }
+                while (!fileDialogResponseRecived);
+            }
+            while (!(fileDialogPathValidator is null || fileDialogPathValidator(fileDialogSelectedPath)));
+
+            return fileDialogSelectedPath;
+        }
+
+        /// <summary>
+        /// Shows a file dialog from a console enviorment.
+        /// </summary>
+        /// <param name="initialDirectory">The initial dialog of the file dialog.</param>
+        /// <param name="isSelectFolder">Whether to make the user select a folder or a file.</param>
+        [STAThread]
+        private static void ShowFileDialogThread(
+            string? initialDirectory = null,
+            bool isSelectFolder = false)
+        {
+            Thread.CurrentThread.Name = Constants.FILE_DIALOG_THREAD_NAME;
+            fileDialogSelectedPath = GetPathFromFileDialog(null, initialDirectory, isSelectFolder);
+            fileDialogResponseRecived = true;
+        }
+        #endregion
+
         /// <summary>
         /// Returns a string, displaying the general data from the loaded save file.
         /// </summary>
@@ -84,42 +185,28 @@ namespace PAVisualizer
         }
 
         /// <summary>
-        /// Opens a file dialog, in the saves folder, and if the user selected a file ending in the save extension, it returns the name of the file, and the path of the folder containing it.
+        /// Gets the save folder name, and save folder path from a path to a folder. If it's not correct, it returns null.
         /// </summary>
-        /// <param name="window">The window to center the dialog over.</param>
-        public static (string saveFolderName, string saveFolderPath)? GetSaveFolderFromFileDialog(Window window)
+        /// <param name="folderPath">The path of the save folder.</param>
+        public static (string saveFolderName, string? saveFolderPath)? GetSaveFolderFromPath(string? folderPath)
         {
-            var openFileDialog = new OpenFileDialog
-            {
-                InitialDirectory = PAConstants.SAVES_FOLDER_PATH,
-            };
-
-            if (openFileDialog.ShowDialog(window) != true)
+            if (
+                folderPath is null ||
+                !File.Exists(Path.Join(folderPath, $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}"))
+            )
             {
                 return null;
             }
 
-            var saveFolderDataPath = openFileDialog.FileName;
-            if (Path.GetExtension(saveFolderDataPath) != "." + PAConstants.SAVE_EXT)
+            string? saveFolderPath = null;
+            var folderSplit = folderPath.Split(Path.DirectorySeparatorChar);
+            var saveFolderName = folderSplit.Last();
+            if (folderPath.Length > 1 )
             {
-                return null;
+                saveFolderPath = string.Join(Path.DirectorySeparatorChar, folderSplit[..^1]);
             }
 
-            var saveFolderPath = Path.GetDirectoryName(saveFolderDataPath);
-            if (saveFolderPath is null)
-            {
-                return null;
-            }
-
-            var savesFolderPath = Directory.GetParent(saveFolderPath);
-            if (savesFolderPath is null)
-            {
-                return null;
-            }
-
-            var saveName = saveFolderPath.Split(Path.DirectorySeparatorChar).Last();
-
-            return (saveName, savesFolderPath.FullName);
+            return (saveFolderName, saveFolderPath);
         }
 
         /// <summary>

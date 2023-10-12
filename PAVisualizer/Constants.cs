@@ -17,6 +17,10 @@ namespace PAVisualizer
         /// The display name of the save visualizer window thread.
         /// </summary>
         public const string VISUALIZER_WINDOW_THREAD_NAME = "VisualizerWindow";
+        /// <summary>
+        /// The display name of the file dialog thread.
+        /// </summary>
+        public const string FILE_DIALOG_THREAD_NAME = "FileDialog";
         #endregion
 
         #region Misc

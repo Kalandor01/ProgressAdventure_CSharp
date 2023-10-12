@@ -3,6 +3,7 @@ using PACommon.Enums;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
 using PAConstants = ProgressAdventure.Constants;
+using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventureTests
@@ -118,7 +119,7 @@ namespace ProgressAdventureTests
         /// <param name="testFunction">The test to run.</param>
         internal static void RunTestInternal(Func<TestResultDTO?> testFunction)
         {
-            Utils.RunTest(testFunction, PrepareTest, false, ref testsRun, ref testsSuccessful);
+            PACTools.RunTest(testFunction, PrepareTest, false, ref testsRun, ref testsSuccessful);
         }
         #endregion
     }

@@ -1,11 +1,14 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using ProgressAdventure;
+using SaveFileManager;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Windows;
 using PAConstants = ProgressAdventure.Constants;
+using Utils = PACommon.Utils;
 
 namespace PAVisualizer
 {
@@ -17,8 +20,27 @@ namespace PAVisualizer
         static void MainFunction()
         {
             Logger.DefaultWriteOut = false;
-            //ConsoleVisualizer.SaveVisualizer("test save");
-            ContentTypeDistributionVisualizer.Visualize();
+
+            var elements = new List<BaseUI>();
+
+            var visualizeSaveElement = new Button(new UIAction(VisualizeSaveCommand), text: "Save file visualize");
+            elements.Add(visualizeSaveElement);
+
+            var contentDistributionVisualizerElement = new Button(new UIAction(ContentTypeDistributionVisualizer.Visualize), text: "Content type distribution visualizer");
+            elements.Add(contentDistributionVisualizerElement);
+
+            new OptionsUI(elements, "Select action").Display();
+        }
+
+        static void VisualizeSaveCommand()
+        {
+            var saveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}";
+            string? folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog(new List<(string regex, string displayName)> { (saveDataFileName, $"Data file ({saveDataFileName})") }))?.folderPath;
+            var selectedFolder = VisualizerTools.GetSaveFolderFromPath(folderPath);
+            if (selectedFolder is not null)
+            {
+                ConsoleVisualizer.SaveVisualizer(selectedFolder.Value.saveFolderName, selectedFolder.Value.saveFolderPath);
+            }
         }
 
         /// <summary>

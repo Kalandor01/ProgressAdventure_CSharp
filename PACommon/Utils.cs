@@ -1,7 +1,7 @@
-﻿using PACommon.Enums;
-using PInvoke;
+﻿using PInvoke;
 using System.Collections;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PACommon
@@ -422,98 +422,36 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Runs an individual test.
+        /// Splits a path to a path to the last folder, the name of the file and the extension of the file.<br/>
+        /// Returns null, if the path is null or whitespace.
         /// </summary>
-        /// <param name="testFunction">The test to run.</param>
-        /// <param name="prepareTestFunction">The function to run before running a test.</param>
-        /// <param name="newLine">Whether to write a new line in the logs.</param>
-        /// <param name="testsRun">The amount of tests that have run so far.</param>
-        /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
-        public static void RunTest(Func<TestResultDTO?> testFunction, Action? prepareTestFunction, bool newLine, ref int testsRun, ref int testsSuccessful)
+        /// <param name="fullPath">The full path.</param>
+        public static (string? folderPath, string fileName, string? fileExtension)? SplitPathToParts(string? fullPath)
         {
-            if (newLine)
+            if (string.IsNullOrWhiteSpace(fullPath))
             {
-                Logger.LogNewLine();
+                return null;
             }
 
-            var testName = testFunction.Method.Name;
+            string? folderPath = null;
+            string fileName;
+            string? fileExtension = null;
 
-            Console.OutputEncoding = Encoding.UTF8;
-            Thread.CurrentThread.Name = $"{Constants.TESTS_THREAD_NAME}/{testName}";
-
-            prepareTestFunction?.Invoke();
-
-            Console.Write(testName + "...");
-            Logger.Log("Running...");
-
-            TestResultDTO result;
-            try
+            var splitPath = fullPath.Split(Path.DirectorySeparatorChar);
+            if (splitPath.Length > 1)
             {
-                result = testFunction.Invoke() ?? new TestResultDTO();
+                folderPath = string.Join(Path.DirectorySeparatorChar, splitPath[..^1]);
             }
-            catch (Exception ex)
+            var splitFilePath = splitPath.Last().Split('.');
+            fileName = splitFilePath.Last();
+            if (splitFilePath.Length > 1)
             {
-                EvaluateResult(testName, new TestResultDTO(LogSeverity.FATAL, ex.ToString()), ref testsRun, ref testsSuccessful);
-                return;
+                fileExtension = fileName;
+                fileName = string.Join('.', splitFilePath[..^1]);
             }
-            EvaluateResult(testName, result, ref testsRun, ref testsSuccessful);
+
+            return (folderPath, fileName, fileExtension);
         }
-
-        /// <summary>
-        /// Runs an individual test.
-        /// </summary>
-        /// <param name="testFunction">The test to run.</param>
-        /// <param name="prepareTestFunction">The function to run before running a test.</param>
-        /// <param name="newLine">Whether to write a new line in the logs.</param>
-        public static void RunTest(Func<TestResultDTO?> testFunction, Action? prepareTestFunction, bool newLine = true)
-        {
-            int _ = 0;
-            RunTest(testFunction, prepareTestFunction, newLine, ref _, ref _);
-        }
-
-        /// <summary>
-        /// Runs all test functions from a class
-        /// </summary>
-        /// <param name="staticClass"></param>
-        /// <param name="prepareTestFunction">The function to run before running a test.</param>
-        public static void RunAllTests(Type staticClass, Action? prepareTestFunction = null)
-        {
-            if (
-                !staticClass.IsAbstract ||
-                !staticClass.IsSealed
-            )
-            {
-                Logger.Log($"\"{staticClass}\" is not static", null, LogSeverity.ERROR);
-                return;
-            }
-
-            var testsRun = 0;
-            var testsSuccessful = 0;
-
-            Logger.LogNewLine();
-            Logger.Log($"Runing all tests from \"{staticClass}\"");
-
-            var methods = staticClass.GetMethods(BindingFlags.Public | BindingFlags.Static);
-            foreach (var method in methods)
-            {
-                if (
-                    method.ReturnType == typeof(TestResultDTO?) &&
-                    method.GetParameters().Length == 0
-                )
-                {
-                    RunTest(method.CreateDelegate<Func<TestResultDTO?>>(), prepareTestFunction, false, ref testsRun, ref testsSuccessful);
-                }
-            }
-
-            Logger.Log("All tests finished runing");
-            var allPassed = testsSuccessful == testsRun;
-            var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? Constants.Colors.GREEN : Constants.Colors.RED);
-            Console.WriteLine($"\nFinished running test batch: {result} successful!");
-            Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
-        }
-        #endregion
-
-        #region Internal functions
 
         /// <summary>
         /// Gets an internal field from a non-static class.
@@ -548,30 +486,29 @@ namespace PACommon
             }
             return GetInternalFieldFromClass<T>(classType, fieldName);
         }
+
+        /// <summary>
+        /// Opens a file selection window, and returns the file, the user selected.<br/>
+        /// By Michael <a href="https://stackoverflow.com/a/68712025">LINK</a>
+        /// </summary>
+        /// <param name="filters">A list of filters. A filter limits the type of files that can appear in the window.</param>
+        /// <param name="windowTitle">The title of the window.</param>
+        public static string? OpenFileDialog(IEnumerable<(string regex, string displayName)>? filters = null, string windowTitle = "Select file...")
+        {
+            var filter = filters is not null ? string.Join("", filters.Select(filter => $"{filter.displayName}\0{filter.regex}\0")) : "";
+            var ofn = new OpenFileName();
+            ofn.lStructSize = Marshal.SizeOf(ofn);
+            ofn.lpstrFilter = filter;
+            ofn.lpstrFile = new string(new char[256]);
+            ofn.nMaxFile = ofn.lpstrFile.Length;
+            ofn.lpstrFileTitle = new string(new char[64]);
+            ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
+            ofn.lpstrTitle = windowTitle;
+            return GetOpenFileName(ref ofn) ? ofn.lpstrFile : null;
+        }
         #endregion
 
         #region Private functions
-        /// <summary>
-        /// Evaluates the results of a test.
-        /// </summary>
-        /// <param name="testName">The name of the test.</param>
-        /// <param name="result">The result of the test.</param>
-        /// <param name="testsRun">The amount of tests that have run so far.</param>
-        /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
-        private static void EvaluateResult(string testName, TestResultDTO result, ref int testsRun, ref int testsSuccessful)
-        {
-            var passed = result.resultType == LogSeverity.PASS;
-            var typeText = StylizedText(result.resultType.ToString(), passed ? Constants.Colors.GREEN : Constants.Colors.RED);
-            var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
-
-            Console.WriteLine(typeText + messageText);
-            Logger.Log(testName, result.resultType + (messageText), result.resultType);
-            testsRun++;
-            testsSuccessful += passed ? 1 : 0;
-
-            Thread.CurrentThread.Name = Constants.TESTS_THREAD_NAME;
-        }
-
         /// <summary>
         /// Gets an internal field from a class.
         /// </summary>
@@ -584,6 +521,9 @@ namespace PACommon
             var field = classType?.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(instance);
             return field is null ? throw new ArgumentNullException(nameof(field), "The internal filed is null.") : (T)field;
         }
+
+        [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern bool GetOpenFileName(ref OpenFileName ofn);
         #endregion
     }
 }

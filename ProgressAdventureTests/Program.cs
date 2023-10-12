@@ -3,6 +3,7 @@ using PACommon.Enums;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
 using PACConstants = PACommon.Constants;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventureTests
 {
@@ -14,7 +15,7 @@ namespace ProgressAdventureTests
         static void MainFunction()
         {
             //Tools.RunAllTests();
-            Utils.RunAllTests(typeof(Tests), Tools.PrepareTest);
+            PACTools.RunAllTests(typeof(Tests), Tools.PrepareTest);
 
 
             Utils.PressKey("DONE!");

@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+﻿using PACommon;
 using ProgressAdventure;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
@@ -12,7 +12,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
-using PACommon;
 
 namespace PAVisualizer
 {
@@ -109,7 +108,7 @@ namespace PAVisualizer
         #region Commands
         private void SelectSaveCommand(object sender, RoutedEventArgs e)
         {
-            var saveStrings = VisualizerTools.GetSaveFolderFromFileDialog(this);
+            var saveStrings = VisualizerTools.GetSaveFolderFromPath(VisualizerTools.GetPathFromFileDialog(this, PAConstants.SAVES_FOLDER_PATH, true));
 
             if (saveStrings is null)
             {
