@@ -141,7 +141,7 @@ namespace ProgressAdventure
                 var actionKey = tempKeybinds.GetActionKey(actionType);
                 if (actionKey is null)
                 {
-                    Logger.Log("Action type doesn't exist in keybind", $"action type: {actionType}", LogSeverity.WARN);
+                    Logger.Instance.Log("Action type doesn't exist in keybind", $"action type: {actionType}", LogSeverity.WARN);
                     actionKey = new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) });
                 }
                 elementList.Add(new KeyField<ActionType>(
@@ -271,18 +271,18 @@ namespace ProgressAdventure
         public static void RegenerateSaveFile(string saveName, bool makeBackup = true)
         {
             Console.WriteLine($"Regenerating \"{saveName}\":");
-            Logger.Log("Regenerating save file", $"save name: {saveName}");
+            Logger.Instance.Log("Regenerating save file", $"save name: {saveName}");
             Console.Write("\tLoading...");
             SaveManager.LoadSave(saveName, false, makeBackup);
             Console.WriteLine("DONE!");
-            Logger.Log("Loading all chunks from file", $"save name: {saveName}");
+            Logger.Instance.Log("Loading all chunks from file", $"save name: {saveName}");
             World.LoadAllChunksFromFolder(showProgressText: "\tLoading world...");
             Console.Write("\tDeleting...");
             Tools.DeleteSave(saveName);
             Console.WriteLine("DONE!");
             Console.Write("\tSaving...\r");
             SaveManager.MakeSave(showProgressText: "\tSaving...");
-            Logger.Log("Save file regenerated", $"save name: {saveName}");
+            Logger.Instance.Log("Save file regenerated", $"save name: {saveName}");
         }
 
         /// <summary>
@@ -426,7 +426,7 @@ namespace ProgressAdventure
         /// </summary>
         private static object SaveKeybinds()
         {
-            Logger.Log("Keybinds changed", $"\n{Settings.Keybinds}\n -> \n{tempKeybinds}", LogSeverity.DEBUG);
+            Logger.Instance.Log("Keybinds changed", $"\n{Settings.Keybinds}\n -> \n{tempKeybinds}", LogSeverity.DEBUG);
             Settings.Keybinds = tempKeybinds;
 
             // in place keybinds switch

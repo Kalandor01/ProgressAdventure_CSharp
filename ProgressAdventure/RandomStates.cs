@@ -40,14 +40,14 @@ namespace ProgressAdventure
 
         #region "Constructors"
         /// <summary>
-        /// Initialises the object's values.
+        /// Initializes the object's values.
         /// </summary>
         /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
         /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
         /// <param name="miscRandom"><inheritdoc cref="MiscRandom" path="//summary"/></param>
         /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
         /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
-        public static void Initialise(
+        public static void Initialize(
             SplittableRandom? mainRandom = null,
             SplittableRandom? worldRandom = null,
             SplittableRandom? miscRandom = null,
@@ -149,7 +149,7 @@ namespace ProgressAdventure
         {
             if (tileTypeNoiseSeeds is null)
             {
-                Logger.Log("Tile noise seed parse error", "tile noise seed json is null", LogSeverity.WARN);
+                Logger.Instance.Log("Tile noise seed parse error", "tile noise seed json is null", LogSeverity.WARN);
                 return null;
             }
 
@@ -167,7 +167,7 @@ namespace ProgressAdventure
                 }
                 else
                 {
-                    Logger.Log("Tile noise seed parse error", "tile noise seed value is incorrect", LogSeverity.WARN);
+                    Logger.Instance.Log("Tile noise seed parse error", "tile noise seed value is incorrect", LogSeverity.WARN);
                 }
             }
             return noiseSeedDict;
@@ -227,8 +227,8 @@ namespace ProgressAdventure
         {
             if (randomStatesJson is null)
             {
-                Logger.Log($"{typeof(RandomStates)} parse error", $"{typeof(RandomStates).ToString().ToLower()} json is null", LogSeverity.ERROR);
-                Initialise();
+                Logger.Instance.Log($"{typeof(RandomStates)} parse error", $"{typeof(RandomStates).ToString().ToLower()} json is null", LogSeverity.ERROR);
+                Initialize();
                 return false;
             }
 
@@ -258,7 +258,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
+                Logger.Instance.Log("Random states parse error", "main random is null", LogSeverity.WARN);
                 success = false;
             }
             // world random
@@ -268,7 +268,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
+                Logger.Instance.Log("Random states parse error", "world random is null", LogSeverity.WARN);
                 success = false;
             }
             // misc random
@@ -278,7 +278,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                Logger.Instance.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
                 success = false;
             }
             // tile type noise seeds
@@ -289,7 +289,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                Logger.Instance.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
                 success = false;
             }
             // chunk seed modifier
@@ -302,11 +302,11 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
+                Logger.Instance.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
                 success = false;
             }
 
-            Initialise(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
+            Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
             return success;
         }
         #endregion

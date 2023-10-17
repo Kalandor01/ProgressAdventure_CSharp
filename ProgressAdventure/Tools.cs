@@ -120,13 +120,13 @@ namespace ProgressAdventure
                 var displayBackupPath = Path.Join(Constants.BACKUPS_FOLDER, backupNameEnd);
                 // make zip
                 ZipFile.CreateFromDirectory(saveFolderPath, backupPath);
-                Logger.Log($"Made {(isTemporary ? "temporary " : "")}backup", displayBackupPath, isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
+                Logger.Instance.Log($"Made {(isTemporary ? "temporary " : "")}backup", displayBackupPath, isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
                 return (backupPath, displayBackupPath);
             }
             else
             {
                 var displaySavePath = Path.Join(Constants.SAVES_FOLDER, saveFolderName);
-                Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}", LogSeverity.WARN);
+                Logger.Instance.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}", LogSeverity.WARN);
                 return null;
             }
         }
@@ -173,7 +173,7 @@ namespace ProgressAdventure
             if (Directory.Exists(saveFolderPath))
             {
                 Directory.Delete(saveFolderPath, true);
-                Logger.Log("Deleted save", $"save name: {saveFolderName}");
+                Logger.Instance.Log("Deleted save", $"save name: {saveFolderName}");
             }
         }
 

@@ -21,9 +21,9 @@ namespace ProgressAdventure.WorldManagement
         /// <inheritdoc cref="World" path="//summary"/>
         /// </summary>
         /// <param name="chunks">The dictionary of chunks.</param>
-        public static void Initialise(Dictionary<string, Chunk>? chunks = null)
+        public static void Initialize(Dictionary<string, Chunk>? chunks = null)
         {
-            Logger.Log($"{(chunks is null ? "Generating" : "Loading")} world", (chunks is null ? null : $"{chunks.Count} chunks"));
+            Logger.Instance.Log($"{(chunks is null ? "Generating" : "Loading")} world", (chunks is null ? null : $"{chunks.Count} chunks"));
             Chunks = chunks ?? new Dictionary<string, Chunk>();
         }
         #endregion
@@ -123,7 +123,7 @@ namespace ProgressAdventure.WorldManagement
                     chunk.Value.SaveToFile(saveFolderName);
                 }
             }
-            Logger.Log("Saved all chunks to file", $"save folder name: {saveFolderName}");
+            Logger.Instance.Log("Saved all chunks to file", $"save folder name: {saveFolderName}");
         }
 
         /// <summary>
@@ -187,9 +187,9 @@ namespace ProgressAdventure.WorldManagement
                         existingChunks.Add((posX, posY));
                         continue;
                     }
-                    Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
+                    Logger.Instance.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
                 }
-                Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
+                Logger.Instance.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
             }
 
             // load chunks
@@ -211,7 +211,7 @@ namespace ProgressAdventure.WorldManagement
                     FindChunkInFolder(chunkPos, saveFolderName);
                 }
             }
-            Logger.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
+            Logger.Instance.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
         }
 
         /// <summary>

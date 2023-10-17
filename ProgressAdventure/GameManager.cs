@@ -20,7 +20,7 @@ namespace ProgressAdventure
         {
             SaveManager.CreateSaveData();
             SaveManager.MakeSave();
-            Logger.Log("Created save", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
+            Logger.Instance.Log("Created save", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
             GameLoop();
         }
 
@@ -52,7 +52,7 @@ namespace ProgressAdventure
         {
             Globals.saving = true;
             SaveManager.MakeSave();
-            Logger.Log("Game saved", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
+            Logger.Instance.Log("Game saved", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
             Globals.saving = false;
         }
 
@@ -63,7 +63,7 @@ namespace ProgressAdventure
         {
             Globals.inGameLoop = true;
             // GAME LOOP
-            Logger.Log("Game loop started");
+            Logger.Instance.Log("Game loop started");
             // TRHEADS
             // manual quit
             Task.Run(ManualQuitThreadFunction);
@@ -101,7 +101,7 @@ namespace ProgressAdventure
             Globals.exiting = false;
             Globals.inGameLoop = false;
             Utils.PressKey("Exiting...Press key!");
-            Logger.Log("Game loop ended");
+            Logger.Instance.Log("Game loop ended");
         }
         #endregion
 
@@ -126,7 +126,7 @@ namespace ProgressAdventure
                             {
                                 if (!Globals.saving && !Globals.inFight)
                                 {
-                                    Logger.Log("Beginning auto save", $"save name: {SaveData.saveName}");
+                                    Logger.Instance.Log("Beginning auto save", $"save name: {SaveData.saveName}");
                                     SaveGame();
                                     saved = true;
                                 }
@@ -149,7 +149,7 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                Logger.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
+                Logger.Instance.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
                 throw;
             }
         }
@@ -170,7 +170,7 @@ namespace ProgressAdventure
                         {
                             if (!Globals.inFight && !Globals.saving)
                             {
-                                Logger.Log("Beginning manual save", $"save name: {SaveData.saveName}");
+                                Logger.Instance.Log("Beginning manual save", $"save name: {SaveData.saveName}");
                                 Globals.exiting = true;
                                 SaveGame();
                                 Globals.inGameLoop = false;
@@ -190,7 +190,7 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                Logger.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
+                Logger.Instance.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
                 throw;
             }
         }

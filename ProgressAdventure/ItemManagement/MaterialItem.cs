@@ -34,7 +34,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (Amount > 0)
             {
-                // DO THIS WITH TAGS!
+                //TODO: DO THIS WITH TAGS!
 
                 //if (Consumable)
                 //{
@@ -121,13 +121,13 @@ namespace ProgressAdventure.ItemManagement
             Material material;
             if (!itemJson.TryGetValue("material", out var materialValue))
             {
-                Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
+                Logger.Instance.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
                 return false;
             }
 
             if (!Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed))
             {
-                Logger.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
+                Logger.Instance.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
                 return false;
             }
             material = materialParsed;
@@ -138,12 +138,12 @@ namespace ProgressAdventure.ItemManagement
                 !double.TryParse(amountValue?.ToString(), out itemAmount)
             )
             {
-                Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+                Logger.Instance.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
             }
 
             if (itemAmount <= 0)
             {
-                Logger.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
+                Logger.Instance.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
                 return false;
             }
 
@@ -153,7 +153,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                Logger.Instance.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
                 return false;
             }
 

@@ -25,15 +25,11 @@ namespace PACommon
         /// <summary>
         /// The name of the logs folder.
         /// </summary>
-        public const string LOGS_FOLDER = "logs";
-        /// <summary>
-        /// The path to the logs folder.
-        /// </summary>
-        public static readonly string LOGS_FOLDER_PATH = Path.Join(ROOT_FOLDER, LOGS_FOLDER);
+        public const string DEFAULT_LOGS_FOLDER = "logs";
         /// <summary>
         /// The extension used for log files.
         /// </summary>
-        public const string LOG_EXT = "log";
+        public const string DEFAULT_LOG_EXT = "log";
         #endregion
 
         /// <summary>
@@ -50,14 +46,6 @@ namespace PACommon
         #endregion
 
         #region Cursor types
-        /// <summary>
-        /// The <c>CursorIcon</c> used in most cases.
-        /// </summary>
-        public static readonly CursorIcon STANDARD_CURSOR_ICONS = new(">", "", " ", "");
-        /// <summary>
-        /// The <c>CursorIcon</c> for deletions.
-        /// </summary>
-        public static readonly CursorIcon DELETE_CURSOR_ICONS = new(" X", "", "  ", "");
         /// <summary>
         /// The <c>CursorIcon</c> for <c>BaseUIDisplay</c>.
         /// </summary>
@@ -76,6 +64,13 @@ namespace PACommon
         }
         #endregion
 
+        #region Logging
+        /// <summary>
+        /// If the logger should log the milisecond in time.
+        /// </summary>
+        public const bool DEFAULT_LOG_MS = false;
+        #endregion
+
         #region Other
         /// <summary>
         /// The encoding of the text.
@@ -85,10 +80,6 @@ namespace PACommon
         /// The version number to use in the file encoding.
         /// </summary>
         public const int FILE_ENCODING_VERSION = 2;
-        /// <summary>
-        /// The current save version.
-        /// </summary>
-        public static string SAVE_VERSION = "2.2";
         #endregion
     }
 }

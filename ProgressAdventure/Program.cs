@@ -3,6 +3,7 @@ using PACommon.Enums;
 using PACommon.SettingsManagement;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
 {
@@ -32,20 +33,20 @@ namespace ProgressAdventure
 
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
-            Logger.LogNewLine();
+            Logger.Initialize(Constants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT, Constants.LOG_MS, false, LogSeverity.DEBUG);
             Console.WriteLine("Loading...");
 
             if (!Utils.TryEnableAnsiCodes())
             {
-                Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+                Logger.Instance.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
             }
 
-            Logger.Log("Preloading global variables");
+            Logger.Instance.Log("Preloading global variables");
             // GLOBAL VARIABLES
-            Settings.Initialise();
+            Settings.Initialize();
             KeybindUtils.colorEnabled = Settings.EnableColoredText;
-            PACommon.Constants.SAVE_VERSION = Constants.SAVE_VERSION;
-            Globals.Initialise();
+            PACTools.SAVE_VERSION = Constants.SAVE_VERSION;
+            Globals.Initialize();
         }
 
         /// <summary>
@@ -59,7 +60,7 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
+                Logger.Instance.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
                 if (Constants.ERROR_HANDLING)
                 {
                     Utils.PressKey("ERROR: " + e.Message);
@@ -81,21 +82,21 @@ namespace ProgressAdventure
                 exitGame = true;
                 try
                 {
-                    Logger.Log("Beginning new instance");
+                    Logger.Instance.Log("Beginning new instance");
                     MainFunction();
                     //exit
-                    Logger.Log("Instance ended succesfuly");
+                    Logger.Instance.Log("Instance ended succesfuly");
                 }
                 catch (Exception e)
                 {
-                    Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
+                    Logger.Instance.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
                     if (Constants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
                         var ans = Utils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
-                            Logger.Log("Restarting instance");
+                            Logger.Instance.Log("Restarting instance");
                             exitGame = false;
                         }
                     }

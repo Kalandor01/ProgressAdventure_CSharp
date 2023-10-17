@@ -258,7 +258,7 @@ namespace ProgressAdventure.ItemManagement
             //misc
             [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, ItemAmountUnit.KG),
             [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE),
-            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.FILLED_BOTTLE, "*/0ML/* bottle of */1MC/*"),
+            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.FILLED_BOTTLE, "*/0MC/* bottle of */1MC/*"),
             [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN),
             [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE),
             [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT),
@@ -412,7 +412,7 @@ namespace ProgressAdventure.ItemManagement
             var name = itemTypeID.ToString();
             if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
-                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
+                Logger.Instance.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
             }
             else
             {
@@ -447,7 +447,7 @@ namespace ProgressAdventure.ItemManagement
             var name = itemTypeID.ToString();
             if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
-                Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
+                Logger.Instance.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
             }
             else
             {

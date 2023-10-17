@@ -774,7 +774,7 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? AllEntitiesLoadable()
         {
-            RandomStates.Initialise();
+            RandomStates.Initialize();
 
             var entityType = typeof(Entity);
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
@@ -903,7 +903,7 @@ namespace ProgressAdventureTests
                 new Chunk((1, 1)),
             };
 
-            RandomStates.Initialise();
+            RandomStates.Initialize();
 
             // get all classes that implement IJsonConvertable<T>
             var jsonConvertableType = typeof(IJsonConvertable<>);

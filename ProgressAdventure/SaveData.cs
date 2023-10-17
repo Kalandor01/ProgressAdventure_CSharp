@@ -39,14 +39,14 @@ namespace ProgressAdventure
 
         #region "Constructors"
         /// <summary>
-        /// Initialises the object's values.
+        /// Initializes the object's values.
         /// </summary>
         /// <param name="saveName"><inheritdoc cref="saveName" path="//summary"/></param>
         /// <param name="displaySaveName"><inheritdoc cref="displaySaveName" path="//summary"/></param>
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
         /// <param name="player"><inheritdoc cref="player" path="//summary"/></param>
-        public static void Initialise(
+        public static void Initialize(
             string saveName,
             string? displaySaveName = null,
             DateTime? lastSave = null,
@@ -63,7 +63,7 @@ namespace ProgressAdventure
 
             if (initialiseRandomGenerators)
             {
-                RandomStates.Initialise();
+                RandomStates.Initialize();
             }
 
             SaveData.player = player ?? new Player();
@@ -150,8 +150,8 @@ namespace ProgressAdventure
         {
             if (saveDataJson is null)
             {
-                Logger.Log($"{typeof(SaveData)} parse error", $"{typeof(SaveData).ToString().ToLower()} json is null", LogSeverity.ERROR);
-                Initialise(saveName);
+                Logger.Instance.Log($"{typeof(SaveData)} parse error", $"{typeof(SaveData).ToString().ToLower()} json is null", LogSeverity.ERROR);
+                Initialize(saveName);
                 return false;
             }
 
@@ -178,7 +178,7 @@ namespace ProgressAdventure
             var playerData = saveDataJson["player"] as IDictionary<string, object?>;
             PACTools.TryFromJson(playerData, fileVersion, out Player? player);
 
-            Initialise(saveName, displayName, lastSave, playtime, player, false);
+            Initialize(saveName, displayName, lastSave, playtime, player, false);
             return true;
         }
         #endregion

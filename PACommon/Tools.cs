@@ -17,6 +17,13 @@ namespace PACommon
     /// </summary>
     public static class Tools
     {
+        #region "Constants"
+        /// <summary>
+        /// The current save version.
+        /// </summary>
+        public static string SAVE_VERSION = "2.2";
+        #endregion
+
         #region Public functions
         #region Short
         /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
@@ -69,17 +76,17 @@ namespace PACommon
             }
             catch (FormatException)
             {
-                Logger.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                Logger.Instance.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
                 throw;
             }
             catch (FileNotFoundException)
             {
-                Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                Logger.Instance.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
             catch (DirectoryNotFoundException)
             {
-                Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                Logger.Instance.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
             try
@@ -88,7 +95,7 @@ namespace PACommon
             }
             catch (Exception)
             {
-                Logger.Log("Json decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                Logger.Instance.Log("Json decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
                 throw;
             }
         }
@@ -111,22 +118,13 @@ namespace PACommon
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
-                Logger.Log($"Recreating {displayName} folder");
+                Logger.Instance.Log($"Recreating {displayName} folder");
                 return true;
             }
             else
             {
                 return false;
             }
-        }
-
-        /// <summary>
-        /// <c>RecreateFolder</c> for the logs folder.
-        /// </summary>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
-        public static bool RecreateLogsFolder()
-        {
-            return RecreateFolder(Constants.LOGS_FOLDER);
         }
         #endregion
 
@@ -175,7 +173,7 @@ namespace PACommon
                 case JTokenType.Null:
                     return null;
                 case JTokenType.Undefined:
-                    Logger.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
+                    Logger.Instance.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
                     return null;
                 case JTokenType.Date:
                     return (DateTime)token;
@@ -213,7 +211,7 @@ namespace PACommon
         {
             if (randomString is null)
             {
-                Logger.Log("Random parse error", "random seed is null", LogSeverity.WARN);
+                Logger.Instance.Log("Random parse error", "random seed is null", LogSeverity.WARN);
                 return null;
             }
             try
@@ -224,7 +222,7 @@ namespace PACommon
             {
                 if (e is ArgumentNullException || e is FormatException)
                 {
-                    Logger.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
+                    Logger.Instance.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
                     return null;
                 }
                 else
@@ -338,7 +336,7 @@ namespace PACommon
         {
             if (newLine)
             {
-                Logger.LogNewLine();
+                Logger.Instance.LogNewLine();
             }
 
             var testName = testFunction.Method.Name;
@@ -349,7 +347,7 @@ namespace PACommon
             prepareTestFunction?.Invoke();
 
             Console.Write(testName + "...");
-            Logger.Log("Running...");
+            Logger.Instance.Log("Running...");
 
             TestResultDTO result;
             try
@@ -388,15 +386,15 @@ namespace PACommon
                 !staticClass.IsSealed
             )
             {
-                Logger.Log($"\"{staticClass}\" is not static", null, LogSeverity.ERROR);
+                Logger.Instance.Log($"\"{staticClass}\" is not static", null, LogSeverity.ERROR);
                 return;
             }
 
             var testsRun = 0;
             var testsSuccessful = 0;
 
-            Logger.LogNewLine();
-            Logger.Log($"Runing all tests from \"{staticClass}\"");
+            Logger.Instance.LogNewLine();
+            Logger.Instance.Log($"Runing all tests from \"{staticClass}\"");
 
             var methods = staticClass.GetMethods(BindingFlags.Public | BindingFlags.Static);
             foreach (var method in methods)
@@ -410,11 +408,11 @@ namespace PACommon
                 }
             }
 
-            Logger.Log("All tests finished runing");
+            Logger.Instance.Log("All tests finished runing");
             var allPassed = testsSuccessful == testsRun;
             var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? Constants.Colors.GREEN : Constants.Colors.RED);
             Console.WriteLine($"\nFinished running test batch: {result} successful!");
-            Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
+            Logger.Instance.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
         #endregion
 
@@ -492,7 +490,7 @@ namespace PACommon
             {
                 objectJsonCorrecter(objectJson);
 
-                Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                Logger.Instance.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
                 fileVersion = newFileVersion;
             }
         }
@@ -511,17 +509,17 @@ namespace PACommon
             string fileVersion
         )
         {
-            if (!correcters.Any() || Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion) || Utils.IsUpToDate(correcters.Last().newFileVersion, fileVersion))
+            if (!correcters.Any() || Utils.IsUpToDate(SAVE_VERSION, fileVersion) || Utils.IsUpToDate(correcters.Last().newFileVersion, fileVersion))
             {
                 return;
             }
 
-            Logger.Log($"{objectName} json data is old", "correcting data");
+            Logger.Instance.Log($"{objectName} json data is old", "correcting data");
             foreach (var (objectJsonCorrecter, newFileVersion) in correcters)
             {
                 CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, ref fileVersion, newFileVersion);
             }
-            Logger.Log($"{objectName} json data corrected");
+            Logger.Instance.Log($"{objectName} json data corrected");
         }
 
         /// <summary>
@@ -608,7 +606,7 @@ namespace PACommon
             var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
 
             Console.WriteLine(typeText + messageText);
-            Logger.Log(testName, result.resultType + (messageText), result.resultType);
+            Logger.Instance.Log(testName, result.resultType + (messageText), result.resultType);
             testsRun++;
             testsSuccessful += passed ? 1 : 0;
 

@@ -26,7 +26,7 @@ namespace PACommon
             convertedObject = default;
             if (objectJson is null)
             {
-                Logger.Log($"{typeof(T)} parse error", $"{typeof(T).ToString().ToLower()} json is null", LogSeverity.ERROR);
+                Logger.Instance.Log($"{typeof(T)} parse error", $"{typeof(T).ToString().ToLower()} json is null", LogSeverity.ERROR);
                 return false;
             }
 

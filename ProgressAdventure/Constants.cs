@@ -51,10 +51,6 @@ namespace ProgressAdventure
         /// </summary>
         public const string LOGS_FOLDER = "logs";
         /// <summary>
-        /// The path to the logs folder.
-        /// </summary>
-        public static readonly string LOGS_FOLDER_PATH = Path.Join(ROOT_FOLDER, LOGS_FOLDER);
-        /// <summary>
         /// The extension used for log files.
         /// </summary>
         public const string LOG_EXT = "log";
@@ -116,10 +112,6 @@ namespace ProgressAdventure
         /// The <c>CursorIcon</c> for deletions.
         /// </summary>
         public static readonly CursorIcon DELETE_CURSOR_ICONS = new(" X", "", "  ", "");
-        /// <summary>
-        /// The <c>CursorIcon</c> for <c>BaseUIDisplay</c>.
-        /// </summary>
-        public static readonly CursorIcon NO_CURSOR_ICONS = new("", "", "", "");
         #endregion
 
         #region Colors

@@ -11,9 +11,8 @@
         FAIL = 6,
         OTHER = 7,
         /// <summary>
-        /// Logging level for REPRESENTING MINIMAL/NO LOGGING ONLY!!!<br/>
-        /// DON'T USE WHEN CALLING <c>Logger.Log()</c>!!!<br/>
-        /// Represents no logging (except before this value loads from the settings file).
+        /// Logging level REPRESENTING MINIMAL/NO LOGGING ONLY!!!<br/>
+        /// DON'T USE WHEN CALLING <c>Logger.Instance.Log()</c>!!!<br/>
         /// </summary>
         DISABLED = -1,
     }

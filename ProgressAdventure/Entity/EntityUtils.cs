@@ -218,11 +218,11 @@ namespace ProgressAdventure.Entity
             }
             catch (NullReferenceException)
             {
-                Logger.Log("Tried to create entity with no known name", null, LogSeverity.WARN);
+                Logger.Instance.Log("Tried to create entity with no known name", null, LogSeverity.WARN);
             }
             if (name is null)
             {
-                Logger.Log("Couldn't get entity name from class", "Using default name", LogSeverity.WARN);
+                Logger.Instance.Log("Couldn't get entity name from class", "Using default name", LogSeverity.WARN);
             }
             return name ?? "[Unknown entity]";
         }
@@ -349,7 +349,7 @@ namespace ProgressAdventure.Entity
         /// <param name="writeOut">Whether to write out, what is happening with the fight.</param>
         public static void Fight(IEnumerable<Entity> entities, bool writeOut = true)
         {
-            Logger.Log("Fight log", $"fight initiated with {entities.Count()} entities");
+            Logger.Instance.Log("Fight log", $"fight initiated with {entities.Count()} entities");
             var teams = CreateTeams(entities);
             ForcedFight(teams, writeOut);
         }
@@ -364,7 +364,7 @@ namespace ProgressAdventure.Entity
             var (teamsPrepared, playerTeam, player) = PrepareTeams(teams);
             if (teamsPrepared.Count == 0)
             {
-                Logger.Log("Fight log", "no entities in fight");
+                Logger.Instance.Log("Fight log", "no entities in fight");
                 if (writeOut)
                 {
                     Console.WriteLine("There is no one to fight.");
@@ -372,7 +372,7 @@ namespace ProgressAdventure.Entity
             }
             else if (teamsPrepared.Count == 1)
             {
-                Logger.Log("Fight log", "only 1 team in fight");
+                Logger.Instance.Log("Fight log", "only 1 team in fight");
                 if (writeOut)
                 {
                     Console.WriteLine("There is only 1 team in the fight. There is no reason to fight.");
@@ -382,7 +382,7 @@ namespace ProgressAdventure.Entity
             {
                 UnpreparedFight(teamsPrepared, playerTeam, player, writeOut);
             }
-            Logger.Log("Fight log", "fight ended");
+            Logger.Instance.Log("Fight log", "fight ended");
         }
 
         public static void RandomFight(int entityNumber = 1, int totalCost = 1, int minPower = 1, int maxPower = -1, bool roundUp = false, bool includePlayer = true)
@@ -472,7 +472,7 @@ namespace ProgressAdventure.Entity
                 entities.Add(SaveData.player);
             }
 
-            Logger.Log("Fight log", "random fight initiated");
+            Logger.Instance.Log("Fight log", "random fight initiated");
             Fight(entities);
         }
         #endregion
@@ -530,13 +530,13 @@ namespace ProgressAdventure.Entity
                 }
                     if (entityList.Count > 0)
                     {
-                        Logger.Log("Fight log", $"all entities are dead in team: {team.Key}", LogSeverity.WARN);
+                        Logger.Instance.Log("Fight log", $"all entities are dead in team: {team.Key}", LogSeverity.WARN);
                         teams.Add(team.Key, entityList);
                     }
                 }
                 else
                 {
-                    Logger.Log("Fight log", $"empty team: {team.Key}", LogSeverity.WARN);
+                    Logger.Instance.Log("Fight log", $"empty team: {team.Key}", LogSeverity.WARN);
                 }
             }
             return (teams, playerTeam, player);
@@ -631,7 +631,7 @@ namespace ProgressAdventure.Entity
                 {
                     if (!team.Value.Any())
                     {
-                        Logger.Log("Fight log", $"no entity in team \"{team.Key}\", did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
+                        Logger.Instance.Log("Fight log", $"no entity in team \"{team.Key}\", did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
                         return;
                     }
 
@@ -663,17 +663,17 @@ namespace ProgressAdventure.Entity
         {
             if (!teams.Any())
             {
-                Logger.Log("Fight log", $"no teams in fight, did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
+                Logger.Instance.Log("Fight log", $"no teams in fight, did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
                 return;
             }
 
             var teamCounts = GetTeamEntityCounts(teams);
             var totalCount = GetTotalEntityCount(teamCounts);
             var isPlayerInTeam = playerTeam is not null && teams[playerTeam].Count > 1;
-            Logger.Log("Fight log", $"fight started with {teams.Count} teams, and {totalCount} entities");
+            Logger.Instance.Log("Fight log", $"fight started with {teams.Count} teams, and {totalCount} entities");
             if (player is not null)
             {
-                Logger.Log("Fight log", $"player is in the fight, team: {playerTeam}");
+                Logger.Instance.Log("Fight log", $"player is in the fight, team: {playerTeam}");
             }
             
             // entities write out
@@ -756,7 +756,7 @@ namespace ProgressAdventure.Entity
                                 {
                                     if (teams[targetTeamKey].Count > 1)
                                     {
-                                        Logger.Log("Fight log", $"team {targetTeamKey} defeated");
+                                        Logger.Instance.Log("Fight log", $"team {targetTeamKey} defeated");
                                         if (writeOut)
                                         {
                                             Console.WriteLine($"team {targetTeamKey} defeated");
@@ -791,7 +791,7 @@ namespace ProgressAdventure.Entity
             // teams gave up
             if (no_damage_in_x_turns >= Constants.FIGHT_GIVE_UP_TURN_NUMBER)
             {
-                Logger.Log("Fight log", $"no damage was dealt for {no_damage_in_x_turns} turns, so the fight automaticaly ended");
+                Logger.Instance.Log("Fight log", $"no damage was dealt for {no_damage_in_x_turns} turns, so the fight automaticaly ended");
                 if (writeOut)
                 {
                     Console.WriteLine("Everyone got bored, so the fight ends in a stalemate.");
@@ -805,7 +805,7 @@ namespace ProgressAdventure.Entity
             {
                 if (teams[winTeamName].Count > 1)
                 {
-                    Logger.Log("Fight log", $"team {winTeamName} won");
+                    Logger.Instance.Log("Fight log", $"team {winTeamName} won");
                     if (writeOut)
                     {
                         Console.WriteLine($"team {winTeamName} won");
@@ -813,7 +813,7 @@ namespace ProgressAdventure.Entity
                 }
                 else
                 {
-                    Logger.Log("Fight log", $"entity {teams[winTeamName].First().FullName} won");
+                    Logger.Instance.Log("Fight log", $"entity {teams[winTeamName].First().FullName} won");
                     if (writeOut)
                     {
                         Console.WriteLine($"{teams[winTeamName].First().FullName} won");
@@ -831,7 +831,7 @@ namespace ProgressAdventure.Entity
             {
                 if (isPlayerInTeam)
                 {
-                    Logger.Log("Fight log", "player team defeated");
+                    Logger.Instance.Log("Fight log", "player team defeated");
                     if (writeOut)
                     {
                         Console.WriteLine($"{player?.FullName}'s team was defeated");
@@ -839,7 +839,7 @@ namespace ProgressAdventure.Entity
                 }
                 else
                 {
-                    Logger.Log("Fight log", "player defeated");
+                    Logger.Instance.Log("Fight log", "player defeated");
                     if (writeOut)
                     {
                         Console.WriteLine($"{player?.FullName} was defeated");
@@ -851,7 +851,7 @@ namespace ProgressAdventure.Entity
             {
                 if (isPlayerInTeam)
                 {
-                    Logger.Log("Fight log", "player team won");
+                    Logger.Instance.Log("Fight log", "player team won");
                     if (writeOut)
                     {
                         Console.WriteLine($"{player?.FullName}'s team won");
@@ -859,7 +859,7 @@ namespace ProgressAdventure.Entity
                 }
                 else
                 {
-                    Logger.Log("Fight log", "player won");
+                    Logger.Instance.Log("Fight log", "player won");
                     if (writeOut)
                     {
                         Console.WriteLine($"{player?.FullName} won");
@@ -867,7 +867,7 @@ namespace ProgressAdventure.Entity
                 }
                 if (player?.CurrentHp == 0)
                 {
-                    Logger.Log("Fight log", "player died");
+                    Logger.Instance.Log("Fight log", "player died");
                     if (writeOut)
                     {
                         Console.WriteLine($"{player.FullName} died");

@@ -7,7 +7,7 @@ namespace PAExtras
         private static void Main(string[] args)
         {
             Thread.CurrentThread.Name = "PAExtras";
-            Logger.LogNewLine();
+            Logger.Instance.LogNewLine();
 
             //SaveImporter.ImportSave("big_test");
             //SaveImporter.ImportSave("new save");

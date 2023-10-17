@@ -235,7 +235,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (!itemJson.TryGetValue("type", out var typeNameValue))
             {
-                Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
+                Logger.Instance.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
                 return false;
             }
 
@@ -255,7 +255,7 @@ namespace ProgressAdventure.ItemManagement
             }
             else
             {
-                Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
+                Logger.Instance.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
                 return false;
             }
         }

@@ -26,13 +26,13 @@
 
         #region "Constructors"
         /// <summary>
-        /// Initialises the values in the object.
+        /// Initializes the values in the object.
         /// </summary>
         /// <param name="inGameLoop"><inheritdoc cref="inGameLoop" path="//summary"/></param>
         /// <param name="inFight"><inheritdoc cref="inFight" path="//summary"/></param>
         /// <param name="exiting"><inheritdoc cref="exiting" path="//summary"/></param>
         /// <param name="saving"><inheritdoc cref="saving" path="//summary"/></param>
-        public static void Initialise(
+        public static void Initialize(
             bool inGameLoop = false,
             bool inFight = false,
             bool exiting = false,

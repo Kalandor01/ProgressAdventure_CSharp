@@ -77,14 +77,14 @@ namespace ProgressAdventure.ItemManagement
             {
                 if (unit is not null && unit != ItemAmountUnit.AMOUNT)
                 {
-                    Logger.Log("Ingredient error", "required unit type cannot be converted from the item type's amount unit type, set unit to null", LogSeverity.ERROR);
+                    Logger.Instance.Log("Ingredient error", "required unit type cannot be converted from the item type's amount unit type, set unit to null", LogSeverity.ERROR);
                     throw new ArgumentException("Required unit type cannot be converted from the item type's amount unit type. Set unit to null.", nameof(unit));
                 }
 
                 if (this.amount % 1 != 0)
                 {
                     this.amount = Math.Floor(this.amount);
-                    Logger.Log("Ingredient amount missmatch", "ingredient unit type is amount, but requires a non-whole amount, corrected", LogSeverity.WARN);
+                    Logger.Instance.Log("Ingredient amount missmatch", "ingredient unit type is amount, but requires a non-whole amount, corrected", LogSeverity.WARN);
                 }
             }
 

@@ -186,7 +186,7 @@ namespace ProgressAdventure.Entity
                 if (newFacing is not null && newFacing != oldFacing)
                 {
                     facing = (Facing)newFacing;
-                    Logger.Log("Entity turned", $"name: {FullName}, {oldFacing} -> {facing}", LogSeverity.DEBUG);
+                    Logger.Instance.Log("Entity turned", $"name: {FullName}, {oldFacing} -> {facing}", LogSeverity.DEBUG);
                 }
             }
         }
@@ -221,7 +221,7 @@ namespace ProgressAdventure.Entity
         {
             var oldPosition = this.position;
             this.position = position;
-            Logger.Log("Entity moved", $"name: {FullName}, {oldPosition} -> {this.position}", LogSeverity.DEBUG);
+            Logger.Instance.Log("Entity moved", $"name: {FullName}, {oldPosition} -> {this.position}", LogSeverity.DEBUG);
             if (updateWorld)
             {
                 World.TryGetTileAll(this.position, out _);
@@ -234,23 +234,23 @@ namespace ProgressAdventure.Entity
         /// <param name="target">The target entity.</param>
         public AttackResponse AttackEntity(Entity target)
         {
-            Logger.Log("Attack log", $"{FullName} attacked {target.FullName}");
+            Logger.Instance.Log("Attack log", $"{FullName} attacked {target.FullName}");
             // attacker dead
             if (CurrentHp == 0)
             {
-                Logger.Log("Attack log", $"{FullName}(attacker) is dead");
+                Logger.Instance.Log("Attack log", $"{FullName}(attacker) is dead");
                 return AttackResponse.ENTITY_DEAD;
             }
             // enemy dead
             else if (target.CurrentHp == 0)
             {
-                Logger.Log("Attack log", $"{FullName}(attacked) is already dead");
+                Logger.Instance.Log("Attack log", $"{FullName}(attacked) is already dead");
                 return AttackResponse.TARGET_DEAD;
             }
             // enemy dodge
             else if (RandomStates.MiscRandom.GenerateDouble() > Agility * 1.0 / target.Agility - 0.1)
             {
-                Logger.Log("Attack log", $"{target.FullName} dodged");
+                Logger.Instance.Log("Attack log", $"{target.FullName} dodged");
                 return AttackResponse.TARGET_DOGDED;
             }            
             // attack
@@ -261,18 +261,18 @@ namespace ProgressAdventure.Entity
                 // block
                 if (damage <= 0)
                 {
-                    Logger.Log("Attack log", $"{target.FullName} blocked attack");
+                    Logger.Instance.Log("Attack log", $"{target.FullName} blocked attack");
                     return AttackResponse.TARGET_BLOCKED;
                 }
                 // hit
                 else
                 {
                     target.TakeDamage(damage);
-                    Logger.Log("Attack log", $"{target.FullName} took {damage} damage ({target.CurrentHp})");
+                    Logger.Instance.Log("Attack log", $"{target.FullName} took {damage} damage ({target.CurrentHp})");
                     // kill
                     if (target.CurrentHp == 0)
                     {
-                        Logger.Log("Attack log", $"{FullName} defeated {target.FullName}");
+                        Logger.Instance.Log("Attack log", $"{FullName} defeated {target.FullName}");
                         return AttackResponse.TARGET_KILLED;
                     }
                     return AttackResponse.TARGET_HIT;
@@ -476,7 +476,7 @@ namespace ProgressAdventure.Entity
             entityObject = null;
             if (entityJson is null)
             {
-                Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
+                Logger.Instance.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
                 return false;
             }
 
@@ -485,7 +485,7 @@ namespace ProgressAdventure.Entity
                 entityTypeValue is null
             )
             {
-                Logger.Log("Entity parse error", "entity type json is null", LogSeverity.ERROR);
+                Logger.Instance.Log("Entity parse error", "entity type json is null", LogSeverity.ERROR);
                 return false;
             }
 
@@ -494,7 +494,7 @@ namespace ProgressAdventure.Entity
                 entityType is null
             )
             {
-                Logger.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
+                Logger.Instance.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
                 return false;
             }
 
@@ -596,7 +596,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity name", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity name", LogSeverity.WARN);
                 success = false;
             }
 
@@ -612,7 +612,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity base max hp", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity base max hp", LogSeverity.WARN);
                 success = false;
             }
 
@@ -627,7 +627,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity current hp", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity current hp", LogSeverity.WARN);
                 success = false;
             }
 
@@ -642,7 +642,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity base attack", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity base attack", LogSeverity.WARN);
                 success = false;
             }
 
@@ -657,7 +657,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity base defence", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity base defence", LogSeverity.WARN);
                 success = false;
             }
 
@@ -672,7 +672,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity base agility", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity base agility", LogSeverity.WARN);
                 success = false;
             }
 
@@ -687,7 +687,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity original team", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity original team", LogSeverity.WARN);
                 success = false;
             }
 
@@ -702,7 +702,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity current team", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity current team", LogSeverity.WARN);
                 success = false;
             }
 
@@ -725,14 +725,14 @@ namespace ProgressAdventure.Entity
                     }
                     else
                     {
-                        Logger.Log("Entity parse error", "entity attribute parse error", LogSeverity.WARN);
+                        Logger.Instance.Log("Entity parse error", "entity attribute parse error", LogSeverity.WARN);
                         success = false;
                     }
                 }
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity attributes list", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity attributes list", LogSeverity.WARN);
                 success = false;
             }
 
@@ -755,7 +755,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse drops list from json", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse drops list from json", LogSeverity.WARN);
                 success = false;
             }
 
@@ -772,7 +772,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity position", LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity position", LogSeverity.WARN);
                 success = false;
             }
 
@@ -788,7 +788,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
+                Logger.Instance.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
                 success = false;
             }
 

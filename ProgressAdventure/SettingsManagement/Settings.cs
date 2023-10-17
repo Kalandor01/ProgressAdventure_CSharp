@@ -69,7 +69,7 @@ namespace ProgressAdventure.SettingsManagement
                 SettingsManager(SettingsKey.LOGGING_LEVEL, loggingLevelValue);
                 _loggingLevel = GetLoggingLevel();
 
-                Logger.LoggingLevel = LoggingLevel;
+                Logger.Instance.LoggingLevel = LoggingLevel;
             }
         }
         /// <summary>
@@ -140,7 +140,7 @@ namespace ProgressAdventure.SettingsManagement
 
         #region "Constructors"
         /// <summary>
-        /// Initialises the values in the object.
+        /// Initializes the values in the object.
         /// </summary>
         /// <param name="autoSave"><inheritdoc cref="_autoSave" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
@@ -148,7 +148,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
         /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
-        public static void Initialise(
+        public static void Initialize(
             bool? autoSave = null,
             LogSeverity? loggingLevel = null,
             Keybinds? keybinds = null,
@@ -187,7 +187,7 @@ namespace ProgressAdventure.SettingsManagement
                 !Logger.TryParseSeverityValue((int)(long)logLevel, out LogSeverity severity)
                 )
             {
-                Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
+                Logger.Instance.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
                 _ = Logger.TryParseSeverityValue((int)SettingsUtils.GetDefaultSettings()[SettingsKey.LOGGING_LEVEL.ToString()], out severity);
             }
             return severity;
@@ -206,7 +206,7 @@ namespace ProgressAdventure.SettingsManagement
             }
             catch (Exception e)
             {
-                Logger.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + e.ToString(), LogSeverity.ERROR);
+                Logger.Instance.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + e.ToString(), LogSeverity.ERROR);
                 keybinds = new Keybinds();
                 SettingsManager(SettingsKey.KEYBINDS, keybinds.ToJson());
             }
@@ -255,7 +255,7 @@ namespace ProgressAdventure.SettingsManagement
             var newSettings = SettingsUtils.GetDefaultSettings();
             Tools.EncodeSaveShort(newSettings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
             // log
-            Logger.Log("Recreated settings");
+            Logger.Instance.Log("Recreated settings");
             return newSettings;
         }
 
@@ -270,12 +270,12 @@ namespace ProgressAdventure.SettingsManagement
                 settingsJson = Tools.DecodeSaveShort(Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED, expected: false);
                 if (settingsJson is null)
                 {
-                    Logger.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
+                    Logger.Instance.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
                 }
             }
             catch (FormatException)
             {
-                Logger.Log("Decode error", "settings", LogSeverity.ERROR);
+                Logger.Instance.Log("Decode error", "settings", LogSeverity.ERROR);
                 Utils.PressKey("The settings file is corrupted, and will now be recreated!");
             }
             catch (FileNotFoundException) { }
@@ -304,12 +304,12 @@ namespace ProgressAdventure.SettingsManagement
                 }
                 else
                 {
-                    Logger.Log("Value is null in settings", settingsKeyName, LogSeverity.WARN);
+                    Logger.Instance.Log("Value is null in settings", settingsKeyName, LogSeverity.WARN);
                 }
             }
             else
             {
-                Logger.Log("Missing key in settings", settingsKeyName, LogSeverity.WARN);
+                Logger.Instance.Log("Missing key in settings", settingsKeyName, LogSeverity.WARN);
             }
 
             var defSettings = SettingsUtils.GetDefaultSettings();
@@ -339,7 +339,7 @@ namespace ProgressAdventure.SettingsManagement
                     }
                     catch (Exception e)
                     {
-                        Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
+                        Logger.Instance.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
                     }
                     if (oldKb is not null)
                     {
@@ -352,14 +352,14 @@ namespace ProgressAdventure.SettingsManagement
                 }
                 if (!(keybindsEqual || value.Equals(settingValue)))
                 {
-                    Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
+                    Logger.Instance.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
                     settings[settingsKeyName] = value;
                     Tools.EncodeSaveShort(settings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
                 }
             }
             else
             {
-                Logger.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
+                Logger.Instance.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
                 settings[settingsKeyName] = value;
                 Tools.EncodeSaveShort(settings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
             }
@@ -388,7 +388,7 @@ namespace ProgressAdventure.SettingsManagement
             }
             else
             {
-                Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.settingValueTypeMap[settingsKey]} but is {rawValue.GetType()}, correcting...", LogSeverity.WARN);
+                Logger.Instance.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.settingValueTypeMap[settingsKey]} but is {rawValue.GetType()}, correcting...", LogSeverity.WARN);
                 var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
                 SettingsManager(settingsKey, newValue);
                 return newValue;

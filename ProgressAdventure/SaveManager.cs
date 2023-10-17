@@ -62,13 +62,13 @@ namespace ProgressAdventure
             SaveDataFile();
             // CHUNKS/WORLD
             Tools.RecreateChunksFolder();
-            Logger.Log("Saving chunks");
+            Logger.Instance.Log("Saving chunks");
             World.SaveAllChunksToFiles(null, clearChunks, showProgressText);
             // remove backup
             if (backupStatus is not null)
             {
                 File.Delete(backupStatus.Value.backupPath);
-                Logger.Log("Removed temporary backup", backupStatus.Value.relativeBackupPath, LogSeverity.DEBUG);
+                Logger.Instance.Log("Removed temporary backup", backupStatus.Value.relativeBackupPath, LogSeverity.DEBUG);
             }
         }
 
@@ -79,16 +79,16 @@ namespace ProgressAdventure
         /// <param name="playerName">The name of the player.</param>
         public static void CreateSaveData(string? displaySaveName, string? playerName)
         {
-            Logger.Log("Preparing game data");
+            Logger.Instance.Log("Preparing game data");
             // make save name
             var saveName = Tools.CorrectSaveName(displaySaveName);
             // random generators
-            RandomStates.Initialise();
+            RandomStates.Initialize();
             // player
             var player = new Player(playerName);
             // load to class
-            SaveData.Initialise(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
-            World.Initialise();
+            SaveData.Initialize(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
+            World.Initialize();
             World.GenerateTile((SaveData.player.position.x, SaveData.player.position.y));
         }
 
@@ -122,7 +122,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Log("Not a valid save folder", $"folder name: {saveName}", LogSeverity.ERROR);
+                Logger.Instance.Log("Not a valid save folder", $"folder name: {saveName}", LogSeverity.ERROR);
                 throw new FileNotFoundException("Not a valid save folder", saveName);
             }
             // read data
@@ -135,7 +135,7 @@ namespace ProgressAdventure
 
             if (data is null)
             {
-                Logger.Log("Save data is empty", $"save name: {saveName}", LogSeverity.ERROR);
+                Logger.Instance.Log("Save data is empty", $"save name: {saveName}", LogSeverity.ERROR);
                 throw new FileLoadException("Save data is empty", saveName);
             }
 
@@ -150,13 +150,13 @@ namespace ProgressAdventure
                 // old save version key
                 if (data.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
                 {
-                    Logger.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
+                    Logger.Instance.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
 
                     fileVersion = (string)versionValueBackup;
                 }
                 else
                 {
-                    Logger.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
+                    Logger.Instance.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
                     throw new FileLoadException("Unknown save version", saveName);
                 }
             }
@@ -167,7 +167,7 @@ namespace ProgressAdventure
                 if (backupChoice)
                 {
                     var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
-                    Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
+                    Logger.Instance.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
                     var ans = (int)new UIList(new string[] { "Yes", "No" }, $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?").Display(Settings.Keybinds.KeybindList);
                     if (ans == 0)
                     {
@@ -176,7 +176,7 @@ namespace ProgressAdventure
                     // correct too old save version
                     if (isOlder && !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion))
                     {
-                        Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
+                        Logger.Instance.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
                         fileVersion = Constants.OLDEST_SAVE_VERSION;
                     }
                 }
@@ -189,11 +189,11 @@ namespace ProgressAdventure
             RandomStates.FromJson(randomStates, fileVersion);
 
             // PREPARING
-            Logger.Log("Preparing game data");
+            Logger.Instance.Log("Preparing game data");
             // load to class
             SaveData.FromJson(saveName, data, fileVersion);
-            Logger.Log("Game data loaded", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\", last saved: {Utils.MakeDate(SaveData.LastSave)} {Utils.MakeTime(SaveData.LastSave)}, playtime: {SaveData.Playtime}");
-            World.Initialise();
+            Logger.Instance.Log("Game data loaded", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\", last saved: {Utils.MakeDate(SaveData.LastSave)} {Utils.MakeTime(SaveData.LastSave)}, playtime: {SaveData.Playtime}");
+            World.Initialize();
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace ProgressAdventure
             {
                 if (data.data is null)
                 {
-                    Logger.Log("Decode error", $"save name: {data.folderName}", LogSeverity.ERROR);
+                    Logger.Instance.Log("Decode error", $"save name: {data.folderName}", LogSeverity.ERROR);
                     Utils.PressKey($"\"{data.folderName}\" is corrupted!");
                 }
                 else
@@ -256,7 +256,7 @@ namespace ProgressAdventure
             {
                 if (dataJson is null)
                 {
-                    Logger.Log("Save display data parse error", $"no data in save file: {folderName}", LogSeverity.ERROR);
+                    Logger.Instance.Log("Save display data parse error", $"no data in save file: {folderName}", LogSeverity.ERROR);
                     throw new ArgumentException("No data in save file.");
                 }
 
@@ -271,13 +271,13 @@ namespace ProgressAdventure
                     // old save version key
                     if (dataJson.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
                     {
-                        Logger.Log("Old style save version (< 2.2)", $"save name: {data.folderName}", LogSeverity.INFO);
+                        Logger.Instance.Log("Old style save version (< 2.2)", $"save name: {data.folderName}", LogSeverity.INFO);
 
                         fileVersion = (string)versionValueBackup;
                     }
                     else
                     {
-                        Logger.Log("Unknown save version", $"save name: {data.folderName}", LogSeverity.ERROR);
+                        Logger.Instance.Log("Unknown save version", $"save name: {data.folderName}", LogSeverity.ERROR);
                         fileVersion = null;
                     }
                 }
@@ -315,7 +315,7 @@ namespace ProgressAdventure
             {
                 if (ex is InvalidCastException || ex is ArgumentException || ex is KeyNotFoundException)
                 {
-                    Logger.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex.ToString(), LogSeverity.ERROR);
+                    Logger.Instance.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex.ToString(), LogSeverity.ERROR);
                     Utils.PressKey($"\"{folderName}\" could not be parsed!");
                     return null;
                 }

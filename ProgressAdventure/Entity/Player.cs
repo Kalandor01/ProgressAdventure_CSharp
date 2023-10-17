@@ -187,7 +187,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
+                Logger.Instance.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
                 success = false;
             }
             inventory = inventoryTemp ?? new Inventory();

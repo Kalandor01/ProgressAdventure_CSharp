@@ -21,7 +21,7 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (actions is null)
             {
-                Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
+                Logger.Instance.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
             }
         }
 
@@ -34,7 +34,7 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (!KeybindList.Any())
             {
-                Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
+                Logger.Instance.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
                 KeybindList = SettingsUtils.GetDefaultKeybindList();
             }
         }

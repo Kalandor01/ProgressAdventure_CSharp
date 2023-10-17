@@ -110,7 +110,7 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (!actionKeyJson.Any())
             {
-                Logger.Log("Action key parse error", "action key json is null", LogSeverity.WARN);
+                Logger.Instance.Log("Action key parse error", "action key json is null", LogSeverity.WARN);
                 return false;
             }
 
@@ -142,7 +142,7 @@ namespace ProgressAdventure.SettingsManagement
                     }
                     else
                     {
-                        Logger.Log("Action key parse error", $"couldn't parse key from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
+                        Logger.Instance.Log("Action key parse error", $"couldn't parse key from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
                         success = false;
                     }
                 }
@@ -151,7 +151,7 @@ namespace ProgressAdventure.SettingsManagement
             }
             else
             {
-                Logger.Log("Action key parse error", $"couldn't parse action from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
+                Logger.Instance.Log("Action key parse error", $"couldn't parse action from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
                 return false;
             }
         }

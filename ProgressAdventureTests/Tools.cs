@@ -32,9 +32,9 @@ namespace ProgressAdventureTests
 
             if (newLine)
             {
-                Logger.LogNewLine();
+                Logger.Instance.LogNewLine();
             }
-            Logger.Log("Runing all dictionary tests");
+            Logger.Instance.Log("Runing all dictionary tests");
 
             RunTestInternal(Tests.EntityUtilsFacingToMovementVectorDictionaryCheck);
             RunTestInternal(Tests.EntityUtilsAttributeStatsChangeDictionaryCheck);
@@ -48,7 +48,7 @@ namespace ProgressAdventureTests
             RunTestInternal(Tests.SettingsUtilsDefaultSettingsDictionaryCheck);
             RunTestInternal(Tests.WorldUtilsTileNoiseOffsetsDictionaryCheck);
 
-            Logger.Log("All dictionary tests finished runing");
+            Logger.Instance.Log("All dictionary tests finished runing");
 
             if (newBatch)
             {
@@ -61,9 +61,9 @@ namespace ProgressAdventureTests
         /// </summary>
         public static void RunAllTests()
         {
-            Logger.LogNewLine();
+            Logger.Instance.LogNewLine();
             ResetTestCounters();
-            Logger.Log("Runing all tests");
+            Logger.Instance.Log("Runing all tests");
 
             RunAllDictionaryTests(false, false);
 
@@ -73,7 +73,7 @@ namespace ProgressAdventureTests
 
             RunTestInternal(Tests.BasicJsonConvertTest);
 
-            Logger.Log("All tests finished runing");
+            Logger.Instance.Log("All tests finished runing");
             PrintSummary();
             ResetTestCounters();
         }
@@ -95,7 +95,7 @@ namespace ProgressAdventureTests
             var allPassed = testsSuccessful == testsRun;
             var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
             Console.WriteLine($"\nFinished running test batch: {result} successful!");
-            Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
+            Logger.Instance.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
         #endregion
 
@@ -107,10 +107,10 @@ namespace ProgressAdventureTests
         {
             Settings.LoggingLevel = 0;
 
-            Logger.Log("Preloading global variables");
+            Logger.Instance.Log("Preloading global variables");
             // GLOBAL VARIABLES
-            Settings.Initialise();
-            Globals.Initialise();
+            Settings.Initialize();
+            Globals.Initialize();
         }
 
         /// <summary>

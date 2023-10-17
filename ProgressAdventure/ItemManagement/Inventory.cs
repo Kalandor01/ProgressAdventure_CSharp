@@ -219,7 +219,7 @@ namespace ProgressAdventure.ItemManagement
                 itemsJson is not IEnumerable itemList
             )
             {
-                Logger.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
+                Logger.Instance.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
                 return false;
             }
 

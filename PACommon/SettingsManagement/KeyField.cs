@@ -147,10 +147,10 @@ namespace PACommon.SettingsManagement
                                 {
                                     Value.Keys = keysBak;
                                     keys = keysBak.ToList();
-                                }
-                                else if (status == TextFieldValidatorStatus.RETRY)
-                                {
-                                    retry = true;
+                                    if (status == TextFieldValidatorStatus.RETRY)
+                                    {
+                                        retry = true;
+                                    }
                                 }
                             }
                         }

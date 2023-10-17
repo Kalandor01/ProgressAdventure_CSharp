@@ -53,7 +53,7 @@ namespace PACommon.SettingsManagement
         {
             if (!keys.Any())
             {
-                Logger.Log("No keys in keys list!", severity: LogSeverity.FATAL);
+                Logger.Instance.Log("No keys in keys list!", severity: LogSeverity.FATAL);
                 throw new ArgumentException("No keys in keys list!", nameof(keys));
             }
             ActionType = actionType;

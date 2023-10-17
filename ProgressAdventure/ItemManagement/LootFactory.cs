@@ -53,7 +53,7 @@ namespace ProgressAdventure.ItemManagement
             var actualItemType = ItemUtils.ToItemType(itemType.GetHashCode());
             if (actualItemType is null)
             {
-                Logger.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
+                Logger.Instance.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(itemType));
             }
 

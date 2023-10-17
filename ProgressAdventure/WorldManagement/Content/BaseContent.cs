@@ -66,7 +66,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="tile">The parrent tile.</param>
         public virtual void Visit(Tile tile)
         {
-            Logger.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
+            Logger.Instance.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 }
                 else
                 {
-                    Logger.Log("Content parse error", "couldn't get content type from json", LogSeverity.ERROR);
+                    Logger.Instance.Log("Content parse error", "couldn't get content type from json", LogSeverity.ERROR);
                     contentType = contentTypeMap.First().Value;
                     success = false;
                 }
@@ -205,13 +205,13 @@ namespace ProgressAdventure.WorldManagement.Content
                 }
                 else
                 {
-                    Logger.Log("Content parse error", "couldn't get content name from json", LogSeverity.WARN);
+                    Logger.Instance.Log("Content parse error", "couldn't get content name from json", LogSeverity.WARN);
                     success = false;
                 }
             }
             else
             {
-                Logger.Log("Content parse error", "content json was null", LogSeverity.ERROR);
+                Logger.Instance.Log("Content parse error", "content json was null", LogSeverity.ERROR);
                 contentType = contentTypeMap.First().Value;
                 success = false;
             }
