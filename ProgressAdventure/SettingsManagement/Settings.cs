@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using ProgressAdventure.Enums;
+using PACConstants = PACommon.Constants;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.SettingsManagement
@@ -253,7 +254,7 @@ namespace ProgressAdventure.SettingsManagement
         private static Dictionary<string, object> RecreateSettings()
         {
             var newSettings = SettingsUtils.GetDefaultSettings();
-            Tools.EncodeSaveShort(newSettings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+            Tools.EncodeSaveShort(newSettings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
             // log
             Logger.Instance.Log("Recreated settings");
             return newSettings;
@@ -267,7 +268,7 @@ namespace ProgressAdventure.SettingsManagement
             Dictionary<string, object?>? settingsJson = null;
             try
             {
-                settingsJson = Tools.DecodeSaveShort(Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED, expected: false);
+                settingsJson = Tools.DecodeSaveShort(Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED, expected: false);
                 if (settingsJson is null)
                 {
                     Logger.Instance.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
@@ -354,14 +355,14 @@ namespace ProgressAdventure.SettingsManagement
                 {
                     Logger.Instance.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
                     settings[settingsKeyName] = value;
-                    Tools.EncodeSaveShort(settings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+                    Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
                 }
             }
             else
             {
                 Logger.Instance.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
                 settings[settingsKeyName] = value;
-                Tools.EncodeSaveShort(settings, Path.Join(Constants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+                Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
             }
         }
 

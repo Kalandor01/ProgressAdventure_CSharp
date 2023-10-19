@@ -1,10 +1,10 @@
 ﻿using NPrng.Generators;
+using PACommon;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 using ProgressAdventure.WorldManagement.Content.Population;
 using ProgressAdventure.WorldManagement.Content.Structure;
 using ProgressAdventure.WorldManagement.Content.Terrain;
-using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -336,7 +336,7 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public static List<ContentTypeID> GetAllContentTypes()
         {
-            return PACTools.GetNestedStaticClassFields<ContentTypeID>(typeof(ContentType));
+            return Utils.GetNestedStaticClassFields<ContentTypeID>(typeof(ContentType));
         }
 
         /// <summary>

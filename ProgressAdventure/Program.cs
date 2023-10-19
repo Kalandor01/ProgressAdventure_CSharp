@@ -3,7 +3,7 @@ using PACommon.Enums;
 using PACommon.SettingsManagement;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
-using PACTools = PACommon.Tools;
+using PACConstants = PACommon.Constants;
 
 namespace ProgressAdventure
 {
@@ -33,7 +33,7 @@ namespace ProgressAdventure
 
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
-            Logger.Initialize(Constants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT, Constants.LOG_MS, false, LogSeverity.DEBUG);
+            Logger.Initialize(PACConstants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT, Constants.LOG_MS, false, LogSeverity.DEBUG);
             Console.WriteLine("Loading...");
 
             if (!Utils.TryEnableAnsiCodes())
@@ -41,11 +41,11 @@ namespace ProgressAdventure
                 Logger.Instance.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
             }
 
-            Logger.Instance.Log("Preloading global variables");
+            Logger.Instance.Log("Initializing global variables");
             // GLOBAL VARIABLES
+            JsonDataCorrecter.Initialize(Constants.SAVE_VERSION);
             Settings.Initialize();
             KeybindUtils.colorEnabled = Settings.EnableColoredText;
-            PACTools.SAVE_VERSION = Constants.SAVE_VERSION;
             Globals.Initialize();
         }
 

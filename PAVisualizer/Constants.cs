@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using PAConstants = ProgressAdventure.Constants;
+using PACConstants = PACommon.Constants;
 
 namespace PAVisualizer
 {
@@ -25,9 +25,9 @@ namespace PAVisualizer
 
         #region Misc
         public const string VISUALIZED_SAVES_DATA_FOLDER = "visualized_saves";
-        public static readonly string VISUALIZED_SAVES_DATA_FOLDER_PATH = Path.Join(PAConstants.ROOT_FOLDER, VISUALIZED_SAVES_DATA_FOLDER);
+        public static readonly string VISUALIZED_SAVES_DATA_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, VISUALIZED_SAVES_DATA_FOLDER);
         public const string VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER = "visualized_content_distribution";
-        public static readonly string VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER_PATH = Path.Join(PAConstants.ROOT_FOLDER, VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER);
+        public static readonly string VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER);
         public const string EXPORT_DATA_FILE = "data.txt";
         #endregion
 

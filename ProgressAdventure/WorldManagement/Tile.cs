@@ -2,7 +2,6 @@
 using PACommon;
 using PACommon.Enums;
 using ProgressAdventure.WorldManagement.Content;
-using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -183,7 +182,7 @@ namespace ProgressAdventure.WorldManagement
                 return false;
             }
 
-            PACTools.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
+            JsonDataCorrecter.Instance.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
 
             // x and y
             if (!(

@@ -6,7 +6,7 @@ using ProgressAdventure.WorldManagement;
 using SaveFileManager;
 using System.Collections;
 using System.Text;
-using PACTools = PACommon.Tools;
+using static PACommon.RealTimeCorrectedTextField;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
@@ -97,8 +97,8 @@ namespace ProgressAdventure
         /// </summary>
         public static void CreateSaveData()
         {
-            var displaySaveName = PACTools.GetRealTimeCorrectedString("Name your save: ", new PACTools.StringCorrectorDelegate(Tools.CorrectSaveName), clearScreen: false);
-            var playerName = PACTools.GetRealTimeCorrectedString("What is your name?: ", new PACTools.StringCorrectorDelegate(Tools.CorrectPlayerName), clearScreen: false);
+            var displaySaveName = new RealTimeCorrectedTextField("Name your save: ", new StringCorrectorDelegate(Tools.CorrectSaveName), clearScreen: false).GetString(Settings.Keybinds.KeybindList);
+            var playerName = new RealTimeCorrectedTextField("What is your name?: ", new StringCorrectorDelegate(Tools.CorrectPlayerName), clearScreen: false).GetString(Settings.Keybinds.KeybindList);
             CreateSaveData(displaySaveName, playerName);
         }
 
@@ -181,7 +181,7 @@ namespace ProgressAdventure
                     }
                 }
                 // correct
-                PACTools.CorrectJsonData(typeof(SaveData).ToString(), ref data, dataFileversionCorrecters, fileVersion);
+                JsonDataCorrecter.Instance.CorrectJsonData(typeof(SaveData).ToString(), ref data, dataFileversionCorrecters, fileVersion);
             }
 
             // load random states
@@ -284,7 +284,7 @@ namespace ProgressAdventure
 
 
                 // correct data
-                PACTools.CorrectJsonData("Save display", ref dataJson, displayDataversionCorrecters, fileVersion ?? Constants.OLDEST_SAVE_VERSION);
+                JsonDataCorrecter.Instance.CorrectJsonData("Save display", ref dataJson, displayDataversionCorrecters, fileVersion ?? Constants.OLDEST_SAVE_VERSION);
 
 
                 var displayText = new StringBuilder();

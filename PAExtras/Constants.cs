@@ -1,4 +1,4 @@
-﻿using PAConstants = ProgressAdventure.Constants;
+﻿using PACConstants = PACommon.Constants;
 
 namespace PAExtras
 {
@@ -16,7 +16,7 @@ namespace PAExtras
         /// <summary>
         /// The path to the exported saves folder.
         /// </summary>
-        public static readonly string EXPORTED_FOLDER_PATH = Path.Join(PAConstants.ROOT_FOLDER, EXPORTED_FOLDER);
+        public static readonly string EXPORTED_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, EXPORTED_FOLDER);
         /// <summary>
         /// The save version to expect for an exported save.
         /// </summary>

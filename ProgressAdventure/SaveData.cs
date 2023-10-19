@@ -155,7 +155,7 @@ namespace ProgressAdventure
                 return false;
             }
 
-            PACTools.CorrectJsonData(typeof(SaveData).ToString(), ref saveDataJson, versionCorrecters, fileVersion);
+            JsonDataCorrecter.Instance.CorrectJsonData(typeof(SaveData).ToString(), ref saveDataJson, versionCorrecters, fileVersion);
 
             return FromJsonWithoutCorrection(saveName, saveDataJson, fileVersion);
         }

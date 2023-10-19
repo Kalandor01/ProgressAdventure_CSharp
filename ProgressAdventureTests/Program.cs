@@ -1,9 +1,8 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using System.Text;
-using PAConstants = ProgressAdventure.Constants;
 using PACConstants = PACommon.Constants;
-using PACTools = PACommon.Tools;
+using PAConstants = ProgressAdventure.Constants;
 
 namespace ProgressAdventureTests
 {
@@ -15,7 +14,7 @@ namespace ProgressAdventureTests
         static void MainFunction()
         {
             //Tools.RunAllTests();
-            PACTools.RunAllTests(typeof(Tests), Tools.PrepareTest);
+            TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest);
 
 
             Utils.PressKey("DONE!");
@@ -29,7 +28,8 @@ namespace ProgressAdventureTests
             Console.OutputEncoding = Encoding.UTF8;
 
             Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
-            Logger.Instance.LogNewLine();
+
+            Logger.Initialize(PACConstants.ROOT_FOLDER);
             Console.WriteLine("Loading...");
 
             if (!Utils.TryEnableAnsiCodes())

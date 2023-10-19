@@ -488,6 +488,40 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Searches for all public static fields in a (static) class, and all of its nested (public static) classes, and returns their values.
+        /// </summary>
+        /// <typeparam name="T">The type of values to search for.</typeparam>
+        /// <param name="classType">The type of the static class to search in.</param>
+        public static List<T> GetNestedStaticClassFields<T>(Type classType)
+        {
+            var subClassFieldValues = new List<T>();
+
+            var subClasses = classType.GetNestedTypes();
+
+            foreach (var subClass in subClasses)
+            {
+                subClassFieldValues.AddRange(GetNestedStaticClassFields<T>(subClass));
+            }
+            FieldInfo[] properties = classType.GetFields();
+
+            var classFieldValues = new List<T>();
+            foreach (FieldInfo property in properties)
+            {
+                if (property.IsStatic && property.FieldType == typeof(T))
+                {
+                    var value = property.GetValue(null);
+                    if (value is not null)
+                    {
+                        classFieldValues.Add((T)value);
+                    }
+                }
+            }
+            classFieldValues.AddRange(subClassFieldValues);
+
+            return classFieldValues;
+        }
+
+        /// <summary>
         /// Opens a file selection window, and returns the file, the user selected.<br/>
         /// By Michael <a href="https://stackoverflow.com/a/68712025">LINK</a>
         /// </summary>

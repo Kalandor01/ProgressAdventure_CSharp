@@ -4,7 +4,6 @@ using PACommon.Extensions;
 using ProgressAdventure.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
-using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -346,7 +345,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public static List<ItemTypeID> GetAllItemTypes()
         {
-            return PACTools.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
+            return Utils.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
         }
 
         /// <summary>

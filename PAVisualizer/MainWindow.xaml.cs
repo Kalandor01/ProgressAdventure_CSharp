@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
 
@@ -162,7 +163,7 @@ namespace PAVisualizer
                 return;
             }
 
-            PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER, PAConstants.ROOT_FOLDER);
+            PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER, PACConstants.ROOT_FOLDER);
 
             var visualizedSaveFolderName = $"{saveName}_{Utils.MakeDate(lastWorldChange)}_{Utils.MakeTime(lastWorldChange, ";")}";
             var visualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName);

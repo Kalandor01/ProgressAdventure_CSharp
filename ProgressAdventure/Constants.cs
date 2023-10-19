@@ -1,6 +1,6 @@
-﻿using ProgressAdventure.Enums;
-using SaveFileManager;
+﻿using SaveFileManager;
 using System.Text;
+using PACCommon = PACommon.Constants;
 
 namespace ProgressAdventure
 {
@@ -25,11 +25,6 @@ namespace ProgressAdventure
         #endregion
 
         #region Paths/folders/file names
-        /// <summary>
-        /// The path to the root folder.
-        /// </summary>
-        public static readonly string ROOT_FOLDER = Directory.GetCurrentDirectory();
-
         #region Saves
         /// <summary>
         /// The name of the saves folder.
@@ -38,7 +33,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The path to the saves folder.
         /// </summary>
-        public static readonly string SAVES_FOLDER_PATH = Path.Join(ROOT_FOLDER, SAVES_FOLDER);
+        public static readonly string SAVES_FOLDER_PATH = Path.Join(PACCommon.ROOT_FOLDER, SAVES_FOLDER);
         /// <summary>
         /// The extension used for encoded save files.
         /// </summary>
@@ -64,7 +59,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The path to the backups folder.
         /// </summary>
-        public static readonly string BACKUPS_FOLDER_PATH = Path.Join(ROOT_FOLDER, BACKUPS_FOLDER);
+        public static readonly string BACKUPS_FOLDER_PATH = Path.Join(PACCommon.ROOT_FOLDER, BACKUPS_FOLDER);
         /// <summary>
         /// The extension used for backup files.
         /// </summary>

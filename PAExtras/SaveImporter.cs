@@ -6,6 +6,7 @@ using ProgressAdventure.ItemManagement;
 using System.Collections;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
+using PACConstants = PACommon.Constants;
 using PACTools = PACommon.Tools;
 using PATools = ProgressAdventure.Tools;
 
@@ -93,7 +94,7 @@ namespace PAExtras
         {
             // get folder
             var fullFilePath = filePath + "." + Constants.EXPORTED_SAVE_EXT;
-            var safeFilePath = Path.GetRelativePath(PAConstants.ROOT_FOLDER, fullFilePath);
+            var safeFilePath = Path.GetRelativePath(PACConstants.ROOT_FOLDER, fullFilePath);
 
             // get data file
             string[] dataFileLines;
@@ -110,7 +111,7 @@ namespace PAExtras
             // display data
             try
             {
-                return PACTools.DeserializeJson(dataFileLines[lineNum]);
+                return JsonSerializer.DeserializeJson(dataFileLines[lineNum]);
             }
             catch (Exception)
             {

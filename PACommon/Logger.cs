@@ -9,9 +9,14 @@ namespace PACommon
     {
         #region Private fields
         /// <summary>
+        /// Object used for locking the thread while the singleton gets created.
+        /// </summary>
+        private static readonly object _threadLock = new();
+        /// <summary>
         /// The singleton istance.
         /// </summary>
         private static Logger? _instance = null;
+
         /// <summary>
         /// The default value for is the logs should be writen out to the console.
         /// </summary>
@@ -43,7 +48,20 @@ namespace PACommon
         /// <summary>
         /// <inheritdoc cref="_instance" path="//summary"/>
         /// </summary>
-        public static Logger Instance { get { return _instance ?? Initialize(Constants.ROOT_FOLDER); } }
+        public static Logger Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_threadLock)
+                    {
+                        _instance ??= Initialize(Constants.ROOT_FOLDER);
+                    }
+                }
+                return _instance;
+            }
+        }
 
         /// <summary>
         /// <inheritdoc cref="_defaultWriteOut" path="//summary"/>
@@ -101,6 +119,8 @@ namespace PACommon
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
         private Logger(
             string logsFolderParrentPath,
             string logsFolder,
@@ -164,7 +184,7 @@ namespace PACommon
             _instance = new Logger(logsFolderParrentPath, logsFolder, logsExtension, logMilliseconds, defaultWriteOut, loggingLevel);
             if (logInitialization)
             {
-                _instance.Log("Logger initialized", newLine: true);
+                _instance.Log($"{nameof(Logger)} initialized", newLine: true);
             }
             return _instance;
         }

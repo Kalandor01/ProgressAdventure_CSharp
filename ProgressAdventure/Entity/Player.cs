@@ -176,7 +176,7 @@ namespace ProgressAdventure.Entity
         protected override bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
             var success = true;
-            PACTools.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
+            JsonDataCorrecter.Instance.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
 
             Inventory? inventoryTemp = null;
             if (

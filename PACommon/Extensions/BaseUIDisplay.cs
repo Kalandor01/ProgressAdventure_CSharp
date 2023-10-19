@@ -15,8 +15,8 @@ namespace PACommon.Extensions
         private readonly string? title;
         private readonly CursorIcon cursorIcon;
         private readonly bool canEscape;
-        private readonly bool autoEnter;
-        private readonly bool clearScreen;
+        public bool autoEnter;
+        public bool clearScreen;
         #endregion
 
         #region Public properties
@@ -63,6 +63,16 @@ namespace PACommon.Extensions
         #endregion
 
         #region Public methods
+        /// <summary>
+        /// Displays the UI element.
+        /// </summary>
+        /// <param name="keybinds">The list of KeyAction objects to use, if the selected action is a UIList.</param>
+        /// <param name="keyResults">The list of posible results returned by pressing a key.<br/>
+        /// The order of the elements in the list should be:<br/>
+        /// - escape, up, down, left, right, enter<br/>
+        /// If it is null, the default value is either returned from the keybinds or:<br/>
+        /// - { Key.ESCAPE, Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT, Key.ENTER }</param>
+        /// <exception cref="UINoSelectablesExeption">Trown, if the UI element is not selectable.</exception>
         public object? Display(IEnumerable<KeyAction>? keybinds = null, IEnumerable<object>? keyResults = null)
         {
             if (!Element.IsSelectable())

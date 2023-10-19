@@ -30,7 +30,7 @@ namespace PACommon
                 return false;
             }
 
-            Tools.CorrectJsonData<T>(ref objectJson, T.VersionCorrecters, fileVersion);
+            JsonDataCorrecter.Instance.CorrectJsonData<T>(ref objectJson, T.VersionCorrecters, fileVersion);
 
             return T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
         }

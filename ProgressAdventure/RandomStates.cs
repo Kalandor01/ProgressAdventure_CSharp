@@ -232,7 +232,7 @@ namespace ProgressAdventure
                 return false;
             }
 
-            PACTools.CorrectJsonData(typeof(SaveData).ToString(), ref randomStatesJson, versionCorrecters, fileVersion);
+            JsonDataCorrecter.Instance.CorrectJsonData(typeof(SaveData).ToString(), ref randomStatesJson, versionCorrecters, fileVersion);
 
             return FromJsonWithoutCorrection(randomStatesJson, fileVersion);
         }
