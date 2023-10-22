@@ -16,21 +16,37 @@ namespace ProgressAdventure
         #region Public functions
         #region Short
         /// <inheritdoc cref="PACTools.EncodeSaveShort(IDictionary, string, long, string)"/>
-        public static void EncodeSaveShort(IDictionary data, string filePath, long? seed = null, string? extension = null)
+        public static void EncodeSaveShort(
+            IDictionary data,
+            string filePath,
+            long seed = Constants.SAVE_SEED,
+            string extension = Constants.SAVE_EXT
+        )
         {
             EncodeSaveShort(new List<IDictionary> { data }, filePath, seed, extension);
         }
 
         /// <inheritdoc cref="PACTools.EncodeSaveShort(IEnumerable{IDictionary}, string, long, string)"/>
-        public static void EncodeSaveShort(IEnumerable<IDictionary> dataList, string filePath, long? seed = null, string? extension = null)
+        public static void EncodeSaveShort(
+            IEnumerable<IDictionary> dataList,
+            string filePath,
+            long seed = Constants.SAVE_SEED,
+            string extension = Constants.SAVE_EXT
+        )
         {
-            PACTools.EncodeSaveShort(dataList, filePath, seed ?? Constants.SAVE_SEED, extension ?? Constants.SAVE_EXT);
+            PACTools.EncodeSaveShort(dataList, filePath, seed, extension);
         }
 
         /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
-        public static Dictionary<string, object?>? DecodeSaveShort(string filePath, int lineNum = 0, long? seed = null, string? extension = null, bool expected = true)
+        public static Dictionary<string, object?>? DecodeSaveShort(
+            string filePath,
+            int lineNum = 0,
+            long seed = Constants.SAVE_SEED,
+            string extension = Constants.SAVE_EXT,
+            bool expected = true
+        )
         {
-            return PACTools.DecodeSaveShort(filePath, seed ?? Constants.SAVE_SEED, extension ?? Constants.SAVE_EXT, lineNum, expected);
+            return PACTools.DecodeSaveShort(filePath, seed, extension, lineNum, expected);
         }
         #endregion
 
@@ -38,7 +54,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the saves folder.
         /// </summary>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateSavesFolder()
         {
             return PACTools.RecreateFolder(Constants.SAVES_FOLDER);
@@ -47,7 +63,7 @@ namespace ProgressAdventure
         /// <summary>
         /// <c>RecreateFolder</c> for the backups folder.
         /// </summary>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateBackupsFolder()
         {
             return PACTools.RecreateFolder(Constants.BACKUPS_FOLDER);
@@ -58,7 +74,7 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="saveFolderName">The name of the save folder.<br/>
         /// If null, it uses the save name of <c>SaveData</c> instead.</param>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateSaveFileFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.saveName;
@@ -71,7 +87,7 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="saveFolderName">The save name.<br/>
         /// If null, it uses the save name of <c>SaveData</c> instead.</param>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateChunksFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.saveName;

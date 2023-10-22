@@ -177,10 +177,10 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public void WeightedTurn()
         {
-            if (RandomStates.MainRandom.GenerateDouble() < 0.2)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < 0.2)
             {
                 var oldFacing = facing;
-                var angle = RandomStates.MainRandom.Triangular(-180, 0, 180);
+                var angle = RandomStates.Instance.MainRandom.Triangular(-180, 0, 180);
                 var newFacing = EntityUtils.RotateFacing(oldFacing, angle);
                 
                 if (newFacing is not null && newFacing != oldFacing)
@@ -248,7 +248,7 @@ namespace ProgressAdventure.Entity
                 return AttackResponse.TARGET_DEAD;
             }
             // enemy dodge
-            else if (RandomStates.MiscRandom.GenerateDouble() > Agility * 1.0 / target.Agility - 0.1)
+            else if (RandomStates.Instance.MiscRandom.GenerateDouble() > Agility * 1.0 / target.Agility - 0.1)
             {
                 Logger.Instance.Log("Attack log", $"{target.FullName} dodged");
                 return AttackResponse.TARGET_DOGDED;
@@ -256,7 +256,7 @@ namespace ProgressAdventure.Entity
             // attack
             else
             {
-                var attack = (int)RandomStates.MiscRandom.GenerateInRange(1, 7) + Attack;
+                var attack = (int)RandomStates.Instance.MiscRandom.GenerateInRange(1, 7) + Attack;
                 var damage = attack - target.Defence;
                 // block
                 if (damage <= 0)

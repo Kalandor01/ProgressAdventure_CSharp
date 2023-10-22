@@ -187,7 +187,8 @@ namespace PACommon
                     PreValue,
                     correctorPostValue,
                     oldValueAsStartingValue: true,
-                    keyValidatorFunction: new TextField.KeyValidatorDelegate(StringCorrectorKeyValidator)
+                    keyValidatorFunction: new TextField.KeyValidatorDelegate(StringCorrectorKeyValidator),
+                    overrideDefaultKeyValidatorFunction: false
                 );
             }
             else
@@ -213,27 +214,20 @@ namespace PACommon
             }
         }
 
-        private bool StringCorrectorKeyValidator(StringBuilder text, ConsoleKeyInfo key)
+        private bool StringCorrectorKeyValidator(StringBuilder text, ConsoleKeyInfo? key, int cursorPosition)
         {
-            if (key.Key == ConsoleKey.Enter ||
-                key.KeyChar == '\0' ||
-                key.Key == ConsoleKey.Escape
-            )
-            {
-                return true;
-            }
-
             string newText = "";
-            if (key.Key == ConsoleKey.Backspace)
+            if (key is null)
             {
                 if (text.Length > 0)
                 {
-                    newText = text.ToString()[0..(text.Length - 1)];
+                    var sbText = text.ToString();
+                    newText = sbText[0..cursorPosition] + sbText[(cursorPosition + 1)..];
                 }
             }
             else
             {
-                newText = text.ToString() + key.KeyChar;
+                newText = text.ToString().Insert(cursorPosition, key?.KeyChar.ToString() ?? "");
             }
 
             correctorTextField.PostValue = " -> " + StringCorrector(newText);

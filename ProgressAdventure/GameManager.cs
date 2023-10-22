@@ -40,9 +40,9 @@ namespace ProgressAdventure
         /// </summary>
         public static void InitiateFight()
         {
-            Globals.inFight = true;
+            Globals.Instance.inFight = true;
             EntityUtils.RandomFight(3, 5);
-            Globals.inFight = false;
+            Globals.Instance.inFight = false;
         }
 
         /// <summary>
@@ -50,10 +50,10 @@ namespace ProgressAdventure
         /// </summary>
         public static void SaveGame()
         {
-            Globals.saving = true;
+            Globals.Instance.saving = true;
             SaveManager.MakeSave();
             Logger.Instance.Log("Game saved", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
-            Globals.saving = false;
+            Globals.Instance.saving = false;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace ProgressAdventure
         /// </summary>
         public static void GameLoop()
         {
-            Globals.inGameLoop = true;
+            Globals.Instance.inGameLoop = true;
             // GAME LOOP
             Logger.Instance.Log("Game loop started");
             // TRHEADS
@@ -77,7 +77,7 @@ namespace ProgressAdventure
             Console.WriteLine("Wandering...");
             for (var x = 0; x < 0; x++)
             {
-                if (!Globals.exiting)
+                if (!Globals.Instance.exiting)
                 {
                     Thread.Sleep(100);
                     SaveData.player.WeightedTurn();
@@ -87,19 +87,19 @@ namespace ProgressAdventure
                     chunk.FillChunk();
                 }
             }
-            if (!Globals.exiting)
+            if (!Globals.Instance.exiting)
             {
                 Thread.Sleep(1000);
             }
-            if (!Globals.exiting)
+            if (!Globals.Instance.exiting)
             {
                 //InitiateFight();
                 SaveGame();
             }
             // SaveGame() maybe instead of the auto save
             // ENDING
-            Globals.exiting = false;
-            Globals.inGameLoop = false;
+            Globals.Instance.exiting = false;
+            Globals.Instance.inGameLoop = false;
             Utils.PressKey("Exiting...Press key!");
             Logger.Instance.Log("Game loop ended");
         }
@@ -117,14 +117,14 @@ namespace ProgressAdventure
                 while (true)
                 {
                     Thread.Sleep(Constants.AUTO_SAVE_INTERVAL);
-                    if (Globals.inGameLoop)
+                    if (Globals.Instance.inGameLoop)
                     {
                         var saved = false;
                         while (!saved)
                         {
-                            if (Globals.inGameLoop)
+                            if (Globals.Instance.inGameLoop)
                             {
-                                if (!Globals.saving && !Globals.inFight)
+                                if (!Globals.Instance.saving && !Globals.Instance.inFight)
                                 {
                                     Logger.Instance.Log("Beginning auto save", $"save name: {SaveData.saveName}");
                                     SaveGame();
@@ -141,7 +141,7 @@ namespace ProgressAdventure
                             }
                         }
                     }
-                    if (!Globals.inGameLoop)
+                    if (!Globals.Instance.inGameLoop)
                     {
                         break;
                     }
@@ -164,16 +164,16 @@ namespace ProgressAdventure
             {
                 while (true)
                 {
-                    if (Globals.inGameLoop)
+                    if (Globals.Instance.inGameLoop)
                     {
                         if (Settings.Keybinds.GetActionKey(ActionType.ESCAPE).IsKey())
                         {
-                            if (!Globals.inFight && !Globals.saving)
+                            if (!Globals.Instance.inFight && !Globals.Instance.saving)
                             {
                                 Logger.Instance.Log("Beginning manual save", $"save name: {SaveData.saveName}");
-                                Globals.exiting = true;
+                                Globals.Instance.exiting = true;
                                 SaveGame();
-                                Globals.inGameLoop = false;
+                                Globals.Instance.inGameLoop = false;
                                 break;
                             }
                             else

@@ -10,6 +10,10 @@ namespace PAExtras
 
         #region Save importer
         /// <summary>
+        /// The version number to use in the file encoding.
+        /// </summary>
+        public const int FILE_ENCODING_VERSION = 2;
+        /// <summary>
         /// The name of the exported saves folder.
         /// </summary>
         public const string EXPORTED_FOLDER = "exported";
@@ -37,10 +41,6 @@ namespace PAExtras
         /// The name of the chunks folder in a save file.
         /// </summary>
         public const string SAVE_FOLDER_NAME_CHUNKS = "chunks";
-        /// <summary>
-        /// The beggining of the name of a chunk file.
-        /// </summary>
-        public const string CHUNK_FILE_NAME = "chunk";
         /// <summary>
         /// The separation string used in the name of the chunk file name.
         /// </summary>

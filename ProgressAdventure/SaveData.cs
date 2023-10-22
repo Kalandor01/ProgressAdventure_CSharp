@@ -130,7 +130,7 @@ namespace ProgressAdventure
                 ["last_save"] = LastSave,
                 ["playtime"] = GetPlaytime(),
                 ["player"] = player.ToJson(),
-                ["random_states"] = RandomStates.ToJson()
+                ["random_states"] = RandomStates.Instance.ToJson()
             };
         }
 

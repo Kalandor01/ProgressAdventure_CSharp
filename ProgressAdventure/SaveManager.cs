@@ -7,6 +7,7 @@ using SaveFileManager;
 using System.Collections;
 using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
+using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
@@ -186,7 +187,7 @@ namespace ProgressAdventure
 
             // load random states
             var randomStates = data["random_states"] as IDictionary<string, object?>;
-            RandomStates.FromJson(randomStates, fileVersion);
+            PACTools.FromJson<RandomStates>(randomStates, fileVersion);
 
             // PREPARING
             Logger.Instance.Log("Preparing game data");

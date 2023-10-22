@@ -2,8 +2,8 @@
 using System.IO.Compression;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
-using PATools = ProgressAdventure.Tools;
 using PACUtils = PACommon.Utils;
+using PATools = ProgressAdventure.Tools;
 
 namespace PAExtras
 {
@@ -76,7 +76,7 @@ namespace PAExtras
                 return false;
             }
 
-            SaveFileManager.FileConversion.EncodeFile(saveData, (long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension, PAConstants.FILE_ENCODING_VERSION);
+            SaveFileManager.FileConversion.EncodeFile(saveData, (long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension, Constants.FILE_ENCODING_VERSION);
             return true;
         }
 
@@ -113,7 +113,7 @@ namespace PAExtras
                 return false;
             }
 
-            SaveFileManager.FileConversion.EncodeFile(saveData, (long)newSaveSeed, Path.Join(newSavesFolderPath, newSaveFolderName), newSaveExtension, PAConstants.FILE_ENCODING_VERSION);
+            SaveFileManager.FileConversion.EncodeFile(saveData, (long)newSaveSeed, Path.Join(newSavesFolderPath, newSaveFolderName), newSaveExtension, Constants.FILE_ENCODING_VERSION);
             return true;
         }
 

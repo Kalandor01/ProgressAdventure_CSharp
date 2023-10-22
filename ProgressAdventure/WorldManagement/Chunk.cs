@@ -200,7 +200,7 @@ namespace ProgressAdventure.WorldManagement
                 var noiseVal = noiseValues.ElementAt(x).Value;
                 seed *= (ulong)(noiseVal * noiseMulti);
             }
-            seed = (ulong)(seed * RandomStates.ChunkSeedModifier);
+            seed = (ulong)(seed * RandomStates.Instance.ChunkSeedModifier);
             return new SplittableRandom(seed);
         }
         #endregion

@@ -31,18 +31,6 @@ namespace PACommon
         /// </summary>
         public const string DEFAULT_LOG_EXT = "log";
         #endregion
-
-        /// <summary>
-        /// The name of the settings file.
-        /// </summary>
-        public const string SETTINGS_FILE_NAME = "settings";
-        #endregion
-
-        #region Seeds
-        /// <summary>
-        /// The seed used for the encoded settings file.
-        /// </summary>
-        public const long SETTINGS_SEED = 1;
         #endregion
 
         #region Cursor types

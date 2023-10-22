@@ -9,9 +9,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Utils = PACommon.Utils;
 using PACTools = PACommon.Tools;
-using System.Windows.Input;
+using Utils = PACommon.Utils;
 
 namespace PAVisualizer
 {
@@ -130,16 +129,20 @@ namespace PAVisualizer
             );
         }
 
-        private static bool KeyValidatorDelegate(StringBuilder currentValue, ConsoleKeyInfo key)
+        private static bool KeyValidatorDelegate(StringBuilder currentValue, ConsoleKeyInfo? key, int cursorPos)
         {
-            if (
-                key.Key == ConsoleKey.Enter ||
-                key.Key == ConsoleKey.Backspace
-            )
+            string newValue;
+            if (key is null)
             {
-                return true;
+                var sbText = currentValue.ToString();
+                newValue = sbText[0..cursorPos] + sbText[(cursorPos + 1)..];
             }
-            return uint.TryParse(currentValue.ToString() + key.KeyChar.ToString(), out _);
+            else
+            {
+                newValue = currentValue.ToString().Insert(cursorPos, key?.KeyChar.ToString() ?? "");
+            }
+
+            return uint.TryParse(newValue, out _);
         }
 
         /// <summary>
@@ -180,12 +183,13 @@ namespace PAVisualizer
                 defResolution.ToString(), "Resolution: ",
                 oldValueAsStartingValue: true,
                 textValidatorFunction: TextValidatorDelegate,
-                keyValidatorFunction: KeyValidatorDelegate
+                keyValidatorFunction: KeyValidatorDelegate,
+                overrideDefaultKeyValidatorFunction: false
             );
             noiseTypeElements.Add(resolutionElement);
             noiseTypeElements.Add(null);
 
-            var generateImageButtonElement = new Button(
+            var generateImageButtonElement = new PAButton(
                 new UIAction(
                     GenerateImageCommand,
                     new List<object?>
@@ -203,7 +207,7 @@ namespace PAVisualizer
             );
             noiseTypeElements.Add(generateImageButtonElement);
 
-            var generateAllImagesButtonElement = new Button(
+            var generateAllImagesButtonElement = new PAButton(
                 new UIAction(
                     GenerateAllImagesCommand,
                     new List<object?>

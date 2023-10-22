@@ -38,8 +38,6 @@ namespace PAExtras
 
 
             //Tools.LoadBackupMenu();
-
-            Console.WriteLine();
         }
     }
 }

@@ -204,7 +204,7 @@ namespace PAVisualizer
                 layerElements.Add(new Toggle(true, $"{layer.ToString().Capitalize()}: "));
             }
             layerElements.Add(null);
-            layerElements.Add(new Button(new UIAction(GenerateImageCommand, new List<object?> { layerElements, layers, visualizedSavePath }), text: "Generate image"));
+            layerElements.Add(new PAButton(new UIAction(GenerateImageCommand, new List<object?> { layerElements, layers, visualizedSavePath }), text: "Generate image"));
 
             new OptionsUI(layerElements, "Select the layers to export the data and image from:").Display();
         }

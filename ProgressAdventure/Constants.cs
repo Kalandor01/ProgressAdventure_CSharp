@@ -1,5 +1,4 @@
 ﻿using SaveFileManager;
-using System.Text;
 using PACCommon = PACommon.Constants;
 
 namespace ProgressAdventure
@@ -149,10 +148,6 @@ namespace ProgressAdventure
         /// </summary>
         public const bool ERROR_HANDLING = false;
         /// <summary>
-        /// The encoding of the text.
-        /// </summary>
-        public static readonly Encoding ENCODING = Encoding.UTF8;
-        /// <summary>
         /// The interval at which the auto saver tries to save in milliseconds.
         /// </summary>
         public const int AUTO_SAVE_INTERVAL = 20000;
@@ -160,10 +155,6 @@ namespace ProgressAdventure
         /// The interval at which the auto saver tries to save in milliseconds.
         /// </summary>
         public const int AUTO_SAVE_DELAY = 5000;
-        /// <summary>
-        /// The version number to use in the file encoding.
-        /// </summary>
-        public const int FILE_ENCODING_VERSION = 2;
         /// <summary>
         /// The ooldest recognised save version.
         /// </summary>

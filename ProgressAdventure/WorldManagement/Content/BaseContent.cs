@@ -99,7 +99,7 @@ namespace ProgressAdventure.WorldManagement.Content
         #region Protected methods
         protected virtual void GenContentName()
         {
-            Name ??= subtype.ToString() + " " + RandomStates.MiscRandom.GenerateInRange(0, 100000).ToString();
+            Name ??= subtype.ToString() + " " + RandomStates.Instance.MiscRandom.GenerateInRange(0, 100000).ToString();
         }
         #endregion
 

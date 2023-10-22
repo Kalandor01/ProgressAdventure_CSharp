@@ -155,11 +155,11 @@ namespace PAVisualizer
             txt.AppendLine($"Display save name: {SaveData.displaySaveName}");
             txt.AppendLine($"Last saved: {Utils.MakeDate(SaveData.LastSave, ".")} {Utils.MakeTime(SaveData.LastSave)}");
             txt.AppendLine($"\nPlayer:\n{SaveData.player}");
-            txt.AppendLine($"\nMain seed: {PATools.SerializeRandom(RandomStates.MainRandom)}");
-            txt.AppendLine($"World seed: {PATools.SerializeRandom(RandomStates.WorldRandom)}");
-            txt.AppendLine($"Misc seed: {PATools.SerializeRandom(RandomStates.MiscRandom)}");
-            txt.AppendLine($"Chunk seed modifier: {PATools.SerializeRandom(RandomStates.WorldRandom)}");
-            txt.Append($"\nTile type noise seeds:\n{string.Join("\n", RandomStates.TileTypeNoiseSeeds.Select(ttns => $"{ttns.Key.ToString().Capitalize()} seed: {ttns.Value}"))}");
+            txt.AppendLine($"\nMain seed: {PATools.SerializeRandom(RandomStates.Instance.MainRandom)}");
+            txt.AppendLine($"World seed: {PATools.SerializeRandom(RandomStates.Instance.WorldRandom)}");
+            txt.AppendLine($"Misc seed: {PATools.SerializeRandom(RandomStates.Instance.MiscRandom)}");
+            txt.AppendLine($"Chunk seed modifier: {PATools.SerializeRandom(RandomStates.Instance.WorldRandom)}");
+            txt.Append($"\nTile type noise seeds:\n{string.Join("\n", RandomStates.Instance.TileTypeNoiseSeeds.Select(ttns => $"{ttns.Key.ToString().Capitalize()} seed: {ttns.Value}"))}");
             return txt.ToString();
         }
 

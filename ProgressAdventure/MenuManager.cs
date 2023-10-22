@@ -153,7 +153,7 @@ namespace ProgressAdventure
                 ));
             }
             elementList.Add(null);
-            elementList.Add(new Button(new UIAction(SaveKeybinds), text: "Save"));
+            elementList.Add(new PAButton(new UIAction(SaveKeybinds), text: "Save"));
 
             new OptionsUI(elementList, " Keybinds").Display(ActionList, ResultsList);
         }
@@ -443,9 +443,9 @@ namespace ProgressAdventure
         /// <summary>
         /// Returns a button for the <c>OptionsUI</c>, that exits the function.
         /// </summary>
-        private static Button GenerateSimpleButton(string text = "Save")
+        private static PAButton GenerateSimpleButton(string text = "Save")
         {
-            return new Button(new UIAction(UIExitFunction), text: text);
+            return new PAButton(new UIAction(UIExitFunction), text: text);
         }
 
         /// <summary>

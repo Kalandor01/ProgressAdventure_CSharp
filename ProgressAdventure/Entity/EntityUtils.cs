@@ -127,7 +127,7 @@ namespace ProgressAdventure.Entity
             }
             // team
             int currentTeam = originalTeam;
-            if (RandomStates.MainRandom.GenerateDouble() < teamChangeChange)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < teamChangeChange)
             {
                 currentTeam = 0;
             }
@@ -139,47 +139,47 @@ namespace ProgressAdventure.Entity
             var attrChances = attributeChances ?? new AttributeChancesDTO();
             var attributes = new List<Attribute>();
             // all attributes
-            if (RandomStates.MainRandom.GenerateDouble() < attrChances.rareChance)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.rareChance)
             {
                 attributes.Add(Attribute.RARE);
             }
-            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.crippledChance)
+            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.crippledChance)
             {
                 attributes.Add(Attribute.CRIPPLED);
             }
             // health
-            if (RandomStates.MainRandom.GenerateDouble() < attrChances.healthyChance)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.healthyChance)
             {
                 attributes.Add(Attribute.HEALTHY);
             }
-            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.sickChance)
+            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.sickChance)
             {
                 attributes.Add(Attribute.SICK);
             }
             // attack
-            if (RandomStates.MainRandom.GenerateDouble() < attrChances.strongChance)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.strongChance)
             {
                 attributes.Add(Attribute.STRONG);
             }
-            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.weakChance)
+            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.weakChance)
             {
                 attributes.Add(Attribute.WEAK);
             }
             // defence
-            if (RandomStates.MainRandom.GenerateDouble() < attrChances.toughChance)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.toughChance)
             {
                 attributes.Add(Attribute.TOUGH);
             }
-            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.frailChance)
+            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.frailChance)
             {
                 attributes.Add(Attribute.FRAIL);
             }
             // agility
-            if (RandomStates.MainRandom.GenerateDouble() < attrChances.agileChance)
+            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.agileChance)
             {
                 attributes.Add(Attribute.AGILE);
             }
-            else if (RandomStates.MainRandom.GenerateDouble() < attrChances.slowChance)
+            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.slowChance)
             {
                 attributes.Add(Attribute.SLOW);
             }
@@ -401,7 +401,7 @@ namespace ProgressAdventure.Entity
                 }
                 
                 // cost calculation
-                var entityCost = remainingEntityNumber > 1 ? RandomStates.MiscRandom.GenerateInRange(minPower, maxCost) : totalCost;
+                var entityCost = remainingEntityNumber > 1 ? RandomStates.Instance.MiscRandom.GenerateInRange(minPower, maxCost) : totalCost;
                 
                 // cost adjustment
                 if (entityCost < minPower)
@@ -417,7 +417,7 @@ namespace ProgressAdventure.Entity
                 Entity? entity = null;
                 if (entityCost >= 10)
                 {
-                    var entityNum = RandomStates.MiscRandom.GenerateInRange(0, 0);
+                    var entityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, 0);
                     switch (entityNum)
                     {
                         case 0:
@@ -428,7 +428,7 @@ namespace ProgressAdventure.Entity
                 }
                 else if (entityCost >= 3)
                 {
-                    var entityNum = RandomStates.MiscRandom.GenerateInRange(0, 0);
+                    var entityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, 0);
                     switch (entityNum)
                     {
                         case 0:
@@ -439,7 +439,7 @@ namespace ProgressAdventure.Entity
                 }
                 else if (entityCost >= 2)
                 {
-                    var entityNum = RandomStates.MiscRandom.GenerateInRange(0, 0);
+                    var entityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, 0);
                     switch (entityNum)
                     {
                         case 0:
@@ -450,7 +450,7 @@ namespace ProgressAdventure.Entity
                 }
                 else
                 {
-                    var entityNum = RandomStates.MiscRandom.GenerateInRange(0, 0);
+                    var entityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, 0);
                     switch (entityNum)
                     {
                         case 0:
@@ -493,7 +493,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                statValue = (int)Math.Round(RandomStates.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
+                statValue = (int)Math.Round(RandomStates.Instance.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
             }
             if (statValue < 0)
             {
@@ -696,7 +696,7 @@ namespace ProgressAdventure.Entity
                         if (entity.CurrentHp > 0)
                         {
                             // get target
-                            var targetTeamNum = (int)RandomStates.MiscRandom.GenerateInRange(0, teams.Count - 2);
+                            var targetTeamNum = (int)RandomStates.Instance.MiscRandom.GenerateInRange(0, teams.Count - 2);
                             if (targetTeamNum >= teamNum)
                             {
                                 targetTeamNum++;
@@ -705,7 +705,7 @@ namespace ProgressAdventure.Entity
                             Entity targetEntity;
                             do
                             {
-                                var targetEntityNum = RandomStates.MiscRandom.GenerateInRange(0, targetTeam.Value.Count - 1);
+                                var targetEntityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, targetTeam.Value.Count - 1);
                                 targetEntity = targetTeam.Value.ElementAt((int)targetEntityNum);
                             }
                             while (targetEntity.CurrentHp == 0);

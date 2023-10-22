@@ -59,7 +59,7 @@ namespace PACommon
         }
         #endregion
 
-        #region Public functions
+        #region "Initializer"
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
@@ -70,7 +70,9 @@ namespace PACommon
             Logger.Instance.Log($"{nameof(JsonDataCorrecter)} initialized");
             return _instance;
         }
+        #endregion
 
+        #region Public functions
         /// <summary>
         /// Corrects the json data to a specific version.
         /// </summary>

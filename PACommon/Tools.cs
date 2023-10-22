@@ -4,7 +4,6 @@ using NPrng.Serializers;
 using PACommon.Enums;
 using SaveFileManager;
 using System.Collections;
-using System.Reflection;
 
 namespace PACommon
 {
@@ -32,11 +31,7 @@ namespace PACommon
         /// <param name="extension">The extension of the file that will be created.</param>
         public static void EncodeSaveShort(IEnumerable<IDictionary> dataList, string filePath, long seed, string extension)
         {
-            var JsonDataList = new List<string>();
-            foreach (var data in dataList)
-            {
-                JsonDataList.Add(JsonSerializer.SerializeJson(data));
-            }
+            var JsonDataList = dataList.Select(JsonSerializer.SerializeJson);
             FileConversion.EncodeFile(JsonDataList, seed, filePath, extension, Constants.FILE_ENCODING_VERSION, Constants.ENCODING);
         }
 

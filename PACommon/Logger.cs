@@ -160,7 +160,7 @@ namespace PACommon
         }
         #endregion
 
-        #region Public functions
+        #region "Initializer"
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
@@ -188,7 +188,9 @@ namespace PACommon
             }
             return _instance;
         }
+        #endregion
 
+        #region Public functions
         /// <summary>
         /// Tries to turn the int value of the log severity into a <c>LogSeverity</c> enum, and returns the success.
         /// </summary>

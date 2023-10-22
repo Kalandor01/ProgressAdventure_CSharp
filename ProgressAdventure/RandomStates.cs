@@ -9,45 +9,76 @@ namespace ProgressAdventure
     /// <summary>
     /// Class for managing random number generators, used in save files.
     /// </summary>
-    public static class RandomStates
+    public class RandomStates : IJsonConvertable<RandomStates>
     {
         #region Public properties
         /// <summary>
         /// The main random generator.
         /// </summary>
-        public static SplittableRandom MainRandom { get; private set; }
+        public SplittableRandom MainRandom { get; private set; }
         /// <summary>
         /// The world random generator.
         /// </summary>
-        public static SplittableRandom WorldRandom { get; private set; }
+        public SplittableRandom WorldRandom { get; private set; }
         /// <summary>
         /// The misc random generator.
         /// </summary>
-        public static SplittableRandom MiscRandom { get; private set; }
+        public SplittableRandom MiscRandom { get; private set; }
         /// <summary>
         /// The tile type noise generator seeds.
         /// </summary>
-        public static Dictionary<TileNoiseType, ulong> TileTypeNoiseSeeds { get; private set; }
+        public Dictionary<TileNoiseType, ulong> TileTypeNoiseSeeds { get; private set; }
         /// <summary>
         /// The modifier used when creating a chunk random generator.
         /// </summary>
-        public static Dictionary<TileNoiseType, PerlinNoise> TileTypeNoiseGenerators { get; private set; }
+        public Dictionary<TileNoiseType, PerlinNoise> TileTypeNoiseGenerators { get; private set; }
         /// <summary>
         /// The modifier used when creating a chunk random generator.
         /// </summary>
-        public static double ChunkSeedModifier { get; private set; }
+        public double ChunkSeedModifier { get; private set; }
         #endregion
 
-        #region "Constructors"
+        #region Private fields
         /// <summary>
-        /// Initializes the object's values.
+        /// Object used for locking the thread while the singleton gets created.
+        /// </summary>
+        private static readonly object _threadLock = new();
+        /// <summary>
+        /// The singleton istance.
+        /// </summary>
+        private static RandomStates? _instance = null;
+        #endregion
+
+        #region Public properties
+        /// <summary>
+        /// <inheritdoc cref="_instance" path="//summary"/>
+        /// </summary>
+        public static RandomStates Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_threadLock)
+                    {
+                        _instance ??= Initialize();
+                    }
+                }
+                return _instance;
+            }
+        }
+        #endregion
+
+        #region Private constructors
+        /// <summary>
+        /// <inheritdoc cref="RandomStates" path="//summary"/>
         /// </summary>
         /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
         /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
         /// <param name="miscRandom"><inheritdoc cref="MiscRandom" path="//summary"/></param>
         /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
         /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
-        public static void Initialize(
+        private RandomStates(
             SplittableRandom? mainRandom = null,
             SplittableRandom? worldRandom = null,
             SplittableRandom? miscRandom = null,
@@ -66,14 +97,36 @@ namespace ProgressAdventure
                 chunkSeedModifier ?? tempWorldRandom.GenerateDouble()
             );
         }
+        #endregion
+
+        #region "Initializer"
+        /// <summary>
+        /// Initializes the object's values.
+        /// </summary>
+        /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
+        /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
+        /// <param name="miscRandom"><inheritdoc cref="MiscRandom" path="//summary"/></param>
+        /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
+        /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
+        public static RandomStates Initialize(
+            SplittableRandom? mainRandom = null,
+            SplittableRandom? worldRandom = null,
+            SplittableRandom? miscRandom = null,
+            Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null,
+            double? chunkSeedModifier = null
+        )
+        {
+            _instance = new RandomStates(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
+            Logger.Instance.Log($"{nameof(RandomStates)} initialized");
+            return _instance;
+        }
         
         /// <summary>
         /// Recalculates ALL seeds for perlin noise generators.
         /// </summary>
         /// <param name="parrentRandom">The random generator to use, to generate the noise seeds.</param>
-        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(SplittableRandom? parrentRandom = null)
+        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(SplittableRandom parrentRandom)
         {
-            parrentRandom ??= WorldRandom;
             return new Dictionary<TileNoiseType, ulong>
             {
                 [TileNoiseType.HEIGHT] = (ulong)parrentRandom.Generate(),
@@ -87,11 +140,10 @@ namespace ProgressAdventure
         /// <summary>
         /// Recalculates seeds for perlin noise generators that are missing from the partial tile type seed dictionary.
         /// </summary>
-        /// <param name="parrentRandom">The random generator to use, to generate the missing noise seeds.</param>
         /// <param name="partialTileTypeNoiseDict">A dictionary that might not contain noise seeds for all tile types.</param>
-        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(Dictionary<TileNoiseType, ulong> partialTileTypeNoiseDict, SplittableRandom? parrentRandom = null)
+        /// <param name="parrentRandom">The random generator to use, to generate the missing noise seeds.</param>
+        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(Dictionary<TileNoiseType, ulong> partialTileTypeNoiseDict, SplittableRandom parrentRandom)
         {
-            parrentRandom ??= WorldRandom;
             foreach (TileNoiseType noiseType in Enum.GetValues(typeof(TileNoiseType)))
             {
                 if (!partialTileTypeNoiseDict.ContainsKey(noiseType))
@@ -110,7 +162,7 @@ namespace ProgressAdventure
         /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
         /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
         /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
-        private static void UpdateSeedValues(
+        private void UpdateSeedValues(
             SplittableRandom mainRandom,
             SplittableRandom worldRandom,
             SplittableRandom miscRandom,
@@ -129,7 +181,7 @@ namespace ProgressAdventure
         /// <summary>
         /// Recalculates the perlin noise generators.
         /// </summary>
-        private static void RecalculateNoiseGenerators()
+        private void RecalculateNoiseGenerators()
         {
             TileTypeNoiseGenerators = new Dictionary<TileNoiseType, PerlinNoise>
             {
@@ -138,6 +190,48 @@ namespace ProgressAdventure
                 [TileNoiseType.HUMIDITY] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.HUMIDITY]),
                 [TileNoiseType.HOSTILITY] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.HOSTILITY]),
                 [TileNoiseType.POPULATION] = new PerlinNoise(TileTypeNoiseSeeds[TileNoiseType.POPULATION])
+            };
+        }
+        #endregion
+
+        #region JsonConversion
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<RandomStates>.VersionCorrecters { get; } = new()
+        {
+            // 2.0.1 -> 2.0.2
+            (oldJson => {
+                // snake case rename
+                if (oldJson.TryGetValue("mainRandom", out var mrRename))
+                {
+                    oldJson["main_random"] = mrRename;
+                }
+                if (oldJson.TryGetValue("worldRandom", out var wrRename))
+                {
+                    oldJson["world_random"] = wrRename;
+                }
+                if (oldJson.TryGetValue("miscRandom", out var mr2Rename))
+                {
+                    oldJson["misc_random"] = mr2Rename;
+                }
+                if (oldJson.TryGetValue("tileTypeNoiseSeeds", out var ttnsRename))
+                {
+                    oldJson["tile_type_noise_seeds"] = ttnsRename;
+                }
+                if (oldJson.TryGetValue("chunkSeedModifier", out var csmRename))
+                {
+                    oldJson["chunk_seed_modifier"] = csmRename;
+                }
+            }, "2.0.2"),
+        };
+
+        public Dictionary<string, object?> ToJson()
+        {
+            return new Dictionary<string, object?>
+            {
+                ["main_random"] = PACTools.SerializeRandom(MainRandom),
+                ["world_random"] = PACTools.SerializeRandom(WorldRandom),
+                ["misc_random"] = PACTools.SerializeRandom(MiscRandom),
+                ["tile_type_noise_seeds"] = TileTypeNoiseSeeds,
+                ["chunk_seed_modifier"] = ChunkSeedModifier,
             };
         }
 
@@ -172,77 +266,8 @@ namespace ProgressAdventure
             }
             return noiseSeedDict;
         }
-        #endregion
 
-        #region JsonConversion
-        private static readonly List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> versionCorrecters = new()
-        {
-            // 2.0.1 -> 2.0.2
-            (oldJson => {
-                // snake case rename
-                if (oldJson.TryGetValue("mainRandom", out var mrRename))
-                {
-                    oldJson["main_random"] = mrRename;
-                }
-                if (oldJson.TryGetValue("worldRandom", out var wrRename))
-                {
-                    oldJson["world_random"] = wrRename;
-                }
-                if (oldJson.TryGetValue("miscRandom", out var mr2Rename))
-                {
-                    oldJson["misc_random"] = mr2Rename;
-                }
-                if (oldJson.TryGetValue("tileTypeNoiseSeeds", out var ttnsRename))
-                {
-                    oldJson["tile_type_noise_seeds"] = ttnsRename;
-                }
-                if (oldJson.TryGetValue("chunkSeedModifier", out var csmRename))
-                {
-                    oldJson["chunk_seed_modifier"] = csmRename;
-                }
-            }, "2.0.2"),
-        };
-
-        /// <summary>
-        /// Returns a json representation of the <c>RandomState</c>.
-        /// </summary>
-        public static Dictionary<string, object?> ToJson()
-        {
-            return new Dictionary<string, object?>
-            {
-                ["main_random"] = PACTools.SerializeRandom(MainRandom),
-                ["world_random"] = PACTools.SerializeRandom(WorldRandom),
-                ["misc_random"] = PACTools.SerializeRandom(MiscRandom),
-                ["tile_type_noise_seeds"] = TileTypeNoiseSeeds,
-                ["chunk_seed_modifier"] = ChunkSeedModifier,
-            };
-        }
-
-        /// <summary>
-        /// Converts the json representation of the object to object format.
-        /// </summary>
-        /// <param name="randomStatesJson">The json representation of the SaveData.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        public static bool FromJson(IDictionary<string, object?>? randomStatesJson, string fileVersion)
-        {
-            if (randomStatesJson is null)
-            {
-                Logger.Instance.Log($"{typeof(RandomStates)} parse error", $"{typeof(RandomStates).ToString().ToLower()} json is null", LogSeverity.ERROR);
-                Initialize();
-                return false;
-            }
-
-            JsonDataCorrecter.Instance.CorrectJsonData(typeof(SaveData).ToString(), ref randomStatesJson, versionCorrecters, fileVersion);
-
-            return FromJsonWithoutCorrection(randomStatesJson, fileVersion);
-        }
-
-        /// <summary>
-        /// Converts the json representation of the object to object format.
-        /// </summary>
-        /// <param name="randomStatesJson">The json representation of the RandomState.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        private static bool FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion)
+        static bool IJsonConvertable<RandomStates>.FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion, ref RandomStates? randomStates)
         {
             var success = true;
             SplittableRandom? mainRandom = null;
@@ -306,7 +331,7 @@ namespace ProgressAdventure
                 success = false;
             }
 
-            Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
+            randomStates = Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
             return success;
         }
         #endregion

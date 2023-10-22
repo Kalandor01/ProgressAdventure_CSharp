@@ -240,7 +240,7 @@ namespace ProgressAdventure.WorldManagement
         public static Dictionary<TileNoiseType, double> GetNoiseValues(long absoluteX, long absoluteY)
         {
             var noiseValues = new Dictionary<TileNoiseType, double>();
-            foreach (var noiseGeneratorEntry in RandomStates.TileTypeNoiseGenerators)
+            foreach (var noiseGeneratorEntry in RandomStates.Instance.TileTypeNoiseGenerators)
             {
                 var noiseKey = noiseGeneratorEntry.Key;
                 var noiseGenerator = noiseGeneratorEntry.Value;

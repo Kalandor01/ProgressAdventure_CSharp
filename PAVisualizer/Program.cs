@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.Extensions;
 using ProgressAdventure;
 using SaveFileManager;
 using System;
@@ -23,10 +24,10 @@ namespace PAVisualizer
 
             var elements = new List<BaseUI>();
 
-            var visualizeSaveElement = new Button(new UIAction(VisualizeSaveCommand), text: "Save file visualize");
+            var visualizeSaveElement = new PAButton(new UIAction(VisualizeSaveCommand), text: "Save file visualizer");
             elements.Add(visualizeSaveElement);
 
-            var contentDistributionVisualizerElement = new Button(new UIAction(ContentTypeDistributionVisualizer.Visualize), text: "Content type distribution visualizer");
+            var contentDistributionVisualizerElement = new PAButton(new UIAction(ContentTypeDistributionVisualizer.Visualize), text: "Content type distribution visualizer");
             elements.Add(contentDistributionVisualizerElement);
 
             new OptionsUI(elements, "Select action").Display();

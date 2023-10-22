@@ -82,7 +82,7 @@ namespace ProgressAdventure.ItemManagement
                     var num = 0L;
                     for (var x = 0; x < drop.rolls; x++)
                     {
-                        num += RandomStates.MainRandom.GenerateDouble() <= drop.chance ? RandomStates.MainRandom.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
+                        num += RandomStates.Instance.MainRandom.GenerateDouble() <= drop.chance ? RandomStates.Instance.MainRandom.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
                     }
                     if (num > 0)
                     {
