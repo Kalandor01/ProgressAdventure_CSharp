@@ -1,40 +1,102 @@
 ﻿using PACommon;
-using PACommon.Enums;
 using ProgressAdventure.Entity;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
 {
-    public static class SaveData
+    public class SaveData : IJsonConvertable<SaveData>
     {
         #region Public fields
         /// <summary>
         /// The name of the save folder.
         /// </summary>
-        public static string saveName;
+        public string saveName;
         /// <summary>
         /// The save name to display.
         /// </summary>
-        public static string displaySaveName;
+        public string displaySaveName;
         /// <summary>
         /// The player object.
         /// </summary>
-        public static Player player;
+        public Player player;
+        #endregion
+
+        #region Private fields
+        /// <summary>
+        /// Object used for locking the thread while the singleton gets created.
+        /// </summary>
+        private static readonly object _threadLock = new();
+        /// <summary>
+        /// The singleton istance.
+        /// </summary>
+        private static SaveData? _instance = null;
         #endregion
 
         #region Public properties
         /// <summary>
+        /// <inheritdoc cref="_instance" path="//summary"/>
+        /// </summary>
+        public static SaveData Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_threadLock)
+                    {
+                        _instance ??= Initialize(Constants.DEFAULT_SAVE_DATA_SAVE_NAME);
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        /// <summary>
         /// The last time, the save file was saved.
         /// </summary>
-        public static DateTime LastSave { get; private set; }
+        public DateTime LastSave { get; private set; }
         /// <summary>
         /// The last time, the save file was loaded.
         /// </summary>
-        public static DateTime LastLoad { get; private set; }
+        public DateTime LastLoad { get; private set; }
         /// <summary>
         /// The last time, the save file was saved.
         /// </summary>
-        public static TimeSpan Playtime { get; private set; }
+        public TimeSpan Playtime { get; private set; }
+        #endregion
+
+        #region Private constructors
+        /// <summary>
+        /// <inheritdoc cref="SaveData" path="//summary"/>
+        /// </summary>
+        /// <param name="saveName"><inheritdoc cref="saveName" path="//summary"/></param>
+        /// <param name="displaySaveName"><inheritdoc cref="displaySaveName" path="//summary"/></param>
+        /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
+        /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
+        /// <param name="player"><inheritdoc cref="player" path="//summary"/></param>
+        /// <param name="initialiseRandomGenerators">Whether to initialize the RandomStates object as well.</param>
+        private SaveData(
+            string saveName,
+            string? displaySaveName = null,
+            DateTime? lastSave = null,
+            TimeSpan? playtime = null,
+            Player? player = null,
+            bool initialiseRandomGenerators = true
+        )
+        {
+            this.saveName = saveName;
+            this.displaySaveName = displaySaveName ?? saveName;
+            LastSave = lastSave ?? DateTime.Now;
+            LastLoad = DateTime.Now;
+            Playtime = playtime ?? TimeSpan.Zero;
+
+            if (initialiseRandomGenerators)
+            {
+                RandomStates.Initialize();
+            }
+
+            this.player = player ?? new Player();
+        }
         #endregion
 
         #region "Constructors"
@@ -46,7 +108,8 @@ namespace ProgressAdventure
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
         /// <param name="player"><inheritdoc cref="player" path="//summary"/></param>
-        public static void Initialize(
+        /// <param name="initialiseRandomGenerators">Whether to initialize the RandomStates object as well.</param>
+        public static SaveData Initialize(
             string saveName,
             string? displaySaveName = null,
             DateTime? lastSave = null,
@@ -55,30 +118,21 @@ namespace ProgressAdventure
             bool initialiseRandomGenerators = true
         )
         {
-            SaveData.saveName = saveName;
-            SaveData.displaySaveName = displaySaveName ?? saveName;
-            LastSave = lastSave ?? DateTime.Now;
-            LastLoad = DateTime.Now;
-            Playtime = playtime ?? TimeSpan.Zero;
-
-            if (initialiseRandomGenerators)
-            {
-                RandomStates.Initialize();
-            }
-
-            SaveData.player = player ?? new Player();
+            _instance = new SaveData(saveName, displaySaveName, lastSave, playtime, player, initialiseRandomGenerators);
+            Logger.Instance.Log($"{nameof(SaveData)} initialized");
+            return _instance;
         }
         #endregion
 
         #region Public functions
-        public static TimeSpan GetPlaytime()
+        public TimeSpan GetPlaytime()
         {
             return Playtime + DateTime.Now.Subtract(LastLoad);
         }
         #endregion
 
         #region JsonConvert
-        private static readonly List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> versionCorrecters = new()
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<SaveData>.VersionCorrecters { get; } = new()
         {
             // 2.0.1 -> 2.0.2
             (oldJson => {
@@ -102,84 +156,46 @@ namespace ProgressAdventure
                 {
                     oldJson["last_save"] = lsRename;
                 }
+                if (oldJson.TryGetValue("randomStates", out object? rsRename))
+                {
+                    oldJson["random_states"] = rsRename;
+                }
             }, "2.2"),
         };
 
-        /// <summary>
-        /// Converts the data for the display part of the data file to a json format.
-        /// </summary>
-        public static Dictionary<string, object?> DisplayDataToJson()
+        public Dictionary<string, object?> ToJson()
         {
             return new Dictionary<string, object?> {
-                ["save_version"] = Constants.SAVE_VERSION,
-                ["display_name"] = displaySaveName,
-                ["last_save"] = LastSave,
-                ["playtime"] = GetPlaytime(),
-                ["player_name"] = player.name
+                [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
+                [Constants.JsonKeys.SaveData.SAVE_NAME] = saveName,
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,
+                [Constants.JsonKeys.SaveData.LAST_SAVE] = LastSave,
+                [Constants.JsonKeys.SaveData.PLAYTIME] = GetPlaytime(),
+                [Constants.JsonKeys.SaveData.PLAYER] = player.ToJson(),
+                [Constants.JsonKeys.SaveData.RANDOM_STATES] = RandomStates.Instance.ToJson()
             };
         }
 
-        /// <summary>
-        /// Converts the data for the main part of the data file to a json format.
-        /// </summary>
-        public static Dictionary<string, object?> MainDataToJson()
+        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> saveDataJson, string fileVersion, ref SaveData? saveData)
         {
-            return new Dictionary<string, object?> {
-                ["save_version"] = Constants.SAVE_VERSION,
-                ["display_name"] = displaySaveName,
-                ["last_save"] = LastSave,
-                ["playtime"] = GetPlaytime(),
-                ["player"] = player.ToJson(),
-                ["random_states"] = RandomStates.Instance.ToJson()
-            };
-        }
-
-        public static (Dictionary<string, object?> displayData, Dictionary<string, object?> mainData) MakeSaveData()
-        {
-            LastSave = DateTime.Now;
-            return (DisplayDataToJson(), MainDataToJson());
-        }
-
-        /// <summary>
-        /// Converts the json representation of the object to object format.
-        /// </summary>
-        /// <param name="saveName">The name of the save file.</param>
-        /// <param name="saveDataJson">The json representation of the SaveData.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        public static bool FromJson(string saveName, IDictionary<string, object?>? saveDataJson, string fileVersion)
-        {
-            if (saveDataJson is null)
-            {
-                Logger.Instance.Log($"{typeof(SaveData)} parse error", $"{typeof(SaveData).ToString().ToLower()} json is null", LogSeverity.ERROR);
-                Initialize(saveName);
-                return false;
-            }
-
-            JsonDataCorrecter.Instance.CorrectJsonData(typeof(SaveData).ToString(), ref saveDataJson, versionCorrecters, fileVersion);
-
-            return FromJsonWithoutCorrection(saveName, saveDataJson, fileVersion);
-        }
-
-        /// <summary>
-        /// Converts the json representation of the object to object format.
-        /// </summary>
-        /// <param name="saveName">The name of the save file.</param>
-        /// <param name="saveDataJson">The json representation of the RandomState.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        private static bool FromJsonWithoutCorrection(string saveName, IDictionary<string, object?> saveDataJson, string fileVersion)
-        {
+            var success = true;
+            // save name
+            var saveName = saveDataJson[Constants.JsonKeys.SaveData.SAVE_NAME] as string;
+            success &= saveName is not null;
             // display name
-            var displayName = saveDataJson["display_name"] as string;
+            var displayName = saveDataJson[Constants.JsonKeys.SaveData.DISPLAY_NAME] as string;
+            success &= displayName is not null;
             // last save
-            var lastSave = saveDataJson["last_save"] as DateTime?;
+            var lastSave = saveDataJson[Constants.JsonKeys.SaveData.LAST_SAVE] as DateTime?;
+            success &= lastSave is not null;
             // playtime
-            _ = TimeSpan.TryParse(saveDataJson["playtime"]?.ToString(), out var playtime);
+            success &= TimeSpan.TryParse(saveDataJson[Constants.JsonKeys.SaveData.PLAYTIME]?.ToString(), out var playtime);
             // player
-            var playerData = saveDataJson["player"] as IDictionary<string, object?>;
-            PACTools.TryFromJson(playerData, fileVersion, out Player? player);
+            var playerData = saveDataJson[Constants.JsonKeys.SaveData.PLAYER] as IDictionary<string, object?>;
+            success &= PACTools.TryFromJson(playerData, fileVersion, out Player? player);
 
-            Initialize(saveName, displayName, lastSave, playtime, player, false);
-            return true;
+            saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player);
+            return success;
         }
         #endregion
     }

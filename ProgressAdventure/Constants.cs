@@ -120,6 +120,31 @@ namespace ProgressAdventure
         }
         #endregion
 
+        #region Json keys
+        public static class JsonKeys
+        {
+            #region SaveData
+            public static class SaveData
+            {
+                public const string SAVE_VERSION = "save_version";
+                public const string DISPLAY_NAME = "display_name";
+                public const string LAST_SAVE = "last_save";
+                public const string PLAYTIME = "playtime";
+                public const string SAVE_NAME = "save_name";
+                public const string PLAYER = "player";
+                public const string RANDOM_STATES = "random_states";
+            }
+            #endregion
+
+            #region DisplaySaveData
+            public static class DisplaySaveData
+            {
+                public const string PLAYER_NAME = "player_name";
+            }
+            #endregion
+        }
+        #endregion
+
         #region Logging
         /// <summary>
         /// If the logger should log the milisecond in time.
@@ -175,6 +200,10 @@ namespace ProgressAdventure
         /// The amount of digits to round an item's amount to, to counteract bad float math.
         /// </summary>
         public const int ITEM_AMOUNT_ROUNDING_DIGITS = 4;
+        /// <summary>
+        /// The save folder name to use, if the SaveData singleton was initialized from the Instance property.
+        /// </summary>
+        public const string DEFAULT_SAVE_DATA_SAVE_NAME = "[DEFAULT]";
         #endregion
     }
 }

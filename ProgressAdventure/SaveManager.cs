@@ -3,7 +3,6 @@ using PACommon.Enums;
 using ProgressAdventure.Entity;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using SaveFileManager;
 using System.Collections;
 using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
@@ -14,40 +13,6 @@ namespace ProgressAdventure
 {
     public static class SaveManager
     {
-        #region Private dicts
-        private static readonly List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> displayDataversionCorrecters = new()
-        {
-            // 2.1.1 -> 2.2
-            (oldJson => {
-                // snake case rename
-                if (oldJson.TryGetValue("displayName", out var rsRename))
-                {
-                    oldJson["display_name"] = rsRename;
-                }
-                if (oldJson.TryGetValue("playerName", out var pnRename))
-                {
-                    oldJson["player_name"] = pnRename;
-                }
-                if (oldJson.TryGetValue("lastSave", out var lsRename))
-                {
-                    oldJson["last_save"] = lsRename;
-                }
-            }, "2.2"),
-        };
-
-        private static readonly List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> dataFileversionCorrecters = new()
-        {
-            // 2.1.1 -> 2.2
-            (oldJson => {
-                // snake case rename
-                if (oldJson.TryGetValue("randomStates", out object? rsRename))
-                {
-                    oldJson["random_states"] = rsRename;
-                }
-            }, "2.2"),
-        };
-        #endregion
-
         #region Public functions
         /// <summary>
         /// Creates a save file from the save data.<br/>
@@ -58,7 +23,7 @@ namespace ProgressAdventure
         public static void MakeSave(bool clearChunks = true, string? showProgressText = null)
         {
             // make backup
-            var backupStatus = Tools.CreateBackup(SaveData.saveName, true);
+            var backupStatus = Tools.CreateBackup(SaveData.Instance.saveName, true);
             // DATA FILE
             SaveDataFile();
             // CHUNKS/WORLD
@@ -90,7 +55,7 @@ namespace ProgressAdventure
             // load to class
             SaveData.Initialize(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
             World.Initialize();
-            World.GenerateTile((SaveData.player.position.x, SaveData.player.position.y));
+            World.GenerateTile((SaveData.Instance.player.position.x, SaveData.Instance.player.position.y));
         }
 
         /// <summary>
@@ -98,8 +63,18 @@ namespace ProgressAdventure
         /// </summary>
         public static void CreateSaveData()
         {
-            var displaySaveName = new RealTimeCorrectedTextField("Name your save: ", new StringCorrectorDelegate(Tools.CorrectSaveName), clearScreen: false).GetString(Settings.Keybinds.KeybindList);
-            var playerName = new RealTimeCorrectedTextField("What is your name?: ", new StringCorrectorDelegate(Tools.CorrectPlayerName), clearScreen: false).GetString(Settings.Keybinds.KeybindList);
+            var displaySaveName = new RealTimeCorrectedTextField(
+                "Name your save: ",
+                new StringCorrectorDelegate(Tools.CorrectSaveName),
+                clearScreen: false
+            ).GetString(Settings.Keybinds.KeybindList);
+
+            var playerName = new RealTimeCorrectedTextField(
+                "What is your name?: ",
+                new StringCorrectorDelegate(Tools.CorrectPlayerName),
+                clearScreen: false
+            ).GetString(Settings.Keybinds.KeybindList);
+
             CreateSaveData(displaySaveName, playerName);
         }
 
@@ -115,20 +90,17 @@ namespace ProgressAdventure
         public static void LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true, string? savesFolderPath = null)
         {
             var saveFolderPath = savesFolderPath is not null ? Path.Join(savesFolderPath, saveName) : Tools.GetSaveFolderPath(saveName);
-            IDictionary<string, object?>? data;
+            var dataFilePath = Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA);
 
-            if (Directory.Exists(saveFolderPath))
-            {
-                data = Tools.DecodeSaveShort(Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA), 1);
-            }
-            else
+            if (!Directory.Exists(saveFolderPath))
             {
                 Logger.Instance.Log("Not a valid save folder", $"folder name: {saveName}", LogSeverity.ERROR);
                 throw new FileNotFoundException("Not a valid save folder", saveName);
             }
-            // read data
-    
-            // auto backup
+
+            var data = Tools.DecodeSaveShort(dataFilePath, 1);
+
+            // auto backup?
             if (!backupChoice && automaticBackup)
             {
                 Tools.CreateBackup(saveName);
@@ -141,26 +113,7 @@ namespace ProgressAdventure
             }
 
             // save version
-            string fileVersion;
-            if (data.TryGetValue("save_version", out object? versionValue) && versionValue is not null)
-            {
-                fileVersion = (string)versionValue;
-            }
-            else
-            {
-                // old save version key
-                if (data.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
-                {
-                    Logger.Instance.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
-
-                    fileVersion = (string)versionValueBackup;
-                }
-                else
-                {
-                    Logger.Instance.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
-                    throw new FileLoadException("Unknown save version", saveName);
-                }
-            }
+            string fileVersion = GetSaveVersion(data, saveName) ?? throw new FileLoadException("Unknown save version", saveName);
 
             if (fileVersion != Constants.SAVE_VERSION)
             {
@@ -169,8 +122,11 @@ namespace ProgressAdventure
                 {
                     var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
                     Logger.Instance.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
-                    var ans = (int)new UIList(new string[] { "Yes", "No" }, $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?").Display(Settings.Keybinds.KeybindList);
-                    if (ans == 0)
+                    var createBackup = MenuManager.AskYesNoUIQuestion(
+                        $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?",
+                        keybinds: Settings.Keybinds
+                    );
+                    if (createBackup)
                     {
                         Tools.CreateBackup(saveName);
                     }
@@ -181,19 +137,13 @@ namespace ProgressAdventure
                         fileVersion = Constants.OLDEST_SAVE_VERSION;
                     }
                 }
-                // correct
-                JsonDataCorrecter.Instance.CorrectJsonData(typeof(SaveData).ToString(), ref data, dataFileversionCorrecters, fileVersion);
             }
 
-            // load random states
-            var randomStates = data["random_states"] as IDictionary<string, object?>;
-            PACTools.FromJson<RandomStates>(randomStates, fileVersion);
-
-            // PREPARING
+            // LOADING
             Logger.Instance.Log("Preparing game data");
-            // load to class
-            SaveData.FromJson(saveName, data, fileVersion);
-            Logger.Instance.Log("Game data loaded", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\", last saved: {Utils.MakeDate(SaveData.LastSave)} {Utils.MakeTime(SaveData.LastSave)}, playtime: {SaveData.Playtime}");
+            data[Constants.JsonKeys.SaveData.SAVE_NAME] = saveName;
+            PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
+            Logger.Instance.Log("Game data loaded", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             World.Initialize();
         }
 
@@ -239,19 +189,51 @@ namespace ProgressAdventure
             Tools.RecreateSaveFileFolder();
             var saveFolderPath = Tools.GetSaveFolderPath();
             // DATA FILE
-            var (displayData, mainData) = SaveData.MakeSaveData();
+            var displayData = DisplaySaveData.ToJsonFromSaveData(SaveData.Instance);
+            var mainData = SaveData.Instance.ToJson();
             // create new save
             Tools.EncodeSaveShort(new List<IDictionary> { displayData, mainData }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
+        }
+
+        /// <summary>
+        /// Gets the save version of the file from the display/normal json data.
+        /// </summary>
+        /// <param name="dataJson">The json representation of the (display) save data.</param>
+        /// <param name="saveName">The name of the currenly loaded save file.</param>
+        private static string? GetSaveVersion(IDictionary<string, object?> dataJson, string saveName)
+        {
+            if (
+                dataJson.TryGetValue("save_version", out object? versionValue) &&
+                versionValue is not null &&
+                versionValue is string fileVersion
+            )
+            {
+                return fileVersion;
+            }
+
+            // old save version key
+            if (
+                dataJson.TryGetValue("saveVersion", out object? versionValueBackup) &&
+                versionValueBackup is not null &&
+                versionValueBackup is string fileVersionBackup
+            )
+            {
+                Logger.Instance.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
+                return fileVersionBackup;
+            }
+
+            Logger.Instance.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
+            return null;
         }
 
         /// <summary>
         /// Formats the json display data from a save file, into a displayable string.
         /// </summary>
         /// <param name="data">The save folder's name, and the data extracted from the data file's diplay data.</param>
-        private static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, Dictionary<string, object?>? data) data)
+        private static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, Dictionary<string, object?>? jsonData) data)
         {
             var folderName = data.folderName;
-            var dataJson = (IDictionary<string, object?>?)data.data;
+            var dataJson = (IDictionary<string, object?>?)data.jsonData;
 
             try
             {
@@ -261,54 +243,29 @@ namespace ProgressAdventure
                     throw new ArgumentException("No data in save file.");
                 }
 
-                // get save version
-                string? fileVersion;
-                if (dataJson.TryGetValue("save_version", out object? versionValue) && versionValue is not null)
+                string? fileVersion = GetSaveVersion(dataJson, folderName);
+
+                PACTools.TryFromJson(dataJson, fileVersion ?? Constants.OLDEST_SAVE_VERSION, out DisplaySaveData? displaySaveData);
+                if (displaySaveData is null)
                 {
-                    fileVersion = (string)versionValue;
+                    throw new ArgumentNullException(nameof(displaySaveData), "Somehow the DisplaySaveData is null after being converted from json.");
                 }
-                else
-                {
-                    // old save version key
-                    if (dataJson.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
-                    {
-                        Logger.Instance.Log("Old style save version (< 2.2)", $"save name: {data.folderName}", LogSeverity.INFO);
-
-                        fileVersion = (string)versionValueBackup;
-                    }
-                    else
-                    {
-                        Logger.Instance.Log("Unknown save version", $"save name: {data.folderName}", LogSeverity.ERROR);
-                        fileVersion = null;
-                    }
-                }
-
-
-                // correct data
-                JsonDataCorrecter.Instance.CorrectJsonData("Save display", ref dataJson, displayDataversionCorrecters, fileVersion ?? Constants.OLDEST_SAVE_VERSION);
-
 
                 var displayText = new StringBuilder();
 
                 // display name
-                var displayName = dataJson["display_name"] ?? folderName;
-                displayText.Append($"{displayName}: {dataJson["player_name"]}\n");
+                var displaySaveName = displaySaveData.displaySaveName ?? folderName;
+                var playerName = displaySaveData.playerName ?? "[UNKNOWN PLAYER NAME]";
+                var lastSave = displaySaveData.lastSave ?? DateTime.Now;
+                var playtime = displaySaveData.playtime ?? TimeSpan.Zero;
+                var displayFileVersion = displaySaveData.saveVersion ?? "[UNKNOWN VERSION]";
 
-                // last save
-                var lastSave = (DateTime)(dataJson["last_save"] ?? DateTime.Now);
+                var isNewestVersion = displayFileVersion == Constants.SAVE_VERSION;
+
+                displayText.Append($"{displaySaveName}: {playerName}\n");
                 displayText.Append($"Last saved: {Utils.MakeDate(lastSave, ".")} {Utils.MakeTime(lastSave)} ");
-
-                // playtime
-                var response = TimeSpan.TryParse(dataJson["playtime"]?.ToString(), out var playtime);
-                if (!response)
-                {
-                    playtime = TimeSpan.Zero;
-                }
                 displayText.Append($"Playtime: {playtime}");
-
-                // check version
-                fileVersion ??= "[UNKNOWN VERSION]";
-                displayText.Append(Tools.StylizedText($" v.{fileVersion}", fileVersion == Constants.SAVE_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED));
+                displayText.Append(Tools.StylizedText($" v.{displayFileVersion}", isNewestVersion ? Constants.Colors.GREEN : Constants.Colors.RED));
                     
                 return (folderName, displayText.ToString());
             }

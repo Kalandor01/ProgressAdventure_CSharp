@@ -1,5 +1,4 @@
 ﻿using NPrng.Generators;
-using static ProgressAdventure.WorldManagement.Content.ContentType;
 
 namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
@@ -31,7 +30,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.player.FullName} climbed a mountain.");
+            Console.WriteLine($"{SaveData.Instance.player.FullName} climbed a mountain.");
             Console.WriteLine($"The mountain is {height}m tall.");
         }
         #endregion

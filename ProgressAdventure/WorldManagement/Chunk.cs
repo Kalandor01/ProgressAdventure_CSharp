@@ -91,7 +91,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         public void SaveToFile(string? saveFolderName = null)
         {
-            saveFolderName ??= SaveData.saveName;
+            saveFolderName ??= SaveData.Instance.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
             var chunkJson = ToJson();
             var chunkFileName = GetChunkFileName(basePosition);
@@ -119,7 +119,7 @@ namespace ProgressAdventure.WorldManagement
         /// ONLY ALTERS THE LOGS DISPLAYED, IF THE CHUNK DOESN'T EXIST.</param>
         public static bool FromFile((long x, long y) position, out Chunk? chunk, string? saveFolderName = null, bool expected = true)
         {
-            saveFolderName ??= SaveData.saveName;
+            saveFolderName ??= SaveData.Instance.saveName;
             var chunkFileName = GetChunkFileName(position);
             Dictionary<string, object?>? chunkJson;
             chunk = null;

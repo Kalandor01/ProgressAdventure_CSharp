@@ -86,16 +86,13 @@ namespace ProgressAdventure
             double? chunkSeedModifier = null
         )
         {
-            var tempMainRandom = mainRandom ?? new SplittableRandom();
-            var tempWorldRandom = worldRandom ?? PACTools.MakeRandomGenerator(tempMainRandom);
-            var tempMiscRandom = miscRandom ?? PACTools.MakeRandomGenerator(tempMainRandom);
-            UpdateSeedValues(
-                tempMainRandom,
-                tempWorldRandom,
-                tempMiscRandom,
-                tileTypeNoiseSeeds is not null ? RecalculateTileTypeNoiseSeeds(tileTypeNoiseSeeds, tempWorldRandom) : RecalculateTileTypeNoiseSeeds(tempWorldRandom),
-                chunkSeedModifier ?? tempWorldRandom.GenerateDouble()
-            );
+            MainRandom = mainRandom ?? new SplittableRandom();
+            WorldRandom = worldRandom ?? PACTools.MakeRandomGenerator(MainRandom);
+            MiscRandom = miscRandom ?? PACTools.MakeRandomGenerator(MainRandom);
+            TileTypeNoiseSeeds = tileTypeNoiseSeeds is not null ? RecalculateTileTypeNoiseSeeds(tileTypeNoiseSeeds, WorldRandom) : RecalculateTileTypeNoiseSeeds(WorldRandom);
+            ChunkSeedModifier = chunkSeedModifier ?? WorldRandom.GenerateDouble();
+
+            RecalculateNoiseGenerators();
         }
         #endregion
 
@@ -153,35 +150,11 @@ namespace ProgressAdventure
             }
             return partialTileTypeNoiseDict;
         }
-        #endregion
-
-        #region Private functions
-        /// <summary>
-        /// Updates the values for all seed, and tile noise generators.
-        /// </summary>
-        /// <param name="mainRandom"><inheritdoc cref="MainRandom" path="//summary"/></param>
-        /// <param name="worldRandom"><inheritdoc cref="WorldRandom" path="//summary"/></param>
-        /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
-        private void UpdateSeedValues(
-            SplittableRandom mainRandom,
-            SplittableRandom worldRandom,
-            SplittableRandom miscRandom,
-            Dictionary<TileNoiseType, ulong> tileTypeNoiseSeeds,
-            double chunkSeedModifier
-        )
-        {
-            MainRandom = mainRandom;
-            WorldRandom = worldRandom;
-            MiscRandom = miscRandom;
-            TileTypeNoiseSeeds = tileTypeNoiseSeeds;
-            ChunkSeedModifier = chunkSeedModifier;
-            RecalculateNoiseGenerators();
-        }
 
         /// <summary>
         /// Recalculates the perlin noise generators.
         /// </summary>
-        private void RecalculateNoiseGenerators()
+        public void RecalculateNoiseGenerators()
         {
             TileTypeNoiseGenerators = new Dictionary<TileNoiseType, PerlinNoise>
             {

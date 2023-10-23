@@ -30,7 +30,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.player.FullName} entered an ocean.");
+            Console.WriteLine($"{SaveData.Instance.player.FullName} entered an ocean.");
             Console.WriteLine($"The ocean is {depth}m deep.");
         }
         #endregion

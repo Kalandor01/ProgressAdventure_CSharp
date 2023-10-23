@@ -77,7 +77,7 @@ namespace ProgressAdventure
         /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateSaveFileFolder(string? saveFolderName = null)
         {
-            saveFolderName ??= SaveData.saveName;
+            saveFolderName ??= SaveData.Instance.saveName;
             RecreateSavesFolder();
             return PACTools.RecreateFolder(saveFolderName, Constants.SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
         }
@@ -90,7 +90,7 @@ namespace ProgressAdventure
         /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateChunksFolder(string? saveFolderName = null)
         {
-            saveFolderName ??= SaveData.saveName;
+            saveFolderName ??= SaveData.Instance.saveName;
             RecreateSaveFileFolder(saveFolderName);
             return PACTools.RecreateFolder(Constants.SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
         }
@@ -111,7 +111,7 @@ namespace ProgressAdventure
         /// </summary>
         public static string? GetSaveFolderPath()
         {
-            return GetSaveFolderPath(SaveData.saveName);
+            return GetSaveFolderPath(SaveData.Instance.saveName);
         }
 
         /// <summary>

@@ -901,6 +901,9 @@ namespace ProgressAdventureTests
                 new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo() }),
                 new Keybinds(),
                 new Chunk((1, 1)),
+                RandomStates.Initialize(),
+                SaveData.Initialize("test", initialiseRandomGenerators: false),
+                PACTools.FromJson<DisplaySaveData>(DisplaySaveData.ToJsonFromSaveData(SaveData.Instance), PAConstants.SAVE_VERSION) ?? throw new ArgumentNullException(nameof(DisplaySaveData), $"{nameof(DisplaySaveData)} from json should not be null."),
             };
 
             RandomStates.Initialize();

@@ -20,7 +20,7 @@ namespace ProgressAdventure
         {
             SaveManager.CreateSaveData();
             SaveManager.MakeSave();
-            Logger.Instance.Log("Created save", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
+            Logger.Instance.Log("Created save", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\"");
             GameLoop();
         }
 
@@ -52,7 +52,7 @@ namespace ProgressAdventure
         {
             Globals.Instance.saving = true;
             SaveManager.MakeSave();
-            Logger.Instance.Log("Game saved", $"save name: {SaveData.saveName}, player name: \"{SaveData.player.FullName}\"");
+            Logger.Instance.Log("Game saved", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\"");
             Globals.Instance.saving = false;
         }
 
@@ -73,16 +73,16 @@ namespace ProgressAdventure
                 Task.Run(AutoSaveThreadFunction);
             }
             // GAME
-            SaveData.player.Stats();
+            SaveData.Instance.player.Stats();
             Console.WriteLine("Wandering...");
             for (var x = 0; x < 0; x++)
             {
                 if (!Globals.Instance.exiting)
                 {
                     Thread.Sleep(100);
-                    SaveData.player.WeightedTurn();
-                    SaveData.player.Move();
-                    var position = SaveData.player.position;
+                    SaveData.Instance.player.WeightedTurn();
+                    SaveData.Instance.player.Move();
+                    var position = SaveData.Instance.player.position;
                     World.TryGetChunkAll(position, out Chunk chunk);
                     chunk.FillChunk();
                 }
@@ -126,7 +126,7 @@ namespace ProgressAdventure
                             {
                                 if (!Globals.Instance.saving && !Globals.Instance.inFight)
                                 {
-                                    Logger.Instance.Log("Beginning auto save", $"save name: {SaveData.saveName}");
+                                    Logger.Instance.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
                                     SaveGame();
                                     saved = true;
                                 }
@@ -170,7 +170,7 @@ namespace ProgressAdventure
                         {
                             if (!Globals.Instance.inFight && !Globals.Instance.saving)
                             {
-                                Logger.Instance.Log("Beginning manual save", $"save name: {SaveData.saveName}");
+                                Logger.Instance.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
                                 Globals.Instance.exiting = true;
                                 SaveGame();
                                 Globals.Instance.inGameLoop = false;

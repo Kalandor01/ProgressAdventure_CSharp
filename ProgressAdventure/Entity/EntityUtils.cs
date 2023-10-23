@@ -469,7 +469,7 @@ namespace ProgressAdventure.Entity
 
             if (includePlayer)
             {
-                entities.Add(SaveData.player);
+                entities.Add(SaveData.Instance.player);
             }
 
             Logger.Instance.Log("Fight log", "random fight initiated");

@@ -20,7 +20,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.player.FullName} entered a field.");
+            Console.WriteLine($"{SaveData.Instance.player.FullName} entered a field.");
         }
         #endregion
     }

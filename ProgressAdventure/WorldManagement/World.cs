@@ -70,7 +70,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         public static void SaveAllChunksToFiles(string? saveFolderName = null, bool clearChunks = false, string? showProgressText = null)
         {
-            saveFolderName ??= SaveData.saveName;
+            saveFolderName ??= SaveData.Instance.saveName;
             Dictionary<string, Chunk> chunkData;
 
             // clearing chunks
@@ -161,7 +161,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null)
         {
-            saveFolderName ??= SaveData.saveName;
+            saveFolderName ??= SaveData.Instance.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
 
             // get existing files
