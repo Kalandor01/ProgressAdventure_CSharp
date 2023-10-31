@@ -75,7 +75,7 @@ namespace PACommon.Extensions
         /// <exception cref="UINoSelectablesExeption">Trown, if the UI element is not selectable.</exception>
         public object? Display(IEnumerable<KeyAction>? keybinds = null, IEnumerable<object>? keyResults = null)
         {
-            if (!Element.IsSelectable())
+            if (!Element.IsSelectable)
             {
                 throw new UINoSelectablesExeption();
             }
@@ -95,14 +95,14 @@ namespace PACommon.Extensions
             }
 
             // is enter needed?
-            var enterKeyNeeded = Element.IsClickable();
+            var enterKeyNeeded = Element.IsClickable;
 
             // render/getkey loop
             object pressedKey;
             do
             {
                 // prevent infinite loop
-                if (!Element.IsSelectable())
+                if (!Element.IsSelectable)
                 {
                     throw new UINoSelectablesExeption();
                 }
@@ -136,8 +136,8 @@ namespace PACommon.Extensions
                     if (!(firstLoop && autoEnter))
                     {
                         if (
-                            Element.IsClickable() &&
-                            Element.IsOnlyClickable()
+                            Element.IsClickable &&
+                            Element.IsOnlyClickable
                         )
                         {
                             pressedKey = SFMUtils.GetKey(GetKeyMode.IGNORE_HORIZONTAL, keybinds);
@@ -158,7 +158,7 @@ namespace PACommon.Extensions
 
                     // change value
                     if (
-                        Element.IsSelectable() &&
+                        Element.IsSelectable &&
                         (
                             pressedKey.Equals(keyResults.ElementAt((int)Key.LEFT)) ||
                             pressedKey.Equals(keyResults.ElementAt((int)Key.RIGHT)) ||
