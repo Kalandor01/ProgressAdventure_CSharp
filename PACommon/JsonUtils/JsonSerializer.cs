@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using PACommon.Enums;
 using System.Collections;
 
-namespace PACommon
+namespace PACommon.JsonUtils
 {
     public static class JsonSerializer
     {

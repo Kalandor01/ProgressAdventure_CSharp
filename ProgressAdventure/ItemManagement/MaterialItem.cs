@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.ItemManagement
@@ -55,7 +56,8 @@ namespace ProgressAdventure.ItemManagement
             }
 
             // L / M3 (/ amount???)
-            return ItemUtils.materialProperties[Material].density * (Unit == ItemAmountUnit.L ? 0.001 : 1);
+            var densityMultiplier = Unit == ItemAmountUnit.L ? 0.001 : 1;
+            return ItemUtils.materialProperties[Material].density * densityMultiplier;
         }
 
         protected override double GetVolumeMultiplier()

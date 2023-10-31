@@ -6,7 +6,14 @@
         xmlns:local="clr-namespace:PAVisualizer"
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         mc:Ignorable="d"
-        Title="Save world viewer" Height="850" Width="800">
+        Title="{DynamicResource Title}" Height="850" Width="800">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/PAVisualizer;component/Resources/MainWindow.en.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
@@ -15,22 +22,22 @@
         </Grid.RowDefinitions>
         <Menu DockPanel.Dock="Top" Grid.Row="0" Panel.ZIndex="100">
             <MenuItem Header="File">
-                <MenuItem x:Name="selectMenuItem" Header="Select" Click="SelectSaveCommand"/>
-                <MenuItem x:Name="closeMenuItem" Header="Close" Click="CloseSaveCommand"/>
-                <MenuItem x:Name="createImageMenuItem" Header="Create image based on seleced layers" Click="CreateImageCommand"/>
-                <MenuItem x:Name="showSaveInfoMenuItem" Header="Save info" Click="ShowSaveInfoCommand"/>
-                <MenuItem x:Name="showWorldInfoMenuItem" Header="World info" Click="ShowWorldInfoCommand"/>
-                <MenuItem x:Name="createSaveMenuItem" Header="Save" Click="CreateSaveCommand"/>
+                <MenuItem x:Name="selectMenuItem" Header="{DynamicResource SelectMenuItemHeader}" Click="SelectSaveCommand"/>
+                <MenuItem x:Name="closeMenuItem" Header="{DynamicResource CloseMenuItemHeader}" Click="CloseSaveCommand"/>
+                <MenuItem x:Name="createImageMenuItem" Header="{DynamicResource CreateImageMenuItemHeader}" Click="CreateImageCommand"/>
+                <MenuItem x:Name="showSaveInfoMenuItem" Header="{DynamicResource ShowSaveInfoMenuItemHeader}" Click="ShowSaveInfoCommand"/>
+                <MenuItem x:Name="showWorldInfoMenuItem" Header="{DynamicResource ShowWorldInfoMenuItemHeader}" Click="ShowWorldInfoCommand"/>
+                <MenuItem x:Name="createSaveMenuItem" Header="{DynamicResource CreateSaveMenuItemHeader}" Click="CreateSaveCommand"/>
             </MenuItem>
         </Menu>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Panel.ZIndex="100" Background="White">
             <Label x:Name="centerTextBox"></Label>
             <Label x:Name="diameterTextBox"></Label>
-            <Button x:Name="revealAreaButton" Click="RevealAreaCommand">Reveal visible area</Button>
+            <Button x:Name="revealAreaButton" Click="RevealAreaCommand" Content="{DynamicResource RevalAreaButtonText}"></Button>
             <Button x:Name="toggleLoggingWriteOut" Click="ToggleLoggingWriteOutCommand">Toggle logging in console: True</Button>
-            <CheckBox x:Name="terrainLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Terrain layer</CheckBox>
-            <CheckBox x:Name="structureLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Structure layer</CheckBox>
-            <CheckBox x:Name="populationLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand">Population layer</CheckBox>
+            <CheckBox x:Name="terrainLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand" Content="{DynamicResource TerrainLayerCheckBoxText}"></CheckBox>
+            <CheckBox x:Name="structureLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand" Content="{DynamicResource StructureLayerCheckBoxText}"></CheckBox>
+            <CheckBox x:Name="populationLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand" Content="{DynamicResource PopulationLayerCheckBoxText}"></CheckBox>
         </StackPanel>
         <Grid x:Name="worldGrid" Grid.Row="2"></Grid>
     </Grid>

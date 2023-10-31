@@ -460,7 +460,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="rawDisplayName">The raw display name of the compound item, where the name of a material in the parts list can be refrenced, by replacing it by "*/[index of part in the list][T: type, M: material, N: display name][U: upper, L: lower, C: capitalise]/*".</param>
         /// <param name="parts">The parts used to create the compound item.</param>
-        public static string ParseCompoundItemDisplayName(string rawDisplayName, List<AItem> parts)
+        public static string ParseCompoundItemDisplayName(string rawDisplayName, IList<AItem> parts)
         {
             var pattern = "\\*/(\\d+)([TMN])([ULC])/\\*";
             var finalName = new StringBuilder();

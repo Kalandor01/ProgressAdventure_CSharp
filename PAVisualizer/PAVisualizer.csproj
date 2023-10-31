@@ -16,4 +16,11 @@
     <ProjectReference Include="..\ProgressAdventure\ProgressAdventure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="Resources\MainWindow.en.xaml">
+      <Generator></Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+  </ItemGroup>
+
 </Project>

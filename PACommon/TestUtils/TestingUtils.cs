@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Text;
 
-namespace PACommon
+namespace PACommon.TestUtils
 {
     public class TestingUtils
     {
@@ -114,7 +114,7 @@ namespace PACommon
             var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
 
             Console.WriteLine(typeText + messageText);
-            Logger.Instance.Log(testName, result.resultType + (messageText), result.resultType);
+            Logger.Instance.Log(testName, result.resultType + messageText, result.resultType);
             testsRun++;
             testsSuccessful += passed ? 1 : 0;
 

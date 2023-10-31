@@ -1,0 +1,18 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="Title">Save world viewer</system:String>
+                   
+    <system:String x:Key="SelectMenuItemHeader">Select</system:String>
+    <system:String x:Key="CloseMenuItemHeader">Close</system:String>
+    <system:String x:Key="CreateImageMenuItemHeader">Create image based on seleced layers</system:String>
+    <system:String x:Key="ShowSaveInfoMenuItemHeader">Save info</system:String>
+    <system:String x:Key="ShowWorldInfoMenuItemHeader">World info</system:String>
+    <system:String x:Key="CreateSaveMenuItemHeader">Save</system:String>
+
+    <system:String x:Key="RevalAreaButtonText">Reveal visible area</system:String>
+    <system:String x:Key="TerrainLayerCheckBoxText">Terrain layer</system:String>
+    <system:String x:Key="StructureLayerCheckBoxText">Structure layer</system:String>
+    <system:String x:Key="PopulationLayerCheckBoxText">Population layer</system:String>
+</ResourceDictionary>

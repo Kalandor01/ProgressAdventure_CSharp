@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using PACTools = PACommon.Tools;
 
@@ -58,18 +59,15 @@ namespace ProgressAdventure.ItemManagement
                 if (_amount < 0)
                 {
                     _amount = 0;
+                    return;
                 }
-                else
+
+                if (Unit == ItemAmountUnit.AMOUNT)
                 {
-                    if (Unit == ItemAmountUnit.AMOUNT)
-                    {
-                        _amount = Math.Floor(_amount);
-                    }
-                    else
-                    {
-                        _amount = Math.Round(_amount, Constants.ITEM_AMOUNT_ROUNDING_DIGITS);
-                    }
+                    _amount = Math.Floor(_amount);
+                    return;
                 }
+                _amount = Math.Round(_amount, Constants.ITEM_AMOUNT_ROUNDING_DIGITS);
             }
         }
 

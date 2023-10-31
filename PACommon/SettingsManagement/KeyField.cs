@@ -35,6 +35,14 @@ namespace PACommon.SettingsManagement
         public bool lengthAsDisplayLength;
         #endregion
 
+        #region Override properties
+        /// <inheritdoc cref="BaseUI.IsClickable"/>
+        public override bool IsClickable {  get => true; }
+
+        /// <inheritdoc cref="BaseUI.IsOnlyClickable"/>
+        public override bool IsOnlyClickable { get => true; }
+        #endregion
+
         #region Public delegates
         /// <summary>
         /// <inheritdoc cref="validatorFunction" path="//summary"/>
@@ -160,18 +168,6 @@ namespace PACommon.SettingsManagement
 
                 return true;
             }
-            return true;
-        }
-
-        /// <inheritdoc cref="BaseUI.IsClickable"/>
-        public override bool IsClickable()
-        {
-            return true;
-        }
-
-        /// <inheritdoc cref="BaseUI.IsOnlyClickable"/>
-        public override bool IsOnlyClickable()
-        {
             return true;
         }
         #endregion

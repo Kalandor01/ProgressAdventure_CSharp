@@ -1,6 +1,6 @@
 ﻿using PACommon.Enums;
 
-namespace PACommon
+namespace PACommon.JsonUtils
 {
     /// <summary>
     /// Interface for classes that can be converted to and from json.

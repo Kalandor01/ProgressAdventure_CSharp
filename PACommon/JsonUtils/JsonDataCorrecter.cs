@@ -1,6 +1,6 @@
 ﻿using PACommon.Enums;
 
-namespace PACommon
+namespace PACommon.JsonUtils
 {
     /// <summary>
     /// Object containing utils to convert json data for <c>IJsonConvertable</c> objects to different versions.

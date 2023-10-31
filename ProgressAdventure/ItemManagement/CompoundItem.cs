@@ -1,8 +1,10 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Collections;
+using System.Collections.Immutable;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
@@ -12,12 +14,11 @@ namespace ProgressAdventure.ItemManagement
     /// </summary>
     public class CompoundItem : AItem, IJsonConvertable<CompoundItem>
     {
-
         #region Public properties
         /// <summary>
         /// The parts making up this item.
         /// </summary>
-        public List<AItem> Parts { get; private set; }
+        public ImmutableList<AItem> Parts { get; private set; }
         #endregion
 
         #region Constructors
@@ -51,7 +52,7 @@ namespace ProgressAdventure.ItemManagement
                 throw new ArgumentException("Parts list doesn't have an element.", nameof(parts));
             }
 
-            Parts = parts;
+            Parts = parts.ToImmutableList();
             Material = Parts.First().Material;
             Amount = amount;
             SetAttributes();
@@ -91,7 +92,9 @@ namespace ProgressAdventure.ItemManagement
             {
                 totalMass += part.Mass;
             }
-            return totalMass * (Unit == ItemAmountUnit.L ? 0.001 : 1);
+
+            var massMultiplier = Unit == ItemAmountUnit.L ? 0.001 : 1;
+            return totalMass * massMultiplier;
         }
 
         protected override double GetVolumeMultiplier()
