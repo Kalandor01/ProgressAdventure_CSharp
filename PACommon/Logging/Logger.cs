@@ -1,6 +1,6 @@
 ﻿using PACommon.Enums;
 
-namespace PACommon
+namespace PACommon.Logging
 {
     /// <summary>
     /// Contains functions for logging.
@@ -31,17 +31,9 @@ namespace PACommon
         private LogSeverity _loggingLevel = LogSeverity.DEBUG;
 
         /// <summary>
-        /// The name of the folder, where the logs will be placed.
+        /// The logger stream to use to write logs.
         /// </summary>
-        private readonly string logsFolder;
-        /// <summary>
-        /// The path to the folder that contains the logs folder. Must be an existing folder.
-        /// </summary>
-        private readonly string logsFolderParrentPath;
-        /// <summary>
-        /// The extension used for log files.
-        /// </summary>
-        private readonly string logsExt;
+        private readonly ILoggerStream loggerStream;
         #endregion
 
         #region Public properties
@@ -56,7 +48,7 @@ namespace PACommon
                 {
                     lock (_threadLock)
                     {
-                        _instance ??= Initialize(Constants.ROOT_FOLDER);
+                        _instance ??= Initialize(new FileLoggerStream(Constants.ROOT_FOLDER));
                     }
                 }
                 return _instance;
@@ -113,46 +105,20 @@ namespace PACommon
         /// <summary>
         /// <inheritdoc cref="Logger"/>
         /// </summary>
-        /// <param name="logsFolderParrentPath"><inheritdoc cref="logsFolderParrentPath" path="//summary"/></param>
-        /// <param name="logsFolder"><inheritdoc cref="logsFolder" path="//summary"/></param>
-        /// <param name="logsExtension"><inheritdoc cref="logsExt" path="//summary"/></param>
+        /// <param name="loggerStream"><inheritdoc cref="loggerStream" path="//summary"/></param>
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="DirectoryNotFoundException"></exception>
         private Logger(
-            string logsFolderParrentPath,
-            string logsFolder,
-            string logsExtension,
+            ILoggerStream loggerStream,
             bool logMilliseconds = Constants.DEFAULT_LOG_MS,
             bool defaultWriteOut = false,
             LogSeverity loggingLevel = LogSeverity.DEBUG
         )
         {
-            if (string.IsNullOrWhiteSpace(logsFolderParrentPath))
-            {
-                throw new ArgumentException($"'{nameof(logsFolderParrentPath)}' cannot be null or whitespace.", nameof(logsFolderParrentPath));
-            }
-
-            if (string.IsNullOrWhiteSpace(logsFolder))
-            {
-                throw new ArgumentException($"'{nameof(logsFolder)}' cannot be null or whitespace.", nameof(logsFolder));
-            }
-
-            if (string.IsNullOrWhiteSpace(logsExtension))
-            {
-                throw new ArgumentException($"'{nameof(logsExtension)}' cannot be null or whitespace.", nameof(logsExtension));
-            }
-
-            if (!Directory.Exists(logsFolderParrentPath))
-            {
-                throw new DirectoryNotFoundException($"'{nameof(logsFolderParrentPath)}' is not an existing directory.");
-            }
-
-            this.logsFolderParrentPath = logsFolderParrentPath;
-            this.logsFolder = logsFolder;
-            logsExt = logsExtension;
+            this.loggerStream = loggerStream;
             LogMS = logMilliseconds;
             _defaultWriteOut = defaultWriteOut;
             _isLoggingEnabled = loggingLevel != LogSeverity.DISABLED;
@@ -164,24 +130,20 @@ namespace PACommon
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
-        /// <param name="logInitialization">Whether to log the fact that the <c>Logger</c> was initialized.</param>
-        /// <param name="logsFolderParrentPath"><inheritdoc cref="logsFolderParrentPath" path="//summary"/></param>
-        /// <param name="logsFolder"><inheritdoc cref="logsFolder" path="//summary"/></param>
-        /// <param name="logsExtension"><inheritdoc cref="logsExt" path="//summary"/></param>
+        /// <param name="loggerStream"><inheritdoc cref="loggerStream" path="//summary"/></param>
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
+        /// <param name="logInitialization">Whether to log the fact that the <c>Logger</c> was initialized.</param>
         public static Logger Initialize(
-            string logsFolderParrentPath,
-            string logsFolder = Constants.DEFAULT_LOGS_FOLDER,
-            string logsExtension = Constants.DEFAULT_LOG_EXT,
+            ILoggerStream loggerStream,
             bool logMilliseconds = Constants.DEFAULT_LOG_MS,
             bool defaultWriteOut = false,
             LogSeverity loggingLevel = LogSeverity.DEBUG,
             bool logInitialization = true
         )
         {
-            _instance = new Logger(logsFolderParrentPath, logsFolder, logsExtension, logMilliseconds, defaultWriteOut, loggingLevel);
+            _instance = new Logger(loggerStream, logMilliseconds, defaultWriteOut, loggingLevel);
             if (logInitialization)
             {
                 _instance.Log($"{nameof(Logger)} initialized", newLine: true);
@@ -230,25 +192,12 @@ namespace PACommon
                     var now = DateTime.Now;
                     var currentDate = Utils.MakeDate(now);
                     var currentTime = Utils.MakeTime(now, writeMs: LogMS);
-                    RecreateLogsFolder();
-                    string text = $"{(newLine ? "\n" : "")}[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n";
-                    while (true)
-                    {
-                        try
-                        {
-                            using var f = File.AppendText(Path.Join(logsFolderParrentPath, logsFolder, $"{currentDate}.{logsExt}"));
-                            await f.WriteAsync(text);
-                            break;
-                        }
-                        catch (IOException) { }
-                    }
+                    string logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n";
+
+                    await loggerStream.LogTextAsync(logLine, newLine);
                     if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
                     {
-                        if (newLine)
-                        {
-                            Console.WriteLine();
-                        }
-                        Console.WriteLine($"{Path.Join(logsFolder, $"{currentDate}.{logsExt}")} -> [{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}");
+                        await loggerStream.WriteOutLogAsync(logLine, newLine);
                     }
                 }
             }
@@ -258,13 +207,11 @@ namespace PACommon
                 {
                     try
                     {
-                        using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
-                        await f.WriteAsync($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{e}|\n");
+                        await loggerStream.LogLoggingExceptionAsync(e);
                     }
                     catch (Exception e2)
                     {
-                        Console.WriteLine($"\n\n\n\n\n\n\n\n\n\nJUST...NO!!! (Logger exception level 2):\n{e2}\n\n\n");
-                        Console.ReadKey();
+                        loggerStream.LogFinalLoggingException(e2);
                     }
                 }
             }
@@ -289,28 +236,23 @@ namespace PACommon
             {
                 if (LoggingEnabled)
                 {
-                    RecreateLogsFolder();
-                    using var f = File.AppendText(Path.Join(logsFolderParrentPath, logsFolder, $"{Utils.MakeDate(DateTime.Now)}.{logsExt}"));
-                    await f.WriteAsync("\n");
+                    await loggerStream.LogNewLineAsync();
                 }
             }
             catch (Exception e)
             {
                 if (LoggingEnabled)
                 {
-                    using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
-                    await f.WriteAsync($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOG NEW LINE CRASHED]\t: |{e}|\n");
+                    try
+                    {
+                        await loggerStream.LogLoggingExceptionAsync(e);
+                    }
+                    catch (Exception e2)
+                    {
+                        loggerStream.LogFinalLoggingException(e2);
+                    }
                 }
             }
-        }
-
-        /// <summary>
-        /// <c>RecreateFolder</c> for the logs folder.
-        /// </summary>
-        /// <returns><inheritdoc cref="RecreateFolder(string, string?, string?)"/></returns>
-        public bool RecreateLogsFolder()
-        {
-            return Tools.RecreateFolder(logsFolder, logsFolderParrentPath);
         }
         #endregion
 

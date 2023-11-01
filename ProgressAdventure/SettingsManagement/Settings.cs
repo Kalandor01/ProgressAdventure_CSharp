@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.Logging;
 using ProgressAdventure.Enums;
 using PACConstants = PACommon.Constants;
 using PACTools = PACommon.Tools;

@@ -1,5 +1,5 @@
-﻿using PACommon;
-using PACommon.Enums;
+﻿using PACommon.Enums;
+using PACommon.Logging;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;

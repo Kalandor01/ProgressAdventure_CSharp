@@ -1,4 +1,5 @@
 ﻿using PACommon.Enums;
+using PACommon.Logging;
 using System.Reflection;
 using System.Text;
 

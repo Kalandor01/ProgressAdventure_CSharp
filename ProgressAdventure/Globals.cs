@@ -1,4 +1,4 @@
-﻿using PACommon;
+﻿using PACommon.Logging;
 
 namespace ProgressAdventure
 {

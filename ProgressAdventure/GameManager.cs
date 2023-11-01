@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.Logging;
 using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;

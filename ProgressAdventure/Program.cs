@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using PACommon.Logging;
 using PACommon.SettingsManagement;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
@@ -34,7 +35,8 @@ namespace ProgressAdventure
 
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
-            Logger.Initialize(PACConstants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT, Constants.LOG_MS, false, LogSeverity.DEBUG);
+            var loggingStream = new FileLoggerStream(PACConstants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT);
+            Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG);
             Console.WriteLine("Loading...");
 
             if (!Utils.TryEnableAnsiCodes())

@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.Logging;
 using PACommon.TestUtils;
 using System.Text;
 using PACConstants = PACommon.Constants;
@@ -30,7 +31,7 @@ namespace ProgressAdventureTests
 
             Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
 
-            Logger.Initialize(PACConstants.ROOT_FOLDER);
+            Logger.Initialize(new FileLoggerStream(PACConstants.ROOT_FOLDER));
             Console.WriteLine("Loading...");
 
             if (!Utils.TryEnableAnsiCodes())
