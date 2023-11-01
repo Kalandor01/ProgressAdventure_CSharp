@@ -129,8 +129,8 @@ namespace PACommon.Extensions
                 var actualMove = false;
                 do
                 {
-                        // get pressedKey
-                        pressedKey = keyResults.ElementAt((int)Key.ENTER);
+                    // get pressedKey
+                    pressedKey = keyResults.ElementAt((int)Key.ENTER);
 
                     // auto enter
                     if (!(firstLoop && autoEnter))

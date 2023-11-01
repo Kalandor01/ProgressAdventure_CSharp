@@ -39,7 +39,7 @@ namespace ProgressAdventure.ItemManagement
 
                 //if (Consumable)
                 //{
-                    Amount--;
+                Amount--;
                 //}
                 return true;
             }

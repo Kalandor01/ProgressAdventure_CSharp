@@ -18,7 +18,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         /// <param name="actions"><inheritdoc cref="AKeybinds{T, TA}.KeybindList" path="//summary"/></param>
         public Keybinds(IEnumerable<ActionKey>? actions)
-            :base(actions ?? SettingsUtils.GetDefaultKeybindList())
+            : base(actions ?? SettingsUtils.GetDefaultKeybindList())
         {
             if (actions is null)
             {

@@ -109,7 +109,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 double chunkNum = chunkData.Count;
                 Console.Write(showProgressText + "                  ");
-                for ( var x = 0; x < chunkNum; x++)
+                for (var x = 0; x < chunkNum; x++)
                 {
                     chunkData.ElementAt(x).Value.SaveToFile(saveFolderName);
                     Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%");

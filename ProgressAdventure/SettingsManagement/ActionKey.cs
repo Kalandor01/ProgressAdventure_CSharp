@@ -26,7 +26,8 @@ namespace ProgressAdventure.SettingsManagement
                   SettingsUtils.actionTypeResponseMapping[actionType],
                   keys,
                   SettingsUtils.actionTypeIgnoreMapping[actionType]
-            ) { }
+            )
+        { }
         #endregion
 
         #region Public overrides

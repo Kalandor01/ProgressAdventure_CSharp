@@ -577,7 +577,7 @@ namespace ProgressAdventureTests
                 }
                 subTypeDict[subType.Super].Add(subType);
             }
-            
+
             IDictionary<ContentTypeID, string> checkedBaseTypeMap;
             IDictionary<ContentTypeID, Dictionary<ContentTypeID, string>> checkedDictionary;
 

@@ -47,7 +47,8 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// <inheritdoc cref="_amount"/>
         /// </summary>
-        public double Amount {
+        public double Amount
+        {
             get
             {
                 return _amount;

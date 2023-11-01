@@ -118,7 +118,7 @@ namespace ProgressAdventure.ItemManagement
         {
             for (var x = 0; x < items.Count; x++)
             {
-                if (items.ElementAt(x).Type == itemType && items.ElementAt(x).Material ==  material)
+                if (items.ElementAt(x).Type == itemType && items.ElementAt(x).Material == material)
                 {
                     if (amount is null || items.ElementAt(x).Amount - amount <= 0)
                     {

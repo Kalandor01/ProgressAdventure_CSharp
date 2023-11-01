@@ -139,7 +139,7 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops = null,
             string fileVersion = Constants.SAVE_VERSION
         )
-            :this(
+            : this(
                 (
                     name,
                     stats.baseMaxHp,
@@ -156,7 +156,8 @@ namespace ProgressAdventure.Entity
                 ),
                 null,
                 fileVersion
-            ) { }
+            )
+        { }
         #endregion
 
         #region Public methods
@@ -183,7 +184,7 @@ namespace ProgressAdventure.Entity
                 var oldFacing = facing;
                 var angle = RandomStates.Instance.MainRandom.Triangular(-180, 0, 180);
                 var newFacing = EntityUtils.RotateFacing(oldFacing, angle);
-                
+
                 if (newFacing is not null && newFacing != oldFacing)
                 {
                     facing = (Facing)newFacing;
@@ -253,7 +254,7 @@ namespace ProgressAdventure.Entity
             {
                 Logger.Instance.Log("Attack log", $"{target.FullName} dodged");
                 return AttackResponse.TARGET_DOGDED;
-            }            
+            }
             // attack
             else
             {

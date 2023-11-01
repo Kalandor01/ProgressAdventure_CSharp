@@ -118,7 +118,7 @@ namespace ProgressAdventure
             Logger.Instance.Log($"{nameof(RandomStates)} initialized");
             return _instance;
         }
-        
+
         /// <summary>
         /// Recalculates ALL seeds for perlin noise generators.
         /// </summary>

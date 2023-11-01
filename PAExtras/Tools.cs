@@ -140,7 +140,7 @@ namespace PAExtras
                     {
                         chunk.FillChunk();
                     }
-                    Console.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round(  ((double)(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1) % (chunkNum / numberOfSaves)) / (chunkNum / numberOfSaves) * 100, 1)}%");
+                    Console.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round(((double)(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1) % (chunkNum / numberOfSaves)) / (chunkNum / numberOfSaves) * 100, 1)}%");
                     if (PACUtils.Mod(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1, chunkNum / numberOfSaves) == 0)
                     {
                         saveNum++;

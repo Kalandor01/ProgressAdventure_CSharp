@@ -1,7 +1,4 @@
-﻿using PACommon.Enums;
-using SaveFileManager;
-
-namespace PACommon.SettingsManagement
+﻿namespace PACommon.SettingsManagement
 {
     /// <summary>
     /// Class for storing the keybinds list.

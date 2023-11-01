@@ -166,7 +166,8 @@ namespace ProgressAdventure
 
         public Dictionary<string, object?> ToJson()
         {
-            return new Dictionary<string, object?> {
+            return new Dictionary<string, object?>
+            {
                 [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
                 [Constants.JsonKeys.SaveData.SAVE_NAME] = saveName,
                 [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,

@@ -153,7 +153,7 @@ namespace PACommon
         private void GeneratePermBytes(IPseudoRandomGenerator generator)
         {
             var halfArray = new byte[256];
-            
+
             for (int x = 0; x < halfArray.Length; x++)
             {
                 halfArray[x] = (byte)generator.GenerateInRange(0, 255);

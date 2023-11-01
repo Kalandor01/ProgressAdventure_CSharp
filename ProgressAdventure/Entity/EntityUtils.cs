@@ -399,10 +399,10 @@ namespace ProgressAdventure.Entity
                 {
                     maxCost = minPower;
                 }
-                
+
                 // cost calculation
                 var entityCost = remainingEntityNumber > 1 ? RandomStates.Instance.MiscRandom.GenerateInRange(minPower, maxCost) : totalCost;
-                
+
                 // cost adjustment
                 if (entityCost < minPower)
                 {
@@ -527,7 +527,7 @@ namespace ProgressAdventure.Entity
                                 player = (Player)entity;
                             }
                         }
-                }
+                    }
                     if (entityList.Count > 0)
                     {
                         Logger.Instance.Log("Fight log", $"all entities are dead in team: {team.Key}", LogSeverity.WARN);
@@ -675,7 +675,7 @@ namespace ProgressAdventure.Entity
             {
                 Logger.Instance.Log("Fight log", $"player is in the fight, team: {playerTeam}");
             }
-            
+
             // entities write out
             if (writeOut)
             {

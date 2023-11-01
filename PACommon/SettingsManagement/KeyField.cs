@@ -37,7 +37,7 @@ namespace PACommon.SettingsManagement
 
         #region Override properties
         /// <inheritdoc cref="BaseUI.IsClickable"/>
-        public override bool IsClickable {  get => true; }
+        public override bool IsClickable { get => true; }
 
         /// <inheritdoc cref="BaseUI.IsOnlyClickable"/>
         public override bool IsOnlyClickable { get => true; }

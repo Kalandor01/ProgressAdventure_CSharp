@@ -201,7 +201,7 @@ namespace PAVisualizer
             string? saveFolderPath = null;
             var folderSplit = folderPath.Split(Path.DirectorySeparatorChar);
             var saveFolderName = folderSplit.Last();
-            if (folderPath.Length > 1 )
+            if (folderPath.Length > 1)
             {
                 saveFolderPath = string.Join(Path.DirectorySeparatorChar, folderSplit[..^1]);
             }

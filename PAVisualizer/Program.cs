@@ -145,7 +145,7 @@ namespace PAVisualizer
             }
             while (!exitGame);
         }
-        
+
         public static void Main()
         {
             PreloadingErrorHandler();

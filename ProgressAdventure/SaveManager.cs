@@ -266,7 +266,7 @@ namespace ProgressAdventure
                 displayText.Append($"Last saved: {Utils.MakeDate(lastSave, ".")} {Utils.MakeTime(lastSave)} ");
                 displayText.Append($"Playtime: {playtime}");
                 displayText.Append(Tools.StylizedText($" v.{displayFileVersion}", isNewestVersion ? Constants.Colors.GREEN : Constants.Colors.RED));
-                    
+
                 return (folderName, displayText.ToString());
             }
             catch (Exception ex)

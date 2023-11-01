@@ -212,7 +212,7 @@ namespace ProgressAdventure
 
             // menu elements
             var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
-            
+
             // response
             var response = new OptionsUI(menuElements, " Other options").Display(Settings.Keybinds.KeybindList);
             if (response is not null)
@@ -249,7 +249,7 @@ namespace ProgressAdventure
             }
 
             var defBackupActionElement = new PAChoice(backupActionNames, backupActionValue, "On save folder backup prompt: ");
-            
+
             // menu elements
             var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
 
@@ -503,7 +503,7 @@ namespace ProgressAdventure
         private static (List<string?> answers, List<UIAction?> actions) GetSavesMenuLists()
         {
             UpdateSavesData();
-            
+
             var answers = new List<string?>();
             var actions = new List<UIAction?>();
 

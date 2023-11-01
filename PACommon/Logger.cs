@@ -231,7 +231,7 @@ namespace PACommon
                     var currentDate = Utils.MakeDate(now);
                     var currentTime = Utils.MakeTime(now, writeMs: LogMS);
                     RecreateLogsFolder();
-                    string text =$"{(newLine ? "\n" : "")}[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n";
+                    string text = $"{(newLine ? "\n" : "")}[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n";
                     while (true)
                     {
                         try
@@ -327,7 +327,8 @@ namespace PACommon
         /// <param name="newLine">Whether to write a new line before the message. or not.</param>
         private async void LogAsyncTask(string? threadName, string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 Thread.CurrentThread.Name = threadName;
                 Log(message, details, severity, writeOut, newLine);
             });

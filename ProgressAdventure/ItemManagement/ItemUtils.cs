@@ -333,7 +333,7 @@ namespace ProgressAdventure.ItemManagement
             [ItemType.Defence.PANTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.7, ItemAmountUnit.M3) },
             [ItemType.Defence.BOOTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.4, ItemAmountUnit.M3) },
             // misc
-            [ItemType.Misc.FILLED_BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID , 0.5, ItemAmountUnit.L) },
+            [ItemType.Misc.FILLED_BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L) },
             [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(null, 0.1, ItemAmountUnit.M3) },
             [ItemType.Misc.COIN] = new List<IngredientDTO> { new IngredientDTO(null, 0.02, ItemAmountUnit.M3) },
         };
@@ -491,7 +491,7 @@ namespace ProgressAdventure.ItemManagement
                     {
                         extraText = parts[materialIndex].DisplayName;
                     }
-                    
+
                     if (caseLetter == "L")
                     {
                         extraText = extraText.ToLower();

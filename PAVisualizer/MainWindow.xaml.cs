@@ -32,7 +32,7 @@ namespace PAVisualizer
         private DateTime lastWorldChange;
         private Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> worldTileTypeCounts;
         private string worldInfoString;
-        
+
         private (double x, double y) center;
         private double worldGridScale;
         private List<WorldLayer> layers;

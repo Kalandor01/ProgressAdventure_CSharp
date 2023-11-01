@@ -36,7 +36,7 @@ namespace ProgressAdventure.Entity
             (long x, long y)? position = null,
             Facing? facing = null
         )
-            :this(
+            : this(
                 Tools.CorrectPlayerName(name),
                 EntityUtils.EntityManager(
                     (14, 20, 26),
@@ -102,7 +102,7 @@ namespace ProgressAdventure.Entity
         public override void SetPosition((long x, long y) position, bool updateWorld)
         {
             base.SetPosition(position, updateWorld);
-            if (updateWorld )
+            if (updateWorld)
             {
                 World.TryGetTileAll(position, out var tile);
                 tile.Visit();
@@ -129,7 +129,7 @@ namespace ProgressAdventure.Entity
 
         #region JsonConvertable
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>  MiscVersionCorrecters { get; } = new()
+        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> MiscVersionCorrecters { get; } = new()
         {
             // 2.0 -> 2.0.1
             (oldJson =>
