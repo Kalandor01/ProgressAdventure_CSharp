@@ -14,7 +14,7 @@ namespace ProgressAdventure.SettingsManagement
     {
         #region Private Fields
         /// <summary>
-        /// If the game should auto save or not.
+        /// If the game should auto save.
         /// </summary>
         private static bool _autoSave;
         /// <summary>

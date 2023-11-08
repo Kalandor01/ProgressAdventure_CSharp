@@ -83,8 +83,8 @@ namespace ProgressAdventure
         /// Loads a save file into the <c>SaveData</c> object.
         /// </summary>
         /// <param name="saveName">The name of the save folder.</param>
-        /// <param name="backupChoice">If the user can choose, whether to backup the save, or not.</param>
-        /// <param name="automaticBackup">If the save folder should be backed up or not. (only applies if <c>backupChoice</c> is false)</param>
+        /// <param name="backupChoice">If the user can choose, whether to backup the save.</param>
+        /// <param name="automaticBackup">If the save folder should be backed up. (only applies if <c>backupChoice</c> is false)</param>
         /// <param name="savesFolderPath">The path to the saves folder. By default, the current saves folder.</param>
         /// <exception cref="FileNotFoundException">Thrown, if the save file doesn't exist.</exception>
         /// <exception cref="FileLoadException">Thrown, if the save file doesn't have a save version.</exception>

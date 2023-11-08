@@ -94,7 +94,7 @@ namespace PACommon
         /// </summary>
         /// <param name="dateTime">The DateTime object.</param>
         /// <param name="separation">The separation string.</param>
-        /// <param name="writeMs">Whether to write out the microsecond part of the time or not.</param>
+        /// <param name="writeMs">Whether to write out the microsecond part of the time.</param>
         /// <param name="msSeparation">The microsecond separation string.</param>
         public static string MakeTime(DateTime dateTime, string separation = ":", bool writeMs = false, string msSeparation = ".")
         {
@@ -187,7 +187,7 @@ namespace PACommon
         /// </summary>
         /// <param name="str">The string to search.</param>
         /// <param name="result"></param>
-        /// <returns>If the returned result is an int or not.</returns>
+        /// <returns>If the returned result is an int.</returns>
         public static bool GetFirstCharOrInt(ref string str, out string result)
         {
             if (str == "")

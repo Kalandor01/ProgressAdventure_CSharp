@@ -36,7 +36,7 @@ namespace PACommon
         /// </summary>
         private string _startingValue;
         /// <summary>
-        /// Whether to "clear" the screen, before displaying the text, or not.
+        /// Whether to "clear" the screen, before displaying the text.
         /// </summary>
         private bool _clearScreen;
         /// <summary>

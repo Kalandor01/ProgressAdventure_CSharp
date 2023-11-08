@@ -9,7 +9,7 @@
         /// Logs a text.
         /// </summary>
         /// <param name="text">The text to log.</param>
-        /// <param name="newLine">Whether to insert a newline before the logged text, or not.</param>
+        /// <param name="newLine">Whether to insert a newline before the logged text.</param>
         Task LogTextAsync(string text, bool newLine = false);
 
         /// <summary>
@@ -21,7 +21,7 @@
         /// Writes out a log text (to the user).
         /// </summary>
         /// <param name="text">The text to log.</param>
-        /// <param name="newLine">Whether to insert a newline before the logged text, or not.</param>
+        /// <param name="newLine">Whether to insert a newline before the logged text.</param>
         Task WriteOutLogAsync(string text, bool newLine = false);
 
         /// <summary>

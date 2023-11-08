@@ -9,11 +9,11 @@ namespace ProgressAdventure
     {
         #region Public fields
         /// <summary>
-        /// If the program is in a game (save file loaded), or not.
+        /// If the program is in a game (save file loaded).
         /// </summary>
         public bool inGameLoop;
         /// <summary>
-        /// If a fight is currently happening, or not.
+        /// If a fight is currently happening.
         /// </summary>
         public bool inFight;
         /// <summary>

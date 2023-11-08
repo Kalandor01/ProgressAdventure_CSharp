@@ -47,7 +47,7 @@ namespace PAVisualizer
         #region Public functions
         #region File dialog
         /// <summary>
-        /// A function to return, if the path of the file/folder, that the user selected is valid or not.
+        /// A function to return, if the path of the file/folder, that the user selected is valid.
         /// </summary>
         /// <param name="rawText">The raw user input to correct.</param>
         public delegate bool FileDialogPathValidatorDelegate(string? selectedPath);

@@ -44,7 +44,7 @@ namespace PACommon.Extensions
         /// <param name="cursorIcon">The cursor icon to use. By default, it uses the <c>Constants.NO_CURSOR_ICONS</c>.</param>
         /// <param name="canEscape">Allows the user to press the key associated with escape, to exit the menu.</param>
         /// <param name="autoEnter">If true, an enter action will be simulated immediately, and after exiting the <c>HandleAction</c>, the function will immediately return.</param>
-        /// <param name="clearScreen">Whether to "clear" the screen, before displaying the element, or not.</param>
+        /// <param name="clearScreen">Whether to "clear" the screen, before displaying the element.</param>
         public BaseUIDisplay(BaseUI element, bool createOptionsUIObject = true, string? title = null, CursorIcon? cursorIcon = null, bool canEscape = true, bool autoEnter = false, bool clearScreen = true)
         {
             cursorIcon ??= Constants.NO_CURSOR_ICONS;

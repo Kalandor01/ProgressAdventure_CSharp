@@ -22,7 +22,7 @@ namespace PACommon.Logging
         /// </summary>
         private bool _defaultWriteOut = false;
         /// <summary>
-        /// If logging is enabled or not.
+        /// If logging is enabled.
         /// </summary>
         private bool _isLoggingEnabled = true;
         /// <summary>
@@ -181,8 +181,8 @@ namespace PACommon.Logging
         /// <param name="message">The message to log.</param>
         /// <param name="details">The details of the message.</param>
         /// <param name="severity">The severity of the message.</param>
-        /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
-        /// <param name="newLine">Whether to write a new line before the message, or not.</param>
+        /// <param name="writeOut">Whether to write out the log message to the console.</param>
+        /// <param name="newLine">Whether to write a new line before the message.</param>
         public async void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             try
@@ -265,8 +265,8 @@ namespace PACommon.Logging
         /// <param name="message">The message to log.</param>
         /// <param name="details">The details of the message.</param>
         /// <param name="severity">The severity of the message.</param>
-        /// <param name="writeOut">Whether to write out the log message to the console, or not.</param>
-        /// <param name="newLine">Whether to write a new line before the message. or not.</param>
+        /// <param name="writeOut">Whether to write out the log message to the console.</param>
+        /// <param name="newLine">Whether to write a new line before the message.</param>
         private async void LogAsyncTask(string? threadName, string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             await Task.Run(() =>
@@ -277,7 +277,7 @@ namespace PACommon.Logging
         }
 
         /// <summary>
-        /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled or not.
+        /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled.
         /// </summary>
         /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
         private void ChangeLoggingLevel(LogSeverity value)
