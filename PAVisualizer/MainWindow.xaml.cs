@@ -103,7 +103,7 @@ namespace PAVisualizer
             terrainLayerCheckBox.IsChecked = true;
             structureLayerCheckBox.IsChecked = true;
             populationLayerCheckBox.IsChecked = true;
-            toggleLoggingWriteOut.Content = $"Toggle logging in console: {Logger.Instance.DefaultWriteOut}";
+            toggleLoggingWriteOut.Content = $"Toggle logging in console: {PACSingletons.Instance.Logger.DefaultWriteOut}";
         }
         #endregion
 
@@ -280,8 +280,8 @@ namespace PAVisualizer
 
         private void ToggleLoggingWriteOutCommand(object sender, RoutedEventArgs e)
         {
-            Logger.Instance.DefaultWriteOut = !Logger.Instance.DefaultWriteOut;
-            toggleLoggingWriteOut.Content = $"Toggle logging in console: {Logger.Instance.DefaultWriteOut}";
+            PACSingletons.Instance.Logger.DefaultWriteOut = !PACSingletons.Instance.Logger.DefaultWriteOut;
+            toggleLoggingWriteOut.Content = $"Toggle logging in console: {PACSingletons.Instance.Logger.DefaultWriteOut}";
         }
         #endregion
 

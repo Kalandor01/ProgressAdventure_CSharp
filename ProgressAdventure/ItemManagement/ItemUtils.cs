@@ -412,7 +412,7 @@ namespace ProgressAdventure.ItemManagement
             var name = itemTypeID.ToString();
             if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
-                Logger.Instance.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
             }
             else
             {
@@ -447,7 +447,7 @@ namespace ProgressAdventure.ItemManagement
             var name = itemTypeID.ToString();
             if (name is null || !TryParseItemType(itemTypeID.GetHashCode(), out _))
             {
-                Logger.Instance.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", $"ID: {itemTypeID.GetHashCode()}", LogSeverity.ERROR);
             }
             else
             {

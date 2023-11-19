@@ -1,7 +1,7 @@
 ﻿using NPrng.Generators;
+using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 
 namespace ProgressAdventure.WorldManagement.Content
 {
@@ -67,7 +67,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="tile">The parrent tile.</param>
         public virtual void Visit(Tile tile)
         {
-            Logger.Instance.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
+            PACSingletons.Instance.Logger.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 }
                 else
                 {
-                    Logger.Instance.Log("Content parse error", "couldn't get content type from json", LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Content parse error", "couldn't get content type from json", LogSeverity.ERROR);
                     contentType = contentTypeMap.First().Value;
                     success = false;
                 }
@@ -206,13 +206,13 @@ namespace ProgressAdventure.WorldManagement.Content
                 }
                 else
                 {
-                    Logger.Instance.Log("Content parse error", "couldn't get content name from json", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Content parse error", "couldn't get content name from json", LogSeverity.WARN);
                     success = false;
                 }
             }
             else
             {
-                Logger.Instance.Log("Content parse error", "content json was null", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Content parse error", "content json was null", LogSeverity.ERROR);
                 contentType = contentTypeMap.First().Value;
                 success = false;
             }

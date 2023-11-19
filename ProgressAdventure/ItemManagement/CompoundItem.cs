@@ -1,7 +1,7 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 using ProgressAdventure.Enums;
 using System.Collections;
 using System.Collections.Immutable;
@@ -34,7 +34,7 @@ namespace ProgressAdventure.ItemManagement
             var typeValue = ItemUtils.ToItemType(type.GetHashCode());
             if (typeValue is null)
             {
-                Logger.Instance.Log("Unknown item type", $"id: {type.GetHashCode()}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {type.GetHashCode()}", LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(type));
             }
 
@@ -42,13 +42,13 @@ namespace ProgressAdventure.ItemManagement
 
             if (Type == ItemUtils.MATERIAL_ITEM_TYPE)
             {
-                Logger.Instance.Log("Item type cannot be \"material\" for a compound item", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item type cannot be \"material\" for a compound item", null, LogSeverity.ERROR);
                 throw new ArgumentException("Item type is not a compound item type", nameof(type));
             }
 
             if (!parts.Any())
             {
-                Logger.Instance.Log("Compound item has no parts", $"id: {type}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Compound item has no parts", $"id: {type}", LogSeverity.ERROR);
                 throw new ArgumentException("Parts list doesn't have an element.", nameof(parts));
             }
 
@@ -191,7 +191,7 @@ namespace ProgressAdventure.ItemManagement
             else
             {
                 typeName = ItemUtils.ItemIDToTypeName(Type);
-                Logger.Instance.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
             }
 
             itemJson["type"] = typeName;
@@ -204,26 +204,26 @@ namespace ProgressAdventure.ItemManagement
         {
             if (!itemJson.TryGetValue("type", out var typeNameValue))
             {
-                Logger.Instance.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
                 return false;
             }
 
             if (!ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
             {
-                Logger.Instance.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
                 return false;
             }
 
             var parts = new List<AItem>();
             if (!itemJson.TryGetValue("parts", out var partsListJson))
             {
-                Logger.Instance.Log("Item parse error", "couldn't find parts in json", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't find parts in json", LogSeverity.ERROR);
                 return false;
             }
 
             if (partsListJson is not IEnumerable partsList)
             {
-                Logger.Instance.Log("Item parse error", "parts list is not a list", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "parts list is not a list", LogSeverity.ERROR);
                 return false;
             }
 
@@ -242,12 +242,12 @@ namespace ProgressAdventure.ItemManagement
                 !double.TryParse(amountValue?.ToString(), out itemAmount)
             )
             {
-                Logger.Instance.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
             }
 
             if (itemAmount <= 0)
             {
-                Logger.Instance.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.ERROR);
                 return false;
             }
 
@@ -257,7 +257,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
                 return false;
             }
 

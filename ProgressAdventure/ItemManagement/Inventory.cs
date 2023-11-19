@@ -1,6 +1,6 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 using ProgressAdventure.Enums;
 using System.Collections;
 using System.Text;
@@ -220,7 +220,7 @@ namespace ProgressAdventure.ItemManagement
                 itemsJson is not IEnumerable itemList
             )
             {
-                Logger.Instance.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
                 return false;
             }
 

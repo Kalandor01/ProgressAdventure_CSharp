@@ -1,5 +1,5 @@
-﻿using PACommon.Enums;
-using PACommon.Logging;
+﻿using PACommon;
+using PACommon.Enums;
 using ProgressAdventure.SettingsManagement;
 using System.Collections;
 using System.IO.Compression;
@@ -136,13 +136,13 @@ namespace ProgressAdventure
                 var displayBackupPath = Path.Join(Constants.BACKUPS_FOLDER, backupNameEnd);
                 // make zip
                 ZipFile.CreateFromDirectory(saveFolderPath, backupPath);
-                Logger.Instance.Log($"Made {(isTemporary ? "temporary " : "")}backup", displayBackupPath, isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log($"Made {(isTemporary ? "temporary " : "")}backup", displayBackupPath, isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
                 return (backupPath, displayBackupPath);
             }
             else
             {
                 var displaySavePath = Path.Join(Constants.SAVES_FOLDER, saveFolderName);
-                Logger.Instance.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}", LogSeverity.WARN);
                 return null;
             }
         }
@@ -189,7 +189,7 @@ namespace ProgressAdventure
             if (Directory.Exists(saveFolderPath))
             {
                 Directory.Delete(saveFolderPath, true);
-                Logger.Instance.Log("Deleted save", $"save name: {saveFolderName}");
+                PACSingletons.Instance.Logger.Log("Deleted save", $"save name: {saveFolderName}");
             }
         }
 

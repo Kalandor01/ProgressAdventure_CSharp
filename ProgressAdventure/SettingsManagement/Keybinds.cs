@@ -1,6 +1,6 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
 using PACTools = PACommon.Tools;
@@ -22,7 +22,7 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (actions is null)
             {
-                Logger.Instance.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
             }
         }
 
@@ -35,7 +35,7 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (!KeybindList.Any())
             {
-                Logger.Instance.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
                 KeybindList = SettingsUtils.GetDefaultKeybindList();
             }
         }

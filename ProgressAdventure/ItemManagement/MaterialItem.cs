@@ -1,6 +1,6 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.ItemManagement
@@ -123,13 +123,13 @@ namespace ProgressAdventure.ItemManagement
             Material material;
             if (!itemJson.TryGetValue("material", out var materialValue))
             {
-                Logger.Instance.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
                 return false;
             }
 
             if (!Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed))
             {
-                Logger.Instance.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
                 return false;
             }
             material = materialParsed;
@@ -140,12 +140,12 @@ namespace ProgressAdventure.ItemManagement
                 !double.TryParse(amountValue?.ToString(), out itemAmount)
             )
             {
-                Logger.Instance.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
             }
 
             if (itemAmount <= 0)
             {
-                Logger.Instance.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
                 return false;
             }
 
@@ -155,7 +155,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
                 return false;
             }
 

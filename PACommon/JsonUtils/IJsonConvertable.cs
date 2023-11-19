@@ -27,11 +27,11 @@ namespace PACommon.JsonUtils
             convertedObject = default;
             if (objectJson is null)
             {
-                Logger.Instance.Log($"{typeof(T)} parse error", $"{typeof(T).ToString().ToLower()} json is null", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log($"{typeof(T)} parse error", $"{typeof(T).ToString().ToLower()} json is null", LogSeverity.ERROR);
                 return false;
             }
 
-            JsonDataCorrecter.Instance.CorrectJsonData<T>(ref objectJson, T.VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T>(ref objectJson, T.VersionCorrecters, fileVersion);
 
             return T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
         }

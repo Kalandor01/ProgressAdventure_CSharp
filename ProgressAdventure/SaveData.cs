@@ -1,5 +1,5 @@
-﻿using PACommon.JsonUtils;
-using PACommon.Logging;
+﻿using PACommon;
+using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
 using PACTools = PACommon.Tools;
 
@@ -120,7 +120,7 @@ namespace ProgressAdventure
         )
         {
             _instance = new SaveData(saveName, displaySaveName, lastSave, playtime, player, initialiseRandomGenerators);
-            Logger.Instance.Log($"{nameof(SaveData)} initialized");
+            PACSingletons.Instance.Logger.Log($"{nameof(SaveData)} initialized");
             return _instance;
         }
         #endregion

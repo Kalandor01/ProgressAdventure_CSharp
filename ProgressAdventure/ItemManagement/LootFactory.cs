@@ -1,5 +1,5 @@
-﻿using PACommon.Enums;
-using PACommon.Logging;
+﻿using PACommon;
+using PACommon.Enums;
 using ProgressAdventure.Enums;
 
 
@@ -53,7 +53,7 @@ namespace ProgressAdventure.ItemManagement
             var actualItemType = ItemUtils.ToItemType(itemType.GetHashCode());
             if (actualItemType is null)
             {
-                Logger.Instance.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(itemType));
             }
 

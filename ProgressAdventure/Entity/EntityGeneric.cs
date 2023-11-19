@@ -1,4 +1,5 @@
-﻿using PACommon.JsonUtils;
+﻿using PACommon;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 
@@ -108,7 +109,7 @@ namespace ProgressAdventure.Entity
 
         static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref TEntity? convertedObject)
         {
-            JsonDataCorrecter.Instance.CorrectJsonData<TEntity>(ref objectJson, BaseVersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TEntity>(ref objectJson, BaseVersionCorrecters, fileVersion);
             return FromJsonWithoutGeneralCorrection(objectJson, fileVersion, out convertedObject);
         }
     }

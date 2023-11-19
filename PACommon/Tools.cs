@@ -61,17 +61,17 @@ namespace PACommon
             }
             catch (FormatException)
             {
-                Logger.Instance.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
                 throw;
             }
             catch (FileNotFoundException)
             {
-                Logger.Instance.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
             catch (DirectoryNotFoundException)
             {
-                Logger.Instance.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
 
@@ -81,7 +81,7 @@ namespace PACommon
             }
             catch (Exception)
             {
-                Logger.Instance.Log("Json decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Json decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
                 throw;
             }
         }
@@ -104,7 +104,7 @@ namespace PACommon
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
-                Logger.Instance.Log($"Recreating {displayName} folder");
+                PACSingletons.Instance.Logger.Log($"Recreating {displayName} folder");
                 return true;
             }
             else
@@ -132,7 +132,7 @@ namespace PACommon
         {
             if (randomString is null)
             {
-                Logger.Instance.Log("Random parse error", "random seed is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Random parse error", "random seed is null", LogSeverity.WARN);
                 return null;
             }
             try
@@ -143,7 +143,7 @@ namespace PACommon
             {
                 if (e is ArgumentNullException || e is FormatException)
                 {
-                    Logger.Instance.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
                     return null;
                 }
                 else

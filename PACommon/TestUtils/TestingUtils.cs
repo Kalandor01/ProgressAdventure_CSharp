@@ -20,7 +20,7 @@ namespace PACommon.TestUtils
         {
             if (newLine)
             {
-                Logger.Instance.LogNewLine();
+                PACSingletons.Instance.Logger.LogNewLine();
             }
 
             var testName = testFunction.Method.Name;
@@ -31,7 +31,7 @@ namespace PACommon.TestUtils
             prepareTestFunction?.Invoke();
 
             Console.Write(testName + "...");
-            Logger.Instance.Log("Running...");
+            PACSingletons.Instance.Logger.Log("Running...");
 
             TestResultDTO result;
             try
@@ -70,15 +70,15 @@ namespace PACommon.TestUtils
                 !staticClass.IsSealed
             )
             {
-                Logger.Instance.Log($"\"{staticClass}\" is not static", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log($"\"{staticClass}\" is not static", null, LogSeverity.ERROR);
                 return;
             }
 
             var testsRun = 0;
             var testsSuccessful = 0;
 
-            Logger.Instance.LogNewLine();
-            Logger.Instance.Log($"Runing all tests from \"{staticClass}\"");
+            PACSingletons.Instance.Logger.LogNewLine();
+            PACSingletons.Instance.Logger.Log($"Runing all tests from \"{staticClass}\"");
 
             var methods = staticClass.GetMethods(BindingFlags.Public | BindingFlags.Static);
             foreach (var method in methods)
@@ -92,11 +92,11 @@ namespace PACommon.TestUtils
                 }
             }
 
-            Logger.Instance.Log("All tests finished runing");
+            PACSingletons.Instance.Logger.Log("All tests finished runing");
             var allPassed = testsSuccessful == testsRun;
             var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? Constants.Colors.GREEN : Constants.Colors.RED);
             Console.WriteLine($"\nFinished running test batch: {result} successful!");
-            Logger.Instance.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
+            PACSingletons.Instance.Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
         #endregion
 
@@ -115,7 +115,7 @@ namespace PACommon.TestUtils
             var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
 
             Console.WriteLine(typeText + messageText);
-            Logger.Instance.Log(testName, result.resultType + messageText, result.resultType);
+            PACSingletons.Instance.Logger.Log(testName, result.resultType + messageText, result.resultType);
             testsRun++;
             testsSuccessful += passed ? 1 : 0;
 

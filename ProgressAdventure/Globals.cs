@@ -1,4 +1,4 @@
-﻿using PACommon.Logging;
+﻿using PACommon;
 
 namespace ProgressAdventure
 {
@@ -95,7 +95,7 @@ namespace ProgressAdventure
         )
         {
             _instance = new Globals(inGameLoop, inFight, exiting, saving);
-            Logger.Instance.Log($"{nameof(Globals)} initialized");
+            PACSingletons.Instance.Logger.Log($"{nameof(Globals)} initialized");
             return _instance;
         }
         #endregion

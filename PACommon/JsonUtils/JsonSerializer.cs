@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PACommon.Enums;
-using PACommon.Logging;
 using System.Collections;
 
 namespace PACommon.JsonUtils
@@ -58,7 +57,7 @@ namespace PACommon.JsonUtils
                 case JTokenType.Null:
                     return null;
                 case JTokenType.Undefined:
-                    Logger.Instance.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
                     return null;
                 case JTokenType.Date:
                     return (DateTime)token;

@@ -5,7 +5,7 @@ namespace PACommon.Logging
     /// <summary>
     /// Contains functions for logging.
     /// </summary>
-    public class Logger
+    public class Logger : ILogger
     {
         #region Private fields
         /// <summary>
@@ -55,9 +55,6 @@ namespace PACommon.Logging
             }
         }
 
-        /// <summary>
-        /// <inheritdoc cref="_defaultWriteOut" path="//summary"/>
-        /// </summary>
         public bool DefaultWriteOut
         {
             get
@@ -74,23 +71,14 @@ namespace PACommon.Logging
             }
         }
 
-        /// <summary>
-        /// If the logger should log the milisecond in time.
-        /// </summary>
         public bool LogMS { get; set; }
 
-        /// <summary>
-        /// <inheritdoc cref="_isLoggingEnabled" path="//summary"/>
-        /// </summary>
         public bool LoggingEnabled
         {
             get => _isLoggingEnabled;
             private set => _isLoggingEnabled = value;
         }
 
-        /// <summary>
-        /// <inheritdoc cref="_loggingLevel" path="//summary"/>
-        /// </summary>
         public LogSeverity LoggingLevel
         {
             get => _loggingLevel;
@@ -152,37 +140,7 @@ namespace PACommon.Logging
         }
         #endregion
 
-        #region Public functions
-        /// <summary>
-        /// Tries to turn the int value of the log severity into a <c>LogSeverity</c> enum, and returns the success.
-        /// </summary>
-        /// <param name="severityValue">The log sevrity's int representation.</param>
-        /// <param name="severity">The sevrity, that got parsed, or created.</param>
-        public static bool TryParseSeverityValue(int severityValue, out LogSeverity severity)
-        {
-            foreach (var loggingValue in Enum.GetValues<LogSeverity>())
-            {
-                if ((int)loggingValue == severityValue)
-                {
-                    severity = loggingValue;
-                    return true;
-                }
-            }
-
-            severity = LogSeverity.DEBUG;
-            return false;
-        }
-        #endregion
-
         #region Public methods
-        /// <summary>
-        /// Progress Adventure logger.
-        /// </summary>
-        /// <param name="message">The message to log.</param>
-        /// <param name="details">The details of the message.</param>
-        /// <param name="severity">The severity of the message.</param>
-        /// <param name="writeOut">Whether to write out the log message to the console.</param>
-        /// <param name="newLine">Whether to write a new line before the message.</param>
         public async void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             try
@@ -221,15 +179,12 @@ namespace PACommon.Logging
         /// Progress Adventure logger.<br/>
         /// WILL log things out of order!
         /// </summary>
-        /// <inheritdoc cref="Log(string, string?, LogSeverity, bool?, bool)"/>
+        /// <inheritdoc cref="ILogger.LogAsync(string, string?, LogSeverity, bool?, bool)"/>
         public void LogAsync(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
         {
             LogAsyncTask(Thread.CurrentThread.Name + "(async)", message, details, severity, writeOut, newLine);
         }
 
-        /// <summary>
-        /// Puts a newline in the logs.
-        /// </summary>
         public async void LogNewLine()
         {
             try

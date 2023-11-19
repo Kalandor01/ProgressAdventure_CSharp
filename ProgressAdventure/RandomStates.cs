@@ -116,7 +116,7 @@ namespace ProgressAdventure
         )
         {
             _instance = new RandomStates(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
-            Logger.Instance.Log($"{nameof(RandomStates)} initialized");
+            PACSingletons.Instance.Logger.Log($"{nameof(RandomStates)} initialized");
             return _instance;
         }
 
@@ -218,7 +218,7 @@ namespace ProgressAdventure
         {
             if (tileTypeNoiseSeeds is null)
             {
-                Logger.Instance.Log("Tile noise seed parse error", "tile noise seed json is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Tile noise seed parse error", "tile noise seed json is null", LogSeverity.WARN);
                 return null;
             }
 
@@ -236,7 +236,7 @@ namespace ProgressAdventure
                 }
                 else
                 {
-                    Logger.Instance.Log("Tile noise seed parse error", "tile noise seed value is incorrect", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Tile noise seed parse error", "tile noise seed value is incorrect", LogSeverity.WARN);
                 }
             }
             return noiseSeedDict;
@@ -258,7 +258,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Instance.Log("Random states parse error", "main random is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
                 success = false;
             }
             // world random
@@ -268,7 +268,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Instance.Log("Random states parse error", "world random is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
                 success = false;
             }
             // misc random
@@ -278,7 +278,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Instance.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
                 success = false;
             }
             // tile type noise seeds
@@ -289,7 +289,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Instance.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
                 success = false;
             }
             // chunk seed modifier
@@ -302,7 +302,7 @@ namespace ProgressAdventure
             }
             else
             {
-                Logger.Instance.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
                 success = false;
             }
 

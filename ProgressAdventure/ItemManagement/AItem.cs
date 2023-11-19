@@ -1,6 +1,6 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 using ProgressAdventure.Enums;
 using PACTools = PACommon.Tools;
 
@@ -234,7 +234,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (!itemJson.TryGetValue("type", out var typeNameValue))
             {
-                Logger.Instance.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
                 return false;
             }
 
@@ -254,7 +254,7 @@ namespace ProgressAdventure.ItemManagement
             }
             else
             {
-                Logger.Instance.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
                 return false;
             }
         }

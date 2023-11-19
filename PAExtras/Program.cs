@@ -1,4 +1,4 @@
-﻿using PACommon.Logging;
+﻿using PACommon;
 
 namespace PAExtras
 {
@@ -7,7 +7,7 @@ namespace PAExtras
         private static void Main(string[] args)
         {
             Thread.CurrentThread.Name = "PAExtras";
-            Logger.Instance.LogNewLine();
+            PACSingletons.Instance.Logger.LogNewLine();
 
             //SaveImporter.ImportSave("big_test");
             //SaveImporter.ImportSave("new save");

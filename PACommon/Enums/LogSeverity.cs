@@ -12,7 +12,7 @@
         OTHER = 7,
         /// <summary>
         /// Logging level REPRESENTING MINIMAL/NO LOGGING ONLY!!!<br/>
-        /// DON'T USE WHEN CALLING <c>Logger.Instance.Log()</c>!!!<br/>
+        /// DON'T USE WHEN CALLING <c>PACSingletons.Instance.Logger.Log()</c>!!!<br/>
         /// </summary>
         DISABLED = -1,
     }

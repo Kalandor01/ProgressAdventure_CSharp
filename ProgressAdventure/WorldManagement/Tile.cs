@@ -180,11 +180,11 @@ namespace ProgressAdventure.WorldManagement
             tileObject = null;
             if (tileJson is null)
             {
-                Logger.Instance.Log("Tile parse error", "tile json is null", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Tile parse error", "tile json is null", LogSeverity.ERROR);
                 return false;
             }
 
-            JsonDataCorrecter.Instance.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
 
             // x and y
             if (!(
@@ -194,7 +194,7 @@ namespace ProgressAdventure.WorldManagement
                 long.TryParse(yPosValue?.ToString(), out long yPos)
             ))
             {
-                Logger.Instance.Log("Tile parse error", "tile coordinates cannot be parsed", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Tile parse error", "tile coordinates cannot be parsed", LogSeverity.ERROR);
                 return false;
             }
 
@@ -211,7 +211,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Instance.Log("Tile decode error", "couldn't decode visited from json. Recreacting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode visited from json. Recreacting...", LogSeverity.WARN);
                 success = false;
             }
 
@@ -223,7 +223,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Instance.Log("Tile decode error", "couldn't decode terrain from json. Recreacting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode terrain from json. Recreacting...", LogSeverity.WARN);
                 success = false;
             }
 
@@ -235,7 +235,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Instance.Log("Tile decode error", "couldn't decode structure from json. Recreacting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode structure from json. Recreacting...", LogSeverity.WARN);
                 success = false;
             }
 
@@ -247,7 +247,7 @@ namespace ProgressAdventure.WorldManagement
             }
             else
             {
-                Logger.Instance.Log("Tile decode error", "couldn't decode population from json. Recreacting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode population from json. Recreacting...", LogSeverity.WARN);
                 success = false;
             }
 

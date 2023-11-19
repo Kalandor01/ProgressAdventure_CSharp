@@ -24,7 +24,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="chunks">The dictionary of chunks.</param>
         public static void Initialize(Dictionary<string, Chunk>? chunks = null)
         {
-            Logger.Instance.Log($"{(chunks is null ? "Generating" : "Loading")} world", (chunks is null ? null : $"{chunks.Count} chunks"));
+            PACSingletons.Instance.Logger.Log($"{(chunks is null ? "Generating" : "Loading")} world", (chunks is null ? null : $"{chunks.Count} chunks"));
             Chunks = chunks ?? new Dictionary<string, Chunk>();
         }
         #endregion
@@ -124,7 +124,7 @@ namespace ProgressAdventure.WorldManagement
                     chunk.Value.SaveToFile(saveFolderName);
                 }
             }
-            Logger.Instance.Log("Saved all chunks to file", $"save folder name: {saveFolderName}");
+            PACSingletons.Instance.Logger.Log("Saved all chunks to file", $"save folder name: {saveFolderName}");
         }
 
         /// <summary>
@@ -188,9 +188,9 @@ namespace ProgressAdventure.WorldManagement
                         existingChunks.Add((posX, posY));
                         continue;
                     }
-                    Logger.Instance.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
                 }
-                Logger.Instance.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
             }
 
             // load chunks
@@ -212,7 +212,7 @@ namespace ProgressAdventure.WorldManagement
                     FindChunkInFolder(chunkPos, saveFolderName);
                 }
             }
-            Logger.Instance.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
+            PACSingletons.Instance.Logger.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
         }
 
         /// <summary>

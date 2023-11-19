@@ -1,5 +1,5 @@
-﻿using PACommon.Enums;
-using PACommon.Logging;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
@@ -32,9 +32,9 @@ namespace ProgressAdventureTests
 
             if (newLine)
             {
-                Logger.Instance.LogNewLine();
+                PACSingletons.Instance.Logger.LogNewLine();
             }
-            Logger.Instance.Log("Runing all dictionary tests");
+            PACSingletons.Instance.Logger.Log("Runing all dictionary tests");
 
             RunTestInternal(Tests.EntityUtilsFacingToMovementVectorDictionaryCheck);
             RunTestInternal(Tests.EntityUtilsAttributeStatsChangeDictionaryCheck);
@@ -48,7 +48,7 @@ namespace ProgressAdventureTests
             RunTestInternal(Tests.SettingsUtilsDefaultSettingsDictionaryCheck);
             RunTestInternal(Tests.WorldUtilsTileNoiseOffsetsDictionaryCheck);
 
-            Logger.Instance.Log("All dictionary tests finished runing");
+            PACSingletons.Instance.Logger.Log("All dictionary tests finished runing");
 
             if (newBatch)
             {
@@ -61,9 +61,9 @@ namespace ProgressAdventureTests
         /// </summary>
         public static void RunAllTests()
         {
-            Logger.Instance.LogNewLine();
+            PACSingletons.Instance.Logger.LogNewLine();
             ResetTestCounters();
-            Logger.Instance.Log("Runing all tests");
+            PACSingletons.Instance.Logger.Log("Runing all tests");
 
             RunAllDictionaryTests(false, false);
 
@@ -73,7 +73,7 @@ namespace ProgressAdventureTests
 
             RunTestInternal(Tests.BasicJsonConvertTest);
 
-            Logger.Instance.Log("All tests finished runing");
+            PACSingletons.Instance.Logger.Log("All tests finished runing");
             PrintSummary();
             ResetTestCounters();
         }
@@ -95,7 +95,7 @@ namespace ProgressAdventureTests
             var allPassed = testsSuccessful == testsRun;
             var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
             Console.WriteLine($"\nFinished running test batch: {result} successful!");
-            Logger.Instance.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
+            PACSingletons.Instance.Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
         #endregion
 
@@ -107,7 +107,7 @@ namespace ProgressAdventureTests
         {
             Settings.LoggingLevel = 0;
 
-            Logger.Instance.Log("Preloading global variables");
+            PACSingletons.Instance.Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
             Settings.Initialize();
             Globals.Initialize();

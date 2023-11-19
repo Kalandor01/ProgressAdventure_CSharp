@@ -6,7 +6,7 @@ namespace PACommon.JsonUtils
     /// <summary>
     /// Object containing utils to convert json data for <c>IJsonConvertable</c> objects to different versions.
     /// </summary>
-    public class JsonDataCorrecter
+    public class JsonDataCorrecter : IJsonDataCorrecter
     {
         #region Private fields
         /// <summary>
@@ -64,11 +64,15 @@ namespace PACommon.JsonUtils
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
-        /// <param name="logsFolderParrentPath"><inheritdoc cref="logsFolderParrentPath" path="//summary"/></param>
-        public static JsonDataCorrecter Initialize(string saveVersion)
+        /// <param name="saveVersion"><inheritdoc cref="saveVersion" path="//summary"/></param>
+        /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
+        public static JsonDataCorrecter Initialize(string saveVersion, bool logInitialization = true)
         {
             _instance = new JsonDataCorrecter(saveVersion);
-            Logger.Instance.Log($"{nameof(JsonDataCorrecter)} initialized");
+            if (logInitialization)
+            {
+                PACSingletons.Instance.Logger.Log($"{nameof(JsonDataCorrecter)} initialized");
+            }
             return _instance;
         }
         #endregion
@@ -88,18 +92,13 @@ namespace PACommon.JsonUtils
             {
                 objectJsonCorrecter(objectJson);
 
-                Logger.Instance.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+                PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
                 fileVersion = newFileVersion;
             }
         }
+        #endregion
 
-        /// <summary>
-        /// Tries to correct the json data of the object, if it's out of date.
-        /// </summary>
-        /// <param name="objectName">The name of the object to convert.</param>
-        /// <param name="objectJson">The json representation of the object.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="correcters">The list of function to use, to correct the old json data.</param>
+        #region Public methods
         public void CorrectJsonData(
             string objectName,
             ref IDictionary<string, object?> objectJson,
@@ -112,20 +111,14 @@ namespace PACommon.JsonUtils
                 return;
             }
 
-            Logger.Instance.Log($"{objectName} json data is old", "correcting data");
+            PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
             foreach (var (objectJsonCorrecter, newFileVersion) in correcters)
             {
                 CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, ref fileVersion, newFileVersion);
             }
-            Logger.Instance.Log($"{objectName} json data corrected");
+            PACSingletons.Instance.Logger.Log($"{objectName} json data corrected");
         }
 
-        /// <summary>
-        /// Tries to correct the json data of the object, if it's out of date.
-        /// </summary>
-        /// <param name="objectJson">The json representation of the object.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="correcters">The list of function to use, to correct the old json data.</param>
         public void CorrectJsonData<T>(
             ref IDictionary<string, object?> objectJson,
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,

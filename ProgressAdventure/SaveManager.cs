@@ -29,13 +29,13 @@ namespace ProgressAdventure
             SaveDataFile();
             // CHUNKS/WORLD
             Tools.RecreateChunksFolder();
-            Logger.Instance.Log("Saving chunks");
+            PACSingletons.Instance.Logger.Log("Saving chunks");
             World.SaveAllChunksToFiles(null, clearChunks, showProgressText);
             // remove backup
             if (backupStatus is not null)
             {
                 File.Delete(backupStatus.Value.backupPath);
-                Logger.Instance.Log("Removed temporary backup", backupStatus.Value.relativeBackupPath, LogSeverity.DEBUG);
+                PACSingletons.Instance.Logger.Log("Removed temporary backup", backupStatus.Value.relativeBackupPath, LogSeverity.DEBUG);
             }
         }
 
@@ -46,7 +46,7 @@ namespace ProgressAdventure
         /// <param name="playerName">The name of the player.</param>
         public static void CreateSaveData(string? displaySaveName, string? playerName)
         {
-            Logger.Instance.Log("Preparing game data");
+            PACSingletons.Instance.Logger.Log("Preparing game data");
             // make save name
             var saveName = Tools.CorrectSaveName(displaySaveName);
             // random generators
@@ -95,7 +95,7 @@ namespace ProgressAdventure
 
             if (!Directory.Exists(saveFolderPath))
             {
-                Logger.Instance.Log("Not a valid save folder", $"folder name: {saveName}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Not a valid save folder", $"folder name: {saveName}", LogSeverity.ERROR);
                 throw new FileNotFoundException("Not a valid save folder", saveName);
             }
 
@@ -109,7 +109,7 @@ namespace ProgressAdventure
 
             if (data is null)
             {
-                Logger.Instance.Log("Save data is empty", $"save name: {saveName}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Save data is empty", $"save name: {saveName}", LogSeverity.ERROR);
                 throw new FileLoadException("Save data is empty", saveName);
             }
 
@@ -122,7 +122,7 @@ namespace ProgressAdventure
                 if (backupChoice)
                 {
                     var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
-                    Logger.Instance.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
                     var createBackup = MenuManager.AskYesNoUIQuestion(
                         $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?",
                         keybinds: Settings.Keybinds
@@ -134,17 +134,17 @@ namespace ProgressAdventure
                     // correct too old save version
                     if (isOlder && !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion))
                     {
-                        Logger.Instance.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
+                        PACSingletons.Instance.Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
                         fileVersion = Constants.OLDEST_SAVE_VERSION;
                     }
                 }
             }
 
             // LOADING
-            Logger.Instance.Log("Preparing game data");
+            PACSingletons.Instance.Logger.Log("Preparing game data");
             data[Constants.JsonKeys.SaveData.SAVE_NAME] = saveName;
             PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
-            Logger.Instance.Log("Game data loaded", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
+            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             World.Initialize();
         }
 
@@ -164,7 +164,7 @@ namespace ProgressAdventure
             {
                 if (data.data is null)
                 {
-                    Logger.Instance.Log("Decode error", $"save name: {data.folderName}", LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Decode error", $"save name: {data.folderName}", LogSeverity.ERROR);
                     Utils.PressKey($"\"{data.folderName}\" is corrupted!");
                 }
                 else
@@ -219,11 +219,11 @@ namespace ProgressAdventure
                 versionValueBackup is string fileVersionBackup
             )
             {
-                Logger.Instance.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
                 return fileVersionBackup;
             }
 
-            Logger.Instance.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
+            PACSingletons.Instance.Logger.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
             return null;
         }
 
@@ -240,7 +240,7 @@ namespace ProgressAdventure
             {
                 if (dataJson is null)
                 {
-                    Logger.Instance.Log("Save display data parse error", $"no data in save file: {folderName}", LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Save display data parse error", $"no data in save file: {folderName}", LogSeverity.ERROR);
                     throw new ArgumentException("No data in save file.");
                 }
 
@@ -274,7 +274,7 @@ namespace ProgressAdventure
             {
                 if (ex is InvalidCastException || ex is ArgumentException || ex is KeyNotFoundException)
                 {
-                    Logger.Instance.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex.ToString(), LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex.ToString(), LogSeverity.ERROR);
                     Utils.PressKey($"\"{folderName}\" could not be parsed!");
                     return null;
                 }

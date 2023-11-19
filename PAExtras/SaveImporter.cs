@@ -65,12 +65,12 @@ namespace PAExtras
             var exprotedSaveFolderPath = Path.Join(Constants.EXPORTED_FOLDER_PATH, saveFolderName);
             if (!Directory.Exists(exprotedSaveFolderPath))
             {
-                Logger.Instance.Log("Correcting save file", $"save folder doesn't exist: {saveFolderName}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Correcting save file", $"save folder doesn't exist: {saveFolderName}", LogSeverity.ERROR);
                 Console.WriteLine($"Save folder \"{exprotedSaveFolderPath}\" doesn't exist");
                 return;
             }
 
-            Logger.Instance.Log("Correcting save file", $"save folder name: {saveFolderName}");
+            PACSingletons.Instance.Logger.Log("Correcting save file", $"save folder name: {saveFolderName}");
             Console.WriteLine($"Correcting save file ({saveFolderName})");
             // get destination folder
             var correctedSaveFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveFolderName);
@@ -81,7 +81,7 @@ namespace PAExtras
             var (chunkSeedMod, tileNoiseSeeds) = CorrectDataFile(exprotedSaveFolderPath, correctedSaveFolderPath);
             // chunks
             CorrectChunkFiles(exprotedSaveFolderPath, correctedSaveFolderPath, chunkSeedMod, tileNoiseSeeds, showProggress);
-            Logger.Instance.Log("Corrected save file", $"save folder name: {saveFolderName}");
+            PACSingletons.Instance.Logger.Log("Corrected save file", $"save folder name: {saveFolderName}");
             Console.WriteLine($"Corrected save file ({saveFolderName})");
         }
         #endregion
@@ -106,7 +106,7 @@ namespace PAExtras
             }
             catch (Exception e)
             {
-                Logger.Instance.Log("File read error", e.ToString(), LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("File read error", e.ToString(), LogSeverity.ERROR);
                 throw;
             }
 
@@ -117,7 +117,7 @@ namespace PAExtras
             }
             catch (Exception)
             {
-                Logger.Instance.Log("Json decode error", $"file name: {safeFilePath}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Json decode error", $"file name: {safeFilePath}", LogSeverity.ERROR);
                 throw;
             }
         }
@@ -277,7 +277,7 @@ namespace PAExtras
             bool showProggress = true
         )
         {
-            Logger.Instance.Log("Correcting chunks...");
+            PACSingletons.Instance.Logger.Log("Correcting chunks...");
             var correctText = "Correcting chunk files...";
             if (showProggress)
             {

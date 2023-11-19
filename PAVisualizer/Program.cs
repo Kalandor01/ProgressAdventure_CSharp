@@ -1,6 +1,6 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.Extensions;
-using PACommon.Logging;
 using ProgressAdventure;
 using SaveFileManager;
 using System;
@@ -20,7 +20,7 @@ namespace PAVisualizer
         /// </summary>
         static void MainFunction()
         {
-            Logger.Instance.DefaultWriteOut = false;
+            PACSingletons.Instance.Logger.DefaultWriteOut = false;
 
             var elements = new List<BaseUI>();
 
@@ -71,16 +71,16 @@ namespace PAVisualizer
             Console.OutputEncoding = Encoding.UTF8;
 
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
-            Logger.Instance.LogNewLine();
-            Logger.Instance.DefaultWriteOut = true;
+            PACSingletons.Instance.Logger.LogNewLine();
+            PACSingletons.Instance.Logger.DefaultWriteOut = true;
             Console.WriteLine("Loading...");
 
             if (!Utils.TryEnableAnsiCodes())
             {
-                Logger.Instance.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
             }
 
-            Logger.Instance.Log("Preloading global variables");
+            PACSingletons.Instance.Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
             ProgressAdventure.SettingsManagement.Settings.Initialize();
             Globals.Initialize();
@@ -97,7 +97,7 @@ namespace PAVisualizer
             }
             catch (Exception e)
             {
-                Logger.Instance.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
+                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
                 if (PAConstants.ERROR_HANDLING)
                 {
                     Utils.PressKey("ERROR: " + e.Message);
@@ -119,21 +119,21 @@ namespace PAVisualizer
                 exitGame = true;
                 try
                 {
-                    Logger.Instance.Log("Beginning new instance");
+                    PACSingletons.Instance.Logger.Log("Beginning new instance");
                     MainFunction();
                     //exit
-                    Logger.Instance.Log("Instance ended succesfuly");
+                    PACSingletons.Instance.Logger.Log("Instance ended succesfuly");
                 }
                 catch (Exception e)
                 {
-                    Logger.Instance.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
+                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
                     if (PAConstants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
                         var ans = Utils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
-                            Logger.Instance.Log("Restarting instance");
+                            PACSingletons.Instance.Logger.Log("Restarting instance");
                             exitGame = false;
                         }
                     }

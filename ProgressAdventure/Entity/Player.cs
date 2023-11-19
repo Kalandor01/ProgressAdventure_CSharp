@@ -1,6 +1,5 @@
-﻿using PACommon.Enums;
-using PACommon.JsonUtils;
-using PACommon.Logging;
+﻿using PACommon;
+using PACommon.Enums;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
@@ -177,7 +176,7 @@ namespace ProgressAdventure.Entity
         protected override bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
             var success = true;
-            JsonDataCorrecter.Instance.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
 
             Inventory? inventoryTemp = null;
             if (
@@ -188,7 +187,7 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                Logger.Instance.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
                 success = false;
             }
             inventory = inventoryTemp ?? new Inventory();

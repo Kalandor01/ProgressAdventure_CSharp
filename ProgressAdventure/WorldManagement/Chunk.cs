@@ -43,7 +43,7 @@ namespace ProgressAdventure.WorldManagement
             var baseX = Utils.FloorRound(basePosition.x, Constants.CHUNK_SIZE);
             var baseY = Utils.FloorRound(basePosition.y, Constants.CHUNK_SIZE);
             this.basePosition = (baseX, baseY);
-            Logger.Instance.Log("Creating chunk", $"baseX: {this.basePosition.x} , baseY: {this.basePosition.y}");
+            PACSingletons.Instance.Logger.Log("Creating chunk", $"baseX: {this.basePosition.x} , baseY: {this.basePosition.y}");
             ChunkRandomGenerator = chunkRandom ?? GetChunkRandom(basePosition);
             this.tiles = tiles ?? new Dictionary<string, Tile>();
             FillChunk(tiles is not null);
@@ -71,7 +71,7 @@ namespace ProgressAdventure.WorldManagement
             tiles[tileKey] = tile;
             var posX = Utils.Mod(absolutePosition.x, Constants.CHUNK_SIZE);
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
-            Logger.Instance.Log("Created tile", $"x: {posX}, y: {posY}, terrain: {WorldUtils.terrainContentTypeIDTextMap[tile.terrain.subtype]}, structure: {WorldUtils.structureContentSubtypeIDTextMap[tile.structure.subtype]}, population: {WorldUtils.populationContentSubtypeIDTextMap[tile.population.subtype]}", LogSeverity.DEBUG);
+            PACSingletons.Instance.Logger.Log("Created tile", $"x: {posX}, y: {posY}, terrain: {WorldUtils.terrainContentTypeIDTextMap[tile.terrain.subtype]}, structure: {WorldUtils.structureContentSubtypeIDTextMap[tile.structure.subtype]}, population: {WorldUtils.populationContentSubtypeIDTextMap[tile.population.subtype]}", LogSeverity.DEBUG);
             return tile;
         }
 
@@ -98,7 +98,7 @@ namespace ProgressAdventure.WorldManagement
             var chunkJson = ToJson();
             var chunkFileName = GetChunkFileName(basePosition);
             Tools.EncodeSaveShort(chunkJson, GetChunkFilePath(chunkFileName, saveFolderName));
-            Logger.Instance.Log("Saved chunk", $"{chunkFileName}.{Constants.SAVE_EXT}");
+            PACSingletons.Instance.Logger.Log("Saved chunk", $"{chunkFileName}.{Constants.SAVE_EXT}");
         }
 
         /// <summary>
@@ -134,17 +134,17 @@ namespace ProgressAdventure.WorldManagement
             {
                 if (e is FormatException)
                 {
-                    Logger.Instance.Log("Chunk parse error", "chunk couldn't be parsed", LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk couldn't be parsed", LogSeverity.ERROR);
                     return false;
                 }
                 else if (e is FileNotFoundException)
                 {
-                    Logger.Instance.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                    PACSingletons.Instance.Logger.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return false;
                 }
                 else if (e is DirectoryNotFoundException)
                 {
-                    Logger.Instance.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                    PACSingletons.Instance.Logger.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return false;
                 }
                 throw;
@@ -152,7 +152,7 @@ namespace ProgressAdventure.WorldManagement
 
             if (chunkJson is null)
             {
-                Logger.Instance.Log("Chunk parse error", "chunk json is null", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk json is null", LogSeverity.ERROR);
                 return false;
             }
 
@@ -164,14 +164,14 @@ namespace ProgressAdventure.WorldManagement
             }
             else if (chunkJson.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
             {
-                Logger.Instance.Log("Old style chunk version (< 2.2)", $"chunk name: {chunkFileName}", LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log("Old style chunk version (< 2.2)", $"chunk name: {chunkFileName}", LogSeverity.INFO);
 
                 fileVersion = versionValueBackup.ToString();
             }
 
             if (fileVersion is null)
             {
-                Logger.Instance.Log("Chunk parse error", $"couldn't parse file version, assuming minimum, chunk file name: {chunkFileName}", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Chunk parse error", $"couldn't parse file version, assuming minimum, chunk file name: {chunkFileName}", LogSeverity.WARN);
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
@@ -179,7 +179,7 @@ namespace ProgressAdventure.WorldManagement
             chunkJson.Add("position_y", position.y);
 
             var success = PACTools.TryFromJson(chunkJson, fileVersion, out chunk);
-            Logger.Instance.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
+            PACSingletons.Instance.Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
             return success;
         }
 
@@ -296,7 +296,7 @@ namespace ProgressAdventure.WorldManagement
                 }
             }
             var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
-            Logger.Instance.Log("Loaded chunk tiles from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
+            PACSingletons.Instance.Logger.Log("Loaded chunk tiles from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
 
             return success;
         }
@@ -341,7 +341,7 @@ namespace ProgressAdventure.WorldManagement
                 !chunkJson.TryGetValue("position_y", out object? posYString)
             )
             {
-                Logger.Instance.Log("Chunk parse error", "chunk position is null", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk position is null", LogSeverity.ERROR);
                 return false;
             }
 
@@ -350,7 +350,7 @@ namespace ProgressAdventure.WorldManagement
                 !long.TryParse(posYString?.ToString(), out long posY)
             )
             {
-                Logger.Instance.Log("Chunk parse error", "chunk position couldn't be parsed", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk position couldn't be parsed", LogSeverity.ERROR);
                 return false;
             }
 
@@ -366,13 +366,13 @@ namespace ProgressAdventure.WorldManagement
                 }
                 else
                 {
-                    Logger.Instance.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
                     success = false;
                 }
             }
             else
             {
-                Logger.Instance.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
                 success = false;
             }
             chunkRandomGenerator ??= GetChunkRandom(position);
@@ -383,7 +383,7 @@ namespace ProgressAdventure.WorldManagement
                 tilesListValue is not IEnumerable tilesList
             )
             {
-                Logger.Instance.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
                 return false;
             }
 
