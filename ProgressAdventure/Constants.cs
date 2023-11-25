@@ -1,5 +1,5 @@
 ﻿using SaveFileManager;
-using PACCommon = PACommon.Constants;
+using PACConstants = PACommon.Constants;
 
 namespace ProgressAdventure
 {
@@ -32,7 +32,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The path to the saves folder.
         /// </summary>
-        public static readonly string SAVES_FOLDER_PATH = Path.Join(PACCommon.ROOT_FOLDER, SAVES_FOLDER);
+        public static readonly string SAVES_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, SAVES_FOLDER);
         /// <summary>
         /// The extension used for encoded save files.
         /// </summary>
@@ -58,7 +58,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The path to the backups folder.
         /// </summary>
-        public static readonly string BACKUPS_FOLDER_PATH = Path.Join(PACCommon.ROOT_FOLDER, BACKUPS_FOLDER);
+        public static readonly string BACKUPS_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, BACKUPS_FOLDER);
         /// <summary>
         /// The extension used for backup files.
         /// </summary>
@@ -140,6 +140,26 @@ namespace ProgressAdventure
             public static class DisplaySaveData
             {
                 public const string PLAYER_NAME = "player_name";
+            }
+            #endregion
+
+            #region Entity
+            public static class Entity
+            {
+                public const string TYPE = "type";
+                public const string NAME = "name";
+                public const string BASE_MAX_HP = "base_max_hp";
+                public const string CURRENT_HP = "current_hp";
+                public const string BASE_ATTACK = "base_attack";
+                public const string BASE_DEFENCE = "base_defence";
+                public const string BASE_AGILITY = "base_agility";
+                public const string ORIGINAL_TEAM = "original_team";
+                public const string CURRENT_TEAM = "current_team";
+                public const string ATTRIBUTES = "attributes";
+                public const string DROPS = "drops";
+                public const string X_POSITION = "x_position";
+                public const string Y_POSITION = "y_position";
+                public const string FACING = "facing";
             }
             #endregion
         }

@@ -1,7 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
-using PACommon.Logging;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -124,7 +123,7 @@ namespace ProgressAdventure.WorldManagement
                     chunk.Value.SaveToFile(saveFolderName);
                 }
             }
-            PACSingletons.Instance.Logger.Log("Saved all chunks to file", $"save folder name: {saveFolderName}");
+            PACSingletons.Instance.Logger.Log("Saved all chunks to file", $"save folder name: \"{saveFolderName}\"");
         }
 
         /// <summary>

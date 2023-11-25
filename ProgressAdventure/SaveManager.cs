@@ -1,6 +1,5 @@
 ﻿using PACommon;
 using PACommon.Enums;
-using PACommon.Logging;
 using ProgressAdventure.Entity;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
@@ -35,7 +34,7 @@ namespace ProgressAdventure
             if (backupStatus is not null)
             {
                 File.Delete(backupStatus.Value.backupPath);
-                PACSingletons.Instance.Logger.Log("Removed temporary backup", backupStatus.Value.relativeBackupPath, LogSeverity.DEBUG);
+                PACSingletons.Instance.Logger.Log("Removed temporary backup", $"\"{backupStatus.Value.relativeBackupPath}\"", LogSeverity.DEBUG);
             }
         }
 
@@ -95,7 +94,7 @@ namespace ProgressAdventure
 
             if (!Directory.Exists(saveFolderPath))
             {
-                PACSingletons.Instance.Logger.Log("Not a valid save folder", $"folder name: {saveName}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Not a valid save folder", $"folder name: \"{saveName}\"", LogSeverity.ERROR);
                 throw new FileNotFoundException("Not a valid save folder", saveName);
             }
 
@@ -109,7 +108,7 @@ namespace ProgressAdventure
 
             if (data is null)
             {
-                PACSingletons.Instance.Logger.Log("Save data is empty", $"save name: {saveName}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Save data is empty", $"save name: \"{saveName}\"", LogSeverity.ERROR);
                 throw new FileLoadException("Save data is empty", saveName);
             }
 
@@ -144,7 +143,7 @@ namespace ProgressAdventure
             PACSingletons.Instance.Logger.Log("Preparing game data");
             data[Constants.JsonKeys.SaveData.SAVE_NAME] = saveName;
             PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
-            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
+            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             World.Initialize();
         }
 

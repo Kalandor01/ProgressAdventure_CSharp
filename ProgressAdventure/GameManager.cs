@@ -1,6 +1,5 @@
 ﻿using PACommon;
 using PACommon.Enums;
-using PACommon.Logging;
 using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;
@@ -21,7 +20,7 @@ namespace ProgressAdventure
         {
             SaveManager.CreateSaveData();
             SaveManager.MakeSave();
-            PACSingletons.Instance.Logger.Log("Created save", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\"");
+            PACSingletons.Instance.Logger.Log("Created save", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\"");
             GameLoop();
         }
 
@@ -53,7 +52,7 @@ namespace ProgressAdventure
         {
             Globals.Instance.saving = true;
             SaveManager.MakeSave();
-            PACSingletons.Instance.Logger.Log("Game saved", $"save name: {SaveData.Instance.saveName}, player name: \"{SaveData.Instance.player.FullName}\"");
+            PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\"");
             Globals.Instance.saving = false;
         }
 

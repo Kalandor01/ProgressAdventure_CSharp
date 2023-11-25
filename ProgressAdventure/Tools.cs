@@ -1,6 +1,10 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
+using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;
+using System;
 using System.Collections;
 using System.IO.Compression;
 using PACTools = PACommon.Tools;
@@ -96,6 +100,205 @@ namespace ProgressAdventure
         }
         #endregion
 
+        #region Logger short
+        /// <summary>
+        /// Logs a json parsing error for a custom error.
+        /// </summary>
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="message">The error message.</param>
+        /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
+        public static void LogJsonError<T>(string message, bool isError = false)
+        {
+            PACSingletons.Instance.Logger.Log(
+                $"{typeof(T)} parse {(isError ? "error" : "warning")}",
+                message,
+                isError ? LogSeverity.ERROR : LogSeverity.WARN
+            );
+        }
+
+        /// <summary>
+        /// Logs a json parsing error for a parameter parsing error.
+        /// </summary>
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
+        /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
+        public static void LogJsonParseError<T>(string parameterName, bool isError = false)
+        {
+            PACSingletons.Instance.Logger.Log(
+                $"{typeof(T)} parse {(isError ? "error" : "warning")}",
+                $"couldn't parse {parameterName}",
+                isError ? LogSeverity.ERROR : LogSeverity.WARN
+            );
+        }
+
+        /// <summary>
+        /// Logs a json parsing error for a null parameter error.
+        /// </summary>
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
+        /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
+        public static void LogJsonNullError<T>(string parameterName, bool isError = false)
+        {
+            PACSingletons.Instance.Logger.Log(
+                $"{typeof(T)} parse {(isError ? "error" : "warning")}",
+                $"{parameterName} json is null",
+                isError ? LogSeverity.ERROR : LogSeverity.WARN
+            );
+        }
+        #endregion
+
+        #region Json parse short
+        /// <summary>
+        /// Tries to parse a value from a json dictionary, and logs a warning, if it doesn't exist or null.
+        /// </summary>
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="objectJson">The json dictionary to parse the value from.</param>
+        /// <param name="jsonKey">The key, to the value.</param>
+        /// <param name="value">The returned value.</param>
+        /// <returns>If the value was sucessfuly parsed.</returns>
+        public static bool TryParseObjectValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out object? value)
+        {
+            if (
+                objectJson.TryGetValue(jsonKey, out value) &&
+                value is not null
+            )
+            {
+                return true;
+            }
+            LogJsonNullError<T>(jsonKey);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse a string value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <inheritdoc cref="TryParseObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
+        public static bool TryParseStringValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out string? value)
+        {
+            value = null;
+            if (!TryParseObjectValue<T>(objectJson, jsonKey, out var result))
+            {
+                return false;
+            }
+
+            if (result is not null)
+            {
+                value = result.ToString();
+                return true;
+            }
+            LogJsonParseError<T>(jsonKey);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse an int value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <inheritdoc cref="TryParseObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
+        public static bool TryParseIntValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out int? value)
+        {
+            value = null;
+            if (!TryParseObjectValue<T>(objectJson, jsonKey, out var result))
+            {
+                return false;
+            }
+
+            if (int.TryParse(result?.ToString(), out var resultValue))
+            {
+                value = resultValue;
+                return true;
+            }
+            LogJsonParseError<T>(jsonKey);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse an enum value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <typeparam name="TEnum">The enum type.</typeparam>
+        /// <inheritdoc cref="TryParseObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
+        public static bool TryParseEnumValue<T, TEnum>(IDictionary<string, object?> objectJson, string jsonKey, out TEnum? value)
+             where TEnum : struct
+        {
+            value = null;
+            if (!TryParseObjectValue<T>(objectJson, jsonKey, out var result))
+            {
+                return false;
+            }
+
+            if (
+                Enum.TryParse(typeof(TEnum), result?.ToString(), out var enumValue) &&
+                Enum.IsDefined(typeof(TEnum), (TEnum)enumValue)
+            )
+            {
+                value = (TEnum)enumValue;
+                return true;
+            }
+            LogJsonParseError<T>(jsonKey);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse a DateTime value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <inheritdoc cref="TryParseObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
+        public static bool TryParseDateTimeValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out DateTime? value)
+        {
+            value = null;
+            if (!TryParseObjectValue<T>(objectJson, jsonKey, out var result))
+            {
+                return false;
+            }
+
+            if (DateTime.TryParse(result?.ToString(), out var resultValue))
+            {
+                value = resultValue;
+                return true;
+            }
+            LogJsonParseError<T>(jsonKey);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse a TimeSpan value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <inheritdoc cref="TryParseObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
+        public static bool TryParseTimeSpanValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out TimeSpan? value)
+        {
+            value = null;
+            if (!TryParseObjectValue<T>(objectJson, jsonKey, out var result))
+            {
+                return false;
+            }
+
+            if (TimeSpan.TryParse(result?.ToString(), out var resultValue))
+            {
+                value = resultValue;
+                return true;
+            }
+            LogJsonParseError<T>(jsonKey);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse a IJsonConvertable value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <typeparam name="TJc">The IJsonConvertable class to convert to.</typeparam>
+        /// <returns>If the object was parsed without warnings.</returns>
+        /// <inheritdoc cref="TryParseObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
+        public static bool TryParseJsonConvertableValue<T, TJc>(IDictionary<string, object?> objectJson, string fileVersion, string jsonKey, out TJc? value)
+            where TJc : IJsonConvertable<TJc>
+        {
+            value = default;
+            if (!TryParseObjectValue<T>(objectJson, jsonKey, out var result))
+            {
+                return false;
+            }
+
+            return PACTools.TryFromJson((IDictionary<string, object?>?)result, fileVersion, out value);
+        }
+        #endregion
+
         #region Misc
         /// <summary>
         /// Returns what the save's folder path should be.
@@ -136,13 +339,13 @@ namespace ProgressAdventure
                 var displayBackupPath = Path.Join(Constants.BACKUPS_FOLDER, backupNameEnd);
                 // make zip
                 ZipFile.CreateFromDirectory(saveFolderPath, backupPath);
-                PACSingletons.Instance.Logger.Log($"Made {(isTemporary ? "temporary " : "")}backup", displayBackupPath, isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log($"Made {(isTemporary ? "temporary " : "")}backup", $"\"{displayBackupPath}\"", isTemporary ? LogSeverity.DEBUG : LogSeverity.INFO);
                 return (backupPath, displayBackupPath);
             }
             else
             {
                 var displaySavePath = Path.Join(Constants.SAVES_FOLDER, saveFolderName);
-                PACSingletons.Instance.Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: {displaySavePath}", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log($"{(isTemporary ? "Temporary b" : "B")}ackup failed", $"save folder not found: \"{displaySavePath}\"", LogSeverity.WARN);
                 return null;
             }
         }

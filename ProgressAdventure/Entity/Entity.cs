@@ -2,7 +2,6 @@
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
-using PACommon.Logging;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
@@ -417,20 +416,20 @@ namespace ProgressAdventure.Entity
             // properties
             return new Dictionary<string, object?>
             {
-                ["type"] = EntityUtils.GetEntityTypeName(this),
-                ["name"] = name,
-                ["base_max_hp"] = baseMaxHp,
-                ["current_hp"] = CurrentHp,
-                ["base_attack"] = baseAttack,
-                ["base_defence"] = baseDefence,
-                ["base_agility"] = baseAgility,
-                ["original_team"] = originalTeam,
-                ["current_team"] = currentTeam,
-                ["attributes"] = attributesProcessed,
-                ["drops"] = dropsJson,
-                ["x_position"] = position.x,
-                ["y_position"] = position.y,
-                ["facing"] = (int)facing,
+                [Constants.JsonKeys.Entity.TYPE] = EntityUtils.GetEntityTypeName(this),
+                [Constants.JsonKeys.Entity.NAME] = name,
+                [Constants.JsonKeys.Entity.BASE_MAX_HP] = baseMaxHp,
+                [Constants.JsonKeys.Entity.CURRENT_HP] = CurrentHp,
+                [Constants.JsonKeys.Entity.BASE_ATTACK] = baseAttack,
+                [Constants.JsonKeys.Entity.BASE_DEFENCE] = baseDefence,
+                [Constants.JsonKeys.Entity.BASE_AGILITY] = baseAgility,
+                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = originalTeam,
+                [Constants.JsonKeys.Entity.CURRENT_TEAM] = currentTeam,
+                [Constants.JsonKeys.Entity.ATTRIBUTES] = attributesProcessed,
+                [Constants.JsonKeys.Entity.DROPS] = dropsJson,
+                [Constants.JsonKeys.Entity.X_POSITION] = position.x,
+                [Constants.JsonKeys.Entity.Y_POSITION] = position.y,
+                [Constants.JsonKeys.Entity.FACING] = (int)facing,
             };
         }
 
@@ -479,16 +478,16 @@ namespace ProgressAdventure.Entity
             entityObject = null;
             if (entityJson is null)
             {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "entity json is null", LogSeverity.ERROR);
+                Tools.LogJsonNullError<Entity>(nameof(Entity), true);
                 return false;
             }
 
             if (
-                !entityJson.TryGetValue("type", out object? entityTypeValue) ||
+                !entityJson.TryGetValue(Constants.JsonKeys.Entity.TYPE, out object? entityTypeValue) ||
                 entityTypeValue is null
             )
             {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "entity type json is null", LogSeverity.ERROR);
+                Tools.LogJsonNullError<Entity>("type", true);
                 return false;
             }
 
@@ -497,7 +496,7 @@ namespace ProgressAdventure.Entity
                 entityType is null
             )
             {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "invalid entity type", LogSeverity.ERROR);
+                Tools.LogJsonError<Entity>("invalid entity type", true);
                 return false;
             }
 
@@ -588,131 +587,19 @@ namespace ProgressAdventure.Entity
         {
             var success = true;
 
-            // name
-            string? name = null;
-            if (
-                entityJson.TryGetValue("name", out var playerName) &&
-                playerName is not null
-            )
-            {
-                name = playerName.ToString();
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity name", LogSeverity.WARN);
-                success = false;
-            }
-
-            // stats
-            // max hp
-            int? baseMaxHp = null;
-            if (
-                entityJson.TryGetValue("base_max_hp", out var baseMaxHpValue) &&
-                int.TryParse(baseMaxHpValue?.ToString(), out int maxHpValue)
-            )
-            {
-                baseMaxHp = maxHpValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity base max hp", LogSeverity.WARN);
-                success = false;
-            }
-
-            // current hp
-            int? currentHp = null;
-            if (
-                entityJson.TryGetValue("current_hp", out var currentHpValueStr) &&
-                int.TryParse(currentHpValueStr?.ToString(), out int currentHpValue)
-            )
-            {
-                currentHp = currentHpValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity current hp", LogSeverity.WARN);
-                success = false;
-            }
-
-            // attack
-            int? baseAttack = null;
-            if (
-                entityJson.TryGetValue("base_attack", out var baseAttackValue) &&
-                int.TryParse(baseAttackValue?.ToString(), out int attackValue)
-            )
-            {
-                baseAttack = attackValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity base attack", LogSeverity.WARN);
-                success = false;
-            }
-
-            // defence
-            int? baseDefence = null;
-            if (
-                entityJson.TryGetValue("base_defence", out var baseDefenceValue) &&
-                int.TryParse(baseDefenceValue?.ToString(), out int defenceValue)
-            )
-            {
-                baseDefence = defenceValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity base defence", LogSeverity.WARN);
-                success = false;
-            }
-
-            // agility
-            int? baseAgility = null;
-            if (
-                entityJson.TryGetValue("base_agility", out var baseAgilityValue) &&
-                int.TryParse(baseAgilityValue?.ToString(), out int agilityValue)
-            )
-            {
-                baseAgility = agilityValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity base agility", LogSeverity.WARN);
-                success = false;
-            }
-
-            // original team
-            int? originalTeam = null;
-            if (
-                entityJson.TryGetValue("original_team", out var originalTeamValueStr) &&
-                int.TryParse(originalTeamValueStr?.ToString(), out int originalTeamValue)
-            )
-            {
-                originalTeam = originalTeamValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity original team", LogSeverity.WARN);
-                success = false;
-            }
-
-            // current team
-            int? currentTeam = null;
-            if (
-                entityJson.TryGetValue("current_team", out var currentTeamValueStr) &&
-                int.TryParse(currentTeamValueStr?.ToString(), out int currentTeamValue)
-            )
-            {
-                currentTeam = currentTeamValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity current team", LogSeverity.WARN);
-                success = false;
-            }
+            success &= Tools.TryParseStringValue<Entity>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
+            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
 
             // attributes
             List<Attribute>? attributes = null;
             if (
-                entityJson.TryGetValue("attributes", out var attributesJson) &&
+                entityJson.TryGetValue(Constants.JsonKeys.Entity.ATTRIBUTES, out var attributesJson) &&
                 attributesJson is IEnumerable attributeList
             )
             {
@@ -728,21 +615,21 @@ namespace ProgressAdventure.Entity
                     }
                     else
                     {
-                        PACSingletons.Instance.Logger.Log("Entity parse error", "entity attribute parse error", LogSeverity.WARN);
+                        Tools.LogJsonParseError<Entity>(nameof(attribute));
                         success = false;
                     }
                 }
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity attributes list", LogSeverity.WARN);
+                Tools.LogJsonParseError<Entity>(nameof(attributes));
                 success = false;
             }
 
             // drops
             List<AItem>? drops = null;
             if (
-                entityJson.TryGetValue("drops", out var dropsJson) &&
+                entityJson.TryGetValue(Constants.JsonKeys.Entity.DROPS, out var dropsJson) &&
                 dropsJson is IEnumerable dropList
             )
             {
@@ -758,15 +645,15 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse drops list from json", LogSeverity.WARN);
+                Tools.LogJsonParseError<Entity>(nameof(drops));
                 success = false;
             }
 
             // position
             (long x, long y)? position = null;
             if (
-                entityJson.TryGetValue("x_position", out var xPositionValue) &&
-                entityJson.TryGetValue("y_position", out var yPositionValue) &&
+                entityJson.TryGetValue(Constants.JsonKeys.Entity.X_POSITION, out var xPositionValue) &&
+                entityJson.TryGetValue(Constants.JsonKeys.Entity.Y_POSITION, out var yPositionValue) &&
                 long.TryParse(xPositionValue?.ToString(), out long xPosition) &&
                 long.TryParse(yPositionValue?.ToString(), out long yPosition)
             )
@@ -775,25 +662,11 @@ namespace ProgressAdventure.Entity
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity position", LogSeverity.WARN);
+                Tools.LogJsonParseError<Entity>(nameof(position));
                 success = false;
             }
 
-            // facing
-            Facing? facing = null;
-            if (
-                entityJson.TryGetValue("facing", out var facingValue) &&
-                Enum.TryParse(typeof(Facing), facingValue?.ToString(), out object? facingEnum) &&
-                Enum.IsDefined(typeof(Facing), (Facing)facingEnum)
-            )
-            {
-                facing = (Facing)facingEnum;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Entity parse error", "couldn't parse entity facing", severity: LogSeverity.WARN);
-                success = false;
-            }
+            success &= Tools.TryParseEnumValue<Entity, Facing>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
             entityData = (
                 name,

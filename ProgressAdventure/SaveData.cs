@@ -181,20 +181,12 @@ namespace ProgressAdventure
         static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> saveDataJson, string fileVersion, ref SaveData? saveData)
         {
             var success = true;
-            // save name
-            var saveName = saveDataJson[Constants.JsonKeys.SaveData.SAVE_NAME] as string;
-            success &= saveName is not null;
-            // display name
-            var displayName = saveDataJson[Constants.JsonKeys.SaveData.DISPLAY_NAME] as string;
-            success &= displayName is not null;
-            // last save
-            var lastSave = saveDataJson[Constants.JsonKeys.SaveData.LAST_SAVE] as DateTime?;
-            success &= lastSave is not null;
-            // playtime
-            success &= TimeSpan.TryParse(saveDataJson[Constants.JsonKeys.SaveData.PLAYTIME]?.ToString(), out var playtime);
-            // player
-            var playerData = saveDataJson[Constants.JsonKeys.SaveData.PLAYER] as IDictionary<string, object?>;
-            success &= PACTools.TryFromJson(playerData, fileVersion, out Player? player);
+
+            success &= Tools.TryParseStringValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.SAVE_NAME, out var saveName);
+            success &= Tools.TryParseStringValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
+            success &= Tools.TryParseDateTimeValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
+            success &= Tools.TryParseTimeSpanValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
+            success &= Tools.TryParseJsonConvertableValue<SaveData, Player>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);
 
             saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player);
             return success;
