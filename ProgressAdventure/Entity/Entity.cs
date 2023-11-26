@@ -487,7 +487,7 @@ namespace ProgressAdventure.Entity
                 entityTypeValue is null
             )
             {
-                Tools.LogJsonNullError<Entity>("type", true);
+                Tools.LogJsonNullError<Entity>(Constants.JsonKeys.Entity.TYPE, true);
                 return false;
             }
 
@@ -587,67 +587,27 @@ namespace ProgressAdventure.Entity
         {
             var success = true;
 
-            success &= Tools.TryParseStringValue<Entity>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
-            success &= Tools.TryParseIntValue<Entity>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
-
-            // attributes
-            List<Attribute>? attributes = null;
-            if (
-                entityJson.TryGetValue(Constants.JsonKeys.Entity.ATTRIBUTES, out var attributesJson) &&
-                attributesJson is IEnumerable attributeList
-            )
-            {
-                attributes = new List<Attribute>();
-                foreach (var attribute in attributeList)
-                {
-                    if (
-                        Enum.TryParse(attribute?.ToString(), out Attribute attributeEnum) &&
-                        Enum.IsDefined(attributeEnum)
-                    )
-                    {
-                        attributes.Add(attributeEnum);
-                    }
-                    else
-                    {
-                        Tools.LogJsonParseError<Entity>(nameof(attribute));
-                        success = false;
-                    }
-                }
-            }
-            else
-            {
-                Tools.LogJsonParseError<Entity>(nameof(attributes));
-                success = false;
-            }
-
-            // drops
-            List<AItem>? drops = null;
-            if (
-                entityJson.TryGetValue(Constants.JsonKeys.Entity.DROPS, out var dropsJson) &&
-                dropsJson is IEnumerable dropList
-            )
-            {
-                drops = new List<AItem>();
-                foreach (var dropJson in dropList)
-                {
-                    success &= PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
-                    if (itemObject is not null)
-                    {
-                        drops.Add(itemObject);
-                    }
-                }
-            }
-            else
-            {
-                Tools.LogJsonParseError<Entity>(nameof(drops));
-                success = false;
-            }
+            success &= Tools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
+            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
+            success &= Tools.TryParseListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+                attribute => {
+                    var success = Tools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, false);
+                    return (success, value);
+                },
+                out var attributes);
+            success &= Tools.TryParseListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+                dropJson => {
+                    var parseSuccess = PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
+                    success &= parseSuccess;
+                    return (parseSuccess, itemObject);
+                },
+                out var drops);
 
             // position
             (long x, long y)? position = null;
@@ -666,7 +626,7 @@ namespace ProgressAdventure.Entity
                 success = false;
             }
 
-            success &= Tools.TryParseEnumValue<Entity, Facing>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
+            success &= Tools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
             entityData = (
                 name,

@@ -1,7 +1,6 @@
 ﻿using PACommon;
 using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
-using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
 {
@@ -182,10 +181,10 @@ namespace ProgressAdventure
         {
             var success = true;
 
-            success &= Tools.TryParseStringValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.SAVE_NAME, out var saveName);
-            success &= Tools.TryParseStringValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
-            success &= Tools.TryParseDateTimeValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
-            success &= Tools.TryParseTimeSpanValue<SaveData>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
+            success &= Tools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.SAVE_NAME, out var saveName);
+            success &= Tools.TryParseJsonValue<SaveData, string>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
+            success &= Tools.TryParseJsonValue<SaveData, DateTime?>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
+            success &= Tools.TryParseJsonValue<SaveData, TimeSpan?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
             success &= Tools.TryParseJsonConvertableValue<SaveData, Player>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);
 
             saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player);

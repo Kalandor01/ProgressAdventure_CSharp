@@ -15,7 +15,7 @@ namespace PACommon.JsonUtils
 
         #region Public functions
         /// <summary>
-        /// Tries to convert the json representation of the object to an object format.
+        /// Converts the json representation of the object to an object format.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
@@ -44,7 +44,7 @@ namespace PACommon.JsonUtils
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        protected abstract static bool FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref T? convertedObject);
+        public abstract static bool FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref T? convertedObject);
         #endregion
     }
 }

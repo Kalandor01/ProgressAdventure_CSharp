@@ -14,7 +14,7 @@ namespace PACommon
     public static class Tools
     {
         #region Public functions
-        #region Short
+        #region Encode/decode short
         /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
         /// <inheritdoc cref="EncodeSaveShort(IEnumerable{IDictionary}, string, long, string)"/>
         public static void EncodeSaveShort(IDictionary data, string filePath, long seed, string extension)
@@ -196,6 +196,20 @@ namespace PACommon
             where T : IJsonConvertable<T>
         {
             T.FromJson(objectJson, fileVersion, out T? convertedObject);
+            return convertedObject;
+        }
+
+        /// <summary>
+        /// FromJson(), but without correcting the json data first.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="convertedObject">The object representation of the json.</param>
+        /// <returns>If the conversion was succesfull without any warnings.</returns>
+        public static T? FromJsonWithoutCorrection<T>(IDictionary<string, object?> objectJson, string fileVersion, ref T? convertedObject)
+            where T : IJsonConvertable<T>
+        {
+            T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
             return convertedObject;
         }
         #endregion
