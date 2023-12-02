@@ -5,7 +5,6 @@ using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
-using System.Collections;
 using System.Reflection;
 using System.Text;
 using Attribute = ProgressAdventure.Enums.Attribute;
@@ -15,7 +14,7 @@ namespace ProgressAdventure.Entity
 {
     /// <summary>
     /// A representation of an entity.<br/>
-    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData, IDictionary<string, object?>? miscData) for FromJson<T>() to work.
+    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData) for FromJson<T>() to work.
     /// </summary>
     public abstract class Entity : IJsonReadable
     {
@@ -132,12 +131,10 @@ namespace ProgressAdventure.Entity
         /// <param name="name">The name of the entity.</param>
         /// <param name="stats">The tuple of stats, representin all other values from the other constructor, other than drops.</param>
         /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
         public Entity(
             string name,
             EntityManagerStatsDTO stats,
-            List<AItem>? drops = null,
-            string fileVersion = Constants.SAVE_VERSION
+            List<AItem>? drops = null
         )
             : this(
                 (
@@ -154,8 +151,7 @@ namespace ProgressAdventure.Entity
                     null,
                     null
                 ),
-                null,
-                fileVersion
+                true
             )
         { }
         #endregion
@@ -344,23 +340,22 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Entity</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.<br/>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// Should only be null, if entity creation called this constructor.</param>
-        protected Entity((
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
+        protected Entity(
+            (
+                string? name,
+                int? baseMaxHp,
+                int? currentHp,
+                int? baseAttack,
+                int? baseDefence,
+                int? baseAgility,
+                int? originalTeam,
+                int? currentTeam,
+                List<Attribute>? attributes,
+                List<AItem>? drops,
+                (long x, long y)? position,
+                Facing? facing
+            ) entityData, bool calledFromOtherConstructor
+        )
         {
             name = entityData.name ?? GetDefaultName();
             position = entityData.position ?? (0, 0);
@@ -395,14 +390,12 @@ namespace ProgressAdventure.Entity
                 attributes = entityData.attributes;
             }
             drops = entityData.drops ?? GetDefaultDrops();
-            // not new entity call
-            if (miscData is not null)
+
+            if (!calledFromOtherConstructor)
             {
-                FromMiscJson(miscData, fileVersion);
+                SetupAttributes(entityData.currentHp);
+                UpdateFullName();
             }
-            // adjust properties
-            SetupAttributes(entityData.currentHp);
-            UpdateFullName();
         }
         #endregion
 
@@ -434,25 +427,27 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// Converts the misc data of the entity from a json version, and returns if it succeded without warnings.
+        /// Converts the misc data of the entity from a json version.
         /// </summary>
         /// <param name="miscJson">The json representation of the misc data for the specific entity type.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <returns>If it was succesful without any warnings.</returns>
         protected virtual bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
             return true;
         }
         #endregion
 
-        #region Functions
+        #region Public functions
         /// <summary>
-        /// Tries to convert the json representation of the entity to a specific entity object, and returns if it was succesful without any warnings.
+        /// Tries to convert the json representation of the entity to a specific entity object.
         /// </summary>
         /// <typeparam name="T">The type of the entity to try to convert into.</typeparam>
         /// <param name="entityJson">The json representation of the entity.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
+        /// <returns>If it was succesful without any warnings.</returns>
         public static bool FromJsonWithoutGeneralCorrection<T>(IDictionary<string, object?>? entityJson, string fileVersion, out T? entityObject)
             where T : Entity<T>
         {
@@ -468,11 +463,12 @@ namespace ProgressAdventure.Entity
         }
 
         /// <summary>
-        /// Tries to convert any entity json, from a json format, into an entity object (if it implements the nececary protected constructor), and returns if it was succesful without any warnings.
+        /// Tries to convert any entity json, from a json format, into an entity object (if it implements the nececary protected constructor).
         /// </summary>
         /// <param name="entityJson">The json representation of an entity.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityObject">The converted entity object.</param>
+        /// <returns>If it was succesful without any warnings.</returns>
         public static bool AnyEntityFromJson(IDictionary<string, object?>? entityJson, string fileVersion, out Entity? entityObject)
         {
             entityObject = null;
@@ -482,17 +478,13 @@ namespace ProgressAdventure.Entity
                 return false;
             }
 
-            if (
-                !entityJson.TryGetValue(Constants.JsonKeys.Entity.TYPE, out object? entityTypeValue) ||
-                entityTypeValue is null
-            )
+            if (!Tools.TryGetJsonObjectValue<Entity>(entityJson, Constants.JsonKeys.Entity.TYPE, out var entityTypeValue, true))
             {
-                Tools.LogJsonNullError<Entity>(Constants.JsonKeys.Entity.TYPE, true);
                 return false;
             }
 
             if (
-                !EntityUtils.entityTypeMap.TryGetValue(entityTypeValue.ToString() ?? "", out Type? entityType) ||
+                !EntityUtils.entityTypeMap.TryGetValue(entityTypeValue?.ToString() ?? "", out Type? entityType) ||
                 entityType is null
             )
             {
@@ -526,18 +518,21 @@ namespace ProgressAdventure.Entity
         {
             return new List<AItem> { ItemUtils.CreateCompoumdItem(ItemType.Misc.COIN, Material.COPPER) };
         }
+        #endregion
 
+        #region Private functions
         /// <summary>
-        /// Tries to convert the json representation of the entity to a specific entity object, and returns if it was succesful without any warnings.
+        /// Tries to convert the json representation of the entity to a specific entity object.
         /// </summary>
         /// <param name="entityType">The type of the entity to try to convert into.</param>
         /// <param name="entityJson">The json representation of the entity.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
+        /// <returns>If it was succesful without any warnings.</returns>
         private static bool AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?> entityJson, string fileVersion, out Entity? entityObject)
         {
-            var success = FromJsonPrivate(entityJson, fileVersion, out (
+            var success = CommonAttributesFromJson(entityJson, fileVersion, out (
                 string? name,
                 int? baseMaxHp,
                 int? currentHp,
@@ -556,21 +551,31 @@ namespace ProgressAdventure.Entity
             var constructor = entityType.GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
                 null,
-                new[] { entityData.GetType(), entityJson.GetType(), fileVersion.GetType() },
+                new[] { entityData.GetType() },
                 null
             ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{entityType}\"!", null);
-            var entity = constructor.Invoke(new object[] { entityData, entityJson, fileVersion }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
+            var entity = constructor.Invoke(new object[] { entityData }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
             entityObject = (Entity?)entity;
+            if (entityObject is null)
+            {
+                return false;
+            }
+
+            success &= entityObject.FromMiscJson(entityJson, fileVersion);
+            entityObject.SetupAttributes(entityData.currentHp);
+            entityObject.UpdateFullName();
+
             return success && entityObject is not null;
         }
 
         /// <summary>
-        /// Tries to convert the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object, and returns if it was succesful without any warnings.
+        /// Tries to convert the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object.
         /// </summary>
         /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityData">The basic data of the entity.</param>
-        private static bool FromJsonPrivate(IDictionary<string, object?> entityJson, string fileVersion, out (
+        /// <returns>If it was succesful without any warnings.</returns>
+        private static bool CommonAttributesFromJson(IDictionary<string, object?> entityJson, string fileVersion, out (
             string? name,
             int? baseMaxHp,
             int? currentHp,
@@ -609,18 +614,11 @@ namespace ProgressAdventure.Entity
                 },
                 out var drops);
 
-            // position
-            (long x, long y)? position = null;
-            if (
-                entityJson.TryGetValue(Constants.JsonKeys.Entity.X_POSITION, out var xPositionValue) &&
-                entityJson.TryGetValue(Constants.JsonKeys.Entity.Y_POSITION, out var yPositionValue) &&
-                long.TryParse(xPositionValue?.ToString(), out long xPosition) &&
-                long.TryParse(yPositionValue?.ToString(), out long yPosition)
-            )
-            {
-                position = (xPosition, yPosition);
-            }
-            else
+            (long x, long y)? position =
+                Tools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.X_POSITION, out var xPosition) &&
+                Tools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.Y_POSITION, out var yPosition) ?
+                (xPosition, yPosition) : null;
+            if (position is null)
             {
                 Tools.LogJsonParseError<Entity>(nameof(position));
                 success = false;

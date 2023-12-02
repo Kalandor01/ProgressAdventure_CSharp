@@ -83,9 +83,7 @@ namespace ProgressAdventure.Entity
                     new List<AItem>(),
                     position,
                     facing
-                ),
-                null,
-                Constants.SAVE_VERSION
+                )
             )
         {
             this.inventory = inventory ?? new Inventory();
@@ -146,8 +144,6 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Player</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
         protected Player((
             string? name,
             int? baseMaxHp,
@@ -161,8 +157,8 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops,
             (long x, long y)? position,
             Facing? facing
-        ) entityData, IDictionary<string, object?>? miscData, string fileVersion)
-            : base(entityData, miscData, fileVersion) { }
+        ) entityData)
+            : base(entityData) { }
         #endregion
 
         #region Methods

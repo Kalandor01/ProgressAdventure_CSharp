@@ -173,8 +173,10 @@ namespace ProgressAdventure
         /// <param name="objectJson">The json dictionary to parse the value from.</param>
         /// <param name="jsonKey">The key, to the value.</param>
         /// <param name="value">The returned value.</param>
+        /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
+        /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was sucessfuly parsed.</returns>
-        public static bool TryGetJsonObjectValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out object? value)
+        public static bool TryGetJsonObjectValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out object? value, bool isCritical = false)
         {
             if (
                 objectJson.TryGetValue(jsonKey, out value) &&
@@ -183,7 +185,7 @@ namespace ProgressAdventure
             {
                 return true;
             }
-            LogJsonNullError<T>(jsonKey);
+            LogJsonNullError<T>(jsonKey, isCritical);
             return false;
         }
 
@@ -202,12 +204,15 @@ namespace ProgressAdventure
         /// <param name="value">The value to parse.</param>
         /// <param name="parsedValue">The parsed value, or default if it wasn't successful.</param>
         /// <param name="parameterName">The parameter name to use for logging unsuccesful parsing.</param>
+        /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
+        /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was successfuly parsed.</returns>
         public static bool TryParseValueForJsonParsing<T, TRes>(
             object? value,
             out TRes? parsedValue,
             bool logParseWarning = true,
-            string? parameterName = null
+            string? parameterName = null,
+            bool isCritical = false
         )
         {
             parsedValue = default;
@@ -248,7 +253,7 @@ namespace ProgressAdventure
 
             if (logParseWarning)
             {
-                LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter");
+                LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", isCritical);
             }
             return false;
         }
@@ -264,26 +269,36 @@ namespace ProgressAdventure
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
         /// <typeparam name="TRes">The type to parse to.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
-        public static bool TryParseJsonValue<T, TRes>(IDictionary<string, object?> objectJson, string jsonKey, out TRes? value)
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryParseJsonValue<T, TRes>(
+            IDictionary<string, object?> objectJson,
+            string jsonKey,
+            out TRes? value,
+            bool isCritical = false
+        )
         {
             value = default;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result))
+            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
             {
                 return false;
             }
 
-            return TryParseValueForJsonParsing<T, TRes>(result, out value, parameterName: jsonKey);
+            return TryParseValueForJsonParsing<T, TRes>(result, out value, parameterName: jsonKey, isCritical: isCritical);
         }
 
         /// <summary>
         /// Tries to parse a json dictionary value from a json dictionary, and logs a warning, if it can't pe parsed.
         /// </summary>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
-        public static bool TryParseJsonDictValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out IDictionary<string, object?>? value)
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryParseJsonDictValue<T>(
+            IDictionary<string, object?> objectJson,
+            string jsonKey,
+            out IDictionary<string, object?>? value,
+            bool isCritical = false
+        )
         {
             value = null;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result))
+            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
             {
                 return false;
             }
@@ -293,7 +308,7 @@ namespace ProgressAdventure
                 value = resultValue;
                 return true;
             }
-            LogJsonParseError<T>(jsonKey);
+            LogJsonParseError<T>(jsonKey, isCritical);
             return false;
         }
 
@@ -303,17 +318,28 @@ namespace ProgressAdventure
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <typeparam name="TJc">The IJsonConvertable class to convert to.</typeparam>
         /// <returns>If the object was parsed without warnings.</returns>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
-        public static bool TryParseJsonConvertableValue<T, TJc>(IDictionary<string, object?> objectJson, string fileVersion, string jsonKey, out TJc? value)
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryParseJsonConvertableValue<T, TJc>(
+            IDictionary<string, object?> objectJson,
+            string fileVersion,
+            string jsonKey,
+            out TJc? value,
+            bool isCritical = false
+        )
             where TJc : IJsonConvertable<TJc>
         {
             value = default;
-            if (!TryParseJsonDictValue<T>(objectJson, jsonKey, out var result))
+            if (!TryParseJsonDictValue<T>(objectJson, jsonKey, out var result, isCritical))
             {
                 return false;
             }
-
-            return PACTools.TryFromJson(result, fileVersion, out value);
+            
+            var success = PACTools.TryFromJson(result, fileVersion, out value);
+            if (value is null)
+            {
+                LogJsonParseError<T>(jsonKey, isCritical);
+            }
+            return success;
         }
 
         /// <summary>
@@ -322,11 +348,17 @@ namespace ProgressAdventure
         /// <typeparam name="TRes">The type of the values in the list.</typeparam>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?)"/>
-        public static bool TryParseListValue<T, TRes>(IDictionary<string, object?> objectJson, string jsonKey, Func<object?, (bool success, TRes? result)> parseFunction, out List<TRes>? value)
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryParseListValue<T, TRes>(
+            IDictionary<string, object?> objectJson,
+            string jsonKey,
+            Func<object?, (bool success, TRes? result)> parseFunction,
+            out List<TRes>? value,
+            bool isCritical = false
+        )
         {
             value = null;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result))
+            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
             {
                 return false;
             }
@@ -348,7 +380,7 @@ namespace ProgressAdventure
                 }
                 return true;
             }
-            LogJsonParseError<T>(jsonKey);
+            LogJsonParseError<T>(jsonKey, isCritical);
             return false;
         }
         #endregion

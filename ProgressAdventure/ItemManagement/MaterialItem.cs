@@ -1,6 +1,4 @@
-﻿using PACommon;
-using PACommon.Enums;
-using PACommon.JsonUtils;
+﻿using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.ItemManagement
@@ -120,46 +118,37 @@ namespace ProgressAdventure.ItemManagement
 
         static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref MaterialItem? itemObject)
         {
-            Material material;
-            if (!itemJson.TryGetValue("material", out var materialValue))
+            var success = true;
+
+            success &= Tools.TryParseJsonValue<MaterialItem, Material?>(itemJson, Constants.JsonKeys.AItem.MATERIAL, out var material, true);
+            if (material is null)
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't parse material type from json", LogSeverity.ERROR);
                 return false;
             }
 
-            if (!Enum.TryParse(materialValue?.ToString()?.ToUpper(), out Material materialParsed))
+            success &= Tools.TryParseJsonValue<MaterialItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
+            if (itemAmount is null)
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "invalid material type in item json", LogSeverity.ERROR);
-                return false;
-            }
-            material = materialParsed;
-
-            double itemAmount = 1;
-            if (
-                !itemJson.TryGetValue("amount", out var amountValue) ||
-                !double.TryParse(amountValue?.ToString(), out itemAmount)
-            )
-            {
-                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+                Tools.LogJsonError<MaterialItem>("couldn't parse item amount from json, defaulting to 1");
             }
 
             if (itemAmount <= 0)
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "invalid item amount in item json (amount <= 0)", LogSeverity.ERROR);
+                Tools.LogJsonError<MaterialItem>("invalid item amount in item json (amount <= 0)", true);
                 return false;
             }
 
             try
             {
-                itemObject = new MaterialItem(material, itemAmount);
+                itemObject = new MaterialItem((Material)material, itemAmount ?? 1);
             }
             catch (Exception ex)
             {
-                PACSingletons.Instance.Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                Tools.LogJsonError<MaterialItem>($"failed to create an object, from json: {ex}", true);
                 return false;
             }
 
-            return true;
+            return success;
         }
         #endregion
     }

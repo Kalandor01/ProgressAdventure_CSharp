@@ -3,7 +3,6 @@ using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
-using System.Collections;
 using System.Collections.Immutable;
 using PACTools = PACommon.Tools;
 
@@ -194,74 +193,60 @@ namespace ProgressAdventure.ItemManagement
                 PACSingletons.Instance.Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
             }
 
-            itemJson["type"] = typeName;
-            itemJson["parts"] = Parts.Select(part => part.ToJson());
+            itemJson[Constants.JsonKeys.AItem.TYPE] = typeName;
+            itemJson[Constants.JsonKeys.CompoundItem.PARTS] = Parts.Select(part => part.ToJson());
 
             return itemJson;
         }
 
         static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref CompoundItem? itemObject)
         {
-            if (!itemJson.TryGetValue("type", out var typeNameValue))
+            if (!Tools.TryGetJsonObjectValue<CompoundItem>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeNameValue, true))
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
                 return false;
             }
 
             if (!ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
+                Tools.LogJsonError<CompoundItem>($"item type value is an unknown item type: \"{typeNameValue}\"", true);
                 return false;
             }
 
-            var parts = new List<AItem>();
-            if (!itemJson.TryGetValue("parts", out var partsListJson))
+            var success = true;
+            success &= Tools.TryParseListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
+                partJson => {
+                    success &= PACTools.TryFromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
+                    return (part is not null, part);
+                },
+                out var parts, true);
+            if (parts is null)
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't find parts in json", LogSeverity.ERROR);
                 return false;
             }
 
-            if (partsListJson is not IEnumerable partsList)
+            success &= Tools.TryParseJsonValue<CompoundItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
+            if (itemAmount is null)
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "parts list is not a list", LogSeverity.ERROR);
-                return false;
-            }
-
-            foreach (var partJson in partsList)
-            {
-                PACTools.TryFromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
-                if (part is not null)
-                {
-                    parts.Add(part);
-                }
-            }
-
-            double itemAmount = 1;
-            if (
-                !itemJson.TryGetValue("amount", out var amountValue) ||
-                !double.TryParse(amountValue?.ToString(), out itemAmount)
-            )
-            {
-                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't parse item amount from json, defaulting to 1", LogSeverity.WARN);
+                Tools.LogJsonError<CompoundItem>("couldn't parse item amount from json, defaulting to 1");
             }
 
             if (itemAmount <= 0)
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "invalid item amount in item json (amount < 1)", LogSeverity.ERROR);
+                Tools.LogJsonError<CompoundItem>("invalid item amount in item json (amount <= 0)", true);
                 return false;
             }
 
             try
             {
-                itemObject = new CompoundItem(itemType, parts, itemAmount);
+                itemObject = new CompoundItem(itemType, parts, itemAmount ?? 1);
             }
             catch (Exception ex)
             {
-                PACSingletons.Instance.Logger.Log("Failed to create an item, from json", ex.ToString(), LogSeverity.ERROR);
+                Tools.LogJsonError<CompoundItem>($"failed to create an object, from json: {ex}", true);
                 return false;
             }
 
-            return true;
+            return success;
         }
         #endregion
     }

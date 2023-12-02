@@ -1,6 +1,4 @@
-﻿using PACommon;
-using PACommon.Enums;
-using PACommon.JsonUtils;
+﻿using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using PACTools = PACommon.Tools;
 
@@ -224,39 +222,36 @@ namespace ProgressAdventure.ItemManagement
         {
             return new Dictionary<string, object?>
             {
-                ["type"] = Type == ItemUtils.MATERIAL_ITEM_TYPE ? ItemUtils.MATERIAL_TYPE_NAME : ItemUtils.ItemIDToTypeName(Type),
-                ["material"] = Material.ToString(),
-                ["amount"] = Amount,
+                [Constants.JsonKeys.AItem.TYPE] = Type == ItemUtils.MATERIAL_ITEM_TYPE ? ItemUtils.MATERIAL_TYPE_NAME : ItemUtils.ItemIDToTypeName(Type),
+                [Constants.JsonKeys.AItem.MATERIAL] = Material.ToString(),
+                [Constants.JsonKeys.AItem.AMOUNT] = Amount,
             };
         }
 
         static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref AItem? itemObject)
         {
-            if (!itemJson.TryGetValue("type", out var typeNameValue))
+            if (!Tools.TryGetJsonObjectValue<AItem>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeNameValue, true))
             {
-                PACSingletons.Instance.Logger.Log("Item parse error", "couldn't find item type in item json", LogSeverity.ERROR);
                 return false;
             }
 
-            if (ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
+            if (!ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
             {
-                bool success;
-                if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
-                {
-                    success = PACTools.TryFromJson(itemJson, fileVersion, out MaterialItem? materialObj);
-                    itemObject = materialObj;
-                    return success;
-                }
+                Tools.LogJsonError<AItem>($"item type value is an unknown item type: \"{typeNameValue}\"", true);
+                return false;
+            }
 
-                success = PACTools.TryFromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
-                itemObject = compoundObj;
+            bool success;
+            if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
+            {
+                success = PACTools.TryFromJson(itemJson, fileVersion, out MaterialItem? materialObj);
+                itemObject = materialObj;
                 return success;
             }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Item parse error", $"item type value is an unknown item type: \"{typeNameValue}\"", LogSeverity.ERROR);
-                return false;
-            }
+
+            success = PACTools.TryFromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
+            itemObject = compoundObj;
+            return success;
         }
         #endregion
     }

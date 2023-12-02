@@ -78,20 +78,11 @@ namespace ProgressAdventure
         {
             var success = true;
 
-            var saveVersion = objectJson[Constants.JsonKeys.SaveData.SAVE_VERSION] as string;
-            success &= saveVersion is not null;
-
-            var displayName = objectJson[Constants.JsonKeys.SaveData.DISPLAY_NAME] as string;
-            success &= displayName is not null;
-
-            DateTime? lastSave = DateTime.TryParse(objectJson[Constants.JsonKeys.SaveData.LAST_SAVE]?.ToString(), out DateTime lastSaveParsed) ? lastSaveParsed : null;
-            success &= lastSave is not null;
-
-            TimeSpan? playtime = TimeSpan.TryParse(objectJson[Constants.JsonKeys.SaveData.PLAYTIME]?.ToString(), out TimeSpan playtimeParsed) ? playtimeParsed : null;
-            success &= playtime is not null;
-
-            var playerName = objectJson[Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] as string;
-            success &= playerName is not null;
+            success &= Tools.TryParseJsonValue<DisplaySaveData, string?>(objectJson, Constants.JsonKeys.SaveData.SAVE_VERSION, out var saveVersion);
+            success &= Tools.TryParseJsonValue<DisplaySaveData, string?>(objectJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
+            success &= Tools.TryParseJsonValue<DisplaySaveData, DateTime?>(objectJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
+            success &= Tools.TryParseJsonValue<DisplaySaveData, TimeSpan?>(objectJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
+            success &= Tools.TryParseJsonValue<DisplaySaveData, string?>(objectJson, Constants.JsonKeys.DisplaySaveData.PLAYER_NAME, out var playerName);
 
             convertedObject = new DisplaySaveData(saveVersion, displayName, lastSave, playtime, playerName);
             return success;

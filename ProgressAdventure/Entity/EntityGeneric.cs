@@ -7,7 +7,7 @@ namespace ProgressAdventure.Entity
 {
     /// <summary>
     /// A representation of an entity.<br/>
-    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData, IDictionary<string, object?>? miscData, string fileVersion) for FromJson<T>() to work.
+    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData) for FromJson<T>() to work.
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public abstract class Entity<TEntity> : Entity, IJsonConvertable<TEntity>
@@ -18,9 +18,6 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Entity</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        /// <param name="miscData">The json data, that can be used for loading extra data, specific to an entity type.<br/>
-        /// Should only be null, if entity creation called this constructor.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
         public Entity(
             (
                 string? name,
@@ -35,10 +32,8 @@ namespace ProgressAdventure.Entity
                 List<AItem>? drops,
                 (long x, long y)? position,
                 Facing? facing
-            ) entityData,
-            IDictionary<string, object?>? miscData,
-            string fileVersion
-        ) : base(entityData, miscData, fileVersion) { }
+            ) entityData
+        ) : base(entityData, false) { }
 
         /// <summary>
         /// <inheritdoc cref="Entity"/><br/>

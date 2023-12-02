@@ -162,6 +162,22 @@ namespace ProgressAdventure
                 public const string FACING = "facing";
             }
             #endregion
+
+            #region AItem
+            public static class AItem
+            {
+                public const string TYPE = "type";
+                public const string MATERIAL = "material";
+                public const string AMOUNT = "amount";
+            }
+            #endregion
+
+            #region CompoundItem
+            public static class CompoundItem
+            {
+                public const string PARTS = "parts";
+            }
+            #endregion
         }
         #endregion
 
