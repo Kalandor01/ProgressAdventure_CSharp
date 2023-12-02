@@ -178,7 +178,8 @@ namespace PACommon
         /// <param name="fileName">The file/folder name string.</param>
         public static string RemoveInvalidFileNameCharacters(string fileName)
         {
-            return ReplaceAll(fileName, Path.GetInvalidFileNameChars(), "");
+            var invalidTrailingChars = new char[] { '.', ' ' };
+            return ReplaceAll(fileName, Path.GetInvalidFileNameChars(), "").TrimEnd(invalidTrailingChars);
         }
 
         /// <summary>

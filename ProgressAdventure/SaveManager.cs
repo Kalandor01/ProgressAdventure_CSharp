@@ -87,7 +87,8 @@ namespace ProgressAdventure
         /// <param name="savesFolderPath">The path to the saves folder. By default, the current saves folder.</param>
         /// <exception cref="FileNotFoundException">Thrown, if the save file doesn't exist.</exception>
         /// <exception cref="FileLoadException">Thrown, if the save file doesn't have a save version.</exception>
-        public static void LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true, string? savesFolderPath = null)
+        /// <returns>If the file was loaded without json load warnings.</returns>
+        public static bool LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true, string? savesFolderPath = null)
         {
             var saveFolderPath = savesFolderPath is not null ? Path.Join(savesFolderPath, saveName) : Tools.GetSaveFolderPath(saveName);
             var dataFilePath = Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA);
@@ -100,51 +101,30 @@ namespace ProgressAdventure
 
             var data = Tools.DecodeSaveShort(dataFilePath, 1);
 
-            // auto backup?
-            if (!backupChoice && automaticBackup)
-            {
-                Tools.CreateBackup(saveName);
-            }
-
             if (data is null)
             {
                 PACSingletons.Instance.Logger.Log("Save data is empty", $"save name: \"{saveName}\"", LogSeverity.ERROR);
                 throw new FileLoadException("Save data is empty", saveName);
             }
 
+            var success = true;
             // save version
             string fileVersion = GetSaveVersion(data, saveName) ?? throw new FileLoadException("Unknown save version", saveName);
 
-            if (fileVersion != Constants.SAVE_VERSION)
+            if (BackupSaveIfAppropriate(fileVersion, saveName, backupChoice, automaticBackup))
             {
-                // backup
-                if (backupChoice)
-                {
-                    var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
-                    PACSingletons.Instance.Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
-                    var createBackup = MenuManager.AskYesNoUIQuestion(
-                        $"\"{saveName}\" is {(isOlder ? "an older version" : "a newer version")} than what it should be! Do you want to backup the save before loading it?",
-                        keybinds: Settings.Keybinds
-                    );
-                    if (createBackup)
-                    {
-                        Tools.CreateBackup(saveName);
-                    }
-                    // correct too old save version
-                    if (isOlder && !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion))
-                    {
-                        PACSingletons.Instance.Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
-                        fileVersion = Constants.OLDEST_SAVE_VERSION;
-                    }
-                }
+                PACSingletons.Instance.Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
+                fileVersion = Constants.OLDEST_SAVE_VERSION;
+                success = false;
             }
 
             // LOADING
             PACSingletons.Instance.Logger.Log("Preparing game data");
             data[Constants.JsonKeys.SaveData.SAVE_NAME] = saveName;
-            PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
+            success &= PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
             PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             World.Initialize();
+            return success;
         }
 
         /// <summary>
@@ -224,6 +204,45 @@ namespace ProgressAdventure
 
             PACSingletons.Instance.Logger.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
             return null;
+        }
+
+        /// <summary>
+        /// Backs up the save if appropriate.
+        /// </summary>
+        /// <param name="fileVersion">The file version extracted from the json.</param>
+        /// <param name="saveName">The name of the save folder.</param>
+        /// <param name="backupChoice">If the user can choose, whether to backup the save.</param>
+        /// <param name="automaticBackup">If the save folder should be backed up. (only applies if <paramref name="backupChoice"/> is false)</param>
+        /// <returns>If the save version is older than the oldest recognized save version.</returns>
+        private static bool BackupSaveIfAppropriate(string fileVersion, string saveName, bool backupChoice, bool automaticBackup)
+        {
+            if (!backupChoice && automaticBackup)
+            {
+                Tools.CreateBackup(saveName);
+                return false;
+            }
+
+            if (
+                !backupChoice ||
+                fileVersion == Constants.SAVE_VERSION
+            )
+            {
+                return false;
+            }
+
+            var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
+            PACSingletons.Instance.Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
+            var createBackup = MenuManager.AskYesNoUIQuestion(
+                $"\"{saveName}\" is {(isOlder ? "an older" : "a newer")} version than what it should be! Do you want to backup the save before loading it?",
+                keybinds: Settings.Keybinds
+            );
+
+            if (createBackup)
+            {
+                Tools.CreateBackup(saveName);
+            }
+
+            return isOlder && !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion);
         }
 
         /// <summary>

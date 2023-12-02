@@ -111,13 +111,14 @@ namespace ProgressAdventure.WorldManagement
 
         #region Public functions
         /// <summary>
-        /// Loads a Chunk object from a chunk file, or null if the file is not found.
+        /// Tries to load a Chunk from a chunk file, and return it, if it was successfuly parsed.
         /// </summary>
         /// <param name="position">The position of the chunk.</param>
         /// <param name="saveFolderName">The name of the save folder.<br/>
         /// If null, it will make one using the save name in <c>SaveData</c>.</param>
         /// <param name="expected">If the chunk is expected to exist.<br/>
         /// ONLY ALTERS THE LOGS DISPLAYED, IF THE CHUNK DOESN'T EXIST.</param>
+        /// <returns>If the parsing was succesfull without any warnings.</returns>
         public static bool FromFile((long x, long y) position, out Chunk? chunk, string? saveFolderName = null, bool expected = true)
         {
             saveFolderName ??= SaveData.Instance.saveName;
@@ -138,12 +139,12 @@ namespace ProgressAdventure.WorldManagement
                 }
                 else if (e is FileNotFoundException)
                 {
-                    PACSingletons.Instance.Logger.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                    PACSingletons.Instance.Logger.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected)")} x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return false;
                 }
                 else if (e is DirectoryNotFoundException)
                 {
-                    PACSingletons.Instance.Logger.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected) ")}x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                    PACSingletons.Instance.Logger.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected)")} x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return false;
                 }
                 throw;

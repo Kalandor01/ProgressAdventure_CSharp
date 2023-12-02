@@ -182,7 +182,7 @@ namespace ProgressAdventure
             var success = true;
 
             success &= Tools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.SAVE_NAME, out var saveName);
-            success &= Tools.TryParseJsonValue<SaveData, string>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
+            success &= Tools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
             success &= Tools.TryParseJsonValue<SaveData, DateTime?>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
             success &= Tools.TryParseJsonValue<SaveData, TimeSpan?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
             success &= Tools.TryParseJsonConvertableValue<SaveData, Player>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);

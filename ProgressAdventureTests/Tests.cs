@@ -1,4 +1,5 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
@@ -11,10 +12,12 @@ using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
 using SaveFileManager;
+using System.IO.Compression;
 using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
+using PATools = ProgressAdventure.Tools;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventureTests
@@ -882,6 +885,37 @@ namespace ProgressAdventureTests
 
         #region Other tests
         /// <summary>
+        /// NOT COMPLETE!!!<br/>
+        /// Checks if all reference save files can be loaded without errors or warnings.<br/>
+        /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES NOT!
+        /// </summary>
+        public static TestResultDTO? BasicAllMainSaveFileVersionsLoadableTest()
+        {
+            // list of reference saves
+            var zips = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH);
+            PATools.RecreateSavesFolder();
+            Console.WriteLine();
+            foreach (var zip in zips)
+            {
+                var saveName = Path.GetFileNameWithoutExtension(zip);
+                PATools.DeleteSave(saveName);
+                ZipFile.ExtractToDirectory(zip, Path.Join(PAConstants.SAVES_FOLDER_PATH, saveName));
+                var success = SaveManager.LoadSave(saveName, false, false);
+                if (!success)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
+                }
+                var wrongChunk = TryParseAllChunksFromFolder(saveName, $"Checking ({saveName})...");
+                if ( wrongChunk != null )
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
+                }
+                PATools.DeleteSave(saveName);
+            }
+            return null;
+        }
+
+        /// <summary>
         /// NOT WORKING!!!<br/>
         /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
@@ -937,6 +971,78 @@ namespace ProgressAdventureTests
             }
 
             return new TestResultDTO(LogSeverity.PASS, "Not realy implemented!");
+        }
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Tries to parse all chunks from a save file, and returns the position of first chunk that had an error while parsing.
+        /// </summary>
+        /// <param name="saveFolderName">The name of the save folder.</param>
+        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
+        private static (long x, long y)? TryParseAllChunksFromFolder(string saveFolderName, string? showProgressText = null)
+        {
+            // get existing files
+            var chunksFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveFolderName, PAConstants.SAVE_FOLDER_NAME_CHUNKS);
+            var chunkFilePaths = Directory.GetFiles(chunksFolderPath);
+            var existingChunks = new List<(long x, long y)>();
+            foreach (var chunkFilePath in chunkFilePaths)
+            {
+                var chunkFileName = Path.GetFileName(chunkFilePath);
+                if (
+                    chunkFileName is not null &&
+                    Path.GetExtension(chunkFileName) == $".{PAConstants.SAVE_EXT}" &&
+                    chunkFileName.StartsWith($"{PAConstants.CHUNK_FILE_NAME}{PAConstants.CHUNK_FILE_NAME_SEP}")
+                )
+                {
+                    var chunkPositions = Path.GetFileNameWithoutExtension(chunkFileName).Replace($"{PAConstants.CHUNK_FILE_NAME}{PAConstants.CHUNK_FILE_NAME_SEP}", "").Split(PAConstants.CHUNK_FILE_NAME_SEP);
+                    if (
+                        chunkPositions.Length == 2 &&
+                        long.TryParse(chunkPositions[0], out long posX) &&
+                        long.TryParse(chunkPositions[1], out long posY)
+                    )
+                    {
+                        existingChunks.Add((posX, posY));
+                        continue;
+                    }
+                    PACSingletons.Instance.Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
+                }
+                PACSingletons.Instance.Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
+            }
+
+            var success = true;
+            // load chunks
+            if (showProgressText is not null)
+            {
+                double chunkNum = existingChunks.Count;
+                Console.Write(showProgressText + "              ");
+                for (var x = 0; x < chunkNum; x++)
+                {
+                    success &= Chunk.FromFile(existingChunks[x], out var _, saveFolderName, true);
+                    if (!success)
+                    {
+                        Console.WriteLine();
+                        return existingChunks[x];
+                    }
+                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%              ");
+                }
+                Console.WriteLine($"\r{showProgressText}DONE!                       ");
+            }
+            else
+            {
+                foreach (var chunkPos in existingChunks)
+                {
+                    success &= Chunk.FromFile(chunkPos, out var _, saveFolderName, true);
+                    if (!success)
+                    {
+                        Console.WriteLine();
+                        return chunkPos;
+                    }
+                }
+            }
+
+            PACSingletons.Instance.Logger.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
+            return null;
         }
         #endregion
     }

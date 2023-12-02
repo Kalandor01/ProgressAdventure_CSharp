@@ -10,6 +10,10 @@
         /// Whether to initialise Globals and Setting in the main preload.
         /// </summary>
         public const bool PRELOAD_GLOBALS_ON_PRELOAD = false;
+        /// <summary>
+        /// The path to the folder where the compressed saves are stored for the save correction test.
+        /// </summary>
+        public const string TEST_REFERENCE_SAVES_FOLDER_PATH = ".\\TestSaves";
         #endregion
     }
 }

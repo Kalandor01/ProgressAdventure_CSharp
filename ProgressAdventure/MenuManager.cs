@@ -306,7 +306,7 @@ namespace ProgressAdventure
 
         #region Menu actions
         /// <summary>
-        /// Action, called when thw new save button is pressed.
+        /// Action, called when the new save button is pressed.
         /// </summary>
         /// <param name="mainMenuUI">The main menu <c>UIList</c>.</param>
         private static void NewSaveAction(UIList mainMenuUI)
@@ -320,7 +320,7 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Action, called when thw load saves button is pressed.
+        /// Action, called when the load saves button is pressed.
         /// </summary>
         /// <param name="mainMenuUI">The main menu <c>UIList</c>.</param>
         private static void LoadSavesAction(UIList mainMenuUI)

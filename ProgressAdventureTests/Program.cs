@@ -1,7 +1,11 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
 using PACommon.Logging;
+using PACommon.SettingsManagement;
 using PACommon.TestUtils;
+using ProgressAdventure;
+using ProgressAdventure.SettingsManagement;
 using System.Text;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
@@ -28,24 +32,35 @@ namespace ProgressAdventureTests
         static void Preloading()
         {
             Console.OutputEncoding = Encoding.UTF8;
+            Console.Title = "Progress Adventure tests";
 
             Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
 
-            Logger.Initialize(new FileLoggerStream(PACConstants.ROOT_FOLDER));
             Console.WriteLine("Loading...");
+
+            //initializing PAC singletons
+            var loggingStream = new FileLoggerStream(PACConstants.ROOT_FOLDER, PAConstants.LOGS_FOLDER, PAConstants.LOG_EXT);
+
+            PACSingletons.Initialize(
+                Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, false),
+                JsonDataCorrecter.Initialize(PAConstants.SAVE_VERSION, false)
+            );
 
             if (!Utils.TryEnableAnsiCodes())
             {
-                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR);
             }
 
-            PACSingletons.Instance.Logger.Log("Preloading global variables");
             // GLOBAL VARIABLES
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
             {
-                ProgressAdventure.SettingsManagement.Settings.Initialize();
-                ProgressAdventure.Globals.Initialize();
+                PACSingletons.Instance.Logger.Log("Initializing global variables");
+                Settings.Initialize();
+                KeybindUtils.colorEnabled = Settings.EnableColoredText;
+                Globals.Initialize();
             }
+
+            PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 
         /// <summary>

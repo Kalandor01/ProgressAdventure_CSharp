@@ -37,7 +37,7 @@ namespace ProgressAdventure
 
             Console.WriteLine("Loading...");
 
-            //initializing PAC singletons
+            // initializing PAC singletons
             var loggingStream = new FileLoggerStream(PACConstants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT);
 
             PACSingletons.Initialize(
@@ -45,15 +45,13 @@ namespace ProgressAdventure
                 JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, false)
             );
 
-            //initializing PA singletons
-
             if (!Utils.TryEnableAnsiCodes())
             {
-                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR);
             }
 
-            PACSingletons.Instance.Logger.Log("Initializing global variables");
             // GLOBAL VARIABLES
+            PACSingletons.Instance.Logger.Log("Initializing global variables");
             Settings.Initialize();
             KeybindUtils.colorEnabled = Settings.EnableColoredText;
             Globals.Initialize();

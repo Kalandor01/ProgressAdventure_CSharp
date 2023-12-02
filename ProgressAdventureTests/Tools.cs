@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
@@ -107,9 +108,9 @@ namespace ProgressAdventureTests
         {
             Settings.LoggingLevel = 0;
 
-            PACSingletons.Instance.Logger.Log("Preloading global variables");
-            // GLOBAL VARIABLES
+            PACSingletons.Instance.Logger.Log("Initializing global variables");
             Settings.Initialize();
+            KeybindUtils.colorEnabled = Settings.EnableColoredText;
             Globals.Initialize();
         }
 
