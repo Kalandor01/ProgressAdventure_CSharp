@@ -22,7 +22,6 @@ namespace ProgressAdventureTests
             //Tools.RunAllTests();
             TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest);
 
-
             Utils.PressKey("DONE!");
         }
 

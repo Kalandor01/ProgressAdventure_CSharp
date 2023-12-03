@@ -4,8 +4,11 @@ using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
+using System.IO.Compression;
 using PAConstants = ProgressAdventure.Constants;
 using Utils = PACommon.Utils;
+using PATools = ProgressAdventure.Tools;
+using ProgressAdventure.WorldManagement;
 
 namespace ProgressAdventureTests
 {
@@ -121,6 +124,23 @@ namespace ProgressAdventureTests
         internal static void RunTestInternal(Func<TestResultDTO?> testFunction)
         {
             TestingUtils.RunTest(testFunction, PrepareTest, false, ref testsRun, ref testsSuccessful);
+        }
+
+        /// <summary>
+        /// Gets a test save backup, loads it, saves it and creates a new test save from it, depending on the current save version.
+        /// </summary>
+        /// <param name="saveVersion">The save version/name of the save, to update.</param>
+        internal static void CreateNewTestSaveFromPrevious(string saveVersion)
+        {
+            PATools.DeleteSave(saveVersion);
+            ZipFile.ExtractToDirectory(Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{saveVersion}.{PAConstants.BACKUP_EXT}"), PATools.GetSaveFolderPath(saveVersion));
+            SaveManager.LoadSave(saveVersion, false, false);
+            World.LoadAllChunksFromFolder(null, "Loading...");
+            SaveManager.MakeSave(showProgressText: "Saving...");
+            var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{PAConstants.SAVE_VERSION}.{PAConstants.BACKUP_EXT}");
+            File.Delete(testBackupFilePath);
+            ZipFile.CreateFromDirectory(PATools.GetSaveFolderPath(saveVersion), testBackupFilePath);
+            PATools.DeleteSave(saveVersion);
         }
         #endregion
     }

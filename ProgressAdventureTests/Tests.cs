@@ -896,11 +896,10 @@ namespace ProgressAdventureTests
             PATools.DeleteSave(currentSaveName);
             CreateTestSaveData(currentSaveName);
             SaveManager.MakeSave();
-            var (backupPath, _) = PATools.CreateBackup(currentSaveName, true) ?? throw new DirectoryNotFoundException("Couldn't find current version save folder");
-            PATools.DeleteSave(currentSaveName);
             var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{currentSaveName}.{PAConstants.BACKUP_EXT}");
             File.Delete(testBackupFilePath);
-            File.Move(backupPath, testBackupFilePath);
+            ZipFile.CreateFromDirectory(PATools.GetSaveFolderPath(currentSaveName), testBackupFilePath);
+            PATools.DeleteSave(currentSaveName);
 
             // list of reference saves
             var zips = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH);
