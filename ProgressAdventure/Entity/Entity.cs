@@ -478,15 +478,11 @@ namespace ProgressAdventure.Entity
                 return false;
             }
 
-            if (!Tools.TryGetJsonObjectValue<Entity>(entityJson, Constants.JsonKeys.Entity.TYPE, out var entityTypeValue, true))
-            {
-                return false;
-            }
-
-            if (
-                !EntityUtils.entityTypeMap.TryGetValue(entityTypeValue?.ToString() ?? "", out Type? entityType) ||
-                entityType is null
-            )
+            if (!(
+                Tools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.TYPE, out var entityTypeValue, true) &&
+                EntityUtils.entityTypeMap.TryGetValue(entityTypeValue ?? "", out Type? entityType) &&
+                entityType is not null
+            ))
             {
                 Tools.LogJsonError<Entity>("invalid entity type", true);
                 return false;
@@ -608,9 +604,9 @@ namespace ProgressAdventure.Entity
                 out var attributes);
             success &= Tools.TryParseListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 dropJson => {
-                    var parseSuccess = PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
+                    var parseSuccess = PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? dropObject);
                     success &= parseSuccess;
-                    return (parseSuccess, itemObject);
+                    return (parseSuccess, dropObject);
                 },
                 out var drops);
 

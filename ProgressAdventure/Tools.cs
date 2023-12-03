@@ -1,4 +1,5 @@
-﻿using PACommon;
+﻿using NPrng.Generators;
+using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.SettingsManagement;
@@ -167,7 +168,7 @@ namespace ProgressAdventure
 
         #region Json parse short
         /// <summary>
-        /// Tries to parse a value from a json dictionary, and logs a warning, if it doesn't exist or null.
+        /// Tries to get a value from a json dictionary, and logs a warning, if it doesn't exist or null.
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
         /// <param name="objectJson">The json dictionary to parse the value from.</param>
@@ -190,17 +191,41 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Tries to get a value of a specific type from a json dictionary, and logs a warning, if it doesn't exist, or is't the expected type.
+        /// </summary>
+        /// <typeparam name="TRes">The expected type of the result.</typeparam>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryGetJsonAnyValue<T, TRes>(IDictionary<string, object?> objectJson, string jsonKey, out TRes? value, bool isCritical = false)
+        {
+            value = default;
+            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
+            {
+                return false;
+            }
+
+            if (result is TRes resultValue)
+            {
+                value = resultValue;
+                return true;
+            }
+
+            LogJsonError<T>($"{jsonKey} is not the expected type ({typeof(TRes)})", isCritical);
+            return false;
+        }
+
+        /// <summary>
         /// Tries to parse a json value to a type. If the value can't be parsed, it logs a json parse warning.<br/>
         /// Usable types:<br/>
         /// - bool<br/>
         /// - string<br/>
         /// - numbers<br/>
         /// - enums<br/>
+        /// - SplittableRandom<br/>
         /// - any type that has a converter? and can convert from string representation to object<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
-        /// <typeparam name="TRes">The type to parse to</typeparam>
+        /// <typeparam name="TRes">The type to parse to.</typeparam>
         /// <param name="value">The value to parse.</param>
         /// <param name="parsedValue">The parsed value, or default if it wasn't successful.</param>
         /// <param name="parameterName">The parameter name to use for logging unsuccesful parsing.</param>
@@ -225,13 +250,29 @@ namespace ProgressAdventure
 
             var parseType = typeof(TRes);
             var actualType = Nullable.GetUnderlyingType(parseType) ?? parseType;
+
             if (actualType == typeof(string))
             {
                 parsedValue = (TRes)(object)valueText;
+                return true;
+            }
+
+            var parseSuccess = true;
+            if (actualType == typeof(SplittableRandom))
+            {
+                parseSuccess = PACTools.TryDeserializeRandom(valueText, out var parsedRandom);
+                if (parsedRandom is not null)
+                {
+                    parsedValue = (TRes)(object)parsedRandom;
+                }
+                else if (logParseWarning)
+                {
+                    LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", isCritical);
+                }
+                return parseSuccess;
             }
 
             var parsedResult = default(TRes?);
-            var parseFailed = false;
             try
             {
                 var converter = TypeDescriptor.GetConverter(parseType);
@@ -239,10 +280,10 @@ namespace ProgressAdventure
             }
             catch
             {
-                parseFailed = true;
+                parseSuccess = false;
             }
 
-            if (!parseFailed && parsedResult is not null)
+            if (parseSuccess && parsedResult is not null)
             {
                 if (!actualType.IsEnum || Enum.IsDefined(actualType, parsedResult))
                 {
@@ -265,6 +306,7 @@ namespace ProgressAdventure
         /// - string<br/>
         /// - numbers<br/>
         /// - enums<br/>
+        /// - SplittableRandom<br/>
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
@@ -287,32 +329,6 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Tries to parse a json dictionary value from a json dictionary, and logs a warning, if it can't pe parsed.
-        /// </summary>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
-        public static bool TryParseJsonDictValue<T>(
-            IDictionary<string, object?> objectJson,
-            string jsonKey,
-            out IDictionary<string, object?>? value,
-            bool isCritical = false
-        )
-        {
-            value = null;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
-            {
-                return false;
-            }
-
-            if (result is IDictionary<string, object?> resultValue)
-            {
-                value = resultValue;
-                return true;
-            }
-            LogJsonParseError<T>(jsonKey, isCritical);
-            return false;
-        }
-
-        /// <summary>
         /// Tries to parse an IJsonConvertable value from a json dictionary, and logs a warning, if it can't pe parsed.
         /// </summary>
         /// <param name="fileVersion">The version number of the loaded file.</param>
@@ -329,7 +345,7 @@ namespace ProgressAdventure
             where TJc : IJsonConvertable<TJc>
         {
             value = default;
-            if (!TryParseJsonDictValue<T>(objectJson, jsonKey, out var result, isCritical))
+            if (!TryGetJsonAnyValue<T, IDictionary<string, object?>>(objectJson, jsonKey, out var result, isCritical))
             {
                 return false;
             }
@@ -358,30 +374,28 @@ namespace ProgressAdventure
         )
         {
             value = null;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
+            if (!(
+                TryGetJsonAnyValue<T, IEnumerable<object?>>(objectJson, jsonKey, out var resultList, isCritical) &&
+                resultList is not null
+            ))
             {
                 return false;
             }
 
-            if (result is IEnumerable<object?> resultList)
+            value = new List<TRes>();
+            foreach (var element in resultList)
             {
-                value = new List<TRes>();
-                foreach (var element in resultList)
+                var (success, parsedResult) = parseFunction(element);
+                if (success && parsedResult is not null)
                 {
-                    var parsedResult = parseFunction(element);
-                    if (parsedResult.success && parsedResult.result is not null)
-                    {
-                        value.Add(parsedResult.result);
-                    }
-                    else
-                    {
-                        LogJsonParseError<T>($"an element of the {jsonKey} list");
-                    }
+                    value.Add(parsedResult);
                 }
-                return true;
+                else
+                {
+                    LogJsonParseError<T>($"an element of the {jsonKey} list");
+                }
             }
-            LogJsonParseError<T>(jsonKey, isCritical);
-            return false;
+            return true;
         }
         #endregion
 

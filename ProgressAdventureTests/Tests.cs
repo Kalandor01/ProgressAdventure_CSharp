@@ -891,6 +891,17 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? BasicAllMainSaveFileVersionsLoadableTest()
         {
+            // create current refrence save
+            var currentSaveName = "current";
+            PATools.DeleteSave(currentSaveName);
+            CreateTestSaveData(currentSaveName);
+            SaveManager.MakeSave();
+            var (backupPath, _) = PATools.CreateBackup(currentSaveName, true) ?? throw new DirectoryNotFoundException("Couldn't find current version save folder");
+            PATools.DeleteSave(currentSaveName);
+            var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{currentSaveName}.{PAConstants.BACKUP_EXT}");
+            File.Delete(testBackupFilePath);
+            File.Move(backupPath, testBackupFilePath);
+
             // list of reference saves
             var zips = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH);
             PATools.RecreateSavesFolder();
@@ -1043,6 +1054,33 @@ namespace ProgressAdventureTests
 
             PACSingletons.Instance.Logger.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
             return null;
+        }
+
+        private static void CreateTestSaveData(string saveName)
+        {
+            SaveData.Initialize(
+                saveName,
+                $"test save ({saveName})",
+                null, null,
+                new Player(
+                    $"test player ({saveName})",
+                    new Inventory(new List<AItem>
+                    {
+                        new MaterialItem(Material.CLOTH, 15),
+                        new MaterialItem(Material.GOLD, 5.27),
+                        new MaterialItem(Material.HEALING_LIQUID, 0.3),
+                        ItemUtils.CreateCompoumdItem(ItemType.Weapon.SWORD, new List<Material?> { Material.STEEL, Material.WOOD }, 12),
+                        ItemUtils.CreateCompoumdItem(ItemType.Weapon.CLUB, new List<Material?> { Material.WOOD }, 3),
+                        ItemUtils.CreateCompoumdItem(ItemType.Weapon.ARROW, new List<Material?> { Material.FLINT, Material.WOOD }, 152),
+                    }),
+                    (15, -6))
+            );
+            World.Initialize();
+            World.TryGetChunkAll((0, 0), out _);
+            World.TryGetChunkAll((-48, -458), out _);
+            World.TryGetChunkAll((126, -96), out _);
+            World.TryGetChunkAll((-9, 158), out _);
+            World.TryGetChunkAll((1235, 6), out _);
         }
         #endregion
     }

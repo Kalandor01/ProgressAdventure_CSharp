@@ -230,14 +230,12 @@ namespace ProgressAdventure.ItemManagement
 
         static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref AItem? itemObject)
         {
-            if (!Tools.TryGetJsonObjectValue<AItem>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeNameValue, true))
+            if (!(
+                Tools.TryParseJsonValue<AItem, string>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, true) &&
+                ItemUtils.TryParseItemType(typeName, out var itemType)
+            ))
             {
-                return false;
-            }
-
-            if (!ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
-            {
-                Tools.LogJsonError<AItem>($"item type value is an unknown item type: \"{typeNameValue}\"", true);
+                Tools.LogJsonError<AItem>($"item type value is an unknown item type: \"{typeName}\"", true);
                 return false;
             }
 

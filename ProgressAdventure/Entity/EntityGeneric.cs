@@ -2,12 +2,15 @@
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
+using System.Reflection;
 
 namespace ProgressAdventure.Entity
 {
     /// <summary>
     /// A representation of an entity.<br/>
-    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData) for FromJson<T>() to work.
+    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData) for FromJson() to work.<br/>
+    /// You can also add a property for extra child class specific correction with the signature:<br/>
+    /// protected static List{(Action{IDictionary{string, object?}} objectJsonCorrecter, string newFileVersion)} MiscVersionCorrecters { get; }
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public abstract class Entity<TEntity> : Entity, IJsonConvertable<TEntity>
@@ -105,6 +108,22 @@ namespace ProgressAdventure.Entity
         static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref TEntity? convertedObject)
         {
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TEntity>(ref objectJson, BaseVersionCorrecters, fileVersion);
+
+            var miscVersionCorrectersProperty = typeof(TEntity).GetProperty(
+                "MiscVersionCorrecters",
+                BindingFlags.NonPublic | BindingFlags.Static,
+                null,
+                typeof(List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>),
+                Array.Empty<Type>(),
+                null
+            );
+
+            var miscVersionCorrecters = miscVersionCorrectersProperty?.GetValue(null) as List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>;
+            if (miscVersionCorrecters is not null)
+            {
+                PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Entity<TEntity>>(ref objectJson, miscVersionCorrecters, fileVersion);
+            }
+
             return FromJsonWithoutGeneralCorrection(objectJson, fileVersion, out convertedObject);
         }
     }

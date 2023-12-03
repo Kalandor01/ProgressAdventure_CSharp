@@ -201,14 +201,12 @@ namespace ProgressAdventure.ItemManagement
 
         static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref CompoundItem? itemObject)
         {
-            if (!Tools.TryGetJsonObjectValue<CompoundItem>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeNameValue, true))
+            if (!(
+                Tools.TryGetJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
+                ItemUtils.TryParseItemType(typeName, out ItemTypeID itemType)
+            ))
             {
-                return false;
-            }
-
-            if (!ItemUtils.TryParseItemType(typeNameValue?.ToString(), out ItemTypeID itemType))
-            {
-                Tools.LogJsonError<CompoundItem>($"item type value is an unknown item type: \"{typeNameValue}\"", true);
+                Tools.LogJsonError<CompoundItem>($"item type value is an unknown item type: \"{typeName}\"", true);
                 return false;
             }
 

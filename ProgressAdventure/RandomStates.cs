@@ -171,7 +171,7 @@ namespace ProgressAdventure
         #region JsonConversion
         static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<RandomStates>.VersionCorrecters { get; } = new()
         {
-            // 2.0.1 -> 2.0.2
+            // 2.1.1 -> 2.2
             (oldJson => {
                 // snake case rename
                 if (oldJson.TryGetValue("mainRandom", out var mrRename))
@@ -194,18 +194,18 @@ namespace ProgressAdventure
                 {
                     oldJson["chunk_seed_modifier"] = csmRename;
                 }
-            }, "2.0.2"),
+            }, "2.2"),
         };
 
         public Dictionary<string, object?> ToJson()
         {
             return new Dictionary<string, object?>
             {
-                ["main_random"] = PACTools.SerializeRandom(MainRandom),
-                ["world_random"] = PACTools.SerializeRandom(WorldRandom),
-                ["misc_random"] = PACTools.SerializeRandom(MiscRandom),
-                ["tile_type_noise_seeds"] = TileTypeNoiseSeeds,
-                ["chunk_seed_modifier"] = ChunkSeedModifier,
+                [Constants.JsonKeys.RandomStates.MAIN_RANDOM] = PACTools.SerializeRandom(MainRandom),
+                [Constants.JsonKeys.RandomStates.WORLD_RANDOM] = PACTools.SerializeRandom(WorldRandom),
+                [Constants.JsonKeys.RandomStates.MISC_RANDOM] = PACTools.SerializeRandom(MiscRandom),
+                [Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS] = TileTypeNoiseSeeds,
+                [Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER] = ChunkSeedModifier,
             };
         }
 
@@ -243,67 +243,30 @@ namespace ProgressAdventure
 
         static bool IJsonConvertable<RandomStates>.FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion, ref RandomStates? randomStates)
         {
-            var success = true;
-            SplittableRandom? mainRandom = null;
-            SplittableRandom? worldRandom = null;
-            SplittableRandom? miscRandom = null;
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
-            double? chunkSeedModifier = null;
 
-            // main random
-            if (randomStatesJson.TryGetValue("main_random", out object? mainRandomValue))
+            var success = true;
+            success &= Tools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MAIN_RANDOM, out var mainRandom);
+            success &= Tools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.WORLD_RANDOM, out var worldRandom);
+            success &= Tools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MISC_RANDOM, out var miscRandom);
+
+            if (
+                Tools.TryGetJsonAnyValue<RandomStates, IDictionary<string, object?>>(
+                    randomStatesJson,
+                    Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS,
+                    out var tileTypeNoiseSeedsJson
+                )
+            )
             {
-                success &= PACTools.TryDeserializeRandom(mainRandomValue?.ToString(), out mainRandom);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Random states parse error", "main random is null", LogSeverity.WARN);
-                success = false;
-            }
-            // world random
-            if (randomStatesJson.TryGetValue("world_random", out object? worldRandomValue))
-            {
-                success &= PACTools.TryDeserializeRandom(worldRandomValue?.ToString(), out worldRandom);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Random states parse error", "world random is null", LogSeverity.WARN);
-                success = false;
-            }
-            // misc random
-            if (randomStatesJson.TryGetValue("misc_random", out object? miscRandomValue))
-            {
-                success &= PACTools.TryDeserializeRandom(miscRandomValue?.ToString(), out miscRandom);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
-                success = false;
-            }
-            // tile type noise seeds
-            if (randomStatesJson.TryGetValue("tile_type_noise_seeds", out object? tileTypeNoiseSeedsJson))
-            {
-                tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds(tileTypeNoiseSeedsJson as IDictionary<string, object?>);
+                tileTypeNoiseSeeds = DeserialiseTileNoiseSeeds(tileTypeNoiseSeedsJson);
                 success &= tileTypeNoiseSeeds is not null && tileTypeNoiseSeeds.Count == Enum.GetNames<TileNoiseType>().Length;
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Random states parse error", "misc random is null", LogSeverity.WARN);
                 success = false;
             }
-            // chunk seed modifier
-            if (
-                randomStatesJson.TryGetValue("chunk_seed_modifier", out object? chunkSeedModifierStrValue) &&
-                double.TryParse(chunkSeedModifierStrValue?.ToString(), out double chunkSeedValue)
-            )
-            {
-                chunkSeedModifier = chunkSeedValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Random states parse error", "chunk seed modifier is null", LogSeverity.WARN);
-                success = false;
-            }
+
+            success &= Tools.TryParseJsonValue<RandomStates, double?>(randomStatesJson, Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER, out var chunkSeedModifier);
 
             randomStates = Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
             return success;

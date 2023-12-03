@@ -163,6 +163,13 @@ namespace ProgressAdventure
             }
             #endregion
 
+            #region Player
+            public static class Player
+            {
+                public const string INVENTORY = "inventory";
+            }
+            #endregion
+
             #region AItem
             public static class AItem
             {
@@ -176,6 +183,24 @@ namespace ProgressAdventure
             public static class CompoundItem
             {
                 public const string PARTS = "parts";
+            }
+            #endregion
+
+            #region Inventory
+            public static class Inventory
+            {
+                public const string ITEMS = "items";
+            }
+            #endregion
+
+            #region RandomStates
+            public static class RandomStates
+            {
+                public const string MAIN_RANDOM = "main_random";
+                public const string WORLD_RANDOM = "world_random";
+                public const string MISC_RANDOM = "misc_random";
+                public const string TILE_TYPE_NOISE_SEEDS = "tile_type_noise_seeds";
+                public const string CHUNK_SEED_MODIFIER = "chunk_seed_modifier";
             }
             #endregion
         }

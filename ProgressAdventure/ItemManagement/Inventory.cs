@@ -205,35 +205,29 @@ namespace ProgressAdventure.ItemManagement
         #region JsonConvertable
         public Dictionary<string, object?> ToJson()
         {
-            var itemsListJson = new List<Dictionary<string, object?>>();
-            foreach (var item in items)
+            return new Dictionary<string, object?>
             {
-                itemsListJson.Add(item.ToJson());
-            }
-            return new Dictionary<string, object?> { ["items"] = itemsListJson };
+                [Constants.JsonKeys.Inventory.ITEMS] = items.Select(item => item.ToJson())
+            };
         }
 
         static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(IDictionary<string, object?> inventoryJson, string fileVersion, ref Inventory? inventory)
         {
-            if (
-                !inventoryJson.TryGetValue("items", out object? itemsJson) ||
-                itemsJson is not IEnumerable itemList
-            )
+            var success = true;
+            success = Tools.TryParseListValue<Inventory, AItem>(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
+                itemJson =>
+                {
+                    var parseSuccess = PACTools.TryFromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
+                    success &= parseSuccess;
+                    return (parseSuccess, itemObject);
+                },
+                out var items, true);
+
+            if (items is null)
             {
-                PACSingletons.Instance.Logger.Log("Inventory parse error", "couldn't parse item list from json", LogSeverity.ERROR);
                 return false;
             }
 
-            var success = true;
-            var items = new List<AItem>();
-            foreach (var itemJson in itemList)
-            {
-                success &= PACTools.TryFromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? item);
-                if (item is not null)
-                {
-                    items.Add(item);
-                }
-            }
             inventory = new Inventory(items);
             return success;
         }

@@ -165,28 +165,14 @@ namespace ProgressAdventure.Entity
         public override Dictionary<string, object?> ToJson()
         {
             var playerJson = base.ToJson();
-            playerJson["inventory"] = inventory.ToJson();
+            playerJson[Constants.JsonKeys.Player.INVENTORY] = inventory.ToJson();
             return playerJson;
         }
 
         protected override bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
-            var success = true;
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Player>(ref miscJson, MiscVersionCorrecters, fileVersion);
-
-            Inventory? inventoryTemp = null;
-            if (
-                miscJson.TryGetValue("inventory", out var inventoryValue)
-            )
-            {
-                success &= PACTools.TryFromJson(inventoryValue as IDictionary<string, object?>, fileVersion, out inventoryTemp);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Player parse error", "couldn't parse player inventory", LogSeverity.WARN);
-                success = false;
-            }
-            inventory = inventoryTemp ?? new Inventory();
+            var success = Tools.TryParseJsonConvertableValue<Player, Inventory>(miscJson, fileVersion, Constants.JsonKeys.Player.INVENTORY, out var inventory);
+            this.inventory = inventory ?? new Inventory();
             return success;
         }
         #endregion

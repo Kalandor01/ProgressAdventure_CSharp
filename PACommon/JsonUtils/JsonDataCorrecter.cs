@@ -87,13 +87,14 @@ namespace PACommon.JsonUtils
         /// <param name="newFileVersion">The version number, this function will correct the json data to.</param>
         public static void CorrectJsonDataVersion(string objectName, Action<IDictionary<string, object?>> objectJsonCorrecter, ref IDictionary<string, object?> objectJson, ref string fileVersion, string newFileVersion)
         {
-            if (!Utils.IsUpToDate(newFileVersion, fileVersion))
+            if (Utils.IsUpToDate(newFileVersion, fileVersion))
             {
-                objectJsonCorrecter(objectJson);
-
-                PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-                fileVersion = newFileVersion;
+                return;
             }
+
+            objectJsonCorrecter(objectJson);
+            PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+            fileVersion = newFileVersion;
         }
         #endregion
 
