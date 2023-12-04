@@ -474,7 +474,7 @@ namespace ProgressAdventure.Entity
             entityObject = null;
             if (entityJson is null)
             {
-                Tools.LogJsonNullError<Entity>(nameof(Entity), true);
+                Tools.LogJsonNullError<Entity>(nameof(Entity), null, true);
                 return false;
             }
 
@@ -596,13 +596,13 @@ namespace ProgressAdventure.Entity
             success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
             success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
             success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
-            success &= Tools.TryParseListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= Tools.TryParseJsonListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 attribute => {
                     var success = Tools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, false);
                     return (success, value);
                 },
                 out var attributes);
-            success &= Tools.TryParseListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= Tools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 dropJson => {
                     var parseSuccess = PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? dropObject);
                     success &= parseSuccess;

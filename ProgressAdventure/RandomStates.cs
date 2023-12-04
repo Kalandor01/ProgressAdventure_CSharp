@@ -3,6 +3,7 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
+using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
@@ -241,7 +242,7 @@ namespace ProgressAdventure
             return noiseSeedDict;
         }
 
-        static bool IJsonConvertable<RandomStates>.FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion, ref RandomStates? randomStates)
+        static bool IJsonConvertable<RandomStates>.FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion, [NotNullWhen(true)] ref RandomStates? randomStates)
         {
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
 

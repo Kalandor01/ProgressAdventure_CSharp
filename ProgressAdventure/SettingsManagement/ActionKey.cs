@@ -1,9 +1,7 @@
-﻿using PACommon;
-using PACommon.Enums;
-using PACommon.JsonUtils;
+﻿using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
-using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventure.SettingsManagement
@@ -99,63 +97,59 @@ namespace ProgressAdventure.SettingsManagement
             {
                 var keyJson = new Dictionary<string, object>()
                 {
-                    ["key"] = (int)key.Key,
-                    ["key_char"] = key.KeyChar,
-                    ["modifiers"] = (int)key.Modifiers
+                    [Constants.JsonKeys.ActionKey.KEY] = (int)key.Key,
+                    [Constants.JsonKeys.ActionKey.KEY_CHAR] = key.KeyChar,
+                    [Constants.JsonKeys.ActionKey.MODIFIERS] = (int)key.Modifiers
                 };
                 keyListJson.Add(keyJson);
             }
             return new Dictionary<string, object?> { [ActionType.ToString().ToLower()] = keyListJson };
         }
 
-        static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(IDictionary<string, object?> actionKeyJson, string fileVersion, ref ActionKey? actionKeyObject)
+        static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(IDictionary<string, object?> actionKeyJson, string fileVersion, [NotNullWhen(true)] ref ActionKey? actionKeyObject)
         {
             if (!actionKeyJson.Any())
             {
-                PACSingletons.Instance.Logger.Log("Action key parse error", "action key json is null", LogSeverity.WARN);
+                Tools.LogJsonError<ActionKey>($"{nameof(actionKeyJson)} is empty", true);
                 return false;
             }
 
             var actionJson = actionKeyJson.First();
 
-            if (
-                Enum.TryParse(actionJson.Key.ToUpper(), out ActionType actionType) &&
-                Enum.IsDefined(actionType) &&
-                actionJson.Value is IEnumerable actionKeyList
-            )
+            if (!(
+                Tools.TryParseValueForJsonParsing<ActionKey, ActionType>(
+                    actionJson.Key.ToUpper(),
+                    out var actionType,
+                    parameterName: nameof(actionJson),
+                    parameterExtraInfo: $"action type: {actionJson.Key}",
+                    isCritical: true
+                ) &&
+                Tools.TryCastAnyValueForJsonParsing<ActionKey, IEnumerable<object?>>(actionJson.Value, out var actionKeyList, nameof(actionJson) + " value", true)
+            ))
             {
-                var success = true;
-                var keys = new List<ConsoleKeyInfo>();
-                foreach (var actionKey in actionKeyList)
-                {
-                    var actionDict = actionKey as IDictionary<string, object>;
-                    if (
-                        actionDict is not null &&
-                        Enum.TryParse(actionDict.TryGetValue("key", out var keyValue) ? keyValue.ToString() : null, out ConsoleKey keyEnum) &&
-                        Enum.IsDefined(keyEnum) &&
-                        char.TryParse(actionDict.TryGetValue("key_char", out var charValue) ? charValue.ToString() : null, out char keyChar) &&
-                        int.TryParse(actionDict.TryGetValue("modifiers", out var modValue) ? modValue.ToString() : null, out int keyMods)
-                        )
-                    {
-                        var alt = Utils.GetBit(keyMods, 0);
-                        var shift = Utils.GetBit(keyMods, 1);
-                        var ctrl = Utils.GetBit(keyMods, 2);
-                        keys.Add(new ConsoleKeyInfo(keyChar, keyEnum, shift, alt, ctrl));
-                    }
-                    else
-                    {
-                        PACSingletons.Instance.Logger.Log("Action key parse error", $"couldn't parse key from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
-                        success = false;
-                    }
-                }
-                actionKeyObject = new ActionKey(actionType, keys);
-                return success;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Action key parse error", $"couldn't parse action from action key json, action type: {actionJson.Key}", LogSeverity.WARN);
                 return false;
             }
+
+            var success = true;
+            success = Tools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
+                if (
+                    Tools.TryCastAnyValueForJsonParsing<ActionKey, IDictionary<string, object?>>(actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue)) &&
+                    Tools.TryParseJsonValue<ActionKey, ConsoleKey>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY, out var keyEnum) &&
+                    Tools.TryParseJsonValue<ActionKey, char>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY_CHAR, out var keyChar) &&
+                    Tools.TryParseJsonValue<ActionKey, int>(actionKeyJson, Constants.JsonKeys.ActionKey.MODIFIERS, out var keyModifiers)
+                    )
+                {
+                    var alt = Utils.GetBit(keyModifiers, 0);
+                    var shift = Utils.GetBit(keyModifiers, 1);
+                    var ctrl = Utils.GetBit(keyModifiers, 2);
+                    return (true, new ConsoleKeyInfo(keyChar, keyEnum, shift, alt, ctrl));
+                }
+                success = false;
+                return (false, default);
+            }, out var keys);
+
+            actionKeyObject = new ActionKey(actionType, keys);
+            return success;
         }
         #endregion
     }

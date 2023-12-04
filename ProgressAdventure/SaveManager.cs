@@ -109,7 +109,12 @@ namespace ProgressAdventure
 
             var success = true;
             // save version
-            string fileVersion = GetSaveVersion(data, saveName) ?? throw new FileLoadException("Unknown save version", saveName);
+            var fileVersion = GetSaveVersion<SaveData>(data, Constants.JsonKeys.SaveData.SAVE_VERSION, saveName);
+            if (fileVersion is null)
+            {
+                PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {saveName}", LogSeverity.ERROR);
+                throw new FileLoadException("Unknown save version", saveName);
+            }
 
             if (BackupSaveIfAppropriate(fileVersion, saveName, backupChoice, automaticBackup))
             {
@@ -157,6 +162,28 @@ namespace ProgressAdventure
             }
             return datasProcessed;
         }
+
+        /// <summary>
+        /// Gets the save version of the file from the json data.
+        /// </summary>
+        /// <typeparam name="T">The type of the object to get the version for.</typeparam>
+        /// <param name="dataJson">The json representation of a file json data.</param>
+        /// <param name="newJsonKey">The new json key for the save version.</param>
+        /// <param name="fileName">The name of the currenly loaded save file.</param>
+        public static string? GetSaveVersion<T>(IDictionary<string, object?> dataJson, string newJsonKey, string fileName)
+        {
+            if (Tools.TryParseJsonValue<T, string>(dataJson, newJsonKey, out var fileVersion))
+            {
+                return fileVersion;
+            }
+
+            if (Tools.TryParseJsonValue<T, string>(dataJson, Constants.JsonKeys.OLD_SAVE_VERSION, out var fileVersionBackup))
+            {
+                PACSingletons.Instance.Logger.Log($"Old style {typeof(T).Name} version (< 2.2)", $"{typeof(T).Name} name: {fileName}", LogSeverity.INFO);
+                return fileVersionBackup;
+            }
+            return null;
+        }
         #endregion
 
         #region Private functions
@@ -173,37 +200,6 @@ namespace ProgressAdventure
             var mainData = SaveData.Instance.ToJson();
             // create new save
             Tools.EncodeSaveShort(new List<IDictionary> { displayData, mainData }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
-        }
-
-        /// <summary>
-        /// Gets the save version of the file from the display/normal json data.
-        /// </summary>
-        /// <param name="dataJson">The json representation of the (display) save data.</param>
-        /// <param name="saveName">The name of the currenly loaded save file.</param>
-        private static string? GetSaveVersion(IDictionary<string, object?> dataJson, string saveName)
-        {
-            if (
-                dataJson.TryGetValue("save_version", out object? versionValue) &&
-                versionValue is not null &&
-                versionValue is string fileVersion
-            )
-            {
-                return fileVersion;
-            }
-
-            // old save version key
-            if (
-                dataJson.TryGetValue("saveVersion", out object? versionValueBackup) &&
-                versionValueBackup is not null &&
-                versionValueBackup is string fileVersionBackup
-            )
-            {
-                PACSingletons.Instance.Logger.Log("Old style save version (< 2.2)", $"save name: {saveName}", LogSeverity.INFO);
-                return fileVersionBackup;
-            }
-
-            PACSingletons.Instance.Logger.Log("Unknown save version", $"save name: {saveName}", LogSeverity.ERROR);
-            return null;
         }
 
         /// <summary>
@@ -249,7 +245,7 @@ namespace ProgressAdventure
         /// Formats the json display data from a save file, into a displayable string.
         /// </summary>
         /// <param name="data">The save folder's name, and the data extracted from the data file's diplay data.</param>
-        private static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, Dictionary<string, object?>? jsonData) data)
+        public static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, Dictionary<string, object?>? jsonData) data)
         {
             var folderName = data.folderName;
             var dataJson = (IDictionary<string, object?>?)data.jsonData;
@@ -262,9 +258,14 @@ namespace ProgressAdventure
                     throw new ArgumentException("No data in save file.");
                 }
 
-                string? fileVersion = GetSaveVersion(dataJson, folderName);
+                string? fileVersion = GetSaveVersion<DisplaySaveData>(dataJson, Constants.JsonKeys.SaveData.SAVE_VERSION, folderName);
+                if (fileVersion is null)
+                {
+                    PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {folderName}", LogSeverity.ERROR);
+                    fileVersion = Constants.OLDEST_SAVE_VERSION;
+                }
 
-                PACTools.TryFromJson(dataJson, fileVersion ?? Constants.OLDEST_SAVE_VERSION, out DisplaySaveData? displaySaveData);
+                PACTools.TryFromJson(dataJson, fileVersion, out DisplaySaveData? displaySaveData);
                 if (displaySaveData is null)
                 {
                     throw new ArgumentNullException(nameof(displaySaveData), "Somehow the DisplaySaveData is null after being converted from json.");

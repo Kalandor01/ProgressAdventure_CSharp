@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProgressAdventure
 {
@@ -177,7 +178,7 @@ namespace ProgressAdventure
             };
         }
 
-        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> saveDataJson, string fileVersion, ref SaveData? saveData)
+        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> saveDataJson, string fileVersion, [NotNullWhen(true)] ref SaveData? saveData)
         {
             var success = true;
 

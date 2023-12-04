@@ -4,6 +4,7 @@ using PACommon.Extensions;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
@@ -199,19 +200,19 @@ namespace ProgressAdventure.ItemManagement
             return itemJson;
         }
 
-        static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref CompoundItem? itemObject)
+        static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref CompoundItem? itemObject)
         {
             if (!(
                 Tools.TryGetJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
                 ItemUtils.TryParseItemType(typeName, out ItemTypeID itemType)
             ))
             {
-                Tools.LogJsonError<CompoundItem>($"item type value is an unknown item type: \"{typeName}\"", true);
+                Tools.LogJsonError<CompoundItem>($"unknown item type: \"{typeName}\"", true);
                 return false;
             }
 
             var success = true;
-            success &= Tools.TryParseListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
+            success &= Tools.TryParseJsonListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
                 partJson => {
                     success &= PACTools.TryFromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
                     return (part is not null, part);
@@ -225,7 +226,7 @@ namespace ProgressAdventure.ItemManagement
             success &= Tools.TryParseJsonValue<CompoundItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
             if (itemAmount is null)
             {
-                Tools.LogJsonError<CompoundItem>("couldn't parse item amount from json, defaulting to 1");
+                Tools.LogJsonError<CompoundItem>("defaulting to 1");
             }
 
             if (itemAmount <= 0)

@@ -1,5 +1,6 @@
 ﻿using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
+using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
@@ -228,14 +229,14 @@ namespace ProgressAdventure.ItemManagement
             };
         }
 
-        static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref AItem? itemObject)
+        static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref AItem? itemObject)
         {
             if (!(
                 Tools.TryParseJsonValue<AItem, string>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, true) &&
                 ItemUtils.TryParseItemType(typeName, out var itemType)
             ))
             {
-                Tools.LogJsonError<AItem>($"item type value is an unknown item type: \"{typeName}\"", true);
+                Tools.LogJsonError<AItem>($"unknown item type: \"{typeName}\"", true);
                 return false;
             }
 

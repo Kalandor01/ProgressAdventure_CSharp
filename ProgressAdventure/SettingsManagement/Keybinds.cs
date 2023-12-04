@@ -3,6 +3,7 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
+using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.SettingsManagement
@@ -53,22 +54,17 @@ namespace ProgressAdventure.SettingsManagement
             return keybindsJson;
         }
 
-        static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(IDictionary<string, object?> keybindsJson, string fileVersion, ref Keybinds? keybinds)
+        static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(IDictionary<string, object?> keybindsJson, string fileVersion, [NotNullWhen(true)] ref Keybinds? keybinds)
         {
             var success = true;
-            var actions = new List<ActionKey>();
-            foreach (var actionJson in keybindsJson)
-            {
+            success = Tools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, object?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
                 success &= PACTools.TryFromJson(
-                    new Dictionary<string, object?> { [actionJson.Key] = actionJson.Value },
+                    new Dictionary<string, object?> { [keybind.Key] = keybind.Value },
                     fileVersion,
                     out ActionKey? actionKey
                 );
-                if (actionKey is not null)
-                {
-                    actions.Add(actionKey);
-                }
-            }
+                return (actionKey is not null, actionKey);
+            }, out var actions);
             keybinds = new Keybinds(actions);
             return success;
         }

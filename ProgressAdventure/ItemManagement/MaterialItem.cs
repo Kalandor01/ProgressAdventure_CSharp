@@ -1,5 +1,6 @@
 ﻿using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -116,7 +117,7 @@ namespace ProgressAdventure.ItemManagement
             }, "2.2"),
         };
 
-        static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, ref MaterialItem? itemObject)
+        static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref MaterialItem? itemObject)
         {
             var success = true;
 
@@ -129,7 +130,7 @@ namespace ProgressAdventure.ItemManagement
             success &= Tools.TryParseJsonValue<MaterialItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
             if (itemAmount is null)
             {
-                Tools.LogJsonError<MaterialItem>("couldn't parse item amount from json, defaulting to 1");
+                Tools.LogJsonError<MaterialItem>("defaulting to 1");
             }
 
             if (itemAmount <= 0)

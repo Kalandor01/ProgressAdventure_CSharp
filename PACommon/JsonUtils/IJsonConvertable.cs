@@ -1,4 +1,5 @@
 ﻿using PACommon.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PACommon.JsonUtils
 {
@@ -21,7 +22,7 @@ namespace PACommon.JsonUtils
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static virtual bool FromJson(IDictionary<string, object?>? objectJson, string fileVersion, out T? convertedObject)
+        public static virtual bool FromJson(IDictionary<string, object?>? objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
         {
             convertedObject = default;
             if (objectJson is null)
@@ -44,7 +45,7 @@ namespace PACommon.JsonUtils
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public abstract static bool FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref T? convertedObject);
+        public abstract static bool FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject);
         #endregion
     }
 }

@@ -1,4 +1,5 @@
 ﻿using PACommon.JsonUtils;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProgressAdventure
 {
@@ -74,7 +75,7 @@ namespace ProgressAdventure
             };
         }
 
-        static bool IJsonConvertable<DisplaySaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref DisplaySaveData? convertedObject)
+        static bool IJsonConvertable<DisplaySaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref DisplaySaveData? convertedObject)
         {
             var success = true;
 

@@ -1,8 +1,6 @@
-﻿using PACommon;
-using PACommon.Enums;
-using PACommon.JsonUtils;
+﻿using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
-using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using PACTools = PACommon.Tools;
 
@@ -211,10 +209,10 @@ namespace ProgressAdventure.ItemManagement
             };
         }
 
-        static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(IDictionary<string, object?> inventoryJson, string fileVersion, ref Inventory? inventory)
+        static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(IDictionary<string, object?> inventoryJson, string fileVersion, [NotNullWhen(true)] ref Inventory? inventory)
         {
             var success = true;
-            success = Tools.TryParseListValue<Inventory, AItem>(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
+            success = Tools.TryParseJsonListValue<Inventory, AItem>(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
                 itemJson =>
                 {
                     var parseSuccess = PACTools.TryFromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);

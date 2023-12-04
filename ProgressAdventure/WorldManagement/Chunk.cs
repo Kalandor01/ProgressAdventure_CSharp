@@ -2,7 +2,7 @@
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
-using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
@@ -134,7 +134,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 if (e is FormatException)
                 {
-                    PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk couldn't be parsed", LogSeverity.ERROR);
+                    Tools.LogJsonParseError<Chunk>(nameof(Chunk), "json couldn't be parsed from file", true);
                     return false;
                 }
                 else if (e is FileNotFoundException)
@@ -152,31 +152,19 @@ namespace ProgressAdventure.WorldManagement
 
             if (chunkJson is null)
             {
-                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk json is null", LogSeverity.ERROR);
+                Tools.LogJsonNullError<Chunk>(nameof(Chunk), null, true);
                 return false;
             }
 
-            //file version
-            string? fileVersion = null;
-            if (chunkJson.TryGetValue("file_version", out object? versionValue) && versionValue is not null)
-            {
-                fileVersion = versionValue.ToString();
-            }
-            else if (chunkJson.TryGetValue("saveVersion", out object? versionValueBackup) && versionValueBackup is not null)
-            {
-                PACSingletons.Instance.Logger.Log("Old style chunk version (< 2.2)", $"chunk name: {chunkFileName}", LogSeverity.INFO);
-
-                fileVersion = versionValueBackup.ToString();
-            }
-
+            var fileVersion = SaveManager.GetSaveVersion<Chunk>(chunkJson, Constants.JsonKeys.Chunk.FILE_VERSION, chunkFileName);
             if (fileVersion is null)
             {
-                PACSingletons.Instance.Logger.Log("Chunk parse error", $"couldn't parse file version, assuming minimum, chunk file name: {chunkFileName}", LogSeverity.WARN);
+                Tools.LogJsonParseError<Chunk>(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
-            chunkJson.Add("position_x", position.x);
-            chunkJson.Add("position_y", position.y);
+            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_X, position.x);
+            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_Y, position.y);
 
             var success = PACTools.TryFromJson(chunkJson, fileVersion, out chunk);
             PACSingletons.Instance.Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
@@ -272,34 +260,6 @@ namespace ProgressAdventure.WorldManagement
             var baseY = Utils.FloorRound(absolutePosition.y, Constants.CHUNK_SIZE);
             return $"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}{baseX}{Constants.CHUNK_FILE_NAME_SEP}{baseY}";
         }
-
-        /// <summary>
-        /// Tries to load the list of tiles, from a chunk file's json, and returns if it succeded without warning.
-        /// </summary>
-        /// <param name="chunkRandom">The chunk's random generator.</param>
-        /// <param name="absolutePosition">The absolute position of the chunk.</param>
-        /// <param name="tileListJson">A list of tiles is a json representation.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="tiles">The decoded dictionary of tile objects.</param>
-        private static bool TilesFromJson(SplittableRandom? chunkRandom, (long x, long y) absolutePosition, IEnumerable tileListJson, string fileVersion, out Dictionary<string, Tile> tiles)
-        {
-            chunkRandom ??= GetChunkRandom(absolutePosition);
-            tiles = new Dictionary<string, Tile>();
-            var success = true;
-
-            foreach (var tileJson in tileListJson)
-            {
-                success &= Tile.FromJson(chunkRandom, tileJson as IDictionary<string, object?>, fileVersion, out Tile? tile);
-                if (tile is not null)
-                {
-                    tiles.Add(GetTileDictName(tile.relativePosition), tile);
-                }
-            }
-            var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
-            PACSingletons.Instance.Logger.Log("Loaded chunk tiles from json", $"loaded tiles: {tiles.Count}/{totalTileNum} {(tiles.Count < totalTileNum ? "Remaining tiles will be regenerated" : "")}", tiles.Count < totalTileNum ? LogSeverity.WARN : LogSeverity.INFO);
-
-            return success;
-        }
         #endregion
 
         #region JsonConvert
@@ -325,70 +285,52 @@ namespace ProgressAdventure.WorldManagement
             }
             return new Dictionary<string, object?>
             {
-                ["file_version"] = Constants.SAVE_VERSION,
-                ["chunk_random"] = PACTools.SerializeRandom(ChunkRandomGenerator),
-                ["tiles"] = tilesJson,
+                [Constants.JsonKeys.Chunk.FILE_VERSION] = Constants.SAVE_VERSION,
+                [Constants.JsonKeys.Chunk.CHUNK_RANDOM] = PACTools.SerializeRandom(ChunkRandomGenerator),
+                [Constants.JsonKeys.Chunk.TILES] = tilesJson,
             };
         }
 
-        static bool IJsonConvertable<Chunk>.FromJsonWithoutCorrection(IDictionary<string, object?> chunkJson, string fileVersion, ref Chunk? chunkObject)
+        static bool IJsonConvertable<Chunk>.FromJsonWithoutCorrection(IDictionary<string, object?> chunkJson, string fileVersion, [NotNullWhen(true)] ref Chunk? chunkObject)
         {
             var success = true;
 
             // position
-            if (
-                !chunkJson.TryGetValue("position_x", out object? posXString) ||
-                !chunkJson.TryGetValue("position_y", out object? posYString)
-            )
+            if (!(
+                Tools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_X, out var posX, true) &&
+                Tools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_Y, out var posY, true)
+            ))
             {
-                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk position is null", LogSeverity.ERROR);
                 return false;
             }
-
-            if (
-                !long.TryParse(posXString?.ToString(), out long posX) ||
-                !long.TryParse(posYString?.ToString(), out long posY)
-            )
-            {
-                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk position couldn't be parsed", LogSeverity.ERROR);
-                return false;
-            }
-
             (long x, long y) position = (posX, posY);
 
-            // chunk seed
-            SplittableRandom? chunkRandomGenerator = null;
-            if (chunkJson.TryGetValue("chunk_random", out object? chunkRandom))
-            {
-                if (PACTools.TryDeserializeRandom(chunkRandom?.ToString(), out SplittableRandom? chunkRandomValue))
-                {
-                    chunkRandomGenerator = chunkRandomValue;
-                }
-                else
-                {
-                    PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk seed couldn't be parsed", LogSeverity.WARN);
-                    success = false;
-                }
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Chunk parse error", "chunk seed is null", LogSeverity.WARN);
-                success = false;
-            }
-            chunkRandomGenerator ??= GetChunkRandom(position);
+            success &= Tools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
+            chunkRandom ??= GetChunkRandom(position);
 
-            // tiles
-            if (
-                !chunkJson.TryGetValue("tiles", out object? tilesListValue) ||
-                tilesListValue is not IEnumerable tilesList
-            )
+            if (!Tools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
+                if (!Tools.TryCastAnyValueForJsonParsing<Tile, IDictionary<string, object?>>(tileJson, out var tileJsonValue, nameof(tileJson)))
+                {
+                    success = false;
+                    return (false, default);
+                }
+                success &= Tile.FromJson(chunkRandom, tileJsonValue, fileVersion, out Tile? tile);
+                return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(GetTileDictName(tile.relativePosition), tile));
+            }, out var tilesKvPair, true))
             {
-                PACSingletons.Instance.Logger.Log("Chunk parse error", "tiles couldn't be parsed", LogSeverity.ERROR);
                 return false;
             }
+            var tiles = tilesKvPair.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            success &= TilesFromJson(chunkRandomGenerator, position, tilesList, fileVersion, out Dictionary<string, Tile> tiles);
-            chunkObject = new Chunk(position, tiles, chunkRandomGenerator);
+            var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
+            var allTilesExist = tiles.Count == totalTileNum;
+            PACSingletons.Instance.Logger.Log(
+                "Loaded chunk tiles from json",
+                $"loaded tiles: {tiles.Count}/{totalTileNum} {(allTilesExist ? "" : "Remaining tiles will be regenerated")}",
+                allTilesExist ? LogSeverity.INFO : LogSeverity.WARN
+            );
+
+            chunkObject = new Chunk(position, tiles, chunkRandom);
             return success;
         }
         #endregion

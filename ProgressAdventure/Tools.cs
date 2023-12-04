@@ -6,6 +6,7 @@ using ProgressAdventure.SettingsManagement;
 using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
@@ -123,10 +124,11 @@ namespace ProgressAdventure
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
         /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
+        /// <param name="extraInfo">Some extra information about the error, like a key associated to the value.</param>
         /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
-        public static void LogJsonParseError<T>(string parameterName, bool isError = false)
+        public static void LogJsonParseError<T>(string parameterName, string? extraInfo = null, bool isError = false)
         {
-            LogJsonError<T>($"couldn't parse {parameterName}", isError);
+            LogJsonError<T>($"couldn't parse {parameterName}{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
         }
 
         /// <summary>
@@ -134,10 +136,11 @@ namespace ProgressAdventure
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
         /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
+        /// <param name="extraInfo">Some extra information about the error, like a key associated to the value.</param>
         /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
-        public static void LogJsonNullError<T>(string parameterName, bool isError = false)
+        public static void LogJsonNullError<T>(string parameterName, string? extraInfo = null, bool isError = false)
         {
-            LogJsonError<T>($"{parameterName} json is null", isError);
+            LogJsonError<T>($"{parameterName} json is null{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
         }
 
         /// <summary>
@@ -177,7 +180,7 @@ namespace ProgressAdventure
         /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was sucessfuly parsed.</returns>
-        public static bool TryGetJsonObjectValue<T>(IDictionary<string, object?> objectJson, string jsonKey, out object? value, bool isCritical = false)
+        public static bool TryGetJsonObjectValue<T>(IDictionary<string, object?> objectJson, string jsonKey, [NotNullWhen(true)] out object? value, bool isCritical = false)
         {
             if (
                 objectJson.TryGetValue(jsonKey, out value) &&
@@ -186,16 +189,37 @@ namespace ProgressAdventure
             {
                 return true;
             }
-            LogJsonNullError<T>(jsonKey, isCritical);
+            LogJsonNullError<T>(jsonKey, null, isCritical);
             return false;
         }
 
         /// <summary>
-        /// Tries to get a value of a specific type from a json dictionary, and logs a warning, if it doesn't exist, or is't the expected type.
+        /// Tries to cast a value of a specific type from a value, and logs a warning, if it isn't the expected type.
+        /// </summary>
+        /// <param name="objectValue">The value to try to cast.</param>
+        /// <typeparam name="TRes">The expected type of the result.</typeparam>
+        /// <param name="parameterName">The name of the parameter to try to cast.</param>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryCastAnyValueForJsonParsing<T, TRes>(object? objectValue, [NotNullWhen(true)] out TRes? value, string? parameterName = null, bool isCritical = false)
+        {
+            value = default;
+
+            if (objectValue is TRes resultValue)
+            {
+                value = resultValue;
+                return true;
+            }
+
+            LogJsonError<T>($"{parameterName ?? "parameter"} is not the expected type ({typeof(TRes)})", isCritical);
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get a value of a specific type from a json dictionary, and logs a warning, if it doesn't exist, or isn't the expected type.
         /// </summary>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
-        public static bool TryGetJsonAnyValue<T, TRes>(IDictionary<string, object?> objectJson, string jsonKey, out TRes? value, bool isCritical = false)
+        public static bool TryGetJsonAnyValue<T, TRes>(IDictionary<string, object?> objectJson, string jsonKey, [NotNullWhen(true)] out TRes? value, bool isCritical = false)
         {
             value = default;
             if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical))
@@ -203,14 +227,7 @@ namespace ProgressAdventure
                 return false;
             }
 
-            if (result is TRes resultValue)
-            {
-                value = resultValue;
-                return true;
-            }
-
-            LogJsonError<T>($"{jsonKey} is not the expected type ({typeof(TRes)})", isCritical);
-            return false;
+            return TryCastAnyValueForJsonParsing<T, TRes>(result, out value, jsonKey, isCritical);
         }
 
         /// <summary>
@@ -229,14 +246,16 @@ namespace ProgressAdventure
         /// <param name="value">The value to parse.</param>
         /// <param name="parsedValue">The parsed value, or default if it wasn't successful.</param>
         /// <param name="parameterName">The parameter name to use for logging unsuccesful parsing.</param>
+        /// <param name="parameterExtraInfo">Some extra information about the parameter, like a key associated to the value.</param>
         /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was successfuly parsed.</returns>
         public static bool TryParseValueForJsonParsing<T, TRes>(
             object? value,
-            out TRes? parsedValue,
+            [NotNullWhen(true)] out TRes? parsedValue,
             bool logParseWarning = true,
             string? parameterName = null,
+            string? parameterExtraInfo = null,
             bool isCritical = false
         )
         {
@@ -267,7 +286,7 @@ namespace ProgressAdventure
                 }
                 else if (logParseWarning)
                 {
-                    LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", isCritical);
+                    LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", parameterExtraInfo, isCritical);
                 }
                 return parseSuccess;
             }
@@ -294,7 +313,7 @@ namespace ProgressAdventure
 
             if (logParseWarning)
             {
-                LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", isCritical);
+                LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", parameterExtraInfo, isCritical);
             }
             return false;
         }
@@ -315,7 +334,7 @@ namespace ProgressAdventure
         public static bool TryParseJsonValue<T, TRes>(
             IDictionary<string, object?> objectJson,
             string jsonKey,
-            out TRes? value,
+            [NotNullWhen(true)] out TRes? value,
             bool isCritical = false
         )
         {
@@ -339,7 +358,7 @@ namespace ProgressAdventure
             IDictionary<string, object?> objectJson,
             string fileVersion,
             string jsonKey,
-            out TJc? value,
+            [NotNullWhen(true)] out TJc? value,
             bool isCritical = false
         )
             where TJc : IJsonConvertable<TJc>
@@ -353,23 +372,75 @@ namespace ProgressAdventure
             var success = PACTools.TryFromJson(result, fileVersion, out value);
             if (value is null)
             {
-                LogJsonParseError<T>(jsonKey, isCritical);
+                LogJsonParseError<T>(jsonKey, null, isCritical);
             }
             return success;
         }
 
         /// <summary>
-        /// Tries to parse a list value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// Tries to parse a list value from another list, and logs a warning, if an element can't be parsed.
         /// </summary>
-        /// <typeparam name="TRes">The type of the values in the list.</typeparam>
+        /// <typeparam name="TIn">The type of the values in the input list.</typeparam>
+        /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
+        /// <param name="listValue">The list to parse the values from.</param>
+        /// <param name="listName">The name of the list.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
-        public static bool TryParseListValue<T, TRes>(
+        public static bool TryParseListValueForJsonParsing<T, TIn, TRes>(
+            IEnumerable<TIn> listValue,
+            string listName,
+            Func<TIn, (bool success, TRes? result)> parseFunction,
+            out List<TRes> value
+        )
+        {
+            value = new List<TRes>();
+            foreach (var element in listValue)
+            {
+                var (success, parsedResult) = parseFunction(element);
+                if (success && parsedResult is not null)
+                {
+                    value.Add(parsedResult);
+                }
+                else
+                {
+                    LogJsonParseError<T>($"an element of the {listName} list");
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to parse a list value from another list, and logs a warning, if an element can't be parsed.
+        /// </summary>
+        /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
+        /// <param name="listValue">The list to parse the values from.</param>
+        /// <param name="listName">The name of the list.</param>
+        /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
+        /// If the success is false or result is null, it will not be added to the list.</param>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryParseListValueForJsonParsing<T, TRes>(
+            IEnumerable<object?> listValue,
+            string listName,
+            Func<object?, (bool success, TRes? result)> parseFunction,
+            out List<TRes> value
+        )
+        {
+            return TryParseListValueForJsonParsing<T, object?, TRes>(listValue, listName, parseFunction, out value);
+        }
+
+        /// <summary>
+        /// Tries to parse a list value from a json dictionary, and logs a warning, if it can't be parsed.
+        /// </summary>
+        /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
+        /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
+        /// If the success is false or result is null, it will not be added to the list.</param>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool)"/>
+        public static bool TryParseJsonListValue<T, TRes>(
             IDictionary<string, object?> objectJson,
             string jsonKey,
             Func<object?, (bool success, TRes? result)> parseFunction,
-            out List<TRes>? value,
+            [NotNullWhen(true)] out List<TRes>? value,
             bool isCritical = false
         )
         {
@@ -382,20 +453,7 @@ namespace ProgressAdventure
                 return false;
             }
 
-            value = new List<TRes>();
-            foreach (var element in resultList)
-            {
-                var (success, parsedResult) = parseFunction(element);
-                if (success && parsedResult is not null)
-                {
-                    value.Add(parsedResult);
-                }
-                else
-                {
-                    LogJsonParseError<T>($"an element of the {jsonKey} list");
-                }
-            }
-            return true;
+            return TryParseListValueForJsonParsing<T, TRes>(resultList, jsonKey, parseFunction, out value);
         }
         #endregion
 

@@ -5,6 +5,7 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using SaveFileManager;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PACommon
 {
@@ -181,7 +182,7 @@ namespace PACommon
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static bool TryFromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion, out T? convertedObject)
+        public static bool TryFromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
             where T : IJsonConvertable<T>
         {
             return T.FromJson(objectJson, fileVersion, out convertedObject);
@@ -206,7 +207,7 @@ namespace PACommon
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static T? FromJsonWithoutCorrection<T>(IDictionary<string, object?> objectJson, string fileVersion, ref T? convertedObject)
+        public static T? FromJsonWithoutCorrection<T>(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject)
             where T : IJsonConvertable<T>
         {
             T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);

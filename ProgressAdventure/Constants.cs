@@ -123,6 +123,8 @@ namespace ProgressAdventure
         #region Json keys
         public static class JsonKeys
         {
+            public const string OLD_SAVE_VERSION = "saveVersion";
+
             #region SaveData
             public static class SaveData
             {
@@ -201,6 +203,26 @@ namespace ProgressAdventure
                 public const string MISC_RANDOM = "misc_random";
                 public const string TILE_TYPE_NOISE_SEEDS = "tile_type_noise_seeds";
                 public const string CHUNK_SEED_MODIFIER = "chunk_seed_modifier";
+            }
+            #endregion
+
+            #region ActionKey
+            public static class ActionKey
+            {
+                public const string KEY = "key";
+                public const string KEY_CHAR = "key_char";
+                public const string MODIFIERS = "modifiers";
+            }
+            #endregion
+
+            #region Chunk
+            public static class Chunk
+            {
+                public const string POSITION_X = "position_x";
+                public const string POSITION_Y = "position_y";
+                public const string FILE_VERSION = "file_version";
+                public const string CHUNK_RANDOM = "chunk_random";
+                public const string TILES = "tiles";
             }
             #endregion
         }

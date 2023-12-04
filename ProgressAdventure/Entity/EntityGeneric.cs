@@ -2,6 +2,7 @@
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace ProgressAdventure.Entity
@@ -105,7 +106,7 @@ namespace ProgressAdventure.Entity
             }, "2.2"),
         };
 
-        static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, ref TEntity? convertedObject)
+        static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref TEntity? convertedObject)
         {
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TEntity>(ref objectJson, BaseVersionCorrecters, fileVersion);
 
