@@ -41,13 +41,13 @@ namespace ProgressAdventure
             var loggingStream = new FileLoggerStream(PACConstants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT);
 
             PACSingletons.Initialize(
-                Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, false),
+                Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
                 JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, false)
             );
 
             if (!Utils.TryEnableAnsiCodes())
             {
-                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
             // GLOBAL VARIABLES
@@ -70,7 +70,7 @@ namespace ProgressAdventure
             }
             catch (Exception e)
             {
-                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
+                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
                 if (Constants.ERROR_HANDLING)
                 {
                     Utils.PressKey("ERROR: " + e.Message);
@@ -92,21 +92,22 @@ namespace ProgressAdventure
                 exitGame = true;
                 try
                 {
-                    PACSingletons.Instance.Logger.Log("Beginning new instance");
+                    PACSingletons.Instance.Logger.Log("Beginning new instance", forceLog: true);
                     MainFunction();
                     //exit
-                    PACSingletons.Instance.Logger.Log("Instance ended succesfuly");
+                    PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
+                    PACSingletons.Instance.Dispose();
                 }
                 catch (Exception e)
                 {
-                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
+                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
                     if (Constants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
                         var ans = Utils.Input("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
-                            PACSingletons.Instance.Logger.Log("Restarting instance");
+                            PACSingletons.Instance.Logger.Log("Restarting instance", forceLog: true);
                             exitGame = false;
                         }
                     }

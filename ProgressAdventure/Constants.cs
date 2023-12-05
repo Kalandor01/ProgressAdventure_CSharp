@@ -233,6 +233,11 @@ namespace ProgressAdventure
         /// If the logger should log the milisecond in time.
         /// </summary>
         public const bool LOG_MS = false;
+
+        /// <summary>
+        /// The minimum time between, where normal logging just stores the logs to a buffer for later logging.
+        /// </summary>
+        public static readonly TimeSpan FORCE_LOG_INTERVAL = new(0, 0, 5);
         #endregion
 
         #region Chunks

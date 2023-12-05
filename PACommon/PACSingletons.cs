@@ -6,7 +6,7 @@ namespace PACommon
     /// <summary>
     /// Contains commonly used classes from PACommon, that should only have 1 instance per project.
     /// </summary>
-    public class PACSingletons
+    public class PACSingletons : IDisposable
     {
         #region Private fields
         /// <summary>
@@ -89,6 +89,11 @@ namespace PACommon
                 _instance.Logger.Log($"{nameof(PACSingletons)} initialized");
             }
             return _instance;
+        }
+
+        public void Dispose()
+        {
+            _instance?.Logger.Dispose();
         }
         #endregion
     }

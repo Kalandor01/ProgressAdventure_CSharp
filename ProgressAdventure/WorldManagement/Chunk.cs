@@ -95,6 +95,8 @@ namespace ProgressAdventure.WorldManagement
             saveFolderName ??= SaveData.Instance.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
             var chunkJson = ToJson();
+            chunkJson.Remove(Constants.JsonKeys.Chunk.POSITION_X);
+            chunkJson.Remove(Constants.JsonKeys.Chunk.POSITION_Y);
             var chunkFileName = GetChunkFileName(basePosition);
             Tools.EncodeSaveShort(chunkJson, GetChunkFilePath(chunkFileName, saveFolderName));
             PACSingletons.Instance.Logger.Log("Saved chunk", $"{chunkFileName}.{Constants.SAVE_EXT}");
@@ -285,6 +287,8 @@ namespace ProgressAdventure.WorldManagement
             }
             return new Dictionary<string, object?>
             {
+                [Constants.JsonKeys.Chunk.POSITION_X] = basePosition.x,
+                [Constants.JsonKeys.Chunk.POSITION_Y] = basePosition.y,
                 [Constants.JsonKeys.Chunk.FILE_VERSION] = Constants.SAVE_VERSION,
                 [Constants.JsonKeys.Chunk.CHUNK_RANDOM] = PACTools.SerializeRandom(ChunkRandomGenerator),
                 [Constants.JsonKeys.Chunk.TILES] = tilesJson,

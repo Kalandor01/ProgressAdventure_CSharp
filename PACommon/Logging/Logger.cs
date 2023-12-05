@@ -18,22 +18,36 @@ namespace PACommon.Logging
         private static Logger? _instance = null;
 
         /// <summary>
-        /// The default value for is the logs should be writen out to the console.
+        /// <inheritdoc cref="DefaultWriteOut" path="//summary"/>
         /// </summary>
         private bool _defaultWriteOut = false;
         /// <summary>
-        /// If logging is enabled.
+        /// <inheritdoc cref="LoggingEnabled" path="//summary"/>
         /// </summary>
         private bool _isLoggingEnabled = true;
         /// <summary>
-        /// The current logging level.
+        /// <inheritdoc cref="LoggingLevel" path="//summary"/>
         /// </summary>
         private LogSeverity _loggingLevel = LogSeverity.DEBUG;
+        /// <summary>
+        /// <inheritdoc cref="ForceLogInterval" path="//summary"/>
+        /// </summary>
+        private TimeSpan _forceLogInterval = new(0, 0, 5);
 
         /// <summary>
         /// The logger stream to use to write logs.
         /// </summary>
         private readonly ILoggerStream loggerStream;
+
+        /// <summary>
+        /// The buffer for logs, and when they were originaly put into the buffer.
+        /// </summary>
+        private List<(string message, DateTime time)> _logMessageBuffer;
+
+        /// <summary>
+        /// The time, when the messages in the buffer were last logged.
+        /// </summary>
+        private DateTime _lastLogTime;
         #endregion
 
         #region Public properties
@@ -87,6 +101,12 @@ namespace PACommon.Logging
                 ChangeLoggingLevel(value);
             }
         }
+
+        public TimeSpan ForceLogInterval
+        {
+            get => _forceLogInterval;
+            set => _forceLogInterval = value;
+        }
         #endregion
 
         #region Private Constructors
@@ -97,13 +117,15 @@ namespace PACommon.Logging
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
+        /// <param name="forceLogInterval"><inheritdoc cref="_forceLogInterval" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="DirectoryNotFoundException"></exception>
         private Logger(
             ILoggerStream loggerStream,
             bool logMilliseconds = Constants.DEFAULT_LOG_MS,
             bool defaultWriteOut = false,
-            LogSeverity loggingLevel = LogSeverity.DEBUG
+            LogSeverity loggingLevel = LogSeverity.DEBUG,
+            TimeSpan? forceLogInterval = null
         )
         {
             this.loggerStream = loggerStream;
@@ -111,6 +133,9 @@ namespace PACommon.Logging
             _defaultWriteOut = defaultWriteOut;
             _isLoggingEnabled = loggingLevel != LogSeverity.DISABLED;
             _loggingLevel = loggingLevel;
+            _forceLogInterval = forceLogInterval ?? new TimeSpan(0, 0, 5);
+            _logMessageBuffer = new List<(string message, DateTime time)>();
+            _lastLogTime = DateTime.Now;
         }
         #endregion
 
@@ -122,16 +147,18 @@ namespace PACommon.Logging
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
+        /// <param name="forceLogInterval"><inheritdoc cref="_forceLogInterval" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the <c>Logger</c> was initialized.</param>
         public static Logger Initialize(
             ILoggerStream loggerStream,
             bool logMilliseconds = Constants.DEFAULT_LOG_MS,
             bool defaultWriteOut = false,
             LogSeverity loggingLevel = LogSeverity.DEBUG,
+            TimeSpan? forceLogInterval = null,
             bool logInitialization = true
         )
         {
-            _instance = new Logger(loggerStream, logMilliseconds, defaultWriteOut, loggingLevel);
+            _instance = new Logger(loggerStream, logMilliseconds, defaultWriteOut, loggingLevel, forceLogInterval);
             if (logInitialization)
             {
                 _instance.Log($"{nameof(Logger)} initialized", newLine: true);
@@ -141,7 +168,14 @@ namespace PACommon.Logging
         #endregion
 
         #region Public methods
-        public async void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        public async void Log(
+            string message,
+            string? details = "",
+            LogSeverity severity = LogSeverity.INFO,
+            bool? writeOut = null,
+            bool newLine = false,
+            bool forceLog = false
+        )
         {
             try
             {
@@ -150,9 +184,9 @@ namespace PACommon.Logging
                     var now = DateTime.Now;
                     var currentDate = Utils.MakeDate(now);
                     var currentTime = Utils.MakeTime(now, writeMs: LogMS);
-                    string logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}\n";
-
-                    await loggerStream.LogTextAsync(logLine, newLine);
+                    string logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}";
+                    _logMessageBuffer.Add((logLine, now));
+                    await LogIfNeeded(newLine, forceLog);
                     if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
                     {
                         await loggerStream.WriteOutLogAsync(logLine, newLine);
@@ -177,12 +211,19 @@ namespace PACommon.Logging
 
         /// <summary>
         /// Progress Adventure logger.<br/>
-        /// WILL log things out of order!
+        /// MIGHT log things out of order!
         /// </summary>
         /// <inheritdoc cref="ILogger.LogAsync(string, string?, LogSeverity, bool?, bool)"/>
-        public void LogAsync(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        public void LogAsync(
+            string message,
+            string? details = "",
+            LogSeverity severity = LogSeverity.INFO,
+            bool? writeOut = null,
+            bool newLine = false,
+            bool forceLog = false
+        )
         {
-            LogAsyncTask(Thread.CurrentThread.Name + "(async)", message, details, severity, writeOut, newLine);
+            LogAsyncTask(Thread.CurrentThread.Name + "(async)", message, details, severity, writeOut, newLine, forceLog);
         }
 
         public async void LogNewLine()
@@ -191,7 +232,12 @@ namespace PACommon.Logging
             {
                 if (LoggingEnabled)
                 {
-                    await loggerStream.LogNewLineAsync();
+                    if (!_logMessageBuffer.Any())
+                    {
+                        await loggerStream.LogNewLineAsync();
+                        return;
+                    }
+                    await loggerStream.LogTextAsync(_logMessageBuffer, true);
                 }
             }
             catch (Exception e)
@@ -222,13 +268,30 @@ namespace PACommon.Logging
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console.</param>
         /// <param name="newLine">Whether to write a new line before the message.</param>
-        private async void LogAsyncTask(string? threadName, string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false)
+        private async void LogAsyncTask(string? threadName,
+            string message,
+            string? details = "",
+            LogSeverity severity = LogSeverity.INFO,
+            bool? writeOut = null,
+            bool newLine = false,
+            bool forceLog = false
+        )
         {
             await Task.Run(() =>
             {
                 Thread.CurrentThread.Name = threadName;
-                Log(message, details, severity, writeOut, newLine);
+                Log(message, details, severity, writeOut, newLine, forceLog);
             });
+        }
+
+        private async Task LogIfNeeded(bool newLine, bool forceLog)
+        {
+            if (forceLog || newLine || _lastLogTime + ForceLogInterval < DateTime.Now)
+            {
+                await loggerStream.LogTextAsync(_logMessageBuffer.ToList(), newLine);
+                _logMessageBuffer = new List<(string message, DateTime time)>();
+                _lastLogTime = DateTime.Now;
+            }
         }
 
         /// <summary>
@@ -252,6 +315,11 @@ namespace PACommon.Logging
                     Log($"Logging enabled");
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            loggerStream.LogTextAsync(_logMessageBuffer).Wait();
         }
         #endregion
     }

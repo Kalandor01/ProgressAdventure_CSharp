@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="text">The text to log.</param>
         /// <param name="newLine">Whether to insert a newline before the logged text.</param>
-        Task LogTextAsync(string text, bool newLine = false);
+        Task LogTextAsync(List<(string message, DateTime time)> logs, bool newLine = false);
 
         /// <summary>
         /// Puts an empty line into the logs.

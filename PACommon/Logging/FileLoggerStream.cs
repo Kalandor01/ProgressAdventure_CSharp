@@ -1,4 +1,6 @@
-﻿namespace PACommon.Logging
+﻿using System.Text;
+
+namespace PACommon.Logging
 {
     /// <summary>
     /// Class to do logging to files.
@@ -61,16 +63,51 @@
         #endregion
 
         #region Public methods
-        public async Task LogTextAsync(string text, bool newLine = false)
+        public async Task LogTextAsync(List<(string message, DateTime time)> logsBuffer, bool newLine = false)
+        {
+            if (!logsBuffer.Any())
+            {
+                return;
+            }
+            if (newLine)
+            {
+                var (message, time) = logsBuffer.Last();
+                logsBuffer[^1] = ("\n" + message, time);
+            }
+
+            do
+            {
+                var firstTime = logsBuffer.First().time;
+                var firstDate = firstTime.Date;
+                var logsJoined = new StringBuilder();
+                int x;
+                for (x = 0; x < logsBuffer.Count; x++)
+                {
+                    if (logsBuffer[x].time.Date == firstDate)
+                    {
+                        logsJoined.Append(logsBuffer[x].message);
+                        logsJoined.Append('\n');
+                        continue;
+                    }
+                    break;
+                }
+                logsBuffer.RemoveRange(0, x);
+                await LogSameDayBatchAsync(logsJoined.ToString(), firstTime);
+            }
+            while (logsBuffer.Any());
+        }
+
+        public async Task LogSameDayBatchAsync(string joinedLogs, DateTime date)
         {
             RecreateLogsFolder();
-            var currentDate = Utils.MakeDate(DateTime.Now);
+            var currentDate = Utils.MakeDate(date);
+
             while (true)
             {
                 try
                 {
                     using var f = File.AppendText(Path.Join(logsFolderParrentPath, logsFolder, $"{currentDate}.{logsExt}"));
-                    await f.WriteAsync($"{(newLine ? "\n" : "")}{text}");
+                    await f.WriteAsync(joinedLogs);
                     break;
                 }
                 catch (IOException) { }

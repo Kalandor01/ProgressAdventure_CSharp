@@ -5,7 +5,7 @@ namespace PACommon.Logging
     /// <summary>
     /// Interface for logging.
     /// </summary>
-    public interface ILogger
+    public interface ILogger : IDisposable
     {
         #region Public properties
         /// <summary>
@@ -27,6 +27,11 @@ namespace PACommon.Logging
         /// The current logging level.
         /// </summary>
         public LogSeverity LoggingLevel { get; set; }
+
+        /// <summary>
+        /// The minimum time between, where normal logging just stores the logs to a buffer for later logging.
+        /// </summary>
+        public TimeSpan ForceLogInterval { get; set; }
         #endregion
 
         #region Public functions
@@ -59,17 +64,33 @@ namespace PACommon.Logging
         /// <param name="details">The details of the message.</param>
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console.</param>
-        /// <param name="newLine">Whether to write a new line before the message.</param>
-        public void Log(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false);
+        /// <param name="newLine">Whether to write a new line before the message. If null, it will use the DefaultWriteOut's value. Will always for ce log.</param>
+        /// <param name="forceLog">Whether to log this, and the built-up batch of logs right now, or only when the logging interval has expired.</param>
+        public void Log(
+            string message,
+            string? details = "",
+            LogSeverity severity = LogSeverity.INFO,
+            bool? writeOut = null,
+            bool newLine = false,
+            bool forceLog = false
+        );
 
         /// <summary>
         /// Progress Adventure logger.
         /// </summary>
         /// <inheritdoc cref="Log(string, string?, LogSeverity, bool?, bool)"/>
-        public void LogAsync(string message, string? details = "", LogSeverity severity = LogSeverity.INFO, bool? writeOut = null, bool newLine = false);
+        public void LogAsync(
+            string message,
+            string? details = "",
+            LogSeverity severity = LogSeverity.INFO,
+            bool? writeOut = null,
+            bool newLine = false,
+            bool forceLog = false
+        );
 
         /// <summary>
-        /// Puts a newline in the logs.
+        /// Puts a newline in the logs.<br/>
+        /// Always force logs.
         /// </summary>
         public void LogNewLine();
         #endregion
