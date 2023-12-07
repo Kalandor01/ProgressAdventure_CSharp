@@ -225,6 +225,69 @@ namespace ProgressAdventure
                 public const string TILES = "tiles";
             }
             #endregion
+
+            #region Tile
+            public static class Tile
+            {
+                public const string RELATIVE_POSITION_X = "x_position";
+                public const string RELATIVE_POSITION_Y = "y_position";
+                public const string VISITED = "visited";
+                public const string TERRAIN = "terrain";
+                public const string STRUCTURE = "structure";
+                public const string POPULATION = "population";
+            }
+            #endregion
+
+            #region BaseContent
+            public static class BaseContent
+            {
+                public const string TYPE = "type";
+                public const string SUBTYPE = "subtype";
+                public const string NAME = "name";
+            }
+            #endregion
+
+            #region PopulationContent
+            public static class PopulationContent
+            {
+                public const string AMOUNT = "amount";
+            }
+            #endregion
+
+            #region KingdomStructure
+            public static class KingdomStructure
+            {
+                public const string POPULATION = "population";
+            }
+            #endregion
+
+            #region VillageStructure
+            public static class VillageStructure
+            {
+                public const string POPULATION = "population";
+            }
+            #endregion
+
+            #region MountainTerrain
+            public static class MountainTerrain
+            {
+                public const string HEIGHT = "height";
+            }
+            #endregion
+
+            #region OceanTerrain
+            public static class OceanTerrain
+            {
+                public const string DEPTH = "depth";
+            }
+            #endregion
+
+            #region ShoreTerrain
+            public static class ShoreTerrain
+            {
+                public const string DEPTH = "depth";
+            }
+            #endregion
         }
         #endregion
 

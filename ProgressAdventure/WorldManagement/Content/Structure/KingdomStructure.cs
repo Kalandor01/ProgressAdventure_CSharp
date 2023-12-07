@@ -22,7 +22,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public KingdomStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
             : base(chunkRandom, ContentType.Structure.KINGDOM, name, data)
         {
-            population = GetLongValueFromData(base.chunkRandom, "population", data, (10000, 10000000));
+            population = GetLongValueFromData<KingdomStructure>(base.chunkRandom, Constants.JsonKeys.KingdomStructure.POPULATION, data, (10000, 10000000));
         }
         #endregion
 
@@ -39,7 +39,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override Dictionary<string, object?> ToJson()
         {
             var structureJson = base.ToJson();
-            structureJson.Add("population", population);
+            structureJson.Add(Constants.JsonKeys.KingdomStructure.POPULATION, population);
             return structureJson;
         }
         #endregion

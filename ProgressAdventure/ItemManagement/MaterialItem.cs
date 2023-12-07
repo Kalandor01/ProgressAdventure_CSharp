@@ -1,6 +1,7 @@
 ﻿using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -121,21 +122,26 @@ namespace ProgressAdventure.ItemManagement
         {
             var success = true;
 
-            success &= Tools.TryParseJsonValue<MaterialItem, Material?>(itemJson, Constants.JsonKeys.AItem.MATERIAL, out var material, true);
+            success &= PACTools.TryParseJsonValue<MaterialItem, Material?>(
+                itemJson,
+                Constants.JsonKeys.AItem.MATERIAL,
+                out var material,
+                isCritical: true
+            );
             if (material is null)
             {
                 return false;
             }
 
-            success &= Tools.TryParseJsonValue<MaterialItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
+            success &= PACTools.TryParseJsonValue<MaterialItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
             if (itemAmount is null)
             {
-                Tools.LogJsonError<MaterialItem>("defaulting to 1");
+                PACTools.LogJsonError<MaterialItem>("defaulting to 1");
             }
 
             if (itemAmount <= 0)
             {
-                Tools.LogJsonError<MaterialItem>("invalid item amount in item json (amount <= 0)", true);
+                PACTools.LogJsonError<MaterialItem>("invalid item amount in item json (amount <= 0)", true);
                 return false;
             }
 
@@ -145,7 +151,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                Tools.LogJsonError<MaterialItem>($"failed to create an object, from json: {ex}", true);
+                PACTools.LogJsonError<MaterialItem>($"failed to create an object, from json: {ex}", true);
                 return false;
             }
 

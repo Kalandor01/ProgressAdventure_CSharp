@@ -136,7 +136,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 if (e is FormatException)
                 {
-                    Tools.LogJsonParseError<Chunk>(nameof(Chunk), "json couldn't be parsed from file", true);
+                    PACTools.LogJsonParseError<Chunk>(nameof(Chunk), "json couldn't be parsed from file", true);
                     return false;
                 }
                 else if (e is FileNotFoundException)
@@ -154,14 +154,14 @@ namespace ProgressAdventure.WorldManagement
 
             if (chunkJson is null)
             {
-                Tools.LogJsonNullError<Chunk>(nameof(Chunk), null, true);
+                PACTools.LogJsonNullError<Chunk>(nameof(Chunk), null, true);
                 return false;
             }
 
             var fileVersion = SaveManager.GetSaveVersion<Chunk>(chunkJson, Constants.JsonKeys.Chunk.FILE_VERSION, chunkFileName);
             if (fileVersion is null)
             {
-                Tools.LogJsonParseError<Chunk>(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");
+                PACTools.LogJsonParseError<Chunk>(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
@@ -301,19 +301,19 @@ namespace ProgressAdventure.WorldManagement
 
             // position
             if (!(
-                Tools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_X, out var posX, true) &&
-                Tools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_Y, out var posY, true)
+                PACTools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_X, out var posX, isCritical: true) &&
+                PACTools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_Y, out var posY, isCritical: true)
             ))
             {
                 return false;
             }
             (long x, long y) position = (posX, posY);
 
-            success &= Tools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
+            success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
             chunkRandom ??= GetChunkRandom(position);
 
-            if (!Tools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
-                if (!Tools.TryCastAnyValueForJsonParsing<Tile, IDictionary<string, object?>>(tileJson, out var tileJsonValue, nameof(tileJson)))
+            if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
+                if (!PACTools.TryCastAnyValueForJsonParsing<Tile, IDictionary<string, object?>>(tileJson, out var tileJsonValue, nameof(tileJson)))
                 {
                     success = false;
                     return (false, default);

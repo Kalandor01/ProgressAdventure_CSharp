@@ -1,8 +1,8 @@
 ﻿using NPrng.Generators;
 using PACommon;
-using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.WorldManagement.Content;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
 {
@@ -150,21 +150,15 @@ namespace ProgressAdventure.WorldManagement
 
         public Dictionary<string, object?> ToJson()
         {
-            var terrainJson = terrain.ToJson();
-            var structureJson = structure.ToJson();
-            var populationJson = population.ToJson();
-
-
-            var tileJson = new Dictionary<string, object?>
+            return new Dictionary<string, object?>
             {
-                ["x_position"] = relativePosition.x,
-                ["y_position"] = relativePosition.y,
-                ["visited"] = Visited,
-                ["terrain"] = terrainJson,
-                ["structure"] = structureJson,
-                ["population"] = populationJson,
+                [Constants.JsonKeys.Tile.RELATIVE_POSITION_X] = relativePosition.x,
+                [Constants.JsonKeys.Tile.RELATIVE_POSITION_Y] = relativePosition.y,
+                [Constants.JsonKeys.Tile.VISITED] = Visited,
+                [Constants.JsonKeys.Tile.TERRAIN] = terrain.ToJson(),
+                [Constants.JsonKeys.Tile.STRUCTURE] = structure.ToJson(),
+                [Constants.JsonKeys.Tile.POPULATION] = population.ToJson(),
             };
-            return tileJson;
         }
 
         /// <summary>
@@ -174,81 +168,28 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="tileJson">The json representation of the tile.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="tileObject">The object representation of the json.</param>
-        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? tileJson, string fileVersion, out Tile? tileObject)
+        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?> tileJson, string fileVersion, out Tile? tileObject)
         {
-            tileObject = null;
-            if (tileJson is null)
-            {
-                PACSingletons.Instance.Logger.Log("Tile parse error", "tile json is null", LogSeverity.ERROR);
-                return false;
-            }
-
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
 
-            // x and y
+            tileObject = null;
+
             if (!(
-                tileJson.TryGetValue("x_position", out object? xPosValue) &&
-                long.TryParse(xPosValue?.ToString(), out long xPos) &&
-                tileJson.TryGetValue("y_position", out object? yPosValue) &&
-                long.TryParse(yPosValue?.ToString(), out long yPos)
+                PACTools.TryParseJsonValue<Tile, long>(tileJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
+                PACTools.TryParseJsonValue<Tile, long>(tileJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)
             ))
             {
-                PACSingletons.Instance.Logger.Log("Tile parse error", "tile coordinates cannot be parsed", LogSeverity.ERROR);
                 return false;
             }
 
             var success = true;
-
-            // visited
-            int? visited = null;
-            if (
-                tileJson.TryGetValue("visited", out object? visitedValueStr) &&
-                int.TryParse(visitedValueStr?.ToString(), out int visitedValue)
-            )
-            {
-                visited = visitedValue;
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode visited from json. Recreacting...", LogSeverity.WARN);
-                success = false;
-            }
-
-            // terrain
-            TerrainContent? terrain = null;
-            if (tileJson.TryGetValue("terrain", out object? terrainJson))
-            {
-                success &= TerrainContent.FromJson(chunkRandom, terrainJson as IDictionary<string, object?>, fileVersion, out terrain);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode terrain from json. Recreacting...", LogSeverity.WARN);
-                success = false;
-            }
-
-            // structure
-            StructureContent? structure = null;
-            if (tileJson.TryGetValue("structure", out object? structureJson))
-            {
-                success &= StructureContent.FromJson(chunkRandom, structureJson as IDictionary<string, object?>, fileVersion, out structure);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode structure from json. Recreacting...", LogSeverity.WARN);
-                success = false;
-            }
-
-            // population
-            PopulationContent? population = null;
-            if (tileJson.TryGetValue("population", out object? populationJson))
-            {
-                success &= PopulationContent.FromJson(chunkRandom, populationJson as IDictionary<string, object?>, fileVersion, out population);
-            }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Tile decode error", "couldn't decode population from json. Recreacting...", LogSeverity.WARN);
-                success = false;
-            }
+            success &= PACTools.TryParseJsonValue<Tile, int?>(tileJson, Constants.JsonKeys.Tile.VISITED, out var visited);
+            success &= PACTools.TryCastJsonAnyValue<Tile, Dictionary<string, object?>>(tileJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson);
+            success &= TerrainContent.FromJson(chunkRandom, terrainJson, fileVersion, out var terrain);
+            success &= PACTools.TryCastJsonAnyValue<Tile, Dictionary<string, object?>>(tileJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson);
+            success &= StructureContent.FromJson(chunkRandom, structureJson, fileVersion, out var structure);
+            success &= PACTools.TryCastJsonAnyValue<Tile, Dictionary<string, object?>>(tileJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson);
+            success &= PopulationContent.FromJson(chunkRandom, populationJson, fileVersion, out var population);
 
             tileObject = new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);
             return success;

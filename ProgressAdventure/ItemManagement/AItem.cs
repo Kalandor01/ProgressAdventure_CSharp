@@ -232,11 +232,11 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref AItem? itemObject)
         {
             if (!(
-                Tools.TryParseJsonValue<AItem, string>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, true) &&
+                PACTools.TryParseJsonValue<AItem, string>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, isCritical: true) &&
                 ItemUtils.TryParseItemType(typeName, out var itemType)
             ))
             {
-                Tools.LogJsonError<AItem>($"unknown item type: \"{typeName}\"", true);
+                PACTools.LogJsonError<AItem>($"unknown item type: \"{typeName}\"", true);
                 return false;
             }
 

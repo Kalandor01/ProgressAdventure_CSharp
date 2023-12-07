@@ -247,12 +247,12 @@ namespace ProgressAdventure
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
 
             var success = true;
-            success &= Tools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MAIN_RANDOM, out var mainRandom);
-            success &= Tools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.WORLD_RANDOM, out var worldRandom);
-            success &= Tools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MISC_RANDOM, out var miscRandom);
+            success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MAIN_RANDOM, out var mainRandom);
+            success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.WORLD_RANDOM, out var worldRandom);
+            success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MISC_RANDOM, out var miscRandom);
 
             if (
-                Tools.TryGetJsonAnyValue<RandomStates, IDictionary<string, object?>>(
+                PACTools.TryCastJsonAnyValue<RandomStates, IDictionary<string, object?>>(
                     randomStatesJson,
                     Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS,
                     out var tileTypeNoiseSeedsJson
@@ -267,7 +267,7 @@ namespace ProgressAdventure
                 success = false;
             }
 
-            success &= Tools.TryParseJsonValue<RandomStates, double?>(randomStatesJson, Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER, out var chunkSeedModifier);
+            success &= PACTools.TryParseJsonValue<RandomStates, double?>(randomStatesJson, Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER, out var chunkSeedModifier);
 
             randomStates = Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
             return success;

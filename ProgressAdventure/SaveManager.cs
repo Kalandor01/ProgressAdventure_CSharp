@@ -172,12 +172,12 @@ namespace ProgressAdventure
         /// <param name="fileName">The name of the currenly loaded save file.</param>
         public static string? GetSaveVersion<T>(IDictionary<string, object?> dataJson, string newJsonKey, string fileName)
         {
-            if (Tools.TryParseJsonValue<T, string>(dataJson, newJsonKey, out var fileVersion))
+            if (PACTools.TryParseJsonValue<T, string>(dataJson, newJsonKey, out var fileVersion))
             {
                 return fileVersion;
             }
 
-            if (Tools.TryParseJsonValue<T, string>(dataJson, Constants.JsonKeys.OLD_SAVE_VERSION, out var fileVersionBackup))
+            if (PACTools.TryParseJsonValue<T, string>(dataJson, Constants.JsonKeys.OLD_SAVE_VERSION, out var fileVersionBackup))
             {
                 PACSingletons.Instance.Logger.Log($"Old style {typeof(T).Name} version (< 2.2)", $"{typeof(T).Name} name: {fileName}", LogSeverity.INFO);
                 return fileVersionBackup;

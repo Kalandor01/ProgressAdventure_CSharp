@@ -57,7 +57,7 @@ namespace ProgressAdventure.SettingsManagement
         static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(IDictionary<string, object?> keybindsJson, string fileVersion, [NotNullWhen(true)] ref Keybinds? keybinds)
         {
             var success = true;
-            success = Tools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, object?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
+            success = PACTools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, object?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
                 success &= PACTools.TryFromJson(
                     new Dictionary<string, object?> { [keybind.Key] = keybind.Value },
                     fileVersion,

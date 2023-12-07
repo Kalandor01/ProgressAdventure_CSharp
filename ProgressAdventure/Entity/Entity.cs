@@ -474,17 +474,22 @@ namespace ProgressAdventure.Entity
             entityObject = null;
             if (entityJson is null)
             {
-                Tools.LogJsonNullError<Entity>(nameof(Entity), null, true);
+                PACTools.LogJsonNullError<Entity>(nameof(Entity), null, true);
                 return false;
             }
 
             if (!(
-                Tools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.TYPE, out var entityTypeValue, true) &&
+                PACTools.TryParseJsonValue<Entity, string?>(
+                    entityJson,
+                    Constants.JsonKeys.Entity.TYPE,
+                    out var entityTypeValue,
+                    isCritical: true
+                ) &&
                 EntityUtils.entityTypeMap.TryGetValue(entityTypeValue ?? "", out Type? entityType) &&
                 entityType is not null
             ))
             {
-                Tools.LogJsonError<Entity>("invalid entity type", true);
+                PACTools.LogJsonError<Entity>("invalid entity type", true);
                 return false;
             }
 
@@ -588,21 +593,21 @@ namespace ProgressAdventure.Entity
         {
             var success = true;
 
-            success &= Tools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
-            success &= Tools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
-            success &= Tools.TryParseJsonListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= PACTools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
+            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
+            success &= PACTools.TryParseJsonListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 attribute => {
-                    var success = Tools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, false);
+                    var success = PACTools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, logParseWarnings: false);
                     return (success, value);
                 },
                 out var attributes);
-            success &= Tools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= PACTools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 dropJson => {
                     var parseSuccess = PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? dropObject);
                     success &= parseSuccess;
@@ -611,16 +616,16 @@ namespace ProgressAdventure.Entity
                 out var drops);
 
             (long x, long y)? position =
-                Tools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.X_POSITION, out var xPosition) &&
-                Tools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.Y_POSITION, out var yPosition) ?
+                PACTools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.X_POSITION, out var xPosition) &&
+                PACTools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.Y_POSITION, out var yPosition) ?
                 (xPosition, yPosition) : null;
             if (position is null)
             {
-                Tools.LogJsonParseError<Entity>(nameof(position));
+                PACTools.LogJsonParseError<Entity>(nameof(position));
                 success = false;
             }
 
-            success &= Tools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
+            success &= PACTools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
             entityData = (
                 name,

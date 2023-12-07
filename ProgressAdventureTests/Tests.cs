@@ -902,27 +902,20 @@ namespace ProgressAdventureTests
             PATools.DeleteSave(currentSaveName);
 
             // list of reference saves
-            var zips = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH);
+            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH);
             PATools.RecreateSavesFolder();
             Console.WriteLine();
-            foreach (var zip in zips)
+            var overallSuccess = true;
+            foreach (var zipPath in zipPaths)
             {
-                var saveName = Path.GetFileNameWithoutExtension(zip);
-                PATools.DeleteSave(saveName);
-                ZipFile.ExtractToDirectory(zip, Path.Join(PAConstants.SAVES_FOLDER_PATH, saveName));
-                var success = SaveManager.LoadSave(saveName, false, false);
-                if (!success)
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
-                }
-                var wrongChunk = TryParseAllChunksFromFolder(saveName, $"Checking ({saveName})...");
-                if ( wrongChunk != null )
-                {
-                    return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
-                }
-                PATools.DeleteSave(saveName);
+                var result = TestLoadSaveFromZip(zipPath) ?? new TestResultDTO(LogSeverity.PASS);
+                var saveName = Path.GetFileNameWithoutExtension(zipPath);
+                var resultString = TestingUtils.GetResultString(result);
+                Console.WriteLine($"\r\tChecking ({saveName})..." + resultString);
+                overallSuccess &= result.resultType == LogSeverity.PASS;
             }
-            return null;
+            Console.Write("Overall...");
+            return overallSuccess ? null : new TestResultDTO(LogSeverity.FAIL, "See above for details");
         }
 
         /// <summary>
@@ -1031,12 +1024,11 @@ namespace ProgressAdventureTests
                     success &= Chunk.FromFile(existingChunks[x], out var _, saveFolderName, true);
                     if (!success)
                     {
-                        Console.WriteLine();
                         return existingChunks[x];
                     }
                     Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%              ");
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                       ");
+                Console.Write($"\r{showProgressText}DONE!                       ");
             }
             else
             {
@@ -1045,7 +1037,6 @@ namespace ProgressAdventureTests
                     success &= Chunk.FromFile(chunkPos, out var _, saveFolderName, true);
                     if (!success)
                     {
-                        Console.WriteLine();
                         return chunkPos;
                     }
                 }
@@ -1080,6 +1071,25 @@ namespace ProgressAdventureTests
             World.TryGetChunkAll((126, -96), out _);
             World.TryGetChunkAll((-9, 158), out _);
             World.TryGetChunkAll((1235, 6), out _);
+        }
+
+        private static TestResultDTO? TestLoadSaveFromZip(string zipPath)
+        {
+            var saveName = Path.GetFileNameWithoutExtension(zipPath);
+            PATools.DeleteSave(saveName);
+            ZipFile.ExtractToDirectory(zipPath, Path.Join(PAConstants.SAVES_FOLDER_PATH, saveName));
+            var success = SaveManager.LoadSave(saveName, false, false);
+            if (!success)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
+            }
+            var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
+            if (wrongChunk != null)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
+            }
+            PATools.DeleteSave(saveName);
+            return null;
         }
         #endregion
     }

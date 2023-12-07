@@ -22,7 +22,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public OceanTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
             : base(chunkRandom, ContentType.Terrain.OCEAN, name, data)
         {
-            depth = GetLongValueFromData(base.chunkRandom, "depth", data, (100, 20000));
+            depth = GetLongValueFromData<OceanTerrain>(base.chunkRandom, Constants.JsonKeys.OceanTerrain.DEPTH, data, (100, 20000));
         }
         #endregion
 
@@ -39,7 +39,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override Dictionary<string, object?> ToJson()
         {
             var terrainJson = base.ToJson();
-            terrainJson.Add("depth", depth);
+            terrainJson.Add(Constants.JsonKeys.OceanTerrain.DEPTH, depth);
             return terrainJson;
         }
         #endregion

@@ -203,16 +203,16 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref CompoundItem? itemObject)
         {
             if (!(
-                Tools.TryGetJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
+                PACTools.TryCastJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
                 ItemUtils.TryParseItemType(typeName, out ItemTypeID itemType)
             ))
             {
-                Tools.LogJsonError<CompoundItem>($"unknown item type: \"{typeName}\"", true);
+                PACTools.LogJsonError<CompoundItem>($"unknown item type: \"{typeName}\"", true);
                 return false;
             }
 
             var success = true;
-            success &= Tools.TryParseJsonListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
+            success &= PACTools.TryParseJsonListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
                 partJson => {
                     success &= PACTools.TryFromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
                     return (part is not null, part);
@@ -223,15 +223,15 @@ namespace ProgressAdventure.ItemManagement
                 return false;
             }
 
-            success &= Tools.TryParseJsonValue<CompoundItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
+            success &= PACTools.TryParseJsonValue<CompoundItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
             if (itemAmount is null)
             {
-                Tools.LogJsonError<CompoundItem>("defaulting to 1");
+                PACTools.LogJsonError<CompoundItem>("defaulting to 1");
             }
 
             if (itemAmount <= 0)
             {
-                Tools.LogJsonError<CompoundItem>("invalid item amount in item json (amount <= 0)", true);
+                PACTools.LogJsonError<CompoundItem>("invalid item amount in item json (amount <= 0)", true);
                 return false;
             }
 
@@ -241,7 +241,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                Tools.LogJsonError<CompoundItem>($"failed to create an object, from json: {ex}", true);
+                PACTools.LogJsonError<CompoundItem>($"failed to create an object, from json: {ex}", true);
                 return false;
             }
 

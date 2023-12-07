@@ -212,7 +212,7 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(IDictionary<string, object?> inventoryJson, string fileVersion, [NotNullWhen(true)] ref Inventory? inventory)
         {
             var success = true;
-            success = Tools.TryParseJsonListValue<Inventory, AItem>(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
+            success = PACTools.TryParseJsonListValue<Inventory, AItem>(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
                 itemJson =>
                 {
                     var parseSuccess = PACTools.TryFromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);

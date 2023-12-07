@@ -22,7 +22,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public VillageStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
             : base(chunkRandom, ContentType.Structure.VILLAGE, name, data)
         {
-            population = GetLongValueFromData(base.chunkRandom, "population", data, (50, 10000));
+            population = GetLongValueFromData<VillageStructure>(base.chunkRandom, Constants.JsonKeys.VillageStructure.POPULATION, data, (50, 10000));
         }
         #endregion
 
@@ -39,7 +39,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override Dictionary<string, object?> ToJson()
         {
             var structureJson = base.ToJson();
-            structureJson.Add("population", population);
+            structureJson.Add(Constants.JsonKeys.VillageStructure.POPULATION, population);
             return structureJson;
         }
         #endregion

@@ -22,7 +22,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public MountainTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
             : base(chunkRandom, ContentType.Terrain.MOUNTAIN, name, data)
         {
-            height = GetLongValueFromData(base.chunkRandom, "height", data, (500, 10000));
+            height = GetLongValueFromData<MountainTerrain>(base.chunkRandom, Constants.JsonKeys.MountainTerrain.HEIGHT, data, (500, 10000));
         }
         #endregion
 
@@ -39,7 +39,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override Dictionary<string, object?> ToJson()
         {
             var terrainJson = base.ToJson();
-            terrainJson.Add("height", height);
+            terrainJson.Add(Constants.JsonKeys.MountainTerrain.HEIGHT, height);
             return terrainJson;
         }
         #endregion

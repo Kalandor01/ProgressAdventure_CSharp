@@ -171,7 +171,7 @@ namespace ProgressAdventure.Entity
 
         protected override bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
         {
-            var success = Tools.TryParseJsonConvertableValue<Player, Inventory>(miscJson, fileVersion, Constants.JsonKeys.Player.INVENTORY, out var inventory);
+            var success = PACTools.TryParseJsonConvertableValue<Player, Inventory>(miscJson, fileVersion, Constants.JsonKeys.Player.INVENTORY, out var inventory);
             this.inventory = inventory ?? new Inventory();
             return success;
         }

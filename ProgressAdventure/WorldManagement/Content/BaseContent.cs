@@ -1,7 +1,8 @@
 ﻿using NPrng.Generators;
 using PACommon;
-using PACommon.Enums;
 using PACommon.JsonUtils;
+using static ProgressAdventure.Constants;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement.Content
 {
@@ -132,18 +133,17 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <summary>
         /// Rturns the value of the long, at the given key, or makes a new value.
         /// </summary>
+        /// <typeparam name="T">The content type to parse from.</typeparam>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
-        /// <param name="key">The key to use.</param>
+        /// <param name="jsonKey">The key to use.</param>
         /// <param name="data">The dictionary to search in.</param>
         /// <param name="defaultRange">The dafult range to use, if the value doesn't exist.</param>
-        protected static long GetLongValueFromData(SplittableRandom chunkRandom, string key, IDictionary<string, object?>? data, (long min, long max)? defaultRange = null)
+        protected static long GetLongValueFromData<T>(SplittableRandom chunkRandom, string jsonKey, IDictionary<string, object?>? data, (long min, long max)? defaultRange = null)
         {
-            if (
+            if (!(
                 data is not null &&
-                data.TryGetValue(key, out object? valueRaw) &&
-                long.TryParse(valueRaw?.ToString(), out long value)
-            ) { }
-            else
+                PACTools.TryParseJsonValue<T, long>(data, jsonKey, out var value)
+            ))
             {
                 value = GetContentValueRange(chunkRandom, defaultRange);
             }
@@ -156,9 +156,9 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             return new Dictionary<string, object?>
             {
-                ["type"] = WorldUtils.contentTypeIDTextMap[type],
-                ["subtype"] = WorldUtils.contentTypeIDSubtypeTextMap[type][subtype],
-                ["name"] = Name
+                [Constants.JsonKeys.BaseContent.TYPE] = WorldUtils.contentTypeIDTextMap[type],
+                [Constants.JsonKeys.BaseContent.SUBTYPE] = WorldUtils.contentTypeIDSubtypeTextMap[type][subtype],
+                [Constants.JsonKeys.BaseContent.NAME] = Name
             };
         }
 
@@ -170,55 +170,51 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="contentJson">The json representation of the content.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="contentObject">The content object that was loaded.</param>
-        /// <exception cref="ArgumentException">Thrown if the content type cannot be created.</exception>
-        protected static bool LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out T contentObject)
+        /// <returns>If the content was parsed without warnings.</returns>
+        protected static bool LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out T? contentObject)
             where T : BaseContent
         {
+            contentObject = null;
+            if (contentJson is null)
+            {
+                PACTools.LogJsonNullError<T>(typeof(T).ToString(), isError: true);
+                return false;
+            }
+
             var contentTypeMap = WorldUtils.contentTypeMap[typeof(T)];
             var contentTypeID = contentTypeMap.First().Key.Super;
-            Type contentType;
-            string? contentName = null;
-            var success = true;
 
-            if (contentJson is not null)
+            if (!(
+                PACTools.TryCastJsonAnyValue<T, string>(contentJson, Constants.JsonKeys.BaseContent.SUBTYPE, out var contentSubtypeString, true) &&
+                WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString, out ContentTypeID contentSubtype) &&
+                contentTypeMap.TryGetValue(contentSubtype, out var contentType)
+            ))
             {
-                // get content subtype
-                if (
-                    contentJson.TryGetValue("subtype", out object? contentSubtypeString) &&
-                    WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString?.ToString(), out ContentTypeID contentSubtype) &&
-                    contentTypeMap.ContainsKey(contentSubtype)
-                )
+                if (contentSubtypeString is not null)
                 {
-                    contentType = contentTypeMap[contentSubtype];
+                    PACTools.LogJsonError<T>($"unknown content subtype \"{contentSubtypeString}\" for content type \"{typeof(T)}\"", true);
                 }
-                else
-                {
-                    PACSingletons.Instance.Logger.Log("Content parse error", "couldn't get content type from json", LogSeverity.ERROR);
-                    contentType = contentTypeMap.First().Value;
-                    success = false;
-                }
-                // get content name
-                if (
-                    contentJson.TryGetValue("name", out object? contentNameValue)
-                )
-                {
-                    contentName = contentNameValue?.ToString();
-                }
-                else
-                {
-                    PACSingletons.Instance.Logger.Log("Content parse error", "couldn't get content name from json", LogSeverity.WARN);
-                    success = false;
-                }
+                return false;
             }
-            else
+
+            // name can be null
+            var success = true;
+            var contentNameJsonKey = JsonKeys.BaseContent.NAME;
+            if (!contentJson.TryGetValue(contentNameJsonKey, out var contentNameValue))
             {
-                PACSingletons.Instance.Logger.Log("Content parse error", "content json was null", LogSeverity.ERROR);
-                contentType = contentTypeMap.First().Value;
+                PACTools.LogJsonParseError<T>(contentNameJsonKey);
                 success = false;
             }
+            var contentName = contentNameValue as string;
 
             // get content
-            var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson }) ?? throw new ArgumentException(message: $"Couldn't create content object from type \"{contentType}\"!", null, null);
+            var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson });
+            if (content is null)
+            {
+                PACTools.LogJsonError<T>($"couldn't create content object from type \"{contentType}\"!", true);
+                return false;
+            }
+
             contentObject = (T)content;
             return success;
         }

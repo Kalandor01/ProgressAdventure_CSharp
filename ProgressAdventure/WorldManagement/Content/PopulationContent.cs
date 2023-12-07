@@ -19,7 +19,7 @@ namespace ProgressAdventure.WorldManagement.Content
         protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, IDictionary<string, object?>? data = null)
             : base(chunkRandom, ContentType.PopulationContentType, subtype, name, data)
         {
-            amount = GetLongValueFromData(this.chunkRandom, "amount", data, (1, 1000));
+            amount = GetLongValueFromData<PopulationContent>(this.chunkRandom, Constants.JsonKeys.PopulationContent.AMOUNT, data, (1, 1000));
         }
         #endregion
 
@@ -58,12 +58,12 @@ namespace ProgressAdventure.WorldManagement.Content
         public override Dictionary<string, object?> ToJson()
         {
             var populationJson = base.ToJson();
-            populationJson.Add("amount", amount);
+            populationJson.Add(Constants.JsonKeys.PopulationContent.AMOUNT, amount);
             return populationJson;
         }
 
         /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?, string, out T)"/>
-        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out PopulationContent contentObject)
+        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out PopulationContent? contentObject)
         {
             return LoadContent(chunkRandom, contentJson, fileVersion, out contentObject);
         }

@@ -18,7 +18,7 @@ namespace ProgressAdventure.WorldManagement.Content
 
         #region Public functions
         /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?, string, out T)"/>
-        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out StructureContent contentObject)
+        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out StructureContent? contentObject)
         {
             return LoadContent(chunkRandom, contentJson, fileVersion, out contentObject);
         }

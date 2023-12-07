@@ -97,9 +97,19 @@ namespace PACommon.TestUtils
             Console.WriteLine($"\nFinished running test batch: {result} successful!");
             PACSingletons.Instance.Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
-        #endregion
 
-        #region Private functions
+        /// <summary>
+        /// Returns the string representation of the result of a test.
+        /// </summary>
+        /// <param name="result">The result of the test.</param>
+        public static string GetResultString(TestResultDTO result)
+        {
+            var passed = result.resultType == LogSeverity.PASS;
+            var typeText = Utils.StylizedText(result.resultType.ToString(), passed ? Constants.Colors.GREEN : Constants.Colors.RED);
+            var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+            return typeText + messageText;
+        }
+
         /// <summary>
         /// Evaluates the results of a test.
         /// </summary>
@@ -107,13 +117,12 @@ namespace PACommon.TestUtils
         /// <param name="result">The result of the test.</param>
         /// <param name="testsRun">The amount of tests that have run so far.</param>
         /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
-        private static void EvaluateResult(string testName, TestResultDTO result, ref int testsRun, ref int testsSuccessful)
+        public static void EvaluateResult(string testName, TestResultDTO result, ref int testsRun, ref int testsSuccessful)
         {
-            var passed = result.resultType == LogSeverity.PASS;
-            var typeText = Utils.StylizedText(result.resultType.ToString(), passed ? Constants.Colors.GREEN : Constants.Colors.RED);
-            var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+            Console.WriteLine(GetResultString(result));
 
-            Console.WriteLine(typeText + messageText);
+            var passed = result.resultType == LogSeverity.PASS;
+            var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
             PACSingletons.Instance.Logger.Log(testName, result.resultType + messageText, result.resultType);
             testsRun++;
             testsSuccessful += passed ? 1 : 0;
