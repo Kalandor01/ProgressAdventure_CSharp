@@ -204,7 +204,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (!(
                 PACTools.TryCastJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
-                ItemUtils.TryParseItemType(typeName, out ItemTypeID itemType)
+                ItemUtils.TryParseItemType(typeName, out var itemType)
             ))
             {
                 PACTools.LogJsonError<CompoundItem>($"unknown item type: \"{typeName}\"", true);

@@ -12,7 +12,7 @@ namespace ProgressAdventure.ItemManagement
     /// </summary>
     public static class ItemUtils
     {
-        #region Json conversion dicts
+        #region Json correction dicts
         /// <summary>
         /// The dictionary pairing up old item type IDs, to their name.
         /// </summary>

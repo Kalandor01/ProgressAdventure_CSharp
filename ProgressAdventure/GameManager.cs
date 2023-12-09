@@ -29,8 +29,8 @@ namespace ProgressAdventure
         /// </summary>
         public static void LoadSave(string saveName)
         {
-            var backupChoice = Settings.DefBackupAction == -1;
-            var automaticBackup = Settings.DefBackupAction == 1;
+            var backupChoice = PASingletons.Instance.Settings.DefBackupAction == -1;
+            var automaticBackup = PASingletons.Instance.Settings.DefBackupAction == 1;
             SaveManager.LoadSave(saveName, backupChoice, automaticBackup);
             GameLoop();
         }
@@ -40,9 +40,9 @@ namespace ProgressAdventure
         /// </summary>
         public static void InitiateFight()
         {
-            Globals.Instance.inFight = true;
+            PASingletons.Instance.Globals.inFight = true;
             EntityUtils.RandomFight(3, 5);
-            Globals.Instance.inFight = false;
+            PASingletons.Instance.Globals.inFight = false;
         }
 
         /// <summary>
@@ -50,10 +50,10 @@ namespace ProgressAdventure
         /// </summary>
         public static void SaveGame()
         {
-            Globals.Instance.saving = true;
+            PASingletons.Instance.Globals.saving = true;
             SaveManager.MakeSave();
             PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\"");
-            Globals.Instance.saving = false;
+            PASingletons.Instance.Globals.saving = false;
         }
 
         /// <summary>
@@ -61,14 +61,14 @@ namespace ProgressAdventure
         /// </summary>
         public static void GameLoop()
         {
-            Globals.Instance.inGameLoop = true;
+            PASingletons.Instance.Globals.inGameLoop = true;
             // GAME LOOP
             PACSingletons.Instance.Logger.Log("Game loop started");
             // TRHEADS
             // manual quit
             Task.Run(ManualQuitThreadFunction);
             // auto saver
-            if (Settings.AutoSave)
+            if (PASingletons.Instance.Settings.AutoSave)
             {
                 Task.Run(AutoSaveThreadFunction);
             }
@@ -77,7 +77,7 @@ namespace ProgressAdventure
             Console.WriteLine("Wandering...");
             for (var x = 0; x < 0; x++)
             {
-                if (!Globals.Instance.exiting)
+                if (!PASingletons.Instance.Globals.exiting)
                 {
                     Thread.Sleep(100);
                     SaveData.Instance.player.WeightedTurn();
@@ -87,19 +87,19 @@ namespace ProgressAdventure
                     chunk.FillChunk();
                 }
             }
-            if (!Globals.Instance.exiting)
+            if (!PASingletons.Instance.Globals.exiting)
             {
                 Thread.Sleep(1000);
             }
-            if (!Globals.Instance.exiting)
+            if (!PASingletons.Instance.Globals.exiting)
             {
                 //InitiateFight();
                 SaveGame();
             }
             // SaveGame() maybe instead of the auto save
             // ENDING
-            Globals.Instance.exiting = false;
-            Globals.Instance.inGameLoop = false;
+            PASingletons.Instance.Globals.exiting = false;
+            PASingletons.Instance.Globals.inGameLoop = false;
             Utils.PressKey("Exiting...Press key!");
             PACSingletons.Instance.Logger.Log("Game loop ended");
         }
@@ -117,14 +117,14 @@ namespace ProgressAdventure
                 while (true)
                 {
                     Thread.Sleep(Constants.AUTO_SAVE_INTERVAL);
-                    if (Globals.Instance.inGameLoop)
+                    if (PASingletons.Instance.Globals.inGameLoop)
                     {
                         var saved = false;
                         while (!saved)
                         {
-                            if (Globals.Instance.inGameLoop)
+                            if (PASingletons.Instance.Globals.inGameLoop)
                             {
-                                if (!Globals.Instance.saving && !Globals.Instance.inFight)
+                                if (!PASingletons.Instance.Globals.saving && !PASingletons.Instance.Globals.inFight)
                                 {
                                     PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
                                     SaveGame();
@@ -141,7 +141,7 @@ namespace ProgressAdventure
                             }
                         }
                     }
-                    if (!Globals.Instance.inGameLoop)
+                    if (!PASingletons.Instance.Globals.inGameLoop)
                     {
                         break;
                     }
@@ -164,28 +164,26 @@ namespace ProgressAdventure
             {
                 while (true)
                 {
-                    if (Globals.Instance.inGameLoop)
-                    {
-                        if (Settings.Keybinds.GetActionKey(ActionType.ESCAPE).IsKey())
-                        {
-                            if (!Globals.Instance.inFight && !Globals.Instance.saving)
-                            {
-                                PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
-                                Globals.Instance.exiting = true;
-                                SaveGame();
-                                Globals.Instance.inGameLoop = false;
-                                break;
-                            }
-                            else
-                            {
-                                Console.WriteLine("You can't exit now!");
-                            }
-                        }
-                    }
-                    else
+                    if (!PASingletons.Instance.Globals.inGameLoop)
                     {
                         break;
                     }
+
+                    if (PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE)?.IsKey() != true)
+                    {
+                        continue;
+                    }
+
+                    if (PASingletons.Instance.Globals.inFight || PASingletons.Instance.Globals.saving)
+                    {
+                        Console.WriteLine("You can't exit now!");
+                    }
+
+                    PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
+                    PASingletons.Instance.Globals.exiting = true;
+                    SaveGame();
+                    PASingletons.Instance.Globals.inGameLoop = false;
+                    break;
                 }
             }
             catch (Exception e)

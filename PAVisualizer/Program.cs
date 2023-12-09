@@ -1,7 +1,9 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using PACommon.SettingsManagement;
 using ProgressAdventure;
+using ProgressAdventure.SettingsManagement;
 using SaveFileManager;
 using System;
 using System.Collections.Generic;
@@ -80,10 +82,12 @@ namespace PAVisualizer
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
             }
 
-            PACSingletons.Instance.Logger.Log("Preloading global variables");
-            // GLOBAL VARIABLES
-            ProgressAdventure.SettingsManagement.Settings.Initialize();
-            Globals.Initialize();
+            // initializing PA singletons
+            PASingletons.Initialize(
+                new Globals(),
+                new Settings()
+            );
+            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
         }
 
         /// <summary>

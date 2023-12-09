@@ -289,8 +289,9 @@ namespace PACommon.Logging
             if (forceLog || newLine || _lastLogTime + ForceLogInterval < DateTime.Now)
             {
                 _lastLogTime = DateTime.Now;
-                await loggerStream.LogTextAsync(_logMessageBuffer.ToList(), newLine);
+                var previousList = _logMessageBuffer.ToList();
                 _logMessageBuffer = new List<(string message, DateTime time)>();
+                await loggerStream.LogTextAsync(previousList, newLine);
             }
         }
 

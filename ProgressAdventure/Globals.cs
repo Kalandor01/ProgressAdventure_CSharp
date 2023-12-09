@@ -1,6 +1,4 @@
-﻿using PACommon;
-
-namespace ProgressAdventure
+﻿namespace ProgressAdventure
 {
     /// <summary>
     /// Object for storing global variables.
@@ -26,37 +24,6 @@ namespace ProgressAdventure
         public bool saving;
         #endregion
 
-        #region Private fields
-        /// <summary>
-        /// Object used for locking the thread while the singleton gets created.
-        /// </summary>
-        private static readonly object _threadLock = new();
-        /// <summary>
-        /// The singleton istance.
-        /// </summary>
-        private static Globals? _instance = null;
-        #endregion
-
-        #region Public properties
-        /// <summary>
-        /// <inheritdoc cref="_instance" path="//summary"/>
-        /// </summary>
-        public static Globals Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize();
-                    }
-                }
-                return _instance;
-            }
-        }
-        #endregion
-
         #region Private constructors
         /// <summary>
         /// <inheritdoc cref="Globals" path="//summary"/>
@@ -65,7 +32,7 @@ namespace ProgressAdventure
         /// <param name="inFight"><inheritdoc cref="inFight" path="//summary"/></param>
         /// <param name="exiting"><inheritdoc cref="exiting" path="//summary"/></param>
         /// <param name="saving"><inheritdoc cref="saving" path="//summary"/></param>
-        private Globals(
+        public Globals(
             bool inGameLoop = false,
             bool inFight = false,
             bool exiting = false,
@@ -76,27 +43,6 @@ namespace ProgressAdventure
             this.inFight = inFight;
             this.exiting = exiting;
             this.saving = saving;
-        }
-        #endregion
-
-        #region "Initializer"
-        /// <summary>
-        /// Initializes the values in the object.
-        /// </summary>
-        /// <param name="inGameLoop"><inheritdoc cref="inGameLoop" path="//summary"/></param>
-        /// <param name="inFight"><inheritdoc cref="inFight" path="//summary"/></param>
-        /// <param name="exiting"><inheritdoc cref="exiting" path="//summary"/></param>
-        /// <param name="saving"><inheritdoc cref="saving" path="//summary"/></param>
-        public static Globals Initialize(
-            bool inGameLoop = false,
-            bool inFight = false,
-            bool exiting = false,
-            bool saving = false
-        )
-        {
-            _instance = new Globals(inGameLoop, inFight, exiting, saving);
-            PACSingletons.Instance.Logger.Log($"{nameof(Globals)} initialized");
-            return _instance;
         }
         #endregion
     }

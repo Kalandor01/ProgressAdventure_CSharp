@@ -4,11 +4,11 @@ using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
+using ProgressAdventure.WorldManagement;
 using System.IO.Compression;
 using PAConstants = ProgressAdventure.Constants;
-using Utils = PACommon.Utils;
 using PATools = ProgressAdventure.Tools;
-using ProgressAdventure.WorldManagement;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventureTests
 {
@@ -109,12 +109,23 @@ namespace ProgressAdventureTests
         /// </summary>
         internal static void PrepareTest()
         {
-            Settings.LoggingLevel = 0;
+            PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
 
-            PACSingletons.Instance.Logger.Log("Initializing global variables");
-            Settings.Initialize();
-            KeybindUtils.colorEnabled = Settings.EnableColoredText;
-            Globals.Initialize();
+            PASingletons.Initialize(
+                    new Globals(),
+                    new Settings()
+                );
+            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
+        }
+
+        /// <summary>
+        /// Disposes the test enviorment.
+        /// </summary>
+        internal static void DisposeTest()
+        {
+            PASingletons.Instance.Dispose();
+            KeybindUtils.colorEnabled = true;
+            PASingletons.Instance.Settings.LoggingLevel = LogSeverity.DEBUG;
         }
 
         /// <summary>
@@ -123,7 +134,7 @@ namespace ProgressAdventureTests
         /// <param name="testFunction">The test to run.</param>
         internal static void RunTestInternal(Func<TestResultDTO?> testFunction)
         {
-            TestingUtils.RunTest(testFunction, PrepareTest, false, ref testsRun, ref testsSuccessful);
+            TestingUtils.RunTest(testFunction, PrepareTest, DisposeTest, false, ref testsRun, ref testsSuccessful);
         }
 
         /// <summary>

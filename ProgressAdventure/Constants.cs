@@ -65,6 +65,21 @@ namespace ProgressAdventure
         public const string BACKUP_EXT = "zip";
         #endregion
 
+        #region Configs
+        /// <summary>
+        /// The name of the configs folder.
+        /// </summary>
+        public const string CONFIGS_FOLDER = "configs";
+        /// <summary>
+        /// The path to the configs folder.
+        /// </summary>
+        public static readonly string CONFIGS_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, CONFIGS_FOLDER);
+        /// <summary>
+        /// The extension used for config files.
+        /// </summary>
+        public const string CONFIG_EXT = "json";
+        #endregion
+
         #region Save folder structure
         /// <summary>
         /// The name of the data file in a save file.

@@ -50,11 +50,12 @@ namespace ProgressAdventure
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
-            // GLOBAL VARIABLES
-            PACSingletons.Instance.Logger.Log("Initializing global variables");
-            Settings.Initialize();
-            KeybindUtils.colorEnabled = Settings.EnableColoredText;
-            Globals.Initialize();
+            // initializing PA singletons
+            PASingletons.Initialize(
+                new Globals(),
+                new Settings()
+            );
+            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }

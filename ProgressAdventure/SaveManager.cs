@@ -67,13 +67,13 @@ namespace ProgressAdventure
                 "Name your save: ",
                 new StringCorrectorDelegate(Tools.CorrectSaveName),
                 clearScreen: false
-            ).GetString(Settings.Keybinds.KeybindList);
+            ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
 
             var playerName = new RealTimeCorrectedTextField(
                 "What is your name?: ",
                 new StringCorrectorDelegate(Tools.CorrectPlayerName),
                 clearScreen: false
-            ).GetString(Settings.Keybinds.KeybindList);
+            ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
 
             CreateSaveData(displaySaveName, playerName);
         }
@@ -230,7 +230,7 @@ namespace ProgressAdventure
             PACSingletons.Instance.Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
             var createBackup = MenuManager.AskYesNoUIQuestion(
                 $"\"{saveName}\" is {(isOlder ? "an older" : "a newer")} version than what it should be! Do you want to backup the save before loading it?",
-                keybinds: Settings.Keybinds
+                keybinds: PASingletons.Instance.Settings.Keybinds
             );
 
             if (createBackup)

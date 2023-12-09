@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PACommon.TestUtils
 {
-    public class TestingUtils
+    public static class TestingUtils
     {
         #region Public functions
         /// <summary>
@@ -12,10 +12,18 @@ namespace PACommon.TestUtils
         /// </summary>
         /// <param name="testFunction">The test to run.</param>
         /// <param name="prepareTestFunction">The function to run before running a test.</param>
+        /// <param name="disposeTestFunction">The function to run after running a test.</param>
         /// <param name="newLine">Whether to write a new line in the logs.</param>
         /// <param name="testsRun">The amount of tests that have run so far.</param>
         /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
-        public static void RunTest(Func<TestResultDTO?> testFunction, Action? prepareTestFunction, bool newLine, ref int testsRun, ref int testsSuccessful)
+        public static void RunTest(
+            Func<TestResultDTO?> testFunction,
+            Action? prepareTestFunction,
+            Action? disposeTestFunction,
+            bool newLine,
+            ref int testsRun,
+            ref int testsSuccessful
+        )
         {
             if (newLine)
             {
@@ -39,30 +47,34 @@ namespace PACommon.TestUtils
             }
             catch (Exception ex)
             {
-                EvaluateResult(testName, new TestResultDTO(LogSeverity.FATAL, ex.ToString()), ref testsRun, ref testsSuccessful);
-                return;
+                result = new TestResultDTO(LogSeverity.FATAL, ex.ToString());
             }
+            finally
+            {
+                disposeTestFunction?.Invoke();
+            }
+
             EvaluateResult(testName, result, ref testsRun, ref testsSuccessful);
         }
 
-        /// <summary>
-        /// Runs an individual test.
-        /// </summary>
-        /// <param name="testFunction">The test to run.</param>
-        /// <param name="prepareTestFunction">The function to run before running a test.</param>
-        /// <param name="newLine">Whether to write a new line in the logs.</param>
-        public static void RunTest(Func<TestResultDTO?> testFunction, Action? prepareTestFunction, bool newLine = true)
+        /// <inheritdoc cref="RunTest(Func{TestResultDTO?}, Action?, Action?, bool, ref int, ref int)"/>
+        public static void RunTest(
+            Func<TestResultDTO?> testFunction,
+            Action? prepareTestFunction,
+            Action? disposeTestFunction,
+            bool newLine = true
+        )
         {
             int _ = 0;
-            RunTest(testFunction, prepareTestFunction, newLine, ref _, ref _);
+            RunTest(testFunction, prepareTestFunction, disposeTestFunction, newLine, ref _, ref _);
         }
 
         /// <summary>
         /// Runs all test functions from a class
         /// </summary>
         /// <param name="staticClass"></param>
-        /// <param name="prepareTestFunction">The function to run before running a test.</param>
-        public static void RunAllTests(Type staticClass, Action? prepareTestFunction = null)
+        /// <inheritdoc cref="RunTest(Func{TestResultDTO?}, Action?, Action?, bool)"/>
+        public static void RunAllTests(Type staticClass, Action? prepareTestFunction = null, Action? disposeTestFunction = null)
         {
             if (
                 !staticClass.IsAbstract ||
@@ -87,7 +99,7 @@ namespace PACommon.TestUtils
                     method.GetParameters().Length == 0
                 )
                 {
-                    RunTest(method.CreateDelegate<Func<TestResultDTO?>>(), prepareTestFunction, false, ref testsRun, ref testsSuccessful);
+                    RunTest(method.CreateDelegate<Func<TestResultDTO?>>(), prepareTestFunction, disposeTestFunction, false, ref testsRun, ref testsSuccessful);
                 }
             }
 

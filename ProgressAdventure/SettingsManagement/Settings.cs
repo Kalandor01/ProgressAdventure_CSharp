@@ -10,47 +10,47 @@ namespace ProgressAdventure.SettingsManagement
     /// <summary>
     /// Object for managing the data in the settings file.
     /// </summary>
-    public static class Settings
+    public class Settings
     {
         #region Private Fields
         /// <summary>
         /// If the game should auto save.
         /// </summary>
-        private static bool _autoSave;
+        private bool _autoSave;
         /// <summary>
         /// The minimum level of logs, that will be recorded.
         /// </summary>
-        private static LogSeverity _loggingLevel;
+        private LogSeverity _loggingLevel;
         /// <summary>
         /// The keybinds object to use, for the app.
         /// </summary>
-        private static Keybinds _keybinds;
+        private Keybinds _keybinds;
         /// <summary>
         /// If the user should be asked for confirmation, when trying to delete a save file.
         /// </summary>
-        private static bool _askDeleteSave;
+        private bool _askDeleteSave;
         /// <summary>
         /// If the user should be asked for confirmation, when trying to regenerate a save file.
         /// </summary>
-        private static bool _askRegenerateSave;
+        private bool _askRegenerateSave;
         /// <summary>
         /// The default action for backing up save files.<br/>
         /// -1: ask user<br/>
         /// 0: never backup<br/>
         /// 1: always backup
         /// </summary>
-        private static int _defBackupAction;
+        private int _defBackupAction;
         /// <summary>
         /// Whether to enable colored text on the terminal.
         /// </summary>
-        private static bool _enableColoredText;
+        private bool _enableColoredText;
         #endregion
 
         #region Public properties
         /// <summary>
         /// <inheritdoc cref="_autoSave" path="//summary"/>
         /// </summary>
-        public static bool AutoSave
+        public bool AutoSave
         {
             get => _autoSave;
             set
@@ -62,7 +62,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_loggingLevel" path="//summary"/>
         /// </summary>
-        public static LogSeverity LoggingLevel
+        public LogSeverity LoggingLevel
         {
             get => _loggingLevel;
             set
@@ -77,7 +77,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_keybinds" path="//summary"/>
         /// </summary>
-        public static Keybinds Keybinds
+        public Keybinds Keybinds
         {
             get
             {
@@ -93,7 +93,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_askDeleteSave" path="//summary"/>
         /// </summary>
-        public static bool AskDeleteSave
+        public bool AskDeleteSave
         {
             get => _askDeleteSave;
             set
@@ -105,7 +105,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_askRegenerateSave" path="//summary"/>
         /// </summary>
-        public static bool AskRegenerateSave
+        public bool AskRegenerateSave
         {
             get => _askRegenerateSave;
             set
@@ -117,7 +117,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_defBackupAction" path="//summary"/>
         /// </summary>
-        public static int DefBackupAction
+        public int DefBackupAction
         {
             get => _defBackupAction;
             set
@@ -129,7 +129,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="_enableColoredText" path="//summary"/>
         /// </summary>
-        public static bool EnableColoredText
+        public bool EnableColoredText
         {
             get => _enableColoredText;
             set
@@ -140,9 +140,9 @@ namespace ProgressAdventure.SettingsManagement
         }
         #endregion
 
-        #region "Constructors"
+        #region Constructors
         /// <summary>
-        /// Initializes the values in the object.
+        /// <inheritdoc cref="Settings"/>
         /// </summary>
         /// <param name="autoSave"><inheritdoc cref="_autoSave" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
@@ -150,7 +150,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
         /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
-        public static void Initialize(
+        public Settings(
             bool? autoSave = null,
             LogSeverity? loggingLevel = null,
             Keybinds? keybinds = null,
@@ -210,7 +210,7 @@ namespace ProgressAdventure.SettingsManagement
             {
                 PACSingletons.Instance.Logger.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + e.ToString(), LogSeverity.ERROR);
                 keybinds = new Keybinds();
-                SettingsManager(SettingsKey.KEYBINDS, keybinds.ToJson());
+                SettingsManager(SettingsKey.KEYBINDS, keybinds);
             }
             return keybinds ?? new Keybinds();
         }
@@ -329,39 +329,39 @@ namespace ProgressAdventure.SettingsManagement
         {
             var settings = GetSettingsDict();
             var settingsKeyName = settingsKey.ToString();
-            if (settings.TryGetValue(settingsKeyName, out object? settingValue))
-            {
-                var keybindsEqual = false;
-                if (settingsKey == SettingsKey.KEYBINDS && settingValue is not null)
-                {
-                    Keybinds? oldKb = null;
-                    try
-                    {
-                        PACTools.TryFromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
-                    }
-                    catch (Exception e)
-                    {
-                        PACSingletons.Instance.Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
-                    }
-                    if (oldKb is not null)
-                    {
-                        keybindsEqual = oldKb.Equals(value);
-                        if (!keybindsEqual)
-                        {
-                            value = ((Keybinds)value).ToJson();
-                        }
-                    }
-                }
-                if (!(keybindsEqual || value.Equals(settingValue)))
-                {
-                    PACSingletons.Instance.Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
-                    settings[settingsKeyName] = value;
-                    Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
-                }
-            }
-            else
+            if (!settings.TryGetValue(settingsKeyName, out object? settingValue))
             {
                 PACSingletons.Instance.Logger.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
+                settings[settingsKeyName] = value;
+                Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+                return;
+            }
+
+            var keybindsEqual = false;
+            if (settingsKey == SettingsKey.KEYBINDS && settingValue is not null)
+            {
+                Keybinds? oldKb = null;
+                try
+                {
+                    PACTools.TryFromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
+                }
+                catch (Exception e)
+                {
+                    PACSingletons.Instance.Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
+                }
+                if (oldKb is not null)
+                {
+                    keybindsEqual = oldKb.Equals(value);
+                    if (!keybindsEqual)
+                    {
+                        value = ((Keybinds)value).ToJson();
+                    }
+                }
+            }
+
+            if (!(keybindsEqual || value.Equals(settingValue)))
+            {
+                PACSingletons.Instance.Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
                 settings[settingsKeyName] = value;
                 Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
             }

@@ -49,7 +49,7 @@ namespace ProgressAdventure
             {
                 if (_actionList is null)
                 {
-                    _actionList = Settings.Keybinds.KeybindList.ToList();
+                    _actionList = PASingletons.Instance.Settings.Keybinds.KeybindList.ToList();
                     _resultsList = SFMUtils.GetResultsList(_actionList).ToList();
                 }
                 return _actionList;
@@ -133,7 +133,7 @@ namespace ProgressAdventure
         /// </summary>
         public static void KeybindSettings()
         {
-            tempKeybinds = Settings.Keybinds.DeepCopy();
+            tempKeybinds = PASingletons.Instance.Settings.Keybinds.DeepCopy();
 
             var elementList = new List<BaseUI?>();
             foreach (var actionType in Enum.GetValues<ActionType>())
@@ -189,12 +189,12 @@ namespace ProgressAdventure
         public static void OtherOptions()
         {
             // auto save
-            var autoSaveElement = new Toggle(Settings.AutoSave, "Auto save: ");
+            var autoSaveElement = new Toggle(PASingletons.Instance.Settings.AutoSave, "Auto save: ");
 
             // logging
             var loggingSeverities = loggingSeveritiesList.Select(el => el.value);
             var loggingSeverityNames = loggingSeveritiesList.Select(el => el.name);
-            var currentLoggingLevel = Settings.LoggingLevel;
+            var currentLoggingLevel = PASingletons.Instance.Settings.LoggingLevel;
 
             var loggingLevelIndex = loggingSeverities.Count() - 1;
             for (var x = 0; x < loggingSeverities.Count(); x++)
@@ -208,22 +208,22 @@ namespace ProgressAdventure
             var loggingElement = new PAChoice(loggingSeverityNames, loggingLevelIndex, "Logging: ");
 
             // enable colored text
-            var coloredTextElement = new Toggle(Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
+            var coloredTextElement = new Toggle(PASingletons.Instance.Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
 
             // menu elements
             var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
 
             // response
-            var response = new OptionsUI(menuElements, " Other options").Display(Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(menuElements, " Other options").Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 var newAutoSaveValue = autoSaveElement.Value;
                 var newLoggingLevel = loggingSeverities.ElementAt(loggingElement.Value);
                 var newColoredTextValue = coloredTextElement.Value;
 
-                Settings.AutoSave = newAutoSaveValue;
-                Settings.LoggingLevel = newLoggingLevel;
-                Settings.EnableColoredText = newColoredTextValue;
+                PASingletons.Instance.Settings.AutoSave = newAutoSaveValue;
+                PASingletons.Instance.Settings.LoggingLevel = newLoggingLevel;
+                PASingletons.Instance.Settings.EnableColoredText = newColoredTextValue;
             }
         }
 
@@ -232,8 +232,8 @@ namespace ProgressAdventure
         /// </summary>
         public static void AskOptions()
         {
-            var askDeleteSaveElement = new Toggle(Settings.AskDeleteSave, "Confirm save folder delete: ", "yes", "no");
-            var askRegenerateSaveElement = new Toggle(Settings.AskRegenerateSave, "Confirm save folders regeneration: ", "yes", "no");
+            var askDeleteSaveElement = new Toggle(PASingletons.Instance.Settings.AskDeleteSave, "Confirm save folder delete: ", "yes", "no");
+            var askRegenerateSaveElement = new Toggle(PASingletons.Instance.Settings.AskRegenerateSave, "Confirm save folders regeneration: ", "yes", "no");
 
             // default backup action
             var backupActionValues = defBackupActionsList.Select(ac => ac.value);
@@ -241,7 +241,7 @@ namespace ProgressAdventure
             var backupActionValue = backupActionValues.ElementAt(0);
             foreach (var action in backupActionValues)
             {
-                if (action == Settings.DefBackupAction)
+                if (action == PASingletons.Instance.Settings.DefBackupAction)
                 {
                     backupActionValue = action;
                     break;
@@ -254,12 +254,12 @@ namespace ProgressAdventure
             var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
 
             // response
-            var response = new OptionsUI(askSettingsElements, " Question popups").Display(Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(askSettingsElements, " Question popups").Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
-                Settings.AskDeleteSave = askDeleteSaveElement.Value;
-                Settings.AskRegenerateSave = askRegenerateSaveElement.Value;
-                Settings.DefBackupAction = backupActionValues.ElementAt(defBackupActionElement.Value);
+                PASingletons.Instance.Settings.AskDeleteSave = askDeleteSaveElement.Value;
+                PASingletons.Instance.Settings.AskRegenerateSave = askRegenerateSaveElement.Value;
+                PASingletons.Instance.Settings.DefBackupAction = backupActionValues.ElementAt(defBackupActionElement.Value);
             }
         }
 
@@ -290,7 +290,7 @@ namespace ProgressAdventure
         /// </summary>
         public static void MainMenu()
         {
-            ActionList = Settings.Keybinds.KeybindList.ToList();
+            ActionList = PASingletons.Instance.Settings.Keybinds.KeybindList.ToList();
 
             var (answers, actions) = GetMainMenuLists();
 
@@ -371,7 +371,7 @@ namespace ProgressAdventure
         /// <param name="selectedSaveName">The name of the save to delete.</param>
         private static object? DeleteSaveAction(UIList deleteSavesUI, string selectedSaveName)
         {
-            if (!Settings.AskDeleteSave || AskYesNoUIQuestion($" Are you sure you want to remove Save file {selectedSaveName}?", false))
+            if (!PASingletons.Instance.Settings.AskDeleteSave || AskYesNoUIQuestion($" Are you sure you want to remove Save file {selectedSaveName}?", false))
             {
                 Tools.DeleteSave(selectedSaveName);
             }
@@ -389,16 +389,16 @@ namespace ProgressAdventure
         /// <param name="loadSaveUI">The load saves menu <c>UIList</c>.</param>
         private static void RegenerateSavesAction(UIList loadSaveUI)
         {
-            if (!Settings.AskRegenerateSave || AskYesNoUIQuestion(" Are you sure you want to regenerate ALL save files? This will load, delete then resave EVERY save file!", false))
+            if (!PASingletons.Instance.Settings.AskRegenerateSave || AskYesNoUIQuestion(" Are you sure you want to regenerate ALL save files? This will load, delete then resave EVERY save file!", false))
             {
                 bool backupSaves;
-                if (Settings.DefBackupAction == -1)
+                if (PASingletons.Instance.Settings.DefBackupAction == -1)
                 {
                     backupSaves = AskYesNoUIQuestion(" Do you want to backup your save files before regenerating them?");
                 }
                 else
                 {
-                    backupSaves = Settings.DefBackupAction == 1;
+                    backupSaves = PASingletons.Instance.Settings.DefBackupAction == 1;
                 }
                 Console.WriteLine("Regenerating save files...\n");
                 foreach (var (saveName, _) in SavesData)
@@ -426,12 +426,12 @@ namespace ProgressAdventure
         /// </summary>
         private static object SaveKeybinds()
         {
-            PACSingletons.Instance.Logger.Log("Keybinds changed", $"\n{Settings.Keybinds}\n -> \n{tempKeybinds}", LogSeverity.DEBUG);
-            Settings.Keybinds = tempKeybinds;
+            PACSingletons.Instance.Logger.Log("Keybinds changed", $"\n{PASingletons.Instance.Settings.Keybinds}\n -> \n{tempKeybinds}", LogSeverity.DEBUG);
+            PASingletons.Instance.Settings.Keybinds = tempKeybinds;
 
             // in place keybinds switch
             ActionList.Clear();
-            ActionList.AddRange(Settings.Keybinds.KeybindList);
+            ActionList.AddRange(PASingletons.Instance.Settings.Keybinds.KeybindList);
             ResultsList.Clear();
             ResultsList.AddRange(SFMUtils.GetResultsList(ActionList));
 

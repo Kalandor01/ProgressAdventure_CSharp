@@ -20,7 +20,7 @@ namespace ProgressAdventureTests
         static void MainFunction()
         {
             //Tools.RunAllTests();
-            TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest);
+            TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest, Tools.DisposeTest);
 
             Utils.PressKey("DONE!");
         }
@@ -50,13 +50,14 @@ namespace ProgressAdventureTests
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
-            // GLOBAL VARIABLES
+            // initializing PA singletons
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
             {
-                PACSingletons.Instance.Logger.Log("Initializing global variables");
-                Settings.Initialize();
-                KeybindUtils.colorEnabled = Settings.EnableColoredText;
-                Globals.Initialize();
+                PASingletons.Initialize(
+                    new Globals(),
+                    new Settings()
+                );
+                KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
             }
 
             PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);

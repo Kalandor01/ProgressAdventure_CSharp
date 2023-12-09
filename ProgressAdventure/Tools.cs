@@ -203,7 +203,7 @@ namespace ProgressAdventure
         /// <returns>A string that will color the text, when writen out in the console.</returns>
         public static string StylizedText(string text, (byte r, byte g, byte b)? foregroundColor = null, (byte r, byte g, byte b)? backgroundColor = null)
         {
-            return Settings.EnableColoredText ? Utils.StylizedText(text, foregroundColor, backgroundColor) : text;
+            return PASingletons.Instance.Settings.EnableColoredText ? Utils.StylizedText(text, foregroundColor, backgroundColor) : text;
         }
         #endregion
         #endregion
