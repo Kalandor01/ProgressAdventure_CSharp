@@ -6,6 +6,7 @@ using PACommon.SettingsManagement;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
 using PACConstants = PACommon.Constants;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
 {
@@ -19,6 +20,28 @@ namespace ProgressAdventure
             //Settings.UpdateLoggingLevel(0);
 
             //SaveManager.CreateSaveData("test", "me");
+
+
+
+            //ConfigManager.TryGetConfig<Dictionary<ItemTypeID, CompoundItemAttributesDTO>, ItemTypeID, CompoundItemAttributesDTO>(
+            //    "compound_item_attributes",
+            //    ItemUtils.compoundItemAttributes,
+            //    ItemUtils.ItemIDToTypeName,
+            //    key => ItemUtils.ParseItemType(key) ?? throw new ArgumentNullException("item type")
+            //);
+            //ConfigManager.TryGetConfig<Dictionary<ItemTypeID, List<IngredientDTO>>, ItemTypeID, List<IngredientDTO>>(
+            //    "item_recipes",
+            //    ItemUtils.itemRecipes,
+            //    ItemUtils.ItemIDToTypeName,
+            //    key => ItemUtils.ParseItemType(key) ?? throw new ArgumentNullException("item type")
+            //);
+            //ConfigManager.TryGetConfig("material_item_attributes", ItemUtils.materialItemAttributes);
+            //ConfigManager.TryGetConfig("material_properties", ItemUtils.materialProperties);
+            //ConfigManager.TryGetConfig("action_type_ignore_mapping", SettingsUtils.actionTypeIgnoreMapping);
+            //ConfigManager.TryGetConfig("action_type_response_mapping", SettingsUtils.actionTypeResponseMapping);
+            //ConfigManager.TryGetConfig("setting_value_type_map", SettingsUtils.settingValueTypeMap);
+
+
 
             MenuManager.MainMenu();
 

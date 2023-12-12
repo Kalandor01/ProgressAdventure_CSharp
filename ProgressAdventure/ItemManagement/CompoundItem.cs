@@ -31,7 +31,7 @@ namespace ProgressAdventure.ItemManagement
         /// <exception cref="ArgumentException">Thrown if the item type is not a compound item type id, or the parts list doesn't have an element.</exception>
         public CompoundItem(ItemTypeID type, List<AItem> parts, double amount = 1)
         {
-            var typeValue = ItemUtils.ToItemType(type.GetHashCode());
+            var typeValue = ItemUtils.ParseItemType(type.GetHashCode());
             if (typeValue is null)
             {
                 PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {type.GetHashCode()}", LogSeverity.ERROR);

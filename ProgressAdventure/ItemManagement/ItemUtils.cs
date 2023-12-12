@@ -352,18 +352,25 @@ namespace ProgressAdventure.ItemManagement
         /// Returs the item type, if the item type ID is an id for an item type.
         /// </summary>
         /// <param name="itemTypeID">The int representation of the item's ID.</param>
-        public static ItemTypeID? ToItemType(int itemTypeID)
+        public static ItemTypeID? ParseItemType(int itemTypeID)
         {
             var newItemType = (ItemTypeID)itemTypeID;
-            var itemTypes = GetAllItemTypes();
-            foreach (var itemType in itemTypes)
+            var resultItem = GetAllItemTypes().FirstOrDefault(itemType => newItemType == itemType);
+            return resultItem == default ? null : resultItem;
+        }
+
+        /// <summary>
+        /// Converts the string representation of the item's type to an item ID.
+        /// </summary>
+        /// <param name="itemTypeName">The string representation of the item's type.</param>
+        public static ItemTypeID? ParseItemType(string? itemTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(itemTypeName))
             {
-                if (newItemType == itemType)
-                {
-                    return itemType;
-                }
+                return null;
             }
-            return null;
+            var resultItem = compoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Value.typeName == itemTypeName).Key;
+            return resultItem == default ? null : resultItem;
         }
 
         /// <summary>
@@ -373,7 +380,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="itemType">The resulting item, or a default item.</param>
         public static bool TryParseItemType(int itemTypeID, out ItemTypeID itemType)
         {
-            var resultItem = ToItemType(itemTypeID);
+            var resultItem = ParseItemType(itemTypeID);
             itemType = resultItem ?? ItemType.Misc.COIN;
             return resultItem is not null;
         }
@@ -381,24 +388,13 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// Tries to convert the string representation of the item's type to an item ID, and returns the success.
         /// </summary>
-        /// <param name="itemTypeName">The int representation of the item's ID.</param>
+        /// <param name="itemTypeName">The string representation of the item's type.</param>
         /// <param name="itemType">The resulting item, or a default item.</param>
         public static bool TryParseItemType(string? itemTypeName, out ItemTypeID itemType)
         {
-            if (!string.IsNullOrWhiteSpace(itemTypeName))
-            {
-                foreach (var itemAttribute in compoundItemAttributes)
-                {
-                    if (itemAttribute.Value.typeName == itemTypeName)
-                    {
-                        itemType = itemAttribute.Key;
-                        return true;
-                    }
-                }
-            }
-
-            itemType = ItemType.Misc.COIN;
-            return false;
+            var resultItem = ParseItemType(itemTypeName);
+            itemType = resultItem ?? ItemType.Misc.COIN;
+            return resultItem is not null;
         }
 
         /// <summary>
