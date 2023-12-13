@@ -1,92 +1,91 @@
 ﻿using Newtonsoft.Json;
 using PACommon;
-using PACConstants = PACommon.Constants;
 
 namespace ProgressAdventure.ConfigManagement
 {
     /// <summary>
     /// Class for reading config files, for loading config dictionaries.
     /// </summary>
-    public static class ConfigManager
+    public class ConfigManager : AConfigManager
     {
         #region Private fields
-        private static readonly JsonConverter[] _converters = new JsonConverter[]
-        {
-            new ItemTypeIDConverter(),
-            new CompoundItemAttributesDTOConverter(),
-            new MaterialItemAttributesDTOConverter(),
-            new IngredientDTOConverter(),
-            new EnumConverter(),
-        };
+        /// <summary>
+        /// Object used for locking the thread while the singleton gets created.
+        /// </summary>
+        private static readonly object _threadLock = new();
+        /// <summary>
+        /// The singleton istance.
+        /// </summary>
+        private static ConfigManager? _instance = null;
         #endregion
 
-        #region Public functions
-        public static T GetConfig<T>(string configName)
+        #region Public properties
+        /// <summary>
+        /// <inheritdoc cref="_instance" path="//summary"/>
+        /// </summary>
+        public static ConfigManager Instance
         {
-            PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER);
-            var filePath = Path.Join(Constants.CONFIGS_FOLDER_PATH, $"{configName}.{Constants.CONFIG_EXT}");
-            var safeFilePath = Path.GetRelativePath(PACConstants.ROOT_FOLDER, filePath);
-
-            var fileData = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<T>(fileData, _converters) ?? throw new NullReferenceException($"The config json data is null in \"{safeFilePath}\".");
-        }
-
-        public static T GetConfig<T, TK, TV>(string configName, Func<string, TK> convertFrom)
-            where T : Dictionary<TK, TV>
-            where TK : notnull
-        {
-            var tempResult = GetConfig<Dictionary<string, TV>>(configName);
-            return (T)(tempResult?.ToDictionary(key => convertFrom(key.Key), value => value.Value) ?? throw new ArgumentNullException(nameof(tempResult)));
-        }
-
-        public static T TryGetConfig<T>(string configName, T defaultContent)
-        {
-            try
+            get
             {
-                return GetConfig<T>(configName);
-            }
-            catch
-            {
-                SetConfig(configName, defaultContent);
-                return GetConfig<T>(configName);
-            }
-        }
-        
-        public static T TryGetConfig<T, TK, TV>(string configName, T defaultContent, Func<TK, string> convertTo, Func<string, TK> convertFrom)
-            where T : Dictionary<TK, TV>
-            where TK : notnull
-        {
-            try
-            {
-                return GetConfig<T, TK, TV>(configName, convertFrom);
-            }
-            catch
-            {
-                var tempDefaultContent = defaultContent.ToDictionary(key => convertTo(key.Key), value => value.Value);
-                SetConfig(configName, tempDefaultContent);
-                return GetConfig<T, TK, TV>(configName, convertFrom);
+                if (_instance == null)
+                {
+                    lock (_threadLock)
+                    {
+                        _instance ??= Initialize();
+                    }
+                }
+                return _instance;
             }
         }
         #endregion
 
-        #region Internal functions
-        internal static JsonConverter[] GetConvertersNonInclusive<T>()
-            where T : JsonConverter
-        {
-            return _converters.Where(converter => converter.GetType() != typeof(T)).ToArray();
-        }
+        #region Constructors
+        /// <summary>
+        /// <inheritdoc cref="ConfigManager"/>
+        /// </summary>
+        /// <param name="converters"><inheritdoc cref="AConfigManager._converters" path="//summary"/></param>
+        /// <param name="configsFolderParrentPath"><inheritdoc cref="AConfigManager._configsFolderParrentPath" path="//summary"/></param>
+        /// <param name="configsFolderName"><inheritdoc cref="AConfigManager._configsFolderName" path="//summary"/></param>
+        /// <param name="configExtension"><inheritdoc cref="AConfigManager._configExtension" path="//summary"/></param>
+        /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
+        public ConfigManager(
+            JsonConverter[]? converters,
+            string? configsFolderParrentPath,
+            string configsFolderName = Constants.CONFIGS_FOLDER,
+            string configExtension = Constants.CONFIG_EXT
+        )
+            : base(converters, configsFolderParrentPath, configsFolderName, configExtension) { }
         #endregion
 
-        #region Priate functions
-        private static void SetConfig<T>(string configName, T configData)
+        #region "Constructors"
+        /// <summary>
+        /// Initializes the object's values.
+        /// </summary>
+        /// <param name="converters"><inheritdoc cref="AConfigManager._converters" path="//summary"/></param>
+        /// <param name="configsFolderParrentPath"><inheritdoc cref="AConfigManager._configsFolderParrentPath" path="//summary"/></param>
+        /// <param name="configsFolderName"><inheritdoc cref="AConfigManager._configsFolderName" path="//summary"/></param>
+        /// <param name="configExtension"><inheritdoc cref="AConfigManager._configExtension" path="//summary"/></param>
+        /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
+        /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
+        public static ConfigManager Initialize(
+            JsonConverter[]? converters = null,
+            string? configsFolderParrentPath = null,
+            string configsFolderName = Constants.CONFIGS_FOLDER,
+            string configExtension = Constants.CONFIG_EXT,
+            bool logInitialization = true
+        )
         {
-            PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER);
-            var filePath = Path.Join(Constants.CONFIGS_FOLDER_PATH, $"{configName}.{Constants.CONFIG_EXT}");
-            var safeFilePath = Path.GetRelativePath(PACConstants.ROOT_FOLDER, filePath);
-
-            var jsonString = JsonConvert.SerializeObject(configData, _converters);
-            File.WriteAllText(filePath, jsonString);
-            PACSingletons.Instance.Logger.Log($"Config file recreated", $"file path: \"{safeFilePath}\"");
+            _instance = new ConfigManager(
+                converters,
+                configsFolderParrentPath,
+                configsFolderName,
+                configExtension
+            );
+            if (logInitialization)
+            {
+                PACSingletons.Instance.Logger.Log($"{nameof(ConfigManager)} initialized");
+            }
+            return _instance;
         }
         #endregion
     }

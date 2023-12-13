@@ -12,7 +12,7 @@ namespace ProgressAdventure.ConfigManagement
             var value = JObject.Load(reader);
             var unitStr = value[nameof(MaterialItemAttributesDTO.unit)].Value<string>();
             unitStr = $"\"{unitStr}\"";
-            var converters = ConfigManager.GetConvertersNonInclusive<MaterialItemAttributesDTOConverter>();
+            var converters = ConfigManager.Instance.GetConvertersNonInclusive<MaterialItemAttributesDTOConverter>();
             return new MaterialItemAttributesDTO(
                 value[nameof(MaterialItemAttributesDTO.displayName)].Value<string>(),
                 JsonConvert.DeserializeObject<ItemAmountUnit>(unitStr, converters)
@@ -23,7 +23,7 @@ namespace ProgressAdventure.ConfigManagement
         {
             var jsonSerializerSettings = new JsonSerializerSettings()
             {
-                Converters = ConfigManager.GetConvertersNonInclusive<MaterialItemAttributesDTOConverter>(),
+                Converters = ConfigManager.Instance.GetConvertersNonInclusive<MaterialItemAttributesDTOConverter>(),
             };
             JsonSerializer.Create(jsonSerializerSettings).Serialize(writer, value);
         }

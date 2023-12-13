@@ -16,7 +16,7 @@ namespace ProgressAdventure.ConfigManagement
             var unitStr = value[nameof(CompoundItemAttributesDTO.unit)].Value<string>();
             unitStr = $"\"{unitStr}\"";
 
-            var converters = ConfigManager.GetConvertersNonInclusive<CompoundItemAttributesDTOConverter>();
+            var converters = ConfigManager.Instance.GetConvertersNonInclusive<CompoundItemAttributesDTOConverter>();
             return new CompoundItemAttributesDTO(
                 itemType,
                 value[nameof(CompoundItemAttributesDTO.displayName)].Value<string>(),
@@ -28,7 +28,7 @@ namespace ProgressAdventure.ConfigManagement
         {
             var jsonSerializerSettings = new JsonSerializerSettings()
             {
-                Converters = ConfigManager.GetConvertersNonInclusive<CompoundItemAttributesDTOConverter>(),
+                Converters = ConfigManager.Instance.GetConvertersNonInclusive<CompoundItemAttributesDTOConverter>(),
             };
             JsonSerializer.Create(jsonSerializerSettings).Serialize(writer, value);
         }

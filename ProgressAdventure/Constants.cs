@@ -71,10 +71,6 @@ namespace ProgressAdventure
         /// </summary>
         public const string CONFIGS_FOLDER = "configs";
         /// <summary>
-        /// The path to the configs folder.
-        /// </summary>
-        public static readonly string CONFIGS_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, CONFIGS_FOLDER);
-        /// <summary>
         /// The extension used for config files.
         /// </summary>
         public const string CONFIG_EXT = "json";

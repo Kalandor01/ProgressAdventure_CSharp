@@ -31,6 +31,17 @@ namespace PACommon
         /// </summary>
         public const string DEFAULT_LOG_EXT = "log";
         #endregion
+
+        #region Configs
+        /// <summary>
+        /// The name of the configs folder.
+        /// </summary>
+        public const string CONFIGS_FOLDER = "configs";
+        /// <summary>
+        /// The extension used for config files.
+        /// </summary>
+        public const string CONFIG_EXT = "json";
+        #endregion
         #endregion
 
         #region Cursor types

@@ -21,25 +21,37 @@ namespace ProgressAdventure
 
             //SaveManager.CreateSaveData("test", "me");
 
+            //ConfigManager.Initialize(
+            //    new JsonConverter[]
+            //    {
+            //        new ItemTypeIDConverter(),
+            //        new CompoundItemAttributesDTOConverter(),
+            //        new MaterialItemAttributesDTOConverter(),
+            //        new IngredientDTOConverter(),
+            //        new EnumConverter(),
+            //    },
+            //    PACConstants.ROOT_FOLDER,
+            //    Constants.CONFIGS_FOLDER,
+            //    Constants.CONFIG_EXT
+            //);
 
-
-            //ConfigManager.TryGetConfig<Dictionary<ItemTypeID, CompoundItemAttributesDTO>, ItemTypeID, CompoundItemAttributesDTO>(
+            //ConfigManager.Instance.TryGetConfig(
             //    "compound_item_attributes",
             //    ItemUtils.compoundItemAttributes,
             //    ItemUtils.ItemIDToTypeName,
             //    key => ItemUtils.ParseItemType(key) ?? throw new ArgumentNullException("item type")
             //);
-            //ConfigManager.TryGetConfig<Dictionary<ItemTypeID, List<IngredientDTO>>, ItemTypeID, List<IngredientDTO>>(
+            //ConfigManager.Instance.TryGetConfig(
             //    "item_recipes",
             //    ItemUtils.itemRecipes,
             //    ItemUtils.ItemIDToTypeName,
             //    key => ItemUtils.ParseItemType(key) ?? throw new ArgumentNullException("item type")
             //);
-            //ConfigManager.TryGetConfig("material_item_attributes", ItemUtils.materialItemAttributes);
-            //ConfigManager.TryGetConfig("material_properties", ItemUtils.materialProperties);
-            //ConfigManager.TryGetConfig("action_type_ignore_mapping", SettingsUtils.actionTypeIgnoreMapping);
-            //ConfigManager.TryGetConfig("action_type_response_mapping", SettingsUtils.actionTypeResponseMapping);
-            //ConfigManager.TryGetConfig("setting_value_type_map", SettingsUtils.settingValueTypeMap);
+            //ConfigManager.Instance.TryGetConfig("material_item_attributes", ItemUtils.materialItemAttributes);
+            //ConfigManager.Instance.TryGetConfig("material_properties", ItemUtils.materialProperties);
+            //ConfigManager.Instance.TryGetConfig("action_type_ignore_mapping", SettingsUtils.actionTypeIgnoreMapping);
+            //ConfigManager.Instance.TryGetConfig("action_type_response_mapping", SettingsUtils.actionTypeResponseMapping);
+            //ConfigManager.Instance.TryGetConfig("setting_value_type_map", SettingsUtils.settingValueTypeMap);
 
 
 
