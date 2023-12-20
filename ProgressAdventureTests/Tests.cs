@@ -902,7 +902,8 @@ namespace ProgressAdventureTests
             PATools.DeleteSave(currentSaveName);
 
             // list of reference saves
-            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH);
+            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH).ToList();
+            zipPaths.Sort(new VersionStringZipPathComparer());
             PATools.RecreateSavesFolder();
             Console.WriteLine();
             var overallSuccess = true;
@@ -910,8 +911,11 @@ namespace ProgressAdventureTests
             {
                 var result = TestLoadSaveFromZip(zipPath) ?? new TestResultDTO(LogSeverity.PASS);
                 var saveName = Path.GetFileNameWithoutExtension(zipPath);
+
                 var resultString = TestingUtils.GetResultString(result);
                 Console.WriteLine($"\r\tChecking ({saveName})..." + resultString);
+                var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(zipPath), result.resultType + messageText, LogSeverity.OTHER);
                 overallSuccess &= result.resultType == LogSeverity.PASS;
             }
             Console.Write("Overall...");

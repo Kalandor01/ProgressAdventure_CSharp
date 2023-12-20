@@ -193,7 +193,7 @@ namespace ProgressAdventure.WorldManagement
         internal static readonly Dictionary<ContentTypeID, string> structureContentSubtypeIDTextMap = new()
         {
             [ContentType.Structure.NONE] = "none",
-            [ContentType.Structure.BANDIT_CAMP] = "banditCamp",
+            [ContentType.Structure.BANDIT_CAMP] = "bandit_camp",
             [ContentType.Structure.VILLAGE] = "village",
             [ContentType.Structure.KINGDOM] = "kingdom",
         };
@@ -370,7 +370,7 @@ namespace ProgressAdventure.WorldManagement
                 subtypeTextMap.ContainsValue(contentSubtypeString)
             )
             {
-                return subtypeTextMap.First(subT => subT.Value == contentSubtypeString).Key;
+                return subtypeTextMap.First(subtype => subtype.Value == contentSubtypeString).Key;
             }
             return null;
         }

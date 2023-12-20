@@ -21,6 +21,8 @@ namespace ProgressAdventure
 
             //SaveManager.CreateSaveData("test", "me");
 
+
+
             //ConfigManager.Initialize(
             //    new JsonConverter[]
             //    {

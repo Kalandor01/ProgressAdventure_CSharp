@@ -57,20 +57,11 @@ namespace ProgressAdventure.WorldManagement.Content
             this.chunkRandom = chunkRandom;
             this.type = type;
             this.subtype = subtype;
-            Name = name;
+            Name = name ?? GenerateContentName();
         }
         #endregion
 
         #region Public methods
-        /// <summary>
-        /// Should be called if a player is on the tile, that is the parrent of this content.
-        /// </summary>
-        /// <param name="tile">The parrent tile.</param>
-        public virtual void Visit(Tile tile)
-        {
-            PACSingletons.Instance.Logger.Log($"Player visited \"{WorldUtils.contentTypeIDTextMap[type]}\": \"{WorldUtils.contentTypeIDSubtypeTextMap[type][subtype]}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
-        }
-
         /// <summary>
         /// Returns the name of the type of this content.
         /// </summary>
@@ -88,6 +79,15 @@ namespace ProgressAdventure.WorldManagement.Content
         }
 
         /// <summary>
+        /// Should be called if a player is on the tile, that is the parrent of this content.
+        /// </summary>
+        /// <param name="tile">The parrent tile.</param>
+        public virtual void Visit(Tile tile)
+        {
+            PACSingletons.Instance.Logger.Log($"Player visited \"{GetTypeName()}\": \"{GetSubtypeName()}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
+        }
+
+        /// <summary>
         /// Tries to get a property from the object, based on the property name provided.
         /// </summary>
         /// <param name="propertyName">The name of the property to search for.</param>
@@ -99,9 +99,9 @@ namespace ProgressAdventure.WorldManagement.Content
         #endregion
 
         #region Protected methods
-        protected virtual void GenContentName()
+        protected virtual string GenerateContentName()
         {
-            Name ??= subtype.ToString() + " " + RandomStates.Instance.MiscRandom.GenerateInRange(0, 100000).ToString();
+            return GetSubtypeName().Replace("_", " ") + " No. " + chunkRandom.GenerateInRange(0, 100000).ToString();
         }
         #endregion
 
@@ -152,13 +152,41 @@ namespace ProgressAdventure.WorldManagement.Content
         #endregion
 
         #region JsonConvert
+        #region Protected properties
+        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new()
+        {
+            // 2.2 -> 2.2.1
+            (oldJson =>
+            {
+                // subtype snake case rename, name not null
+                if (
+                    oldJson.TryGetValue("subtype", out var oldSubtype) &&
+                    oldSubtype is string oldSubtypeString &&
+                    oldSubtypeString == "banditCamp"
+                )
+                {
+                    oldJson["subtype"] = "bandit_camp";
+                }
+                if (
+                    oldJson.TryGetValue("name", out var oldName) &&
+                    oldName is null &&
+                    oldJson.TryGetValue("subtype", out var subtype) &&
+                    subtype is string subtypeString
+                )
+                {
+                    oldJson["name"] = subtypeString.Replace("_", " ") + " No. " + RandomStates.Instance.MiscRandom.GenerateInRange(0, 100000).ToString();
+                }
+            }, "2.2.1"),
+        };
+        #endregion
+
         public virtual Dictionary<string, object?> ToJson()
         {
             return new Dictionary<string, object?>
             {
-                [Constants.JsonKeys.BaseContent.TYPE] = WorldUtils.contentTypeIDTextMap[type],
-                [Constants.JsonKeys.BaseContent.SUBTYPE] = WorldUtils.contentTypeIDSubtypeTextMap[type][subtype],
-                [Constants.JsonKeys.BaseContent.NAME] = Name
+                [JsonKeys.BaseContent.TYPE] = GetTypeName(),
+                [JsonKeys.BaseContent.SUBTYPE] = GetSubtypeName(),
+                [JsonKeys.BaseContent.NAME] = Name
             };
         }
 
@@ -181,13 +209,15 @@ namespace ProgressAdventure.WorldManagement.Content
                 return false;
             }
 
-            var contentTypeMap = WorldUtils.contentTypeMap[typeof(T)];
-            var contentTypeID = contentTypeMap.First().Key.Super;
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T>(ref contentJson, VersionCorrecters, fileVersion);
+
+            var contentSubtypeTypeMap = WorldUtils.contentTypeMap[typeof(T)];
+            var contentTypeID = contentSubtypeTypeMap.First().Key.Super;
 
             if (!(
-                PACTools.TryCastJsonAnyValue<T, string>(contentJson, Constants.JsonKeys.BaseContent.SUBTYPE, out var contentSubtypeString, true) &&
+                PACTools.TryCastJsonAnyValue<T, string>(contentJson, JsonKeys.BaseContent.SUBTYPE, out var contentSubtypeString, true) &&
                 WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString, out ContentTypeID contentSubtype) &&
-                contentTypeMap.TryGetValue(contentSubtype, out var contentType)
+                contentSubtypeTypeMap.TryGetValue(contentSubtype, out var contentType)
             ))
             {
                 if (contentSubtypeString is not null)
@@ -197,15 +227,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 return false;
             }
 
-            // name can be null
-            var success = true;
-            var contentNameJsonKey = JsonKeys.BaseContent.NAME;
-            if (!contentJson.TryGetValue(contentNameJsonKey, out var contentNameValue))
-            {
-                PACTools.LogJsonParseError<T>(contentNameJsonKey);
-                success = false;
-            }
-            var contentName = contentNameValue as string;
+            var success = PACTools.TryParseJsonValue<T, string?>(contentJson, JsonKeys.BaseContent.NAME, out var contentName);
 
             // get content
             var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson });
