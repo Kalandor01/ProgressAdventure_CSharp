@@ -66,7 +66,7 @@ namespace ProgressAdventure.ItemManagement
             mID = id;
         }
 
-        private readonly uint mID;
+        public readonly uint mID;
 
         #region ToString override
         public override string? ToString()

@@ -50,10 +50,10 @@ namespace ProgressAdventure.ItemManagement
         /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or the material was required, but wasn't provided.</exception>
         public LootFactory(ItemTypeID itemType, Material material, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
         {
-            var actualItemType = ItemUtils.ParseItemType(itemType.GetHashCode());
+            var actualItemType = ItemUtils.ParseItemType(itemType.mID);
             if (actualItemType is null)
             {
-                PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {itemType.GetHashCode()}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {itemType.mID}", LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(itemType));
             }
 

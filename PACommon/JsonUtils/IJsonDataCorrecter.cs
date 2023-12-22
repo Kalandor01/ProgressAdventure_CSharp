@@ -31,6 +31,27 @@
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion
         );
+
+        /// <inheritdoc cref="CorrectJsonData(string, ref IDictionary{string, object?}, List{ValueTuple{Action{IDictionary{string, object?}}, string}}, string)"/>
+        /// <typeparam name="TE">The type of the extra data to input with all correcters.</typeparam>
+        /// <param name="extraData">The extra data to input with the correcter.</param>
+        public void CorrectJsonData<TE>(
+            string objectName,
+            ref IDictionary<string, object?> objectJson,
+            TE extraData,
+            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion
+        );
+
+        /// <inheritdoc cref="CorrectJsonData{T}(ref IDictionary{string, object?}, List{ValueTuple{Action{IDictionary{string, object?}}, string}}, string)"/>
+        /// <typeparam name="TE">The type of the extra data to input with all correcters.</typeparam>
+        /// <param name="extraData">The extra data to input with the correcter.</param>
+        public void CorrectJsonData<T, TE>(
+            ref IDictionary<string, object?> objectJson,
+            TE extraData,
+            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion
+        );
         #endregion
     }
 }

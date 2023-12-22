@@ -481,7 +481,7 @@ namespace ProgressAdventureTests
                     if (value.ContainsValue(subValue))
                     {
                         var subKey = value.FirstOrDefault(x => x.Value == subValue).Key;
-                        if (!WorldUtils.TryParseContentType(subKey.GetHashCode(), out _))
+                        if (!WorldUtils.TryParseContentType(subKey.mID, out _))
                         {
                             return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary key at value \"{subValue}\" is not a valid ContentTypeID.");
                         }

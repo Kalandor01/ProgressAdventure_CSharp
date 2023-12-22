@@ -513,31 +513,33 @@ namespace ProgressAdventure.Entity
             var teams = new Dictionary<string, List<Entity>>();
             foreach (var team in teamsRaw)
             {
-                if (team.Value.Count > 0)
-                {
-                    var entityList = new List<Entity>();
-                    foreach (var entity in team.Value)
-                    {
-                        if (entity.CurrentHp > 0)
-                        {
-                            entityList.Add(entity);
-                            if (entity.GetType() == typeof(Player))
-                            {
-                                playerTeam = team.Key;
-                                player = (Player)entity;
-                            }
-                        }
-                    }
-                    if (entityList.Count > 0)
-                    {
-                        PACSingletons.Instance.Logger.Log("Fight log", $"all entities are dead in team: {team.Key}", LogSeverity.WARN);
-                        teams.Add(team.Key, entityList);
-                    }
-                }
-                else
+                if (team.Value.Count == 0)
                 {
                     PACSingletons.Instance.Logger.Log("Fight log", $"empty team: {team.Key}", LogSeverity.WARN);
+                    continue;
                 }
+
+                var entityList = new List<Entity>();
+                foreach (var entity in team.Value)
+                {
+                    if (entity.CurrentHp > 0)
+                    {
+                        entityList.Add(entity);
+                        if (entity.GetType() == typeof(Player))
+                        {
+                            playerTeam = team.Key;
+                            player = (Player)entity;
+                        }
+                    }
+                }
+
+                if (entityList.Count == 0)
+                {
+                    PACSingletons.Instance.Logger.Log("Fight log", $"all entities are dead in team: {team.Key}", LogSeverity.WARN);
+                    continue;
+                }
+
+                teams.Add(team.Key, entityList);
             }
             return (teams, playerTeam, player);
         }
@@ -597,6 +599,7 @@ namespace ProgressAdventure.Entity
         private static void WriteOutFightTeams(Dictionary<string, List<Entity>> teams, int totalCount)
         {
             var oneEntityTeamExists = false;
+            var multiEntityTeamExists = false;
             if (teams.Count < totalCount)
             {
                 foreach (var team in teams)
@@ -613,6 +616,7 @@ namespace ProgressAdventure.Entity
                             }
                             Console.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
                         }
+                        multiEntityTeamExists = true;
                     }
                     else
                     {
@@ -626,7 +630,7 @@ namespace ProgressAdventure.Entity
             }
             if (oneEntityTeamExists)
             {
-                Console.WriteLine("Other entities:\n");
+                Console.WriteLine($"{(multiEntityTeamExists ? "Other e" : "E")}ntities:\n");
                 foreach (var team in teams)
                 {
                     if (!team.Value.Any())

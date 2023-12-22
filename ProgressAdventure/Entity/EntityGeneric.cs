@@ -37,7 +37,7 @@ namespace ProgressAdventure.Entity
                 (long x, long y)? position,
                 Facing? facing
             ) entityData
-        ) : base(entityData, false) { }
+        ) : base(entityData, true) { }
 
         /// <summary>
         /// <inheritdoc cref="Entity"/><br/>

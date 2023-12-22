@@ -30,7 +30,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.Instance.player.FullName} climbed a mountain.");
+            Console.WriteLine($"{SaveData.Instance.player.FullName} climbed the {Name} mountain.");
             Console.WriteLine($"The mountain is {height}m tall.");
         }
         #endregion

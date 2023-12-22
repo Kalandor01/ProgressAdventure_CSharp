@@ -30,7 +30,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.Instance.player.FullName} entered a village.");
+            Console.WriteLine($"{SaveData.Instance.player.FullName} entered the {Name} village.");
             Console.WriteLine($"The village has a population of {population} people.");
         }
         #endregion

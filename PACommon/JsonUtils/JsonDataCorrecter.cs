@@ -96,6 +96,21 @@ namespace PACommon.JsonUtils
             PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
             fileVersion = newFileVersion;
         }
+
+        /// <inheritdoc cref="CorrectJsonDataVersion(string, Action{IDictionary{string, object?}}, ref IDictionary{string, object?}, ref string, string)"/>
+        /// <typeparam name="TE">The type of the extra data to input with the correcter.</typeparam>
+        /// <param name="extraData">The extra data to input with the correcter.</param>
+        public static void CorrectJsonDataVersion<TE>(string objectName, Action<IDictionary<string, object?>, TE> objectJsonCorrecter, ref IDictionary<string, object?> objectJson, TE extraData, ref string fileVersion, string newFileVersion)
+        {
+            if (Utils.IsUpToDate(newFileVersion, fileVersion))
+            {
+                return;
+            }
+
+            objectJsonCorrecter(objectJson, extraData);
+            PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
+            fileVersion = newFileVersion;
+        }
         #endregion
 
         #region Public methods
@@ -126,6 +141,26 @@ namespace PACommon.JsonUtils
         )
         {
             CorrectJsonData(typeof(T).ToString(), ref objectJson, correcters, fileVersion);
+        }
+
+        public void CorrectJsonData<TE>(string objectName, ref IDictionary<string, object?> objectJson, TE extraData, List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters, string fileVersion)
+        {
+            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion) || Utils.IsUpToDate(correcters.Last().newFileVersion, fileVersion))
+            {
+                return;
+            }
+
+            PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
+            foreach (var (objectJsonCorrecter, newFileVersion) in correcters)
+            {
+                CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, extraData, ref fileVersion, newFileVersion);
+            }
+            PACSingletons.Instance.Logger.Log($"{objectName} json data corrected");
+        }
+
+        public void CorrectJsonData<T, TE>(ref IDictionary<string, object?> objectJson, TE extraData, List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters, string fileVersion)
+        {
+            CorrectJsonData(typeof(T).ToString(), ref objectJson, extraData, correcters, fileVersion);
         }
         #endregion
     }

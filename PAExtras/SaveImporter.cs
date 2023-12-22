@@ -183,7 +183,7 @@ namespace PAExtras
                 var itemJson = item as IDictionary<string, object>;
                 inventoryJson.Add(new Dictionary<string, object>
                 {
-                    ["type"] = itemTypeMap[(string)itemJson["type"]].GetHashCode(),
+                    ["type"] = itemTypeMap[(string)itemJson["type"]].mID,
                     ["amount"] = (int)(long)itemJson["amount"],
                 });
             }

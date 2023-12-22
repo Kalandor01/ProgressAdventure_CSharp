@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using ProgressAdventure.Entity;
 
 namespace ProgressAdventure.WorldManagement.Content
 {
@@ -37,7 +38,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 {
                     if (chunkRandom.GenerateDouble() < 0.75)
                     {
-                        Console.WriteLine("fight");
+                        EntityUtils.RandomFight();
                     }
                 }
                 else if (
@@ -47,7 +48,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 {
                     if (chunkRandom.GenerateDouble() < 0.01)
                     {
-                        Console.WriteLine("fight");
+                        EntityUtils.RandomFight();
                     }
                 }
             }

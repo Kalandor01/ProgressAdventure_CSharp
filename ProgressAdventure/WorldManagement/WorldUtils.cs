@@ -342,10 +342,10 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Returs the content type, if the content type ID is an ID for an content type.
         /// </summary>
-        /// <param name="contentTypeID">The int representation of the content's ID.</param>
-        public static ContentTypeID? ToContentType(int contentTypeID)
+        /// <param name="contentTypeID">The uint representation of the content's ID.</param>
+        public static ContentTypeID? ToContentType(uint contentTypeID)
         {
-            var newContentType = (ContentTypeID)contentTypeID;
+            var newContentType = (ContentTypeID)(int)contentTypeID;
             var contentTypes = GetAllContentTypes();
             foreach (var contentType in contentTypes)
             {
@@ -376,11 +376,11 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Tries to convert the int representation of the content ID to a content ID, and returns the success.
+        /// Tries to convert the uint representation of the content ID to a content ID, and returns the success.
         /// </summary>
         /// <param name="contentTypeID">The int representation of the content's ID.</param>
         /// <param name="contentType">The resulting content, or a default content.</param>
-        public static bool TryParseContentType(int contentTypeID, out ContentTypeID contentType)
+        public static bool TryParseContentType(uint contentTypeID, out ContentTypeID contentType)
         {
             var resultContent = ToContentType(contentTypeID);
             contentType = resultContent ?? ContentType.Terrain.FIELD;

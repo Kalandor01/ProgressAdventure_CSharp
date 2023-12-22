@@ -1,5 +1,6 @@
 ﻿using NPrng.Generators;
 using PACommon;
+using PACommon.Extensions;
 using PACommon.JsonUtils;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
@@ -84,7 +85,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="tile">The parrent tile.</param>
         public virtual void Visit(Tile tile)
         {
-            PACSingletons.Instance.Logger.Log($"Player visited \"{GetTypeName()}\": \"{GetSubtypeName()}\"{(Name is not null ? $" ({Name})" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
+            PACSingletons.Instance.Logger.Log($"Player visited \"{GetTypeName()}\": \"{GetSubtypeName()}\"{(Name is not null ? $" (\"{Name}\")" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
 
         /// <summary>
@@ -99,13 +100,25 @@ namespace ProgressAdventure.WorldManagement.Content
         #endregion
 
         #region Protected methods
+        /// <summary>
+        /// Generates a content name.
+        /// </summary>
         protected virtual string GenerateContentName()
         {
-            return GetSubtypeName().Replace("_", " ") + " No. " + chunkRandom.GenerateInRange(0, 100000).ToString();
+            return GenerateContentName(chunkRandom);
         }
         #endregion
 
         #region Protected functions
+        /// <summary>
+        /// Generates a content name.
+        /// </summary>
+        /// <param name="randomGenrator">The genrator to use.</param>
+        public static string GenerateContentName(SplittableRandom randomGenrator)
+        {
+            return SentenceGenerator.GenerateWordSequence((1, 3), randomGenerator: randomGenrator).Capitalize();
+        }
+
         /// <summary>
         /// Returns a value, from a range, using the world random.
         /// </summary>
@@ -153,10 +166,10 @@ namespace ProgressAdventure.WorldManagement.Content
 
         #region JsonConvert
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new()
+        protected static List<(Action<IDictionary<string, object?>, SplittableRandom> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new()
         {
             // 2.2 -> 2.2.1
-            (oldJson =>
+            ((oldJson, chunkRandom) =>
             {
                 // subtype snake case rename, name not null
                 if (
@@ -174,7 +187,7 @@ namespace ProgressAdventure.WorldManagement.Content
                     subtype is string subtypeString
                 )
                 {
-                    oldJson["name"] = subtypeString.Replace("_", " ") + " No. " + RandomStates.Instance.MiscRandom.GenerateInRange(0, 100000).ToString();
+                    oldJson["name"] = GenerateContentName(chunkRandom);
                 }
             }, "2.2.1"),
         };
@@ -209,7 +222,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 return false;
             }
 
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T>(ref contentJson, VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, SplittableRandom>(ref contentJson, chunkRandom, VersionCorrecters, fileVersion);
 
             var contentSubtypeTypeMap = WorldUtils.contentTypeMap[typeof(T)];
             var contentTypeID = contentSubtypeTypeMap.First().Key.Super;

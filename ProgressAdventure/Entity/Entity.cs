@@ -151,7 +151,7 @@ namespace ProgressAdventure.Entity
                     null,
                     null
                 ),
-                true
+                false
             )
         { }
         #endregion
@@ -340,6 +340,7 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Entity</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
+        /// <param name="invokedFromFromJson">Whether this constructor was called using the invoke method, as a part of loading an entity from json, and so the entity's attributes shouldn't be set yet.</param>
         protected Entity(
             (
                 string? name,
@@ -354,7 +355,8 @@ namespace ProgressAdventure.Entity
                 List<AItem>? drops,
                 (long x, long y)? position,
                 Facing? facing
-            ) entityData, bool calledFromOtherConstructor
+            ) entityData,
+            bool invokedFromFromJson
         )
         {
             name = entityData.name ?? GetDefaultName();
@@ -391,7 +393,7 @@ namespace ProgressAdventure.Entity
             }
             drops = entityData.drops ?? GetDefaultDrops();
 
-            if (!calledFromOtherConstructor)
+            if (!invokedFromFromJson)
             {
                 SetupAttributes(entityData.currentHp);
                 UpdateFullName();

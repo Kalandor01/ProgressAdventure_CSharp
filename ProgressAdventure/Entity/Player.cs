@@ -69,24 +69,29 @@ namespace ProgressAdventure.Entity
             (long x, long y)? position = null,
             Facing? facing = null
         )
-            : this(
-                (
-                    name,
-                    stats.baseMaxHp,
+            : base(
+                name ?? GetDefaultName(),
+                new EntityManagerStatsDTO(
                     stats.baseMaxHp,
                     stats.baseAttack,
                     stats.baseDefence,
                     stats.baseAgility,
                     0,
                     0,
-                    new List<Attribute>(),
-                    new List<AItem>(),
-                    position,
-                    facing
-                )
+                    new List<Attribute>()
+                ),
+                new List<AItem>()
             )
         {
             this.inventory = inventory ?? new Inventory();
+            if (position is not null)
+            {
+                this.position = ((long x, long y))position;
+            }
+            if (facing is not null)
+            {
+                this.facing = (Facing)facing;
+            }
         }
         #endregion
 
