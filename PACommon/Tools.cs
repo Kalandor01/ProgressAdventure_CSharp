@@ -217,7 +217,6 @@ namespace PACommon
         }
         #endregion
 
-
         #region Logger short
         /// <summary>
         /// Logs a json parsing error for a custom error.

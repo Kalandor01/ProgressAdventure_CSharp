@@ -43,6 +43,24 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Reads a ulong value from a byte array.<br/>
+        /// Will always read from the first (up to 8) bytes.
+        /// </summary>
+        /// <param name="buffer">The buffer to read from.</param>
+        public static ulong ReadUlongFromByteArray(byte[] buffer)
+        {
+            ulong value = 0;
+
+            var minLen = Math.Min(sizeof(ulong), buffer.Length);
+
+            for (var x = minLen - 1; x >= 0; x--)
+            {
+                value += (ulong)buffer[x] << 8 * (minLen - x - 1);
+            }
+            return value;
+        }
+
+        /// <summary>
         /// Writes out text, and then returns what the user inputed.
         /// </summary>
         /// <param name="text">The text to write out.</param>
