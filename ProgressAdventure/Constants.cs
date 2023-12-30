@@ -23,7 +23,7 @@ namespace ProgressAdventure
         public const string MANUAL_SAVE_THREAD_NAME = "Quit manager";
         #endregion
 
-        #region Paths/folders/file names
+        #region Paths/folders/file names/extensions
         #region Saves
         /// <summary>
         /// The name of the saves folder.
@@ -350,6 +350,10 @@ namespace ProgressAdventure
         /// The current save version.
         /// </summary>
         public const string SAVE_VERSION = "2.2.1";
+        /// <summary>
+        /// The current version of the config files.
+        /// </summary>
+        public const string CONFIG_VERSION = "v.1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

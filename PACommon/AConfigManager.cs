@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using PACommon.Enums;
 
 namespace PACommon
 {
@@ -25,6 +27,11 @@ namespace PACommon
         /// The extension of config files.
         /// </summary>
         protected readonly string _configExtension;
+        /// <summary>
+        /// The config file version, that every config file should have.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.
+        /// </summary>
+        protected readonly string? _currentConfigFileVersion;
         #endregion
 
         #region Protected constructors
@@ -35,12 +42,14 @@ namespace PACommon
         /// <param name="configsFolderParrentPath"><inheritdoc cref="_configsFolderParrentPath" path="//summary"/></param>
         /// <param name="configsFolderName"><inheritdoc cref="_configsFolderName" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="_configExtension" path="//summary"/></param>
+        /// <param name="currentConfigFileVersion"><inheritdoc cref="_currentConfigFileVersion" path="//summary"/></param>
         /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
         protected AConfigManager(
             JsonConverter[]? converters = null,
             string? configsFolderParrentPath = null,
             string configsFolderName = Constants.CONFIGS_FOLDER,
-            string configExtension = Constants.CONFIG_EXT
+            string configExtension = Constants.CONFIG_EXT,
+            string? currentConfigFileVersion = null
         )
         {
             _converters = converters ?? Array.Empty<JsonConverter>();
@@ -51,6 +60,7 @@ namespace PACommon
             }
             _configsFolderName = configsFolderName;
             _configExtension = configExtension;
+            _currentConfigFileVersion = currentConfigFileVersion;
         }
         #endregion
 
@@ -68,8 +78,33 @@ namespace PACommon
             var safeFilePath = Path.GetRelativePath(_configsFolderParrentPath, filePath);
 
             var fileData = File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<T>(fileData, _converters)
-                ?? throw new NullReferenceException($"The config json data is null in \"{safeFilePath}\".");
+            var rawData = JsonConvert.DeserializeObject<Dictionary<string, object?>>(fileData, _converters)
+                ?? throw new NullReferenceException($"The config json is null in \"{safeFilePath}\".");
+            if (!(
+                rawData.TryGetValue("version", out var configVersion) &&
+                rawData.TryGetValue("data", out var configDataObj) &&
+                configDataObj is JToken configDataJson
+            ))
+            {
+                throw new Exception($"Incorrect config file structure in \"{safeFilePath}\".");
+            }
+            var configData = configDataJson.ToObject<T>(
+                JsonSerializer.Create(
+                    new JsonSerializerSettings()
+                    {
+                        Converters = _converters,
+                    }
+                )
+            ) ?? throw new NullReferenceException($"The config json data is null in \"{safeFilePath}\".");
+            if (_currentConfigFileVersion is not null &&
+                !(
+                configVersion is string configVersionStr &&
+                _currentConfigFileVersion == configVersionStr
+            ))
+            {
+                throw new Exception($"Incorrect config file version in \"{safeFilePath}\" ({_currentConfigFileVersion} => {configVersion?.ToString() ?? "[NULL]"}).");
+            }
+            return configData;
         }
 
         /// <summary>
@@ -101,8 +136,9 @@ namespace PACommon
             {
                 return GetConfig<T>(configName);
             }
-            catch
+            catch (Exception e)
             {
+                PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
                 SetConfig(configName, defaultContent);
                 return GetConfig<T>(configName);
             }
@@ -130,8 +166,9 @@ namespace PACommon
             {
                 return GetConfig<TK, TV>(configName, deserializeDictionaryKeys);
             }
-            catch
+            catch (Exception e)
             {
+                PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
                 var tempDefaultContent = defaultContent.ToDictionary(key => serializeDictionaryKeys(key.Key), value => value.Value);
                 SetConfig(configName, tempDefaultContent);
                 return GetConfig<TK, TV>(configName, deserializeDictionaryKeys);
@@ -162,7 +199,12 @@ namespace PACommon
             var filePath = Path.Join(_configsFolderParrentPath, _configsFolderName, $"{configName}.{_configExtension}");
             var safeFilePath = Path.GetRelativePath(_configsFolderParrentPath, filePath);
 
-            var jsonString = JsonConvert.SerializeObject(configData, _converters);
+            var configFileData = new Dictionary<string, object?>
+            {
+                ["version"] = _currentConfigFileVersion,
+                ["data"] = configData,
+            };
+            var jsonString = JsonConvert.SerializeObject(configFileData, _converters);
             File.WriteAllText(filePath, jsonString);
             PACSingletons.Instance.Logger.Log($"Config file recreated", $"file path: \"{safeFilePath}\"");
         }
