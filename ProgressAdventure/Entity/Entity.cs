@@ -519,7 +519,7 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<AItem> GetDefaultDrops()
         {
-            return new List<AItem> { ItemUtils.CreateCompoumdItem(ItemType.Misc.COIN, Material.COPPER) };
+            return new List<AItem> { ItemUtils.CreateCompoundItem(ItemType.Misc.COIN, Material.COPPER) };
         }
         #endregion
 

@@ -89,7 +89,7 @@ namespace ProgressAdventure.ItemManagement
                         loot.Add(
                             drop.itemType == ItemUtils.MATERIAL_ITEM_TYPE ?
                                 new MaterialItem(drop.material, num) :
-                                ItemUtils.CreateCompoumdItem(drop.itemType, drop.material, num)
+                                ItemUtils.CreateCompoundItem(drop.itemType, drop.material, null, num)
                         );
                     }
                 }

@@ -318,24 +318,63 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
         /// </summary>
-        public static readonly Dictionary<ItemTypeID, List<IngredientDTO>> itemRecipes = new()
+        public static readonly Dictionary<ItemTypeID, List<RecipeDTO>> itemRecipes = new()
         {
             // weapon
-            [ItemType.Weapon.SWORD] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.SWORD_BLADE, 1), new IngredientDTO(ItemType.Misc.SWORD_HILT, 1) },
-            [ItemType.Weapon.BOW] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ROD, 1), new IngredientDTO(ItemType.Misc.ROD, 1) },
-            [ItemType.Weapon.ARROW] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ARROW_TIP, 1), new IngredientDTO(ItemType.Misc.ROD, 1) },
-            [ItemType.Weapon.CLUB] = new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) },
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(Material.TEETH, 1, ItemAmountUnit.KG) },
+            [ItemType.Weapon.SWORD] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.SWORD_BLADE, 1), new IngredientDTO(ItemType.Misc.SWORD_HILT, 1) }),
+            },
+            [ItemType.Weapon.BOW] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ROD, 1), new IngredientDTO(ItemType.Misc.ROD, 1) }),
+            },
+            [ItemType.Weapon.ARROW] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ARROW_TIP, 1), new IngredientDTO(ItemType.Misc.ROD, 1) }),
+            },
+            [ItemType.Weapon.CLUB] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) }),
+            },
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(Material.TEETH, 1, ItemAmountUnit.KG) }),
+            },
             // defence
-            [ItemType.Defence.SHIELD] = new List<IngredientDTO> { new IngredientDTO(null, 0.6, ItemAmountUnit.M3) },
-            [ItemType.Defence.HELMET] = new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) },
-            [ItemType.Defence.CHESTPLATE] = new List<IngredientDTO> { new IngredientDTO(null, 0.9, ItemAmountUnit.M3) },
-            [ItemType.Defence.PANTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.7, ItemAmountUnit.M3) },
-            [ItemType.Defence.BOOTS] = new List<IngredientDTO> { new IngredientDTO(null, 0.4, ItemAmountUnit.M3) },
+            [ItemType.Defence.SHIELD] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.6, ItemAmountUnit.M3) }),
+            },
+            [ItemType.Defence.HELMET] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) }),
+            },
+            [ItemType.Defence.CHESTPLATE] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.9, ItemAmountUnit.M3) }),
+            },
+            [ItemType.Defence.PANTS] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.7, ItemAmountUnit.M3) }),
+            },
+            [ItemType.Defence.BOOTS] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.4, ItemAmountUnit.M3) }),
+            },
             // misc
-            [ItemType.Misc.FILLED_BOTTLE] = new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L) },
-            [ItemType.Misc.BOTTLE] = new List<IngredientDTO> { new IngredientDTO(null, 0.1, ItemAmountUnit.M3) },
-            [ItemType.Misc.COIN] = new List<IngredientDTO> { new IngredientDTO(null, 0.02, ItemAmountUnit.M3) },
+            [ItemType.Misc.FILLED_BOTTLE] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L) }),
+            },
+            [ItemType.Misc.BOTTLE] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.1, ItemAmountUnit.M3) }),
+            },
+            [ItemType.Misc.COIN] = new List<RecipeDTO>
+            {
+                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.02, ItemAmountUnit.M3) }),
+            },
         };
         #endregion
 
@@ -573,22 +612,149 @@ namespace ProgressAdventure.ItemManagement
         /// Tries to create a compound item, from a list of ingredients.
         /// </summary>
         /// <param name="targetItem">The item type to try to create.</param>
-        /// <param name="items">The list of items to use, as the input for the recipe.</param>
-        /// <param name="amount">How much of the item to create.</param>
-        public static CompoundItem? MakeItem(ItemTypeID targetItem, List<AItem> items, int amount = 1)
+        /// <param name="inputItems">The list of items to use, as the input for the recipe.</param>
+        /// <param name="targetRecipe">The index of the target recipe to use for that item.<br/>
+        /// If null it tries to use all of them in order, until it succedes.</param>
+        /// <param name="amount">How many times to complete the recipe.</param>
+        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int? targetRecipe = null, int amount = 1)
         {
-            if (!itemRecipes.TryGetValue(targetItem, out List<IngredientDTO>? ingredients))
+            if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
                 return null;
             }
 
-            // get required items from the list
+            List<AItem>? requiredItems = null;
+            RecipeDTO? usedRecipe = null;
+
+            if (targetRecipe is not null)
+            {
+                if (targetRecipe < 0 || targetRecipe > recipes.Count - 1)
+                {
+                    PACSingletons.Instance.Logger.Log("Item making error", "invalid item recipe index", LogSeverity.WARN);
+                    return null;
+                }
+
+                usedRecipe = recipes[(int)targetRecipe];
+                requiredItems = GetRequiredItemsForRecipe(usedRecipe, inputItems, amount);
+            }
+            else
+            {
+                foreach (var recipe in recipes)
+                {
+                    requiredItems = GetRequiredItemsForRecipe(recipe, inputItems, amount);
+                    if (requiredItems is not null)
+                    {
+                        usedRecipe = recipe;
+                        break;
+                    }
+                }
+                if (usedRecipe is null)
+                {
+                    return null;
+                }
+            }
+            if (requiredItems is null)
+            {
+                return null;
+            }
+
+            // create the item
+            var parts = new List<AItem>();
+            for (int x = 0; x < usedRecipe.ingredients.Count; x++)
+            {
+                var usedItem = requiredItems[x].DeepCopy();
+                requiredItems[x].Amount -= usedRecipe.ingredients[x].amount * amount;
+
+                usedItem.Amount = usedRecipe.ingredients[x].amount;
+                parts.Add(usedItem);
+            }
+
+            return new CompoundItem(targetItem, parts, usedRecipe.resultAmount * amount);
+        }
+
+        /// <summary>
+        /// Creates a new compound item from the target type.
+        /// </summary>
+        /// <param name="targetItem">The item type to create.</param>
+        /// <param name="materials">The materials to use, for the parts of the item, if posible.</param>
+        /// <param name="targetRecipe">The index of the target recipe to use for that item.<br/>
+        /// If null it tries to use the first recipe that creates the amount of items that were requested.</param>
+        /// <param name="amount">How much of the item to create.</param>
+        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, int? targetRecipe = null, double amount = 1)
+        {
+            // not craftable
+            if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
+            {
+                return new CompoundItem(targetItem, new List<AItem> { new MaterialItem(materials?.First() ?? Material.WOOD) }, amount);
+            }
+
+            // get recipe
+            RecipeDTO recipe;
+            if (targetRecipe is not null)
+            {
+                recipe = recipes[Math.Clamp((int)targetRecipe, 0, recipes.Count - 1)];
+            }
+            else
+            {
+                var selectedRecipe = recipes.First();
+                foreach (var candidateRecipe in recipes)
+                {
+                    if (candidateRecipe.resultAmount == amount)
+                    {
+                        selectedRecipe = candidateRecipe;
+                        break;
+                    }
+                }
+                recipe = selectedRecipe;
+            }
+
+            // get parts
+            var parts = new List<AItem>();
+
+            for (var x = 0; x < recipe.ingredients.Count; x++)
+            {
+                var ingredient = recipe.ingredients[x];
+                var material = ingredient.material ?? (materials is not null && materials.Count > x ? materials[x] : null);
+                AItem part;
+                if (ingredient.itemType == MATERIAL_ITEM_TYPE)
+                {
+                    part = new MaterialItem(material ?? Material.WOOD, ingredient.amount);
+                }
+                else
+                {
+                    part = CreateCompoundItem(ingredient.itemType, material, null, ingredient.amount);
+                }
+                part.Amount = ingredient.unit is not null ? ConvertAmountToUnit(part, (ItemAmountUnit)ingredient.unit) : part.Amount;
+                parts.Add(part);
+            }
+
+            return new CompoundItem(targetItem, parts, amount);
+        }
+
+        /// <inheritdoc cref="CreateCompoundItem(ItemTypeID, List{Material?}?, int?, double)"/>
+        /// <param name="material">The material to use, for the material of the item, if posible.</param>
+        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, int? targetRecipe = null, double amount = 1)
+        {
+            return CreateCompoundItem(targetItem, new List<Material?> { material }, targetRecipe, amount);
+        }
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// Checks if a recipe can be completed, using the given items.
+        /// </summary>
+        /// <param name="recipe">The recipe to try check.</param>
+        /// <param name="inputItems">The items to use, to check, if the recipe can be completed with.</param>
+        /// <param name="amount">The amount of times to try and complete the recipe.</param>
+        /// <returns>A list of items that would be required to complete the recipe the required amount of times.</returns>
+        private static List<AItem>? GetRequiredItemsForRecipe(RecipeDTO recipe, List<AItem> inputItems, int amount = 1)
+        {
             var requiredItems = new List<AItem>();
 
-            foreach (var ingredient in ingredients)
+            foreach (var ingredient in recipe.ingredients)
             {
                 var itemFound = false;
-                foreach (var item in items)
+                foreach (var item in inputItems)
                 {
                     if (
                         item.Type == ingredient.itemType &&
@@ -608,64 +774,7 @@ namespace ProgressAdventure.ItemManagement
                     return null;
                 }
             }
-
-            // create the item
-            var parts = new List<AItem>();
-            for (int x = 0; x < ingredients.Count; x++)
-            {
-                var usedItem = requiredItems[x].DeepCopy();
-                requiredItems[x].Amount -= ingredients[x].amount * amount;
-
-                usedItem.Amount = ingredients[x].amount;
-                parts.Add(usedItem);
-            }
-
-            return new CompoundItem(targetItem, parts, amount);
-        }
-
-        /// <summary>
-        /// Creates a new compound item from the target type.
-        /// </summary>
-        /// <param name="targetItem">The item type to create.</param>
-        /// <param name="materials">The materials to use, for the parts of the item, if posible.</param>
-        /// <param name="amount">How much of the item to create.</param>
-        public static CompoundItem CreateCompoumdItem(ItemTypeID targetItem, List<Material?> materials, double amount = 1)
-        {
-            // not craftable
-            if (!itemRecipes.TryGetValue(targetItem, out List<IngredientDTO>? ingredients))
-            {
-                return new CompoundItem(targetItem, new List<AItem> { new MaterialItem(materials?.First() ?? Material.WOOD) }, amount);
-            }
-
-            // get parts
-            var parts = new List<AItem>();
-
-            for (var x = 0; x < ingredients.Count; x++)
-            {
-                var ingredient = ingredients[x];
-                var material = ingredient.material ?? (materials is not null && materials.Count > x ? materials[x] : null);
-                AItem part;
-                if (ingredient.itemType == MATERIAL_ITEM_TYPE)
-                {
-                    part = new MaterialItem(material ?? Material.WOOD, ingredient.amount);
-                }
-                else
-                {
-                    part = CreateCompoumdItem(ingredient.itemType, material, ingredient.amount);
-                }
-                part.Amount = ingredient.unit is not null ? ConvertAmountToUnit(part, (ItemAmountUnit)ingredient.unit) : part.Amount;
-                parts.Add(part);
-            }
-
-            // create item
-            return new CompoundItem(targetItem, parts, amount);
-        }
-
-        /// <inheritdoc cref="CreateCompoumdItem(ItemTypeID, List{Material?}?, double)"/>
-        /// <param name="material">The material to use, for the material of the item, if posible.</param>
-        public static CompoundItem CreateCompoumdItem(ItemTypeID targetItem, Material? material = null, double amount = 1)
-        {
-            return CreateCompoumdItem(targetItem, new List<Material?> { material }, amount);
+            return requiredItems;
         }
         #endregion
     }

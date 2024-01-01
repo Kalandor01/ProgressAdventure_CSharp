@@ -5,6 +5,7 @@ using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
@@ -15,6 +16,7 @@ using SaveFileManager;
 using System.IO.Compression;
 using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
+using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
 using PATools = ProgressAdventure.Tools;
@@ -253,6 +255,38 @@ namespace ProgressAdventureTests
                 else
                 {
                     return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if the ItemUtils, compound item attributes dictionary contains all required keys and correct values.
+        /// </summary>
+        public static TestResultDTO? ItemUtilsItemRecipesDictionaryCheck()
+        {
+            var checkedDictionary = ItemUtils.itemRecipes;
+
+            foreach (var itemRecipes in checkedDictionary)
+            {
+                if (itemRecipes.Value is null)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"The recipes list at item type \"{itemRecipes.Key}\" is null.");
+                }
+                foreach (var itemRecipe in itemRecipes.Value)
+                {
+                    if (itemRecipe is null)
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"A recipe in the recipes list at item type \"{itemRecipes.Key}\" is null.");
+                    }
+                    if (
+                        ItemUtils.compoundItemAttributes[itemRecipes.Key].unit == ItemAmountUnit.AMOUNT &&
+                        itemRecipe.resultAmount % 1 != 0
+                    )
+                    {
+                        return new TestResultDTO(LogSeverity.FAIL, $"A recipe in the recipes list at item type \"{itemRecipes.Key}\" is has a {nameof(itemRecipe.resultAmount)} that isn't an integer, but the item type that will be created can only have an integer amount.");
+                    }
                 }
             }
 
@@ -720,7 +754,7 @@ namespace ProgressAdventureTests
                     CompoundItem item;
                     try
                     {
-                        item = ItemUtils.CreateCompoumdItem(itemID, amount: itemAmount);
+                        item = ItemUtils.CreateCompoundItem(itemID, amount: itemAmount);
                     }
                     catch (Exception ex)
                     {
@@ -979,6 +1013,20 @@ namespace ProgressAdventureTests
 
             return new TestResultDTO(LogSeverity.PASS, "Not realy implemented!");
         }
+
+        /// <summary>
+        /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.
+        /// </summary>
+        public static TestResultDTO? ConfigUpdateTest()
+        {
+            var configFolderPath = Path.Join(PACConstants.ROOT_FOLDER, PAConstants.CONFIGS_FOLDER);
+            if (Directory.Exists(configFolderPath))
+            {
+                Directory.Delete(configFolderPath, true);
+            }
+            ConfigManager.UpdateConfigs();
+            return null;
+        }
         #endregion
 
         #region Private methods
@@ -1063,9 +1111,9 @@ namespace ProgressAdventureTests
                         new MaterialItem(Material.CLOTH, 15),
                         new MaterialItem(Material.GOLD, 5.27),
                         new MaterialItem(Material.HEALING_LIQUID, 0.3),
-                        ItemUtils.CreateCompoumdItem(ItemType.Weapon.SWORD, new List<Material?> { Material.STEEL, Material.WOOD }, 12),
-                        ItemUtils.CreateCompoumdItem(ItemType.Weapon.CLUB, new List<Material?> { Material.WOOD }, 3),
-                        ItemUtils.CreateCompoumdItem(ItemType.Weapon.ARROW, new List<Material?> { Material.FLINT, Material.WOOD }, 152),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, new List<Material?> { Material.STEEL, Material.WOOD }, null, 12),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, new List<Material?> { Material.WOOD }, null, 3),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, new List<Material?> { Material.FLINT, Material.WOOD }, null, 152),
                     }),
                     (15, -6))
             );

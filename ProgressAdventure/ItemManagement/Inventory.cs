@@ -91,7 +91,7 @@ namespace ProgressAdventure.ItemManagement
             {
                 return Add(materials.First() ?? Material.WOOD, amount);
             }
-            return Add(ItemUtils.CreateCompoumdItem(itemType, materials, amount));
+            return Add(ItemUtils.CreateCompoundItem(itemType, materials, null, amount));
         }
 
         /// <summary>
