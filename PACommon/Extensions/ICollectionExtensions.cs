@@ -8,12 +8,6 @@
         /// <param name="list1">The first list.</param>
         /// <param name="list2">The second list.</param>
         /// <typeparam name="T">The type of the objects in the collections.</typeparam>
-        public static bool UnorderedSequenceEqual<T>(this ICollection<T> list1, ICollection<T> list2)
-        {
-            return UnorderedSequenceEqual(list1, list2, (element1, element2) => (element1 is null && element2 is null) || (element1 is not null && element2 is not null && element1.Equals(element2)));
-        }
-
-        /// <inheritdoc cref="UnorderedSequenceEqual{T}(ICollection{T}, ICollection{T})"/>
         /// <param name="comparer">The function to use, to check the equality of the elements in the lists.</param>
         public static bool UnorderedSequenceEqual<T>(this ICollection<T> list1, ICollection<T> list2, Func<T, T, bool> comparer)
         {
@@ -48,6 +42,12 @@
             }
 
             return true;
+        }
+
+        /// <inheritdoc cref="UnorderedSequenceEqual{T}(ICollection{T}, ICollection{T}, Func{T, T, bool})"/>
+        public static bool UnorderedSequenceEqual<T>(this ICollection<T> list1, ICollection<T> list2)
+        {
+            return UnorderedSequenceEqual(list1, list2, (element1, element2) => (element1 is null && element2 is null) || (element1 is not null && element2 is not null && element1.Equals(element2)));
         }
     }
 }

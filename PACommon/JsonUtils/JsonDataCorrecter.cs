@@ -1,4 +1,5 @@
 ﻿using PACommon.Enums;
+using PACommon.Extensions;
 
 namespace PACommon.JsonUtils
 {
@@ -21,6 +22,10 @@ namespace PACommon.JsonUtils
         /// The current save version.
         /// </summary>
         private readonly string saveVersion;
+        /// <summary>
+        /// Whether to order the json correcters by version number, before correcting, if the value passed into a correction method is null.
+        /// </summary>
+        private readonly bool orderCorrecters;
         #endregion
 
         #region Public properties
@@ -35,7 +40,7 @@ namespace PACommon.JsonUtils
                 {
                     lock (_threadLock)
                     {
-                        _instance ??= Initialize("1.0");
+                        _instance ??= Initialize("1.0", false);
                     }
                 }
                 return _instance;
@@ -48,14 +53,16 @@ namespace PACommon.JsonUtils
         /// <inheritdoc cref="JsonDataCorrecter" path="//summary"/>
         /// </summary>
         /// <param name="saveVersion"><inheritdoc cref="saveVersion" path="//summary"/></param>
+        /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
-        private JsonDataCorrecter(string saveVersion)
+        private JsonDataCorrecter(string saveVersion, bool orderCorrecters)
         {
             if (string.IsNullOrWhiteSpace(saveVersion))
             {
                 throw new ArgumentException($"'{nameof(saveVersion)}' cannot be null or whitespace.", nameof(saveVersion));
             }
             this.saveVersion = saveVersion;
+            this.orderCorrecters = orderCorrecters;
         }
         #endregion
 
@@ -64,10 +71,11 @@ namespace PACommon.JsonUtils
         /// Initializes the object's values.
         /// </summary>
         /// <param name="saveVersion"><inheritdoc cref="saveVersion" path="//summary"/></param>
+        /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
-        public static JsonDataCorrecter Initialize(string saveVersion, bool logInitialization = true)
+        public static JsonDataCorrecter Initialize(string saveVersion, bool orderCorrecters = false, bool logInitialization = true)
         {
-            _instance = new JsonDataCorrecter(saveVersion);
+            _instance = new JsonDataCorrecter(saveVersion, orderCorrecters);
             if (logInitialization)
             {
                 PACSingletons.Instance.Logger.Log($"{nameof(JsonDataCorrecter)} initialized");
@@ -85,7 +93,13 @@ namespace PACommon.JsonUtils
         /// <param name="objectJson">The json data to correct.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="newFileVersion">The version number, this function will correct the json data to.</param>
-        public static void CorrectJsonDataVersion(string objectName, Action<IDictionary<string, object?>> objectJsonCorrecter, ref IDictionary<string, object?> objectJson, ref string fileVersion, string newFileVersion)
+        public static void CorrectJsonDataVersion(
+            string objectName,
+            Action<IDictionary<string, object?>> objectJsonCorrecter,
+            ref IDictionary<string, object?> objectJson,
+            ref string fileVersion,
+            string newFileVersion
+        )
         {
             if (Utils.IsUpToDate(newFileVersion, fileVersion))
             {
@@ -118,16 +132,29 @@ namespace PACommon.JsonUtils
             string objectName,
             ref IDictionary<string, object?> objectJson,
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
-            string fileVersion
+            string fileVersion,
+            bool? orderCorrecters = null
         )
         {
-            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion) || Utils.IsUpToDate(correcters.Last().newFileVersion, fileVersion))
+            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion))
+            {
+                return;
+            }
+
+            orderCorrecters ??= this.orderCorrecters;
+            var orderedCorrecters = (bool)orderCorrecters ? correcters.StableSort(
+                (correcter1, correcter2) =>
+                    correcter1.newFileVersion == correcter2.newFileVersion ? 0 :
+                        (Utils.IsUpToDate(correcter1.newFileVersion, correcter2.newFileVersion) ? -1 : 1)
+                ) : correcters;
+
+            if (Utils.IsUpToDate(orderedCorrecters.Last().newFileVersion, fileVersion))
             {
                 return;
             }
 
             PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
-            foreach (var (objectJsonCorrecter, newFileVersion) in correcters)
+            foreach (var (objectJsonCorrecter, newFileVersion) in orderedCorrecters)
             {
                 CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, ref fileVersion, newFileVersion);
             }
@@ -137,30 +164,56 @@ namespace PACommon.JsonUtils
         public void CorrectJsonData<T>(
             ref IDictionary<string, object?> objectJson,
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
-            string fileVersion
+            string fileVersion,
+            bool? orderCorrecters = null
         )
         {
-            CorrectJsonData(typeof(T).ToString(), ref objectJson, correcters, fileVersion);
+            CorrectJsonData(typeof(T).ToString(), ref objectJson, correcters, fileVersion, orderCorrecters);
         }
 
-        public void CorrectJsonData<TE>(string objectName, ref IDictionary<string, object?> objectJson, TE extraData, List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters, string fileVersion)
+        public void CorrectJsonData<TE>(
+            string objectName,
+            ref IDictionary<string, object?> objectJson,
+            TE extraData,
+            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion,
+            bool? orderCorrecters = null
+        )
         {
-            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion) || Utils.IsUpToDate(correcters.Last().newFileVersion, fileVersion))
+            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion))
+            {
+                return;
+            }
+
+            orderCorrecters ??= this.orderCorrecters;
+            var orderedCorrecters = (bool)orderCorrecters ? correcters.StableSort(
+                (correcter1, correcter2) =>
+                    correcter1.newFileVersion == correcter2.newFileVersion ? 0 :
+                        (Utils.IsUpToDate(correcter1.newFileVersion, correcter2.newFileVersion) ? -1 : 1)
+                ) : correcters;
+
+            if (Utils.IsUpToDate(orderedCorrecters.Last().newFileVersion, fileVersion))
             {
                 return;
             }
 
             PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
-            foreach (var (objectJsonCorrecter, newFileVersion) in correcters)
+            foreach (var (objectJsonCorrecter, newFileVersion) in orderedCorrecters)
             {
                 CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, extraData, ref fileVersion, newFileVersion);
             }
             PACSingletons.Instance.Logger.Log($"{objectName} json data corrected");
         }
 
-        public void CorrectJsonData<T, TE>(ref IDictionary<string, object?> objectJson, TE extraData, List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters, string fileVersion)
+        public void CorrectJsonData<T, TE>(
+            ref IDictionary<string, object?> objectJson,
+            TE extraData,
+            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion,
+            bool? orderCorrecters = null
+        )
         {
-            CorrectJsonData(typeof(T).ToString(), ref objectJson, extraData, correcters, fileVersion);
+            CorrectJsonData(typeof(T).ToString(), ref objectJson, extraData, correcters, fileVersion, orderCorrecters);
         }
         #endregion
     }

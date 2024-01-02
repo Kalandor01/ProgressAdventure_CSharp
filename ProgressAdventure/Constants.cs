@@ -370,6 +370,10 @@ namespace ProgressAdventure
         /// The save folder name to use, if the SaveData singleton was initialized from the Instance property.
         /// </summary>
         public const string DEFAULT_SAVE_DATA_SAVE_NAME = "[DEFAULT]";
+        /// <summary>
+        /// Whether to order the json correcters by version number.
+        /// </summary>
+        public const bool ORDER_JSON_CORRECTERS = true;
         #endregion
     }
 }

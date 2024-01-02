@@ -45,7 +45,7 @@ namespace ProgressAdventure
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
-                JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, false)
+                JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, Constants.ORDER_JSON_CORRECTERS, false)
             );
 
             if (!Utils.TryEnableAnsiCodes())
