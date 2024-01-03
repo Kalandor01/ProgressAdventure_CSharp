@@ -190,7 +190,7 @@ namespace ProgressAdventure
             success &= PACTools.TryParseJsonConvertableValue<SaveData, Player>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);
             success &= PACTools.TryParseJsonConvertableValue<SaveData, RandomStates>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.RANDOM_STATES, out _);
 
-            saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player);
+            saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player, false);
             return success;
         }
         #endregion

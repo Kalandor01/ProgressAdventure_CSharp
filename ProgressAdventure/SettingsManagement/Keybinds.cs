@@ -34,10 +34,20 @@ namespace ProgressAdventure.SettingsManagement
         #region Public methods
         public override void FillAllKeybinds()
         {
+            var defKebindList = SettingsUtils.GetDefaultKeybindList();
             if (!KeybindList.Any())
             {
                 PACSingletons.Instance.Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
-                KeybindList = SettingsUtils.GetDefaultKeybindList();
+                KeybindList = defKebindList;
+                return;
+            }
+            foreach (var defKeybind in defKebindList)
+            {
+                if(!KeybindList.Any(key => key.ActionType == defKeybind.ActionType))
+                {
+                    PACSingletons.Instance.Logger.Log("Missing action key in keybinds list", $"action type: {defKeybind.ActionType}", LogSeverity.WARN);
+                    _keybinds = KeybindList.Concat(new List<ActionKey> { defKeybind });
+                }
             }
         }
         #endregion

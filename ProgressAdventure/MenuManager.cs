@@ -129,6 +129,10 @@ namespace ProgressAdventure
 
         #region Public functions
         #region Inventory viewer
+        /// <summary>
+        /// Opens an item viewing menu.
+        /// </summary>
+        /// <param name="item">The item to view.</param>
         public static void ItemViever(AItem item)
         {
             var title = $"{item}\n\n" +
@@ -154,6 +158,10 @@ namespace ProgressAdventure
             new OptionsUI(elementsList, title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
         }
 
+        /// <summary>
+        /// Opens the inventory viewer menu.
+        /// </summary>
+        /// <param name="inventory">The inventory to view.</param>
         public static void InventoryViewer(Inventory inventory)
         {
             var elementsList = new List<BaseUI>();
@@ -161,7 +169,68 @@ namespace ProgressAdventure
             {
                 elementsList.Add(new PAButton(new UIAction(ItemViever, item), text: item.ToString() ?? ""));
             }
-            new OptionsUI(elementsList, "Inventory", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            if (!elementsList.Any())
+            {
+                elementsList.Add(GetBackButton("Empty"));
+            }
+            new OptionsUI(
+                elementsList,
+                "Inventory",
+                Constants.STANDARD_CURSOR_ICONS,
+                scrollSettings: new ScrollSettings(10)
+            ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+        }
+        #endregion
+
+        #region Pause
+        /// <summary>
+        /// Action for exiting without saving.
+        /// </summary>
+        private static object? ExitWithoutSavingAction()
+        {
+            if (!AskYesNoUIQuestion("Are you sure you want to exit WITHOUT saving?", false))
+            {
+                return null;
+            }
+
+            PACSingletons.Instance.Logger.Log("Beginning manual exit", $"save name: {SaveData.Instance.saveName}");
+            PASingletons.Instance.Globals.exiting = true;
+            PASingletons.Instance.Globals.inGameLoop = false;
+            return -1;
+        }
+
+        /// <summary>
+        /// Action for exiting and saving.
+        /// </summary>
+        private static object? SaveAndExitAction()
+        {
+            if (!AskYesNoUIQuestion("Are you sure you want to exit?", false))
+            {
+                return null;
+            }
+
+            PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
+            PASingletons.Instance.Globals.exiting = true;
+            GameManager.SaveGame();
+            PASingletons.Instance.Globals.inGameLoop = false;
+            return -1;
+        }
+
+        /// <summary>
+        /// Opens the pause menu.
+        /// </summary>
+        /// <returns>If the game loop should exit.</returns>
+        public static bool PauseMenu()
+        {
+            var elementsList = new List<BaseUI>
+            {
+                new PAButton(new UIAction(() => -1), text: "Resume"),
+                new PAButton(new UIAction(ExitWithoutSavingAction), text: "Exit without saving"),
+                new PAButton(new UIAction(SaveAndExitAction), text: "Save and exit"),
+            };
+
+            var returnValue = new OptionsUI(elementsList, "Paused", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            return returnValue is not null;
         }
         #endregion
 
@@ -193,7 +262,7 @@ namespace ProgressAdventure
             elementList.Add(null);
             elementList.Add(new PAButton(new UIAction(SaveKeybinds), text: "Save"));
 
-            new OptionsUI(elementList, " Keybinds").Display(ActionList, ResultsList);
+            new OptionsUI(elementList, " Keybinds", Constants.STANDARD_CURSOR_ICONS).Display(ActionList, ResultsList);
         }
         #endregion
 
@@ -261,7 +330,7 @@ namespace ProgressAdventure
             var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
 
             // response
-            var response = new OptionsUI(menuElements, " Other options").Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(menuElements, " Other options", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 var newAutoSaveValue = autoSaveElement.Value;
@@ -301,7 +370,7 @@ namespace ProgressAdventure
             var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
 
             // response
-            var response = new OptionsUI(askSettingsElements, " Question popups").Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(askSettingsElements, " Question popups", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 PASingletons.Instance.Settings.AskDeleteSave = askDeleteSaveElement.Value;
@@ -344,6 +413,7 @@ namespace ProgressAdventure
             new UIList(
                 answers,
                 " Main menu",
+                Constants.STANDARD_CURSOR_ICONS,
                 canEscape: true,
                 actions: actions,
                 modifiableUIList: true

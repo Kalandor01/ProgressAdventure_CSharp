@@ -46,9 +46,11 @@ namespace PACommon.SettingsManagement
         /// <inheritdoc cref="ActionKey"/>
         /// </summary>
         /// <param name="actionType"><inheritdoc cref="actionType" path="//summary"/></param>
+        /// <param name="response"><inheritdoc cref="KeyAction.response" path="//summary"/></param>
         /// <param name="keys"><inheritdoc cref="Keys" path="//summary"/></param>
+        /// <param name="ignoreModes"><inheritdoc cref="KeyAction.ignoreModes" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
-        public AActionKey(T actionType, Key response, IEnumerable<ConsoleKeyInfo> keys, List<GetKeyMode> ignoreModes)
+        public AActionKey(T actionType, object response, IEnumerable<ConsoleKeyInfo> keys, List<GetKeyMode> ignoreModes)
             : base(response, keys, ignoreModes)
         {
             if (!keys.Any())
@@ -63,6 +65,9 @@ namespace PACommon.SettingsManagement
         #endregion
 
         #region Public methods
+        /// <summary>
+        /// Updates the names of the keys.
+        /// </summary>
         public void UpdateNames()
         {
             Names = new List<string>();
@@ -72,9 +77,21 @@ namespace PACommon.SettingsManagement
             }
         }
 
+        /// <summary>
+        /// Gets a key from the user, and then checks, if that keys maches this action.
+        /// </summary>
         public bool IsKey()
         {
-            return Keys.Contains(Console.ReadKey(true));
+            return IsKey(Console.ReadKey(true));
+        }
+
+        /// <summary>
+        /// Checks, if a keys maches this action.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        public bool IsKey(ConsoleKeyInfo key)
+        {
+            return Keys.Contains(key);
         }
         #endregion
     }

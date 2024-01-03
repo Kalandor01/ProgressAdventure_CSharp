@@ -16,20 +16,24 @@ namespace ProgressAdventure.SettingsManagement
             [ActionType.DOWN] = new List<GetKeyMode> { GetKeyMode.IGNORE_VERTICAL },
             [ActionType.LEFT] = new List<GetKeyMode> { GetKeyMode.IGNORE_HORIZONTAL },
             [ActionType.RIGHT] = new List<GetKeyMode> { GetKeyMode.IGNORE_HORIZONTAL },
-            [ActionType.ENTER] = new List<GetKeyMode> { GetKeyMode.IGNORE_ENTER }
+            [ActionType.ENTER] = new List<GetKeyMode> { GetKeyMode.IGNORE_ENTER },
+            [ActionType.STATS] = new List<GetKeyMode>(),
+            [ActionType.SAVE] = new List<GetKeyMode>(),
         };
 
         /// <summary>
         /// The dictionary pairing up action types, to responses.
         /// </summary>
-        public static readonly Dictionary<ActionType, Key> actionTypeResponseMapping = new()
+        public static readonly Dictionary<ActionType, object> actionTypeResponseMapping = new()
         {
             [ActionType.ESCAPE] = Key.ESCAPE,
             [ActionType.UP] = Key.UP,
             [ActionType.DOWN] = Key.DOWN,
             [ActionType.LEFT] = Key.LEFT,
             [ActionType.RIGHT] = Key.RIGHT,
-            [ActionType.ENTER] = Key.ENTER
+            [ActionType.ENTER] = Key.ENTER,
+            [ActionType.STATS] = "STATS",
+            [ActionType.SAVE] = "SAVE",
         };
 
         /// <summary>
@@ -60,7 +64,9 @@ namespace ProgressAdventure.SettingsManagement
                 new ActionKey(ActionType.DOWN, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, false, false, false) }),
                 new ActionKey(ActionType.LEFT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, false) }),
                 new ActionKey(ActionType.RIGHT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, false) }),
-                new ActionKey(ActionType.ENTER, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) })
+                new ActionKey(ActionType.ENTER, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) }),
+                new ActionKey(ActionType.STATS, new List<ConsoleKeyInfo> { new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) }),
+                new ActionKey(ActionType.SAVE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false) }),
             };
         }
 

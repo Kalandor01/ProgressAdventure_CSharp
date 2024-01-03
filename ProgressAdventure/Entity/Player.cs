@@ -114,11 +114,15 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Displays the player's stats.
         /// </summary>
-        public void Stats()
+        /// <param name="displayInventory">If the inventory should be displayed.</param>
+        public void Stats(bool displayInventory = true)
         {
             Console.WriteLine($"\nName: {FullName}\n\nSTATS:");
             Console.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\n");
-            Console.WriteLine(inventory);
+            if(displayInventory )
+            {
+                Console.WriteLine(inventory);
+            }
         }
         #endregion
 

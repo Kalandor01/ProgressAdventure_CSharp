@@ -329,11 +329,11 @@ namespace ProgressAdventureTests
             var requiredKeys = Enum.GetValues<ActionType>();
             var checkedDictionary = SettingsUtils.actionTypeResponseMapping;
 
-            var existingValues = new List<Key>();
+            var existingValues = new List<object>();
 
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out Key value))
+                if (checkedDictionary.TryGetValue(key, out object? value))
                 {
                     if (existingValues.Contains(value))
                     {

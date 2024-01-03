@@ -7,6 +7,8 @@
         DOWN,
         LEFT,
         RIGHT,
-        ENTER
+        ENTER,
+        STATS,
+        SAVE,
     }
 }

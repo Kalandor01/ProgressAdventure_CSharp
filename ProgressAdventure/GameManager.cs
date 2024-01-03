@@ -13,6 +13,17 @@ namespace ProgressAdventure
     {
         #region Public functions
         /// <summary>
+        /// Pauses the thread while the game is paused.
+        /// </summary>
+        public static void GamePausedLock()
+        {
+            while (PASingletons.Instance.Globals.paused)
+            {
+                Thread.Sleep(100);
+            }
+        }
+
+        /// <summary>
         /// Creates a new save.
         /// </summary>
         public static void NewSave()
@@ -74,22 +85,27 @@ namespace ProgressAdventure
             // GAME
             SaveData.Instance.player.Stats();
             Console.WriteLine("Wandering...");
-            for (var x = 0; x < 0; x++)
+            for (var x = 0; x < 20; x++)
             {
-                if (!PASingletons.Instance.Globals.exiting)
+                GamePausedLock();
+                if (PASingletons.Instance.Globals.exiting)
                 {
-                    Thread.Sleep(100);
-                    SaveData.Instance.player.WeightedTurn();
-                    SaveData.Instance.player.Move();
-                    var position = SaveData.Instance.player.position;
-                    World.TryGetChunkAll(position, out Chunk chunk);
-                    chunk.FillChunk();
+                    break;
                 }
+
+                Thread.Sleep(100);
+                SaveData.Instance.player.WeightedTurn();
+                SaveData.Instance.player.Move();
+                var position = SaveData.Instance.player.position;
+                World.TryGetChunkAll(position, out Chunk chunk);
+                chunk.FillChunk();
             }
+            GamePausedLock();
             if (!PASingletons.Instance.Globals.exiting)
             {
                 Thread.Sleep(1000);
             }
+            GamePausedLock();
             if (!PASingletons.Instance.Globals.exiting)
             {
                 //InitiateFight();
@@ -159,7 +175,11 @@ namespace ProgressAdventure
                 {
                     if (PASingletons.Instance.Globals.inGameLoop)
                     {
-                        if (!PASingletons.Instance.Globals.saving && !PASingletons.Instance.Globals.inFight)
+                        if (!(
+                            PASingletons.Instance.Globals.saving ||
+                            PASingletons.Instance.Globals.inFight ||
+                            PASingletons.Instance.Globals.paused
+                        ))
                         {
                             PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
                             SaveGame();
@@ -189,41 +209,61 @@ namespace ProgressAdventure
         /// <returns>Whether the thread should exit.</returns>
         public static bool UserActionsThreadFunction()
         {
-            if (!PASingletons.Instance.Globals.inGameLoop)
-            {
-                return true;
-            }
-
-
-            // extra keys into settings
-
-            // PAUSE: EXIT (WITHOUT) SAVING, SAVE (ESC)
-            // STATS: INVENTORY (E/I)
-            // SAVE (S)
-
-            // pause all other threads while paused/in stats window
-            //var threads = Process.GetCurrentProcess().Threads;
-            //foreach (var thread in threads)
-            //{
-            //    Thread.Sleep(99999999);
-            //}
-
-
-            if (PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE)?.IsKey() != true)
+            if (
+                !PASingletons.Instance.Globals.inGameLoop ||
+                PASingletons.Instance.Globals.inFight ||
+                PASingletons.Instance.Globals.saving
+            )
             {
                 return false;
             }
 
-            if (PASingletons.Instance.Globals.inFight || PASingletons.Instance.Globals.saving)
+            var escapeAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE) ?? throw new Exception($"Action key \"{ActionType.ESCAPE}\" not found");
+            var saveAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.SAVE) ?? throw new Exception($"Action key \"{ActionType.SAVE}\" not found");
+            var statsAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.STATS) ?? throw new Exception($"Action key \"{ActionType.STATS}\" not found");
+
+            var key = Console.ReadKey(true);
+
+            if (
+                !PASingletons.Instance.Globals.inGameLoop ||
+                PASingletons.Instance.Globals.inFight ||
+                PASingletons.Instance.Globals.saving
+            )
             {
-                Console.WriteLine("You can't exit now!");
+                return false;
             }
 
-            PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
-            PASingletons.Instance.Globals.exiting = true;
-            SaveGame();
-            PASingletons.Instance.Globals.inGameLoop = false;
-            return true;
+            if (escapeAction.IsKey(key))
+            {
+                PASingletons.Instance.Globals.paused = true;
+
+                MenuManager.PauseMenu();
+
+                PASingletons.Instance.Globals.paused = false;
+            }
+            else if (saveAction.IsKey(key))
+            {
+                PASingletons.Instance.Globals.paused = true;
+
+                Console.WriteLine("SAVING...");
+                PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
+                SaveGame();
+                Console.WriteLine("SAVED!");
+
+                PASingletons.Instance.Globals.paused = false;
+            }
+            else if (statsAction.IsKey(key))
+            {
+                PASingletons.Instance.Globals.paused = true;
+
+                SaveData.Instance.player.Stats(false);
+                Console.ReadKey(true);
+                MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
+
+                PASingletons.Instance.Globals.paused = false;
+            }
+
+            return false;
         }
         #endregion
     }
