@@ -3,6 +3,7 @@ using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using SaveFileManager;
@@ -127,6 +128,43 @@ namespace ProgressAdventure
         #endregion
 
         #region Public functions
+        #region Inventory viewer
+        public static void ItemViever(AItem item)
+        {
+            var title = $"{item}\n\n" +
+                $"Mass: {item.Mass} ({item.MassMultiplier}) kg\n" +
+                $"Volume: {item.Volume} ({item.VolumeMultiplier}) m^3\n" +
+                $"Density: {item.Density} kg/m^3";
+            var backButton = GetBackButton();
+
+            if (item is not CompoundItem compundItem)
+            {
+                new OptionsUI(new List<BaseUI> { backButton }, title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+                return;
+            }
+
+            var elementsList = new List<BaseUI>();
+            foreach (var partItem in compundItem.Parts)
+            {
+                elementsList.Add(new PAButton(new UIAction(ItemViever, partItem), text: partItem.ToString() ?? ""));
+            }
+            elementsList.Add(new Label(""));
+            elementsList.Add(backButton);
+
+            new OptionsUI(elementsList, title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+        }
+
+        public static void InventoryViewer(Inventory inventory)
+        {
+            var elementsList = new List<BaseUI>();
+            foreach (var item in inventory.items)
+            {
+                elementsList.Add(new PAButton(new UIAction(ItemViever, item), text: item.ToString() ?? ""));
+            }
+            new OptionsUI(elementsList, "Inventory", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+        }
+        #endregion
+
         #region Keybinds
         /// <summary>
         /// Displays the keybinds menu.
@@ -158,6 +196,15 @@ namespace ProgressAdventure
             new OptionsUI(elementList, " Keybinds").Display(ActionList, ResultsList);
         }
         #endregion
+
+        /// <summary>
+        /// Returns a back button for OptionsUI-s.
+        /// </summary>
+        /// <param name="text">The text to display in the button.</param>
+        public static PAButton GetBackButton(string text = "Back")
+        {
+            return new PAButton(new UIAction(() => -1), text: text);
+        }
 
         /// <summary>
         /// Displays a simple yes or no prompt, and returns the user's answer.
@@ -471,7 +518,7 @@ namespace ProgressAdventure
                 answers.Add(displayText);
                 answers.Add(null);
 
-                actions.Add(new UIAction(DeleteSaveAction, new List<object?> { saveName }));
+                actions.Add(new UIAction(DeleteSaveAction, saveName));
             }
 
             answers.Add("Back");
@@ -512,7 +559,7 @@ namespace ProgressAdventure
                 answers.Add(displayText);
                 answers.Add(null);
 
-                actions.Add(new UIAction(LoadSaveAction, new List<object?> { saveName }));
+                actions.Add(new UIAction(LoadSaveAction, saveName));
             }
 
             answers.Add("Regenerate all save files");

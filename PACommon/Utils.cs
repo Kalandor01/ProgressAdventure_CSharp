@@ -201,21 +201,21 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Tries to get an int from the front of the string, or the first char, and then chops it of from the passed in string.<br/>
+        /// Tries to get an int from the beggining of the string, or the first char, and then chops it of from the passed in string.<br/>
         /// Treats the "." and the "-" in numbers as a character.
         /// </summary>
         /// <param name="str">The string to search.</param>
-        /// <param name="result"></param>
+        /// <param name="result">The char, or int.</param>
         /// <returns>If the returned result is an int.</returns>
         public static bool GetFirstCharOrInt(ref string str, out string result)
         {
+            result = "";
             if (str == "")
             {
-                result = "";
                 return false;
             }
 
-            if (int.TryParse(str, out int resInt))
+            if (int.TryParse(str, out int resInt) && resInt >= 0)
             {
                 str = "";
                 result = resInt.ToString();
@@ -239,7 +239,53 @@ namespace PACommon
                 }
             }
 
-            result = "";
+            str = "";
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get an int from the beggining of the string and then chops it of from the passed in string.<br/>
+        /// Treats the "." and the "-" in numbers as a character.
+        /// </summary>
+        /// <param name="str">The string to search.</param>
+        /// <param name="result">Ther int.</param>
+        /// <returns>If it fount an int in the string.</returns>
+        public static bool TryGetFirstInt(ref string str, out int result)
+        {
+            result = 0;
+            if (str == "")
+            {
+                return false;
+            }
+
+            if (int.TryParse(str, out result) && result >= 0)
+            {
+                str = "";
+                return true;
+            }
+
+            var x = -1;
+            while ((x + 1) < str.Length)
+            {
+                x++;
+                if (int.TryParse(str[..(x + 1)], out var intRes))
+                {
+                    result = intRes;
+                    continue;
+                }
+
+                if (x == 0)
+                {
+                    x = -1;
+                    result = 0;
+                    str = str[1..];
+                    continue;
+                }
+
+                str = str[x..];
+                return true;
+            }
+
             str = "";
             return false;
         }

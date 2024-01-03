@@ -64,12 +64,12 @@ namespace ProgressAdventure
             // GAME LOOP
             PACSingletons.Instance.Logger.Log("Game loop started");
             // TRHEADS
-            // manual quit
-            Task.Run(ManualQuitThreadFunction);
+            // user actions
+            RunLoopingTaskWithErrorHandling(Constants.USER_ACTIONS_THREAD_NAME, UserActionsThreadFunction);
             // auto saver
             if (PASingletons.Instance.Settings.AutoSave)
             {
-                Task.Run(AutoSaveThreadFunction);
+                RunLoopingTaskWithErrorHandling(Constants.AUTO_SAVE_THREAD_NAME, AutoSaveThreadFunction);
             }
             // GAME
             SaveData.Instance.player.Stats();
@@ -106,90 +106,124 @@ namespace ProgressAdventure
 
         #region Thread functions
         /// <summary>
-        /// Function that runs in the auto saver thread.
+        /// Runs a function in a seperate thread, with error handling.
         /// </summary>
-        public static void AutoSaveThreadFunction()
+        /// <param name="threadName">The name of the new thread.</param>
+        /// <param name="threadFunction">The function to run in the thread.</param>
+        public static void RunTaskWithErrorHandling(string threadName, Action threadFunction)
         {
-            Thread.CurrentThread.Name = Constants.AUTO_SAVE_THREAD_NAME;
-            try
-            {
-                while (true)
+            Task.Run(() => {
+                Thread.CurrentThread.Name = threadName;
+                try
                 {
-                    Thread.Sleep(Constants.AUTO_SAVE_INTERVAL);
-                    if (PASingletons.Instance.Globals.inGameLoop)
-                    {
-                        var saved = false;
-                        while (!saved)
-                        {
-                            if (PASingletons.Instance.Globals.inGameLoop)
-                            {
-                                if (!PASingletons.Instance.Globals.saving && !PASingletons.Instance.Globals.inFight)
-                                {
-                                    PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
-                                    SaveGame();
-                                    saved = true;
-                                }
-                                else
-                                {
-                                    Thread.Sleep(Constants.AUTO_SAVE_DELAY);
-                                }
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    if (!PASingletons.Instance.Globals.inGameLoop)
-                    {
-                        break;
-                    }
+                    threadFunction();
                 }
-            }
-            catch (Exception e)
-            {
-                PACSingletons.Instance.Logger.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
-                throw;
-            }
+                catch (Exception e)
+                {
+                    PACSingletons.Instance.Logger.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
+                    throw;
+                }
+            });
         }
 
         /// <summary>
-        /// Function that runs in the quit game thread.
+        /// Runs a looping function in a seperate thread, with error handling.
         /// </summary>
-        public static void ManualQuitThreadFunction()
+        /// <param name="threadName">The name of the new thread.</param>
+        /// <param name="threadFunction">The function to run in the thread. If it returns true, it ends the thread.</param>
+        /// <param name="loopDelay">The number of milliseconds to suspent the thread inbetween loops.</param>
+        public static void RunLoopingTaskWithErrorHandling(string threadName, Func<bool> threadFunction, int loopDelay = 0)
         {
-            Thread.CurrentThread.Name = Constants.MANUAL_SAVE_THREAD_NAME;
-            try
-            {
-                while (true)
+            RunTaskWithErrorHandling(threadName, () => {
+                while (!threadFunction())
                 {
-                    if (!PASingletons.Instance.Globals.inGameLoop)
+                    if (loopDelay > 0)
                     {
-                        break;
+                        Thread.Sleep(loopDelay);
                     }
+                }
+            });
+        }
 
-                    if (PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE)?.IsKey() != true)
+        /// <summary>
+        /// Function that runs in the auto saver thread.
+        /// </summary>
+        /// <returns>Whether the thread should exit.</returns>
+        public static bool AutoSaveThreadFunction()
+        {
+            Thread.Sleep(Constants.AUTO_SAVE_INTERVAL);
+            if (PASingletons.Instance.Globals.inGameLoop)
+            {
+                var saved = false;
+                while (!saved)
+                {
+                    if (PASingletons.Instance.Globals.inGameLoop)
                     {
-                        continue;
+                        if (!PASingletons.Instance.Globals.saving && !PASingletons.Instance.Globals.inFight)
+                        {
+                            PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
+                            SaveGame();
+                            saved = true;
+                        }
+                        else
+                        {
+                            Thread.Sleep(Constants.AUTO_SAVE_DELAY);
+                        }
                     }
-
-                    if (PASingletons.Instance.Globals.inFight || PASingletons.Instance.Globals.saving)
+                    else
                     {
-                        Console.WriteLine("You can't exit now!");
+                        return true;
                     }
-
-                    PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
-                    PASingletons.Instance.Globals.exiting = true;
-                    SaveGame();
-                    PASingletons.Instance.Globals.inGameLoop = false;
-                    break;
                 }
             }
-            catch (Exception e)
+            if (!PASingletons.Instance.Globals.inGameLoop)
             {
-                PACSingletons.Instance.Logger.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
-                throw;
+                return true;
             }
+            return false;
+        }
+
+        /// <summary>
+        /// Function that runs in the user actions thread.
+        /// </summary>
+        /// <returns>Whether the thread should exit.</returns>
+        public static bool UserActionsThreadFunction()
+        {
+            if (!PASingletons.Instance.Globals.inGameLoop)
+            {
+                return true;
+            }
+
+
+            // extra keys into settings
+
+            // PAUSE: EXIT (WITHOUT) SAVING, SAVE (ESC)
+            // STATS: INVENTORY (E/I)
+            // SAVE (S)
+
+            // pause all other threads while paused/in stats window
+            //var threads = Process.GetCurrentProcess().Threads;
+            //foreach (var thread in threads)
+            //{
+            //    Thread.Sleep(99999999);
+            //}
+
+
+            if (PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE)?.IsKey() != true)
+            {
+                return false;
+            }
+
+            if (PASingletons.Instance.Globals.inFight || PASingletons.Instance.Globals.saving)
+            {
+                Console.WriteLine("You can't exit now!");
+            }
+
+            PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
+            PASingletons.Instance.Globals.exiting = true;
+            SaveGame();
+            PASingletons.Instance.Globals.inGameLoop = false;
+            return true;
         }
         #endregion
     }

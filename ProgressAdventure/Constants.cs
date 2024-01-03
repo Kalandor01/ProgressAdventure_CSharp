@@ -18,9 +18,9 @@ namespace ProgressAdventure
         /// </summary>
         public const string AUTO_SAVE_THREAD_NAME = "Auto saver";
         /// <summary>
-        /// The display name of the manual save thread.
+        /// The display name of the user actions thread.
         /// </summary>
-        public const string MANUAL_SAVE_THREAD_NAME = "Quit manager";
+        public const string USER_ACTIONS_THREAD_NAME = "User actions";
         #endregion
 
         #region Paths/folders/file names/extensions

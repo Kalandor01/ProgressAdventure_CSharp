@@ -192,8 +192,6 @@ namespace PAVisualizer
             var generateImageButtonElement = new PAButton(
                 new UIAction(
                     GenerateImageCommand,
-                    new List<object?>
-                    {
                         layerSelectionElement,
                         layerTypes,
                         noiseTypeXSelectionElement,
@@ -201,7 +199,6 @@ namespace PAVisualizer
                         noiseTypes,
                         resolutionElement,
                         visualizedContentDistributionPath
-                    }
                 ),
                 text: "Generate image"
             );
@@ -210,13 +207,10 @@ namespace PAVisualizer
             var generateAllImagesButtonElement = new PAButton(
                 new UIAction(
                     GenerateAllImagesCommand,
-                    new List<object?>
-                    {
                         layerTypes,
                         noiseTypes,
                         resolutionElement,
                         visualizedContentDistributionPath
-                    }
                 ),
                 text: "Generate ALL possible images"
             );

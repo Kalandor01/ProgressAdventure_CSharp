@@ -23,6 +23,13 @@ namespace ProgressAdventure
 
             //ConfigManagement.ConfigManager.UpdateConfigs();
 
+            //var recipeTreeStr = "[SWORD] base: 2, sword parts(2): 0 0,";
+            //var recipeTreeStr = "[SWORD] base: 2, sword parts(2): 0 0, blade parts(0), hilt parts(0)";
+            //var g = ItemUtils.GetTagetRecipeTreeFromString(recipeTreeStr);
+
+            //SaveManager.LoadSave("all items + world");
+            //MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
+
             MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
