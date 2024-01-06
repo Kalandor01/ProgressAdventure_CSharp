@@ -608,34 +608,6 @@ namespace ProgressAdventure.ItemManagement
             return item.Amount * ConvertAmountToUnitMultiplier(item, targetUnit);
         }
 
-        public static List<List<int>>? GetTagetRecipeTreeFromString(string targetRecipeTreeString)
-        {
-            if (!Utils.TryGetFirstInt(ref targetRecipeTreeString, out var rootRecipe))
-            {
-                return null;
-            }
-
-            var recipeTree = new List<List<int>> { new List<int> { rootRecipe } };
-            while (Utils.TryGetFirstInt(ref targetRecipeTreeString, out var partsNumber))
-            {
-                if (partsNumber <= 0)
-                {
-                    recipeTree.Add(new List<int>());
-                    continue;
-                }
-                
-                var partRecipes = new List<int>();
-                while (partsNumber > 0 && Utils.TryGetFirstInt(ref targetRecipeTreeString, out var partRecipeIndex))
-                {
-                    partRecipes.Add(partRecipeIndex);
-                    partsNumber--;
-                }
-                recipeTree.Add(partRecipes);
-            }
-
-            return recipeTree;
-        }
-
         /// <summary>
         /// Tries to create a compound item, from a list of ingredients.
         /// </summary>

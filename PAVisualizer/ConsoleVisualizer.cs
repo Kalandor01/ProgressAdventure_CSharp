@@ -21,7 +21,7 @@ namespace PAVisualizer
         /// <summary>
         /// Genarates an image, representing the different types of tiles, and their placements in the world.
         /// </summary>
-        /// <param name="layer">Sets witch layer to export.</param>
+        /// <param name="layer">Sets which layer to export.</param>
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
