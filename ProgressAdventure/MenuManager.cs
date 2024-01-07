@@ -147,12 +147,12 @@ namespace ProgressAdventure
                 return;
             }
 
-            var elementsList = new List<BaseUI>();
+            var elementsList = new List<BaseUI?>();
             foreach (var partItem in compundItem.Parts)
             {
                 elementsList.Add(new PAButton(new UIAction(ItemViever, partItem), text: partItem.ToString() ?? ""));
             }
-            elementsList.Add(new Label(""));
+            elementsList.Add(null);
             elementsList.Add(backButton);
 
             new OptionsUI(elementsList, title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
@@ -194,8 +194,7 @@ namespace ProgressAdventure
             }
 
             PACSingletons.Instance.Logger.Log("Beginning manual exit", $"save name: {SaveData.Instance.saveName}");
-            PASingletons.Instance.Globals.exiting = true;
-            PASingletons.Instance.Globals.inGameLoop = false;
+            GameManager.ExitGame(false);
             return -1;
         }
 
@@ -209,10 +208,8 @@ namespace ProgressAdventure
                 return null;
             }
 
-            PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
-            PASingletons.Instance.Globals.exiting = true;
-            GameManager.SaveGame();
-            PASingletons.Instance.Globals.inGameLoop = false;
+            PACSingletons.Instance.Logger.Log("Beginning manual save and exit", $"save name: {SaveData.Instance.saveName}");
+            GameManager.ExitGame();
             return -1;
         }
 

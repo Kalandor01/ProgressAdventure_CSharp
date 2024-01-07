@@ -106,6 +106,14 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
+        /// Clears all items that have 0 amount.
+        /// </summary>
+        public void ClearFalseItems()
+        {
+            items.RemoveAll(item => item.Amount <= 0);
+        }
+
+        /// <summary>
         /// Removes some number of items, from the inventory, based on the type.
         /// </summary>
         /// <param name="itemType">The type of the item to remove.</param>

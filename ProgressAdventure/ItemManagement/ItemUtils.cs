@@ -609,14 +609,79 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
+        /// Creates a CompoundItem from a pre-prepared list of items.
+        /// </summary>
+        /// <param name="targetItem">The item to create.</param>
+        /// <param name="inputItems">The pre-prepared list of items</param>
+        /// <param name="recipe">The recipe to use.</param>
+        /// <param name="amount">The amount of times to complete the recipe.</param>
+        public static CompoundItem CreateItemFromOrderedList(ItemTypeID targetItem, List<AItem> inputItems, RecipeDTO recipe, int amount = 1)
+        {
+            var parts = new List<AItem>();
+            for (int x = 0; x < recipe.ingredients.Count; x++)
+            {
+                var usedItem = inputItems[x].DeepCopy();
+                inputItems[x].Amount -= recipe.ingredients[x].amount * amount;
+
+                usedItem.Amount = recipe.ingredients[x].amount;
+                parts.Add(usedItem);
+            }
+
+            return new CompoundItem(targetItem, parts, recipe.resultAmount * amount);
+        }
+
+        /// <summary>
+        /// Creates a CompoundItem from a list of items, like "CompleteRecipe()", but doesn't check if the given list of items can actualy create that item, and creates new items and takes more item than there are if nececary.
+        /// </summary>
+        /// <param name="targetItem">The item to create.</param>
+        /// <param name="inputItems">The list of items to use.</param>
+        /// <param name="recipe">The recipe to use.</param>
+        /// <param name="amount">The amount of times to complete the recipe.</param>
+        public static CompoundItem CompleteRecipeWithoutChecking(ItemTypeID targetItem, List<AItem> inputItems, RecipeDTO recipe, int amount = 1)
+        {
+            var requiredItems = new List<AItem>();
+            foreach (var ingredient in recipe.ingredients)
+            {
+                var itemFound = false;
+                foreach (var item in inputItems)
+                {
+                    if (
+                        ingredient.itemType == item.Type &&
+                        (ingredient.material is null || item.Material == ingredient.material) &&
+                        (ingredient.unit is not null ? ConvertAmountToUnit(item, (ItemAmountUnit)ingredient.unit) : 1) >= ingredient.amount * amount
+                    )
+                    {
+                        requiredItems.Add(item);
+                        itemFound = true;
+                        break;
+                    }
+                }
+                if (!itemFound)
+                {
+                    AItem createdItem;
+                    if (ingredient.itemType == MATERIAL_ITEM_TYPE)
+                    {
+                        createdItem = new MaterialItem(ingredient.material ?? Material.WOOD, ingredient.amount);
+                    }
+                    else
+                    {
+                        createdItem = CreateCompoundItem(ingredient.itemType, ingredient.material, null, ingredient.amount);
+                    }
+                    requiredItems.Add(createdItem);
+                }
+            }
+            return CreateItemFromOrderedList(targetItem, inputItems, recipe, amount);
+        }
+
+        /// <summary>
         /// Tries to create a compound item, from a list of ingredients.
         /// </summary>
         /// <param name="targetItem">The item type to try to create.</param>
         /// <param name="inputItems">The list of items to use, as the input for the recipe.</param>
-        /// <param name="targetRecipe">The index of the target recipe to use for that item.<br/>
+        /// <param name="targetRecipe">The target recipe to use for that item.<br/>
         /// If null it tries to use all of them in order, until it succedes.</param>
         /// <param name="amount">How many times to complete the recipe.</param>
-        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int? targetRecipe = null, int amount = 1)
+        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, RecipeDTO? targetRecipe = null, int amount = 1)
         {
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
@@ -628,13 +693,7 @@ namespace ProgressAdventure.ItemManagement
 
             if (targetRecipe is not null)
             {
-                if (targetRecipe < 0 || targetRecipe > recipes.Count - 1)
-                {
-                    PACSingletons.Instance.Logger.Log("Item making error", "invalid item recipe index", LogSeverity.WARN);
-                    return null;
-                }
-
-                usedRecipe = recipes[(int)targetRecipe];
+                usedRecipe = targetRecipe;
                 requiredItems = GetRequiredItemsForRecipe(usedRecipe, inputItems, amount);
             }
             else
@@ -653,6 +712,7 @@ namespace ProgressAdventure.ItemManagement
                     return null;
                 }
             }
+
             if (requiredItems is null)
             {
                 return null;
@@ -672,15 +732,41 @@ namespace ProgressAdventure.ItemManagement
             return new CompoundItem(targetItem, parts, usedRecipe.resultAmount * amount);
         }
 
+        /// <param name="targetRecipe">The index of the target recipe to use for that item.<br/>
+        /// If null it tries to use all of them in order, until it succedes.</param>
+        /// <inheritdoc cref="CompleteRecipe(ItemTypeID, List{AItem}, RecipeDTO?, int)"/>
+        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int? targetRecipe = null, int amount = 1)
+        {
+            if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
+            {
+                return null;
+            }
+
+            RecipeDTO? usedRecipe = null;
+
+            if (targetRecipe is not null)
+            {
+                if (targetRecipe < 0 || targetRecipe > recipes.Count - 1)
+                {
+                    PACSingletons.Instance.Logger.Log("Item making error", "invalid item recipe index", LogSeverity.WARN);
+                    return null;
+                }
+
+                usedRecipe = recipes[(int)targetRecipe];
+            }
+
+            return CompleteRecipe(targetItem, inputItems, usedRecipe, amount);
+        }
+
         /// <summary>
         /// Creates a new compound item from the target type.
         /// </summary>
         /// <param name="targetItem">The item type to create.</param>
         /// <param name="materials">The materials to use, for the parts of the item, if posible.</param>
-        /// <param name="targetRecipe">The index of the target recipe to use for that item.<br/>
+        /// <param name="targetRecipeTree">The recipe tree for target recipe to use for that item.<br/>
         /// If null it tries to use the first recipe that creates the amount of items that were requested.</param>
         /// <param name="amount">How much of the item to create.</param>
-        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, int? targetRecipe = null, double amount = 1)
+        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, RecipeTreeDTO? targetRecipeTree = null, double amount = 1)
         {
             // not craftable
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
@@ -690,9 +776,9 @@ namespace ProgressAdventure.ItemManagement
 
             // get recipe
             RecipeDTO recipe;
-            if (targetRecipe is not null)
+            if (targetRecipeTree is not null)
             {
-                recipe = recipes[Math.Clamp((int)targetRecipe, 0, recipes.Count - 1)];
+                recipe = recipes[Math.Clamp((int)targetRecipeTree.recipeIndex, 0, recipes.Count - 1)];
             }
             else
             {
@@ -722,7 +808,12 @@ namespace ProgressAdventure.ItemManagement
                 }
                 else
                 {
-                    part = CreateCompoundItem(ingredient.itemType, material, null, ingredient.amount);
+                    var partRecipeTree = (
+                            targetRecipeTree is not null &&
+                            targetRecipeTree.partRecipeTrees is not null &&
+                            targetRecipeTree.partRecipeTrees.Count > x
+                        ) ? targetRecipeTree.partRecipeTrees[x] : null;
+                    part = CreateCompoundItem(ingredient.itemType, material, partRecipeTree, ingredient.amount);
                 }
                 part.Amount = ingredient.unit is not null ? ConvertAmountToUnit(part, (ItemAmountUnit)ingredient.unit) : part.Amount;
                 parts.Add(part);
@@ -733,21 +824,19 @@ namespace ProgressAdventure.ItemManagement
 
         /// <inheritdoc cref="CreateCompoundItem(ItemTypeID, List{Material?}?, int?, double)"/>
         /// <param name="material">The material to use, for the material of the item, if posible.</param>
-        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, int? targetRecipe = null, double amount = 1)
+        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, RecipeTreeDTO? targetRecipe = null, double amount = 1)
         {
             return CreateCompoundItem(targetItem, new List<Material?> { material }, targetRecipe, amount);
         }
-        #endregion
 
-        #region Private functions
         /// <summary>
         /// Checks if a recipe can be completed, using the given items.
         /// </summary>
-        /// <param name="recipe">The recipe to try check.</param>
+        /// <param name="recipe">The recipe to check.</param>
         /// <param name="inputItems">The items to use, to check, if the recipe can be completed with.</param>
         /// <param name="amount">The amount of times to try and complete the recipe.</param>
         /// <returns>A list of items that would be required to complete the recipe the required amount of times.</returns>
-        private static List<AItem>? GetRequiredItemsForRecipe(RecipeDTO recipe, List<AItem> inputItems, int amount = 1)
+        public static List<AItem>? GetRequiredItemsForRecipe(RecipeDTO recipe, List<AItem> inputItems, int amount = 1)
         {
             var requiredItems = new List<AItem>();
 

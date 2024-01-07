@@ -13,17 +13,6 @@ namespace ProgressAdventure
     {
         #region Public functions
         /// <summary>
-        /// Pauses the thread while the game is paused.
-        /// </summary>
-        public static void GamePausedLock()
-        {
-            while (PASingletons.Instance.Globals.paused)
-            {
-                Thread.Sleep(100);
-            }
-        }
-
-        /// <summary>
         /// Creates a new save.
         /// </summary>
         public static void NewSave()
@@ -50,9 +39,9 @@ namespace ProgressAdventure
         /// </summary>
         public static void InitiateFight()
         {
-            PASingletons.Instance.Globals.inFight = true;
+            PASingletons.Instance.Globals.InFight = true;
             EntityUtils.RandomFight(3, 5);
-            PASingletons.Instance.Globals.inFight = false;
+            PASingletons.Instance.Globals.InFight = false;
         }
 
         /// <summary>
@@ -60,10 +49,25 @@ namespace ProgressAdventure
         /// </summary>
         public static void SaveGame()
         {
-            PASingletons.Instance.Globals.saving = true;
+            PASingletons.Instance.Globals.Saving = true;
             SaveManager.MakeSave();
             PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\"");
-            PASingletons.Instance.Globals.saving = false;
+            PASingletons.Instance.Globals.Saving = false;
+        }
+
+        /// <summary>
+        /// Exits the game.
+        /// </summary>
+        /// <param name="save">Whether to save the game.</param>
+        public static void ExitGame(bool save = true)
+        {
+            PACSingletons.Instance.Logger.Log("Exiting game", $"save name: {SaveData.Instance.saveName}");
+            PASingletons.Instance.Globals.Exiting = true;
+            if (save)
+            {
+                SaveGame();
+            }
+            PASingletons.Instance.Globals.InGameLoop = false;
         }
 
         /// <summary>
@@ -71,7 +75,7 @@ namespace ProgressAdventure
         /// </summary>
         public static void GameLoop()
         {
-            PASingletons.Instance.Globals.inGameLoop = true;
+            PASingletons.Instance.Globals.InGameLoop = true;
             // GAME LOOP
             PACSingletons.Instance.Logger.Log("Game loop started");
             // TRHEADS
@@ -87,8 +91,8 @@ namespace ProgressAdventure
             Console.WriteLine("Wandering...");
             for (var x = 0; x < 20; x++)
             {
-                GamePausedLock();
-                if (PASingletons.Instance.Globals.exiting)
+                PASingletons.Instance.Globals.PauseLock();
+                if (PASingletons.Instance.Globals.Exiting)
                 {
                     break;
                 }
@@ -100,21 +104,20 @@ namespace ProgressAdventure
                 World.TryGetChunkAll(position, out Chunk chunk);
                 chunk.FillChunk();
             }
-            GamePausedLock();
-            if (!PASingletons.Instance.Globals.exiting)
+            PASingletons.Instance.Globals.PauseLock();
+            if (!PASingletons.Instance.Globals.Exiting)
             {
                 Thread.Sleep(1000);
             }
-            GamePausedLock();
-            if (!PASingletons.Instance.Globals.exiting)
+            PASingletons.Instance.Globals.PauseLock();
+            if (!PASingletons.Instance.Globals.Exiting)
             {
                 //InitiateFight();
-                SaveGame();
             }
+            ExitGame(!PASingletons.Instance.Globals.Exiting);
             // SaveGame() maybe instead of the auto save
             // ENDING
-            PASingletons.Instance.Globals.exiting = false;
-            PASingletons.Instance.Globals.inGameLoop = false;
+            PASingletons.Instance.Globals.Exiting = false;
             Utils.PressKey("Exiting...Press key!");
             PACSingletons.Instance.Logger.Log("Game loop ended");
         }
@@ -168,17 +171,17 @@ namespace ProgressAdventure
         public static bool AutoSaveThreadFunction()
         {
             Thread.Sleep(Constants.AUTO_SAVE_INTERVAL);
-            if (PASingletons.Instance.Globals.inGameLoop)
+            if (PASingletons.Instance.Globals.InGameLoop)
             {
                 var saved = false;
                 while (!saved)
                 {
-                    if (PASingletons.Instance.Globals.inGameLoop)
+                    if (PASingletons.Instance.Globals.InGameLoop)
                     {
                         if (!(
-                            PASingletons.Instance.Globals.saving ||
-                            PASingletons.Instance.Globals.inFight ||
-                            PASingletons.Instance.Globals.paused
+                            PASingletons.Instance.Globals.Saving ||
+                            PASingletons.Instance.Globals.InFight ||
+                            PASingletons.Instance.Globals.Paused
                         ))
                         {
                             PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
@@ -196,7 +199,7 @@ namespace ProgressAdventure
                     }
                 }
             }
-            if (!PASingletons.Instance.Globals.inGameLoop)
+            if (!PASingletons.Instance.Globals.InGameLoop)
             {
                 return true;
             }
@@ -210,9 +213,9 @@ namespace ProgressAdventure
         public static bool UserActionsThreadFunction()
         {
             if (
-                !PASingletons.Instance.Globals.inGameLoop ||
-                PASingletons.Instance.Globals.inFight ||
-                PASingletons.Instance.Globals.saving
+                !PASingletons.Instance.Globals.InGameLoop ||
+                PASingletons.Instance.Globals.InFight ||
+                PASingletons.Instance.Globals.Saving
             )
             {
                 return false;
@@ -225,9 +228,9 @@ namespace ProgressAdventure
             var key = Console.ReadKey(true);
 
             if (
-                !PASingletons.Instance.Globals.inGameLoop ||
-                PASingletons.Instance.Globals.inFight ||
-                PASingletons.Instance.Globals.saving
+                !PASingletons.Instance.Globals.InGameLoop ||
+                PASingletons.Instance.Globals.InFight ||
+                PASingletons.Instance.Globals.Saving
             )
             {
                 return false;
@@ -235,32 +238,41 @@ namespace ProgressAdventure
 
             if (escapeAction.IsKey(key))
             {
-                PASingletons.Instance.Globals.paused = true;
+                if (PASingletons.Instance.Globals.Pause())
+                {
+                    return true;
+                }
 
                 MenuManager.PauseMenu();
 
-                PASingletons.Instance.Globals.paused = false;
+                PASingletons.Instance.Globals.Unpause();
             }
             else if (saveAction.IsKey(key))
             {
-                PASingletons.Instance.Globals.paused = true;
+                if (PASingletons.Instance.Globals.Pause())
+                {
+                    return true;
+                }
 
                 Console.WriteLine("SAVING...");
                 PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
                 SaveGame();
                 Console.WriteLine("SAVED!");
 
-                PASingletons.Instance.Globals.paused = false;
+                PASingletons.Instance.Globals.Unpause();
             }
             else if (statsAction.IsKey(key))
             {
-                PASingletons.Instance.Globals.paused = true;
+                if (PASingletons.Instance.Globals.Pause())
+                {
+                    return true;
+                }
 
                 SaveData.Instance.player.Stats(false);
                 Console.ReadKey(true);
                 MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
 
-                PASingletons.Instance.Globals.paused = false;
+                PASingletons.Instance.Globals.Unpause();
             }
 
             return false;

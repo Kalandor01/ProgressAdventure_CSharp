@@ -374,6 +374,10 @@ namespace ProgressAdventure
         /// Whether to order the json correcters by version number.
         /// </summary>
         public const bool ORDER_JSON_CORRECTERS = true;
+        /// <summary>
+        /// How often to check, if the game is unpaused when it is in a pause lock.
+        /// </summary>
+        public const int GLOBALS_PAUSED_CHECK_FREQUENCY = 100;
         #endregion
     }
 }

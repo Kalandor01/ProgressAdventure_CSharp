@@ -28,7 +28,7 @@ namespace ProgressAdventure.ItemManagement
         public RecipeTreeDTO(uint recipeIndex, IEnumerable<RecipeTreeDTO>? partRecipeTrees = null)
         {
             this.recipeIndex = recipeIndex;
-            this.partRecipeTrees = partRecipeTrees?.ToImmutableList();
+            this.partRecipeTrees = partRecipeTrees?.Any() == true ? partRecipeTrees.ToImmutableList() : null;
         }
         #endregion
 
@@ -67,7 +67,7 @@ namespace ProgressAdventure.ItemManagement
         public override string? ToString()
         {
             var str = new StringBuilder(recipeIndex.ToString());
-            if (partRecipeTrees is not null && partRecipeTrees.Any())
+            if (partRecipeTrees is not null)
             {
                 str.Append('(');
                 for (var x = 0; x < partRecipeTrees.Count; x++)
@@ -163,7 +163,7 @@ namespace ProgressAdventure.ItemManagement
             }
 
             return (
-                new RecipeTreeDTO(rootRecipe, partRecipeTrees.Any() ? partRecipeTrees : null),
+                new RecipeTreeDTO(rootRecipe, partRecipeTrees),
                 recipeTreeEnd == recipeSymbolsArray.Length ? -1 : recipeTreeEnd
             );
         }
