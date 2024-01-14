@@ -139,50 +139,50 @@ namespace ProgressAdventure.Entity
             var attrChances = attributeChances ?? new AttributeChancesDTO();
             var attributes = new List<Attribute>();
             // all attributes
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.rareChance)
-            {
-                attributes.Add(Attribute.RARE);
-            }
-            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.crippledChance)
+            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
             {
                 attributes.Add(Attribute.CRIPPLED);
-            }
-            // health
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.healthyChance)
+            },
+            () =>
             {
-                attributes.Add(Attribute.HEALTHY);
-            }
-            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.sickChance)
+                attributes.Add(Attribute.RARE);
+            }, attrChances.crippledChance, attrChances.rareChance);
+            // health
+            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
             {
                 attributes.Add(Attribute.SICK);
-            }
-            // attack
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.strongChance)
+            },
+            () =>
             {
-                attributes.Add(Attribute.STRONG);
-            }
-            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.weakChance)
+                attributes.Add(Attribute.HEALTHY);
+            }, attrChances.sickChance, attrChances.healthyChance);
+            // attack
+            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
             {
                 attributes.Add(Attribute.WEAK);
-            }
-            // defence
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.toughChance)
+            },
+            () =>
             {
-                attributes.Add(Attribute.TOUGH);
-            }
-            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.frailChance)
+                attributes.Add(Attribute.STRONG);
+            }, attrChances.weakChance, attrChances.strongChance);
+            // defence
+            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
             {
                 attributes.Add(Attribute.FRAIL);
-            }
-            // agility
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.agileChance)
+            },
+            () =>
             {
-                attributes.Add(Attribute.AGILE);
-            }
-            else if (RandomStates.Instance.MainRandom.GenerateDouble() < attrChances.slowChance)
+                attributes.Add(Attribute.TOUGH);
+            }, attrChances.frailChance, attrChances.toughChance);
+            // agility
+            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
             {
                 attributes.Add(Attribute.SLOW);
-            }
+            },
+            () =>
+            {
+                attributes.Add(Attribute.AGILE);
+            }, attrChances.slowChance, attrChances.agileChance);
             return attributes;
         }
 

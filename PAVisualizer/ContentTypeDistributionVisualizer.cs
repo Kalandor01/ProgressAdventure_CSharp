@@ -131,17 +131,7 @@ namespace PAVisualizer
 
         private static bool KeyValidatorDelegate(StringBuilder currentValue, ConsoleKeyInfo? key, int cursorPos)
         {
-            string newValue;
-            if (key is null)
-            {
-                var sbText = currentValue.ToString();
-                newValue = sbText[0..cursorPos] + sbText[(cursorPos + 1)..];
-            }
-            else
-            {
-                newValue = currentValue.ToString().Insert(cursorPos, key?.KeyChar.ToString() ?? "");
-            }
-
+            string newValue = PACTools.GetNewValueForKeyValidatorDelegate(currentValue, key, cursorPos);
             return uint.TryParse(newValue, out _);
         }
 

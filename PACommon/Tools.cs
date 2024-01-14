@@ -8,6 +8,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace PACommon
 {
@@ -584,6 +585,22 @@ namespace PACommon
             }
 
             return TryParseListValueForJsonParsing<T, TRes>(resultList, jsonKey, parseFunction, out value);
+        }
+        #endregion
+
+        #region Other
+        /// <summary>
+        /// Gets what the value will be in a KeyValidatorDelegate in a TextField.
+        /// </summary>
+        /// <inheritdoc cref="TextField.KeyValidatorDelegate"/>
+        public static string GetNewValueForKeyValidatorDelegate(StringBuilder currentValue, ConsoleKeyInfo? inputKey, int cursorPosition)
+        {
+            if (inputKey is null)
+            {
+                var sbText = currentValue.ToString();
+                return sbText[0..cursorPosition] + sbText[(cursorPosition + 1)..];
+            }
+            return currentValue.ToString().Insert(cursorPosition, inputKey?.KeyChar.ToString() ?? "");
         }
         #endregion
         #endregion

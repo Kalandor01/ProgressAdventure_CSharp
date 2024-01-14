@@ -32,7 +32,7 @@ namespace ProgressAdventure.SettingsManagement
         #region Public overrides
         public override bool Equals(object? obj)
         {
-            if (obj is null || GetType() != obj.GetType())
+            if (obj is not ActionKey akObj)
             {
                 return false;
             }
@@ -40,7 +40,6 @@ namespace ProgressAdventure.SettingsManagement
             {
                 return true;
             }
-            var akObj = (ActionKey)obj;
             if (ActionType != akObj.ActionType || !response.Equals(akObj.response))
             {
                 return false;

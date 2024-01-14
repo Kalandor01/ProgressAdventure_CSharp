@@ -116,7 +116,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="randomGenrator">The genrator to use.</param>
         public static string GenerateContentName(SplittableRandom randomGenrator)
         {
-            return SentenceGenerator.GenerateWordSequence((1, 3), randomGenerator: randomGenrator).Capitalize();
+            return SentenceGenerator.GenerateNameSequence((1, 3), randomGenerator: randomGenrator);
         }
 
         /// <summary>
