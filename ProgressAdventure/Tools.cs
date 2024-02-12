@@ -1,6 +1,9 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using ProgressAdventure.Entity;
+using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
+using ProgressAdventure.WorldManagement;
 using System.Collections;
 using System.IO.Compression;
 using static ProgressAdventure.Constants;
@@ -49,6 +52,55 @@ namespace ProgressAdventure
         {
             return PACTools.DecodeSaveShort(filePath, seed, extension, lineNum, expected);
         }
+
+        /// <summary>
+        /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
+        /// </summary>
+        /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fileTypeName">The name of the file that is being loaded.</param>
+        /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
+        public static Dictionary<string, object?>? DecodeSaveShortExpected<T>(
+            string filePath,
+            int lineNum = 0,
+            long seed = SAVE_SEED,
+            string extension = SAVE_EXT,
+            bool expected = true,
+            string? fileTypeName = null,
+            string? extraFileInformation = null
+        )
+        {
+            try
+            {
+                var chunkJson = DecodeSaveShort(filePath, lineNum, seed, extension, expected);
+                if (chunkJson is null)
+                {
+                    PACTools.LogJsonNullError<T>(nameof(T), extraFileInformation, true);
+                    return null;
+                }
+                return chunkJson;
+            }
+            catch (Exception e)
+            {
+                fileTypeName ??= nameof(T);
+                if (e is FormatException)
+                {
+                    PACTools.LogJsonParseError<T>(nameof(T), $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
+                    return null;
+                }
+                else if (e is FileNotFoundException)
+                {
+                    PACSingletons.Instance.Logger.Log($"{fileTypeName} file not found", $"{(expected ? "" : "(but it was expected)")} {extraFileInformation}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                    return null;
+                }
+                else if (e is DirectoryNotFoundException)
+                {
+                    PACSingletons.Instance.Logger.Log($"{fileTypeName} folder not found", $"{(expected ? "" : "(but it was expected)")} {extraFileInformation}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                    return null;
+                }
+                throw;
+            }
+        }
         #endregion
 
         #region Recreate folder
@@ -58,7 +110,7 @@ namespace ProgressAdventure
         /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateSavesFolder()
         {
-            return PACTools.RecreateFolder(Constants.SAVES_FOLDER);
+            return PACTools.RecreateFolder(SAVES_FOLDER);
         }
 
         /// <summary>
@@ -67,7 +119,7 @@ namespace ProgressAdventure
         /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
         public static bool RecreateBackupsFolder()
         {
-            return PACTools.RecreateFolder(Constants.BACKUPS_FOLDER);
+            return PACTools.RecreateFolder(BACKUPS_FOLDER);
         }
 
         /// <summary>
@@ -80,7 +132,7 @@ namespace ProgressAdventure
         {
             saveFolderName ??= SaveData.Instance.saveName;
             RecreateSavesFolder();
-            return PACTools.RecreateFolder(saveFolderName, Constants.SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
+            return PACTools.RecreateFolder(saveFolderName, SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
         }
 
         /// <summary>
@@ -93,7 +145,7 @@ namespace ProgressAdventure
         {
             saveFolderName ??= SaveData.Instance.saveName;
             RecreateSaveFileFolder(saveFolderName);
-            return PACTools.RecreateFolder(Constants.SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
+            return PACTools.RecreateFolder(SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
         }
         #endregion
 
@@ -102,7 +154,7 @@ namespace ProgressAdventure
         /// Returns what the save's folder path should be.
         /// </summary>
         /// <param name="saveFolderName">The save name.</param>
-        public static string? GetSaveFolderPath(string saveFolderName)
+        public static string GetSaveFolderPath(string saveFolderName)
         {
             return Path.Join(SAVES_FOLDER_PATH, saveFolderName);
         }
@@ -204,6 +256,43 @@ namespace ProgressAdventure
         public static string StylizedText(string text, (byte r, byte g, byte b)? foregroundColor = null, (byte r, byte g, byte b)? backgroundColor = null)
         {
             return PASingletons.Instance.Settings.EnableColoredText ? Utils.StylizedText(text, foregroundColor, backgroundColor) : text;
+        }
+
+        /// <summary>
+        /// Loads variables that don't get loaded until they are queried.
+        /// </summary>
+        public static void PreloadResources()
+        {
+            _ = EntityUtils.facingToMovementVectorMap;
+            _ = EntityUtils.entityTypeMap;
+            _ = EntityUtils.attributeStatChangeMap;
+
+            _ = ItemUtils._legacyItemTypeNameMap;
+            _ = ItemUtils._legacyCompoundtemMap;
+            _ = ItemUtils._legacyMaterialItemMap;
+            _ = ItemUtils.compoundItemAttributes;
+            _ = ItemUtils.materialItemAttributes;
+            _ = ItemUtils.materialProperties;
+            _ = ItemUtils.itemRecipes;
+
+            _ = SettingsUtils.actionTypeIgnoreMapping;
+            _ = SettingsUtils.actionTypeResponseMapping;
+            _ = SettingsUtils.settingValueTypeMap;
+
+            _ = WorldUtils._tileNoiseOffsets;
+            _ = WorldUtils._terrainContentTypePropertyMap;
+            _ = WorldUtils._structureContentTypePropertyMap;
+            _ = WorldUtils._populationContentTypePropertyMap;
+            _ = WorldUtils._contentTypePropertyMap;
+            _ = WorldUtils._terrainContentTypeMap;
+            _ = WorldUtils._structureContentTypeMap;
+            _ = WorldUtils._populationContentTypeMap;
+            _ = WorldUtils.contentTypeMap;
+            _ = WorldUtils.terrainContentTypeIDTextMap;
+            _ = WorldUtils.structureContentSubtypeIDTextMap;
+            _ = WorldUtils.populationContentSubtypeIDTextMap;
+            _ = WorldUtils.contentTypeIDTextMap;
+            _ = WorldUtils.contentTypeIDSubtypeTextMap;
         }
         #endregion
         #endregion

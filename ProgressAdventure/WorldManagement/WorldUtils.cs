@@ -25,7 +25,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Offsets for tile noise values.
         /// </summary>
-        private static readonly Dictionary<TileNoiseType, double> _tileNoiseOffsets = new()
+        internal static readonly Dictionary<TileNoiseType, double> _tileNoiseOffsets = new()
         {
             [TileNoiseType.HEIGHT] = 0,
             [TileNoiseType.TEMPERATURE] = 0,
@@ -37,7 +37,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain types to their ideal properties.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _terrainContentTypePropertyMap = new()
+        internal static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _terrainContentTypePropertyMap = new()
         {
             [typeof(MountainTerrain)] = new Dictionary<TileNoiseType, double>()
             {
@@ -60,7 +60,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain types to their ideal properties.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _structureContentTypePropertyMap = new()
+        internal static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _structureContentTypePropertyMap = new()
         {
             [typeof(NoStructure)] = new Dictionary<TileNoiseType, double>()
             {
@@ -86,7 +86,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain types to their ideal properties.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _populationContentTypePropertyMap = new()
+        internal static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _populationContentTypePropertyMap = new()
         {
             [typeof(NoPopulation)] = new Dictionary<TileNoiseType, double>()
             {
@@ -125,7 +125,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map content types to their property maps.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> _contentTypePropertyMap = new()
+        internal static readonly Dictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> _contentTypePropertyMap = new()
         {
             [typeof(TerrainContent)] = _terrainContentTypePropertyMap,
             [typeof(StructureContent)] = _structureContentTypePropertyMap,
@@ -135,7 +135,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain content types to their object type.
         /// </summary>
-        private static readonly Dictionary<ContentTypeID, Type> _terrainContentTypeMap = new()
+        internal static readonly Dictionary<ContentTypeID, Type> _terrainContentTypeMap = new()
         {
             [ContentType.Terrain.FIELD] = typeof(FieldTerrain),
             [ContentType.Terrain.MOUNTAIN] = typeof(MountainTerrain),
@@ -146,7 +146,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map structure content types to their object type.
         /// </summary>
-        private static readonly Dictionary<ContentTypeID, Type> _structureContentTypeMap = new()
+        internal static readonly Dictionary<ContentTypeID, Type> _structureContentTypeMap = new()
         {
             [ContentType.Structure.NONE] = typeof(NoStructure),
             [ContentType.Structure.BANDIT_CAMP] = typeof(BanditCampStructure),
@@ -157,7 +157,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map population content types to their object type.
         /// </summary>
-        private static readonly Dictionary<ContentTypeID, Type> _populationContentTypeMap = new()
+        internal static readonly Dictionary<ContentTypeID, Type> _populationContentTypeMap = new()
         {
             [ContentType.Population.NONE] = typeof(NoPopulation),
             [ContentType.Population.HUMAN] = typeof(HumanPopulation),

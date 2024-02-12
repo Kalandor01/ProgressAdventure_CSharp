@@ -125,36 +125,16 @@ namespace ProgressAdventure.WorldManagement
         {
             saveFolderName ??= SaveData.Instance.saveName;
             var chunkFileName = GetChunkFileName(position);
-            Dictionary<string, object?>? chunkJson;
             chunk = null;
 
-            try
-            {
-                chunkJson = Tools.DecodeSaveShort(GetChunkFilePath(chunkFileName, saveFolderName), expected: expected);
-            }
-            catch (Exception e)
-            {
-                if (e is FormatException)
-                {
-                    PACTools.LogJsonParseError<Chunk>(nameof(Chunk), "json couldn't be parsed from file", true);
-                    return false;
-                }
-                else if (e is FileNotFoundException)
-                {
-                    PACSingletons.Instance.Logger.Log("Chunk file not found", $"{(expected ? "" : "(but it was expected)")} x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                    return false;
-                }
-                else if (e is DirectoryNotFoundException)
-                {
-                    PACSingletons.Instance.Logger.Log("Chunk folder not found", $"{(expected ? "" : "(but it was expected)")} x: {position.x}, y: {position.y}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                    return false;
-                }
-                throw;
-            }
+            var chunkJson = Tools.DecodeSaveShortExpected<Chunk>(
+                GetChunkFilePath(chunkFileName, saveFolderName),
+                expected: expected,
+                extraFileInformation: $"x: {position.x}, y: {position.y}"
+            );
 
             if (chunkJson is null)
             {
-                PACTools.LogJsonNullError<Chunk>(nameof(Chunk), null, true);
                 return false;
             }
 
@@ -256,11 +236,18 @@ namespace ProgressAdventure.WorldManagement
         /// Gets the name of the chunk file.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
+        /// <param name="chunkSize">The chunk size to round the position to.</param>
+        public static string GetChunkFileName((long x, long y) absolutePosition, int chunkSize)
+        {
+            var baseX = Utils.FloorRound(absolutePosition.x, chunkSize);
+            var baseY = Utils.FloorRound(absolutePosition.y, chunkSize);
+            return $"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}{baseX}{Constants.CHUNK_FILE_NAME_SEP}{baseY}";
+        }
+
+        /// <inheritdoc cref="GetChunkFileName(ValueTuple{long, long}, int)"/>
         public static string GetChunkFileName((long x, long y) absolutePosition)
         {
-            var baseX = Utils.FloorRound(absolutePosition.x, Constants.CHUNK_SIZE);
-            var baseY = Utils.FloorRound(absolutePosition.y, Constants.CHUNK_SIZE);
-            return $"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}{baseX}{Constants.CHUNK_FILE_NAME_SEP}{baseY}";
+            return GetChunkFileName(absolutePosition, Constants.CHUNK_SIZE);
         }
         #endregion
 

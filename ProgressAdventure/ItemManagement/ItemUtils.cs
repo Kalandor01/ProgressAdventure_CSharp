@@ -225,7 +225,7 @@ namespace ProgressAdventure.ItemManagement
         };
         #endregion
 
-        #region Internal fields
+        #region Internal constants
         /// <summary>
         /// The item type for a material.
         /// </summary>
@@ -573,7 +573,7 @@ namespace ProgressAdventure.ItemManagement
                 (targetUnit == ItemAmountUnit.L && itemUnit == ItemAmountUnit.KG)
             )
             {
-                multiplier = (item.VolumeMultiplier / item.MassMultiplier) * 1000;
+                multiplier = item.Density * 1000;
                 return itemUnit == ItemAmountUnit.L ? multiplier : 1 / multiplier;
             }
             // M3 -- KG
@@ -582,7 +582,7 @@ namespace ProgressAdventure.ItemManagement
                 (targetUnit == ItemAmountUnit.M3 && itemUnit == ItemAmountUnit.KG)
             )
             {
-                multiplier = item.VolumeMultiplier / item.MassMultiplier;
+                multiplier = item.Density;
                 return itemUnit == ItemAmountUnit.M3 ? multiplier : 1 / multiplier;
             }
             // M3 -- L
@@ -620,10 +620,12 @@ namespace ProgressAdventure.ItemManagement
             var parts = new List<AItem>();
             for (int x = 0; x < recipe.ingredients.Count; x++)
             {
+                var ingredient = recipe.ingredients[x];
+                var usedAmount = ingredient.unit is not null ? ConvertAmountToUnit(inputItems[x], (ItemAmountUnit)ingredient.unit) : ingredient.amount;
                 var usedItem = inputItems[x].DeepCopy();
-                inputItems[x].Amount -= recipe.ingredients[x].amount * amount;
+                inputItems[x].Amount -= usedAmount * amount;
 
-                usedItem.Amount = recipe.ingredients[x].amount;
+                usedItem.Amount = usedAmount;
                 parts.Add(usedItem);
             }
 
@@ -634,10 +636,10 @@ namespace ProgressAdventure.ItemManagement
         /// Creates a CompoundItem from a list of items, like "CompleteRecipe()", but doesn't check if the given list of items can actualy create that item, and creates new items and takes more item than there are if nececary.
         /// </summary>
         /// <param name="targetItem">The item to create.</param>
-        /// <param name="inputItems">The list of items to use.</param>
         /// <param name="recipe">The recipe to use.</param>
+        /// <param name="inputItems">The list of items to use.</param>
         /// <param name="amount">The amount of times to complete the recipe.</param>
-        public static CompoundItem CompleteRecipeWithoutChecking(ItemTypeID targetItem, List<AItem> inputItems, RecipeDTO recipe, int amount = 1)
+        public static CompoundItem CompleteRecipeWithoutChecking(ItemTypeID targetItem, RecipeDTO recipe, List<AItem> inputItems, int amount = 1)
         {
             var requiredItems = new List<AItem>();
             foreach (var ingredient in recipe.ingredients)
@@ -665,7 +667,7 @@ namespace ProgressAdventure.ItemManagement
                     }
                     else
                     {
-                        createdItem = CreateCompoundItem(ingredient.itemType, ingredient.material, null, ingredient.amount);
+                        createdItem = CreateCompoundItem(ingredient.itemType, ingredient.material, ingredient.amount);
                     }
                     requiredItems.Add(createdItem);
                 }
@@ -718,42 +720,25 @@ namespace ProgressAdventure.ItemManagement
                 return null;
             }
 
-            // create the item
-            var parts = new List<AItem>();
-            for (int x = 0; x < usedRecipe.ingredients.Count; x++)
-            {
-                var usedItem = requiredItems[x].DeepCopy();
-                requiredItems[x].Amount -= usedRecipe.ingredients[x].amount * amount;
-
-                usedItem.Amount = usedRecipe.ingredients[x].amount;
-                parts.Add(usedItem);
-            }
-
-            return new CompoundItem(targetItem, parts, usedRecipe.resultAmount * amount);
+            return CreateItemFromOrderedList(targetItem, requiredItems, usedRecipe, amount);
         }
 
-        /// <param name="targetRecipe">The index of the target recipe to use for that item.<br/>
-        /// If null it tries to use all of them in order, until it succedes.</param>
+        /// <param name="targetRecipeIndex">The index of the target recipe to use for that item.</param>
         /// <inheritdoc cref="CompleteRecipe(ItemTypeID, List{AItem}, RecipeDTO?, int)"/>
-        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int? targetRecipe = null, int amount = 1)
+        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int targetRecipeIndex, int amount = 1)
         {
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
                 return null;
             }
 
-            RecipeDTO? usedRecipe = null;
-
-            if (targetRecipe is not null)
+            if (targetRecipeIndex < 0 || targetRecipeIndex > recipes.Count - 1)
             {
-                if (targetRecipe < 0 || targetRecipe > recipes.Count - 1)
-                {
-                    PACSingletons.Instance.Logger.Log("Item making error", "invalid item recipe index", LogSeverity.WARN);
-                    return null;
-                }
-
-                usedRecipe = recipes[(int)targetRecipe];
+                PACSingletons.Instance.Logger.Log("Item making error", "invalid item recipe index", LogSeverity.WARN);
+                return null;
             }
+
+            var usedRecipe = recipes[targetRecipeIndex];
 
             return CompleteRecipe(targetItem, inputItems, usedRecipe, amount);
         }
@@ -763,10 +748,10 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="targetItem">The item type to create.</param>
         /// <param name="materials">The materials to use, for the parts of the item, if posible.</param>
+        /// <param name="amount">How much of the item to create.</param>
         /// <param name="targetRecipeTree">The recipe tree for target recipe to use for that item.<br/>
         /// If null it tries to use the first recipe that creates the amount of items that were requested.</param>
-        /// <param name="amount">How much of the item to create.</param>
-        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, RecipeTreeDTO? targetRecipeTree = null, double amount = 1)
+        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, double amount = 1, RecipeTreeDTO? targetRecipeTree = null)
         {
             // not craftable
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
@@ -813,7 +798,7 @@ namespace ProgressAdventure.ItemManagement
                             targetRecipeTree.partRecipeTrees is not null &&
                             targetRecipeTree.partRecipeTrees.Count > x
                         ) ? targetRecipeTree.partRecipeTrees[x] : null;
-                    part = CreateCompoundItem(ingredient.itemType, material, partRecipeTree, ingredient.amount);
+                    part = CreateCompoundItem(ingredient.itemType, material, ingredient.amount, partRecipeTree);
                 }
                 part.Amount = ingredient.unit is not null ? ConvertAmountToUnit(part, (ItemAmountUnit)ingredient.unit) : part.Amount;
                 parts.Add(part);
@@ -824,9 +809,9 @@ namespace ProgressAdventure.ItemManagement
 
         /// <inheritdoc cref="CreateCompoundItem(ItemTypeID, List{Material?}?, int?, double)"/>
         /// <param name="material">The material to use, for the material of the item, if posible.</param>
-        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, RecipeTreeDTO? targetRecipe = null, double amount = 1)
+        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, double amount = 1, RecipeTreeDTO? targetRecipe = null)
         {
-            return CreateCompoundItem(targetItem, new List<Material?> { material }, targetRecipe, amount);
+            return CreateCompoundItem(targetItem, new List<Material?> { material }, amount, targetRecipe);
         }
 
         /// <summary>

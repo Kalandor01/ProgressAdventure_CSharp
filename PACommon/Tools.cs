@@ -60,7 +60,7 @@ namespace PACommon
             string decodedLine;
             try
             {
-                decodedLine = FileConversion.DecodeFile((long)seed, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
+                decodedLine = FileConversion.DecodeFile(seed, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
             }
             catch (FormatException)
             {
@@ -177,6 +177,7 @@ namespace PACommon
         }
         #endregion
 
+        #region Json
         #region FromJson
         /// <summary>
         /// Tries to convert the json representation of the object to an object format.
@@ -586,6 +587,7 @@ namespace PACommon
 
             return TryParseListValueForJsonParsing<T, TRes>(resultList, jsonKey, parseFunction, out value);
         }
+        #endregion
         #endregion
 
         #region Other

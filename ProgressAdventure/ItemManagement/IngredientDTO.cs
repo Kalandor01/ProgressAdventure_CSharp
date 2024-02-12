@@ -40,7 +40,8 @@ namespace ProgressAdventure.ItemManagement
             : this(
                   itemType,
                   null,
-                  amount
+                  amount,
+                  unit
                 )
         { }
 

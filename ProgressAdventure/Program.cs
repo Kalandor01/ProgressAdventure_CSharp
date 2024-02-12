@@ -68,6 +68,8 @@ namespace ProgressAdventure
             );
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
+            PACSingletons.Instance.Logger.Log("Preloading resources");
+            Tools.PreloadResources();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 

@@ -1,4 +1,5 @@
-﻿using PInvoke;
+﻿using Newtonsoft.Json.Linq;
+using PInvoke;
 using System.Collections;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -553,7 +554,8 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Searches for all public static fields in a (static) class, and all of its nested (public static) classes, and returns their values.
+        /// Searches for all public static fields in a (static) class, and all of its nested (public static) classes, and returns their values.<br/>
+        /// (Normaly used for getting all types of a nested enum type. (ItemTypeID, ContentTypeID))
         /// </summary>
         /// <typeparam name="T">The type of values to search for.</typeparam>
         /// <param name="classType">The type of the static class to search in.</param>
@@ -614,11 +616,18 @@ namespace PACommon
         /// <typeparam name="T">The type of the internal field.</typeparam>
         /// <param name="fieldName">The name of the internal field.</param>
         /// <param name="instance">The instance to get the field from. If null, it assumes, that the class in a static class.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the field is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if the field doesn't exist.</exception>
         private static T GetInternalFieldFromClass<T>(Type classType, string fieldName, object? instance = null)
         {
-            var field = classType?.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(instance);
-            return field is null ? throw new ArgumentNullException(nameof(field), "The internal filed is null.") : (T)field;
+            var field = classType?.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+            if (
+                field is null ||
+                field.GetValue(instance) is not T value
+            )
+            {
+                throw new ArgumentNullException(nameof(field), "The internal filed doesn't exist.");
+            }
+            return value;
         }
 
         [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]

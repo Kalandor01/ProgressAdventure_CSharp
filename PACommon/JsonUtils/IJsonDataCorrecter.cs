@@ -25,6 +25,7 @@
         /// <summary>
         /// Tries to correct the json data of the object, if it's out of date.
         /// </summary>
+        /// <typeparam name="T">The type of the object that the json object represents.</typeparam>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="correcters">The list of function to use, to correct the old json data.</param>

@@ -9,6 +9,7 @@ using ProgressAdventure.SettingsManagement;
 using System.Text;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
+using PATools = ProgressAdventure.Tools;
 
 namespace ProgressAdventureTests
 {
@@ -61,6 +62,8 @@ namespace ProgressAdventureTests
                 KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
             }
 
+            PACSingletons.Instance.Logger.Log("Preloading resources");
+            PATools.PreloadResources();
             PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);
         }
 

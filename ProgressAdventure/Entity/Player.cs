@@ -1,6 +1,4 @@
-﻿using PACommon;
-using PACommon.Enums;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;

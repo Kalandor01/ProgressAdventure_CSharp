@@ -1111,9 +1111,9 @@ namespace ProgressAdventureTests
                         new MaterialItem(Material.CLOTH, 15),
                         new MaterialItem(Material.GOLD, 5.27),
                         new MaterialItem(Material.HEALING_LIQUID, 0.3),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, new List<Material?> { Material.STEEL, Material.WOOD }, null, 12),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, new List<Material?> { Material.WOOD }, null, 3),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, new List<Material?> { Material.FLINT, Material.WOOD }, null, 152),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, new List<Material?> { Material.STEEL, Material.WOOD }, 12),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, new List<Material?> { Material.WOOD }, 3),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, new List<Material?> { Material.FLINT, Material.WOOD }, 152),
                     }),
                     (15, -6))
             );
