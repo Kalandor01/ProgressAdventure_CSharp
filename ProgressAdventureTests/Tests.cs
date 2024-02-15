@@ -748,21 +748,23 @@ namespace ProgressAdventureTests
             // all item IDs can turn into items
             foreach (var itemID in ItemUtils.GetAllItemTypes())
             {
-                if (itemID != ItemType.Misc.MATERIAL)
+                if (itemID == ItemType.Misc.MATERIAL)
                 {
-                    var attributes = ItemUtils.compoundItemAttributes[itemID];
-                    CompoundItem item;
-                    try
-                    {
-                        item = ItemUtils.CreateCompoundItem(itemID, amount: itemAmount);
-                    }
-                    catch (Exception ex)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
-                    }
-
-                    allItems.Add(item);
+                    continue;
                 }
+
+                var attributes = ItemUtils.compoundItemAttributes[itemID];
+                CompoundItem item;
+                try
+                {
+                    item = ItemUtils.CreateCompoundItem(itemID, amount: itemAmount);
+                }
+                catch (Exception ex)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
+                }
+
+                allItems.Add(item);
             }
 
             // items loadable from json and are the same as before load

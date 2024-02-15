@@ -92,5 +92,14 @@ namespace ProgressAdventure.ItemManagement
             this.unit = unit;
         }
         #endregion
+
+        public override string? ToString()
+        {
+            return $"{(
+                    material is null && itemType == ItemType.Misc.MATERIAL
+                        ? "ANY MATERIAL"
+                        : $"{(material is null ? "" : $"{(Material)material} ")}{(itemType == ItemType.Misc.MATERIAL ? "" : ItemUtils.ItemIDToTypeName(itemType))}"
+                )} x{amount}{(unit is null || unit == ItemAmountUnit.AMOUNT ? "" : (ItemAmountUnit)unit)}";
+        }
     }
 }

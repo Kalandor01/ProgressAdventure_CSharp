@@ -367,6 +367,10 @@ namespace ProgressAdventure
         /// </summary>
         public const int ITEM_AMOUNT_ROUNDING_DIGITS = 4;
         /// <summary>
+        /// The limit to whether to display the item amount normaly, or in a scientific notation. The limit surpassed if amount > 10^x or amount < 10^-x.
+        /// </summary>
+        public const int ITEM_AMOUNT_SCIENTIFIC_FORMAT_DIGITS = 4;
+        /// <summary>
         /// The save folder name to use, if the SaveData singleton was initialized from the Instance property.
         /// </summary>
         public const string DEFAULT_SAVE_DATA_SAVE_NAME = "[DEFAULT]";

@@ -10,6 +10,10 @@ namespace ProgressAdventure.ItemManagement
     /// </summary>
     public abstract class AItem : IJsonConvertable<AItem>
     {
+        #region Constants
+        private static readonly string ITEM_AMOUNT_FORMATING = $"0.{new string('0', Constants.ITEM_AMOUNT_ROUNDING_DIGITS)}E0";
+        #endregion
+
         #region Protected fields
         /// <summary>
         /// The number of items.
@@ -67,7 +71,6 @@ namespace ProgressAdventure.ItemManagement
                     _amount = Math.Floor(_amount);
                     return;
                 }
-                _amount = Math.Round(_amount, Constants.ITEM_AMOUNT_ROUNDING_DIGITS);
             }
         }
 
@@ -173,10 +176,28 @@ namespace ProgressAdventure.ItemManagement
 
         public override string? ToString()
         {
-            var amount = (Amount != 1 || Unit != ItemAmountUnit.AMOUNT) && Amount > 0 ?
-                " x" + Amount.ToString() + (Unit == ItemAmountUnit.AMOUNT ? "" : " " + Unit.ToString().ToLower()) :
-                "";
+            var amount = (Amount != 1 || Unit != ItemAmountUnit.AMOUNT) && Amount > 0
+                ? $" x{FormatAmount(Amount)}{(Unit == ItemAmountUnit.AMOUNT
+                    ? ""
+                    : $" {Unit.ToString().ToLower()}")}"
+                : "";
             return $"{DisplayName}{amount}";
+        }
+        #endregion
+
+        #region Private functions
+        public static string FormatAmount(double amount)
+        {
+            var absAmount = Math.Abs(amount);
+            if (
+                absAmount > Math.Pow(10, Constants.ITEM_AMOUNT_SCIENTIFIC_FORMAT_DIGITS) ||
+                absAmount < Math.Pow(10, -Constants.ITEM_AMOUNT_SCIENTIFIC_FORMAT_DIGITS)
+            )
+            {
+                return amount.ToString(ITEM_AMOUNT_FORMATING);
+            }
+
+            return Math.Round(amount, Constants.ITEM_AMOUNT_ROUNDING_DIGITS).ToString();
         }
         #endregion
 

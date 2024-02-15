@@ -683,7 +683,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="targetRecipe">The target recipe to use for that item.<br/>
         /// If null it tries to use all of them in order, until it succedes.</param>
         /// <param name="amount">How many times to complete the recipe.</param>
-        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, RecipeDTO? targetRecipe = null, int amount = 1)
+        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int amount = 1, RecipeDTO? targetRecipe = null)
         {
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
@@ -724,8 +724,8 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <param name="targetRecipeIndex">The index of the target recipe to use for that item.</param>
-        /// <inheritdoc cref="CompleteRecipe(ItemTypeID, List{AItem}, RecipeDTO?, int)"/>
-        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int targetRecipeIndex, int amount = 1)
+        /// <inheritdoc cref="CompleteRecipe(ItemTypeID, List{AItem}, int, RecipeDTO?)"/>
+        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int amount, int targetRecipeIndex)
         {
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
@@ -740,7 +740,7 @@ namespace ProgressAdventure.ItemManagement
 
             var usedRecipe = recipes[targetRecipeIndex];
 
-            return CompleteRecipe(targetItem, inputItems, usedRecipe, amount);
+            return CompleteRecipe(targetItem, inputItems, amount, usedRecipe);
         }
 
         /// <summary>
@@ -820,7 +820,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="recipe">The recipe to check.</param>
         /// <param name="inputItems">The items to use, to check, if the recipe can be completed with.</param>
         /// <param name="amount">The amount of times to try and complete the recipe.</param>
-        /// <returns>A list of items that would be required to complete the recipe the required amount of times.</returns>
+        /// <returns>A list of items that would be required to complete the recipe the required amount of times, or null, if it can't be completed.</returns>
         public static List<AItem>? GetRequiredItemsForRecipe(RecipeDTO recipe, List<AItem> inputItems, int amount = 1)
         {
             var requiredItems = new List<AItem>();
