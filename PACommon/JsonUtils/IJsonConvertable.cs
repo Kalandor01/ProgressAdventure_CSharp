@@ -11,7 +11,7 @@ namespace PACommon.JsonUtils
         where T : IJsonConvertable<T>
     {
         #region Protected properties
-        protected static virtual List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new() { };
+        protected static virtual List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = [];
         #endregion
 
         #region Public functions
@@ -31,7 +31,7 @@ namespace PACommon.JsonUtils
                 return false;
             }
 
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T>(ref objectJson, T.VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T>(objectJson, T.VersionCorrecters, fileVersion);
 
             return T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
         }

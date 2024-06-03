@@ -1,6 +1,5 @@
 ﻿using NPrng.Generators;
 using PACommon;
-using PACommon.Extensions;
 using PACommon.JsonUtils;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
@@ -44,7 +43,13 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="name"><inheritdoc cref="Name" path="//summary"/></param>
         /// <param name="data">The extra data for this content. Specific to each content subtype.</param>
         /// <exception cref="ArgumentException">Thrown, if the type is not a base type, and the subtype is not the child of that type.</exception>
-        protected BaseContent(SplittableRandom chunkRandom, ContentTypeID type, ContentTypeID subtype, string? name = null, IDictionary<string, object?>? data = null)
+        protected BaseContent(
+            SplittableRandom chunkRandom,
+            ContentTypeID type,
+            ContentTypeID subtype,
+            string? name = null,
+            IDictionary<string, object?>? data = null
+        )
         {
             if (
                 subtype.Super != type ||
@@ -166,8 +171,8 @@ namespace ProgressAdventure.WorldManagement.Content
 
         #region JsonConvert
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>, SplittableRandom> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new()
-        {
+        protected static List<(Action<IDictionary<string, object?>, SplittableRandom> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
+        [
             // 2.2 -> 2.2.1
             ((oldJson, chunkRandom) =>
             {
@@ -190,7 +195,7 @@ namespace ProgressAdventure.WorldManagement.Content
                     oldJson["name"] = GenerateContentName(chunkRandom);
                 }
             }, "2.2.1"),
-        };
+        ];
         #endregion
 
         public virtual Dictionary<string, object?> ToJson()
@@ -222,7 +227,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 return false;
             }
 
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, SplittableRandom>(ref contentJson, chunkRandom, VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, SplittableRandom>(contentJson, chunkRandom, VersionCorrecters, fileVersion);
 
             var contentSubtypeTypeMap = WorldUtils.contentTypeMap[typeof(T)];
             var contentTypeID = contentSubtypeTypeMap.First().Key.Super;
@@ -243,7 +248,7 @@ namespace ProgressAdventure.WorldManagement.Content
             var success = PACTools.TryParseJsonValue<T, string?>(contentJson, JsonKeys.BaseContent.NAME, out var contentName);
 
             // get content
-            var content = Activator.CreateInstance(contentType, new object?[] { chunkRandom, contentName, contentJson });
+            var content = Activator.CreateInstance(contentType, [chunkRandom, contentName, contentJson]);
             if (content is null)
             {
                 PACTools.LogJsonError<T>($"couldn't create content object from type \"{contentType}\"!", true);

@@ -115,7 +115,7 @@ namespace ProgressAdventure
                 //InitiateFight();
             }
             ExitGame(!PASingletons.Instance.Globals.Exiting);
-            // SaveGame() maybe instead of the auto save
+            // TODO: SaveGame() maybe instead of the auto save
             // ENDING
             PASingletons.Instance.Globals.Exiting = false;
             Utils.PressKey("Exiting...Press key!");

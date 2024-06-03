@@ -65,15 +65,15 @@
             }
             //mods string
             var keyModsStr = "";
-            if (keyMods.Any())
+            if (keyMods.Count != 0)
             {
                 keyModsStr = $" ({string.Join(" + ", keyMods)})";
             }
             //key
             string keyName;
-            if (specialKeyNameMap.ContainsKey(key.Key))
+            if (specialKeyNameMap.TryGetValue(key.Key, out string? value))
             {
-                keyName = specialKeyNameMap[key.Key];
+                keyName = value;
             }
             else if (key.KeyChar != 0 && !char.IsControl(key.KeyChar) && !string.IsNullOrWhiteSpace(key.KeyChar.ToString()))
             {

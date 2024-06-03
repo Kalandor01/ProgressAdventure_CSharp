@@ -202,8 +202,8 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<AItem>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<AItem>.VersionCorrecters { get; } =
+        [
             // 2.0.2 -> 2.1
             (oldJson =>
             {
@@ -238,7 +238,7 @@ namespace ProgressAdventure.ItemManagement
                     oldJson["material"] = materialItemFixed;
                 }
             }, "2.2"),
-        };
+        ];
 
         public virtual Dictionary<string, object?> ToJson()
         {

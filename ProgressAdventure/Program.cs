@@ -1,11 +1,20 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.Logging;
 using PACommon.SettingsManagement;
+using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
+using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
+using ProgressAdventure.WorldManagement;
+using SaveFileManager;
 using System.Text;
+using AItem = ProgressAdventure.ItemManagement.AItem;
+using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACConstants = PACommon.Constants;
+using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
@@ -31,9 +40,104 @@ namespace ProgressAdventure
             //SaveManager.LoadSave("all items + world");
             //MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
 
+            var backpack = new List<AItem>
+            {
+                new CompoundItem(ItemType.Misc.SWORD_BLADE, [new MaterialItem(Material.GOLD, 2.3)], 8),
+                new CompoundItem(ItemType.Misc.SWORD_HILT, [new MaterialItem(Material.GLASS, 1.75)], 15),
+            };
+            var ii = ItemUtils.CompleteRecipe(ItemType.Weapon.SWORD, backpack, 7);
+
+            var iii = ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, [Material.GOLD, Material.GLASS], 7);
+            var mass = ii.RecursiveSelect<AItem, double>(
+                i => i is CompoundItem ci ? ci.Parts : new List<AItem>(),
+                i => (true, i.MassMultiplier)
+            );
+
+
+            var h = World.RecalculateChunkFileSizes(7, "all items + world", "Recalculating chunk sizes...");
+
+
+            var inventory = new Inventory(
+            [
+                new MaterialItem(Material.WOOD, 620.5),
+            ]);
+            RecipeCraftableMenu(inventory);
+
             MenuManager.MainMenu();
 
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
+        }
+
+        static void RecipeCraftableMenu(Inventory inventory)
+        {
+            var recipeElements = new List<BaseUI?> { new Toggle() };
+
+            var menu = new OptionsUI(recipeElements, "Craftnig", scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2));
+            
+            CalculateCraftables(menu, recipeElements, inventory);
+
+            menu.Display();
+        }
+
+        static void CalculateCraftables(OptionsUI menu, List<BaseUI?> recipeElements, Inventory inventory)
+        {
+            menu.title = inventory.ToString() + "\n\nCraftnig";
+            var selectedValues = recipeElements
+                .Select<BaseUI?, int?>(rE => rE is TextField tField ? (int.TryParse(tField.Value, out var amount) ? amount : null) : null)
+                .ToList();
+            recipeElements.Clear();
+
+            var sValueIndex = 0;
+            foreach (var itemRecipe in ItemUtils.itemRecipes)
+            {
+                foreach (var recipe in itemRecipe.Value)
+                {
+                    var recipeAmount = (selectedValues.Count > sValueIndex ? selectedValues[sValueIndex] : null) ?? 1;
+                    sValueIndex++;
+                    var craftable = ItemUtils.GetRequiredItemsForRecipe(recipe, inventory.items, recipeAmount) is not null;
+                    (byte r, byte g, byte b)? color = craftable ? null : Constants.Colors.RED;
+                    var rawText = Tools.StylizedText(ItemUtils.ItemIDToDisplayName(itemRecipe.Key) + " x", color);
+
+                    recipeElements.Add(new TextField(
+                        recipeAmount.ToString(),
+                        rawText,
+                        textValidatorFunction: (inputValue) => {
+                            var success = CraftItem(itemRecipe.Key, inventory, recipeElements, recipe, menu, int.Parse(inputValue));
+                            return (success ? TextFieldValidatorStatus.VALID : TextFieldValidatorStatus.INVALID, null);
+                        },
+                        keyValidatorFunction: (value, key, pos) => {
+                            var good = uint.TryParse(PACTools.GetNewValueForKeyValidatorDelegate(value, key, pos), out var amount) && amount > 0;
+                                
+                            return good;
+                        },
+                        overrideDefaultKeyValidatorFunction: false
+                    ));
+                }
+                recipeElements.Add(null);
+                sValueIndex++;
+            }
+        }
+
+
+        /*
+            CompountItemPrpertiesDTO has Material items?
+            IngredientDTO.unit can be null???
+            Item crafting/creating is wrong!!!
+         */
+
+
+        static bool CraftItem(ItemTypeID targetItem, Inventory inventory, List<BaseUI?> recipeElements, RecipeDTO targetRecipe, OptionsUI menu, int amount)
+        {
+            var item = ItemUtils.CompleteRecipe(targetItem, inventory.items, amount, targetRecipe);
+            if (item is null)
+            {
+                return false;
+            }
+
+            inventory.Add(item);
+            inventory.ClearFalseItems();
+            CalculateCraftables(menu, recipeElements, inventory);
+            return true;
         }
 
         /// <summary>

@@ -70,7 +70,7 @@ namespace PACommon.SettingsManagement
         /// </summary>
         public void UpdateNames()
         {
-            Names = new List<string>();
+            Names = [];
             foreach (var key in Keys)
             {
                 Names.Add(KeybindUtils.GetKeyName(key));

@@ -276,7 +276,7 @@ namespace PACommon
         public static string? GetFromJsonCallStackString()
         {
             var stackFrames = GetFromJsonCallStack();
-            return !stackFrames.Any() ? null : string.Join(
+            return stackFrames.Count == 0 ? null : string.Join(
                 "\n",
                 stackFrames.Select(frame =>
                 $"\tat {frame.GetMethod()?.DeclaringType?.FullName} in {frame.GetFileName()}:line {frame.GetFileLineNumber()}"
@@ -526,7 +526,7 @@ namespace PACommon
             out List<TRes> value
         )
         {
-            value = new List<TRes>();
+            value = [];
             foreach (var element in listValue)
             {
                 var (success, parsedResult) = parseFunction(element);

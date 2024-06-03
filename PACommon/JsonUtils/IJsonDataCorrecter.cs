@@ -16,7 +16,7 @@
         /// <param name="orderCorrecters">Whether to order the json correcters by version number, before correcting, or the default if null.</param>
         public void CorrectJsonData(
             string objectName,
-            ref IDictionary<string, object?> objectJson,
+            IDictionary<string, object?> objectJson,
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
@@ -31,7 +31,7 @@
         /// <param name="correcters">The list of function to use, to correct the old json data.</param>
         /// <param name="orderCorrecters">Whether to order the json correcters by version number, before correcting, or the default if null.</param>
         public void CorrectJsonData<T>(
-            ref IDictionary<string, object?> objectJson,
+            IDictionary<string, object?> objectJson,
             List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
@@ -42,7 +42,7 @@
         /// <param name="extraData">The extra data to input with the correcter.</param>
         public void CorrectJsonData<TE>(
             string objectName,
-            ref IDictionary<string, object?> objectJson,
+            IDictionary<string, object?> objectJson,
             TE extraData,
             List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
@@ -53,7 +53,7 @@
         /// <typeparam name="TE">The type of the extra data to input with all correcters.</typeparam>
         /// <param name="extraData">The extra data to input with the correcter.</param>
         public void CorrectJsonData<T, TE>(
-            ref IDictionary<string, object?> objectJson,
+            IDictionary<string, object?> objectJson,
             TE extraData,
             List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,

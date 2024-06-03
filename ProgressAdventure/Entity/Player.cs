@@ -76,9 +76,9 @@ namespace ProgressAdventure.Entity
                     stats.baseAgility,
                     0,
                     0,
-                    new List<Attribute>()
+                    []
                 ),
-                new List<AItem>()
+                []
             )
         {
             this.inventory = inventory ?? new Inventory();
@@ -133,8 +133,8 @@ namespace ProgressAdventure.Entity
 
         #region JsonConvertable
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> MiscVersionCorrecters { get; } = new()
-        {
+        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> MiscVersionCorrecters { get; } =
+        [
             // 2.0 -> 2.0.1
             (oldJson =>
             {
@@ -142,7 +142,7 @@ namespace ProgressAdventure.Entity
                 oldJson.TryGetValue("inventory", out object? inventoryJson);
                 oldJson["inventory"] = new Dictionary<string, object?>() { ["items"] = inventoryJson };
             }, "2.0.1"),
-        };
+        ];
         #endregion
 
         #region Constructors

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
@@ -57,9 +56,9 @@ namespace PAVisualizer
                     var startY = size.y - y * tileSize.y - 1;
                     // find type
                     var subtype = VisualizerTools.GetLayerSubtype(tile, layer);
-                    if (tileTypeCounts.ContainsKey(subtype))
+                    if (tileTypeCounts.TryGetValue(subtype, out long value))
                     {
-                        tileTypeCounts[subtype]++;
+                        tileTypeCounts[subtype] = value + 1;
                     }
                     else
                     {
@@ -224,7 +223,7 @@ namespace PAVisualizer
             }
 
             // generate image
-            if (selectedLayers.Any())
+            if (selectedLayers.Count != 0)
             {
                 var imageName = string.Join("-", selectedLayers) + ".png";
                 MakeImage(selectedLayers, Path.Join(visualizedSavePath, imageName));

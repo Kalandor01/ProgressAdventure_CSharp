@@ -2,8 +2,8 @@
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
-using Utils = PACommon.Utils;
 using PACTools = PACommon.Tools;
+using Utils = PACommon.Utils;
 
 namespace ProgressAdventure.SettingsManagement
 {
@@ -77,8 +77,8 @@ namespace ProgressAdventure.SettingsManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<ActionKey>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<ActionKey>.VersionCorrecters { get; } =
+        [
             // 2.1.1 -> 2.2
             (oldJson =>
             {
@@ -88,7 +88,7 @@ namespace ProgressAdventure.SettingsManagement
                     oldJson["key_char"] = kcRename;
                 }
             }, "2.2"),
-        };
+        ];
 
         public Dictionary<string, object?> ToJson()
         {

@@ -57,153 +57,153 @@ namespace ProgressAdventure.ItemManagement
             //weapons
             ["weapon/wooden_sword"] = ("weapon/sword", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/sword_blade", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
             ["weapon/stone_sword"] = ("weapon/sword", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/sword_blade", ["material"] = "STONE", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "STONE", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "STONE", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
             ["weapon/steel_sword"] = ("weapon/sword", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/sword_blade", ["material"] = "STEEL", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
             ["weapon/wooden_bow"] = ("weapon/bow", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/rod", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/rod", ["material"] = "SILK", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "SILK", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "SILK", ["amount"] = 1 }
                     }
                 },
             }),
             ["weapon/steel_arrow"] = ("weapon/arrow", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/arrow_tip", ["material"] = "STEEL", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/rod", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
             ["weapon/wooden_club"] = ("weapon/club", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
             }),
             ["weapon/club_with_teeth"] = ("weapon/club_with_teeth", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "weapon/club", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "TEETH", ["amount"] = 1},
+                new() {["type"] = "misc/material", ["material"] = "TEETH", ["amount"] = 1},
             }),
             //defence
             ["defence/wooden_shield"] = ("defence/shield", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
             }),
             ["defence/leather_cap"] = ("defence/helmet", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
             ["defence/leather_tunic"] = ("defence/chestplate", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
             ["defence/leather_pants"] = ("defence/pants", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
             ["defence/leather_boots"] = ("defence/boots", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
             //materials
             ["material/bootle"] = ("misc/bottle", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1}
             }),
             //misc
             ["misc/health_potion"] = ("misc/filled_bottle", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?>
+                new()
                 {
                     ["type"] = "misc/bottle", ["material"] = "GLASS", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1 }
+                        new() { ["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1 }
                     }
                 },
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "HEALING_LIQUID", ["amount"] = 1},
+                new() {["type"] = "misc/material", ["material"] = "HEALING_LIQUID", ["amount"] = 1},
             }),
             ["misc/gold_coin"] = ("misc/coin", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "GOLD", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "GOLD", ["amount"] = 1}
             }),
             ["misc/silver_coin"] = ("misc/coin", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "SILVER", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "SILVER", ["amount"] = 1}
             }),
             ["misc/copper_coin"] = ("misc/coin", new List<Dictionary<string, object?>>
             {
-                new Dictionary<string, object?> {["type"] = "misc/material", ["material"] = "COPPER", ["amount"] = 1}
+                new() {["type"] = "misc/material", ["material"] = "COPPER", ["amount"] = 1}
             }),
         };
 
@@ -301,7 +301,7 @@ namespace ProgressAdventure.ItemManagement
             [Material.COPPER] = new MaterialPropertiesDTO(8960),
             [Material.GLASS] = new MaterialPropertiesDTO(2500),
             [Material.GOLD] = new MaterialPropertiesDTO(19300),
-            [Material.IRON] = new MaterialPropertiesDTO(7874),
+            [Material.IRON] = new MaterialPropertiesDTO(7875),
             [Material.LEATHER] = new MaterialPropertiesDTO(800),
             [Material.ROTTEN_FLESH] = new MaterialPropertiesDTO(1000),
             [Material.SILVER] = new MaterialPropertiesDTO(10490),
@@ -313,6 +313,9 @@ namespace ProgressAdventure.ItemManagement
             [Material.HEALING_LIQUID] = new MaterialPropertiesDTO(1015),
             [Material.SILK] = new MaterialPropertiesDTO(1400),
             [Material.FLINT] = new MaterialPropertiesDTO(2596),
+            // TODO: diferent density per state
+            // M    : SOLID, LIQUID, GAS
+            // WATER: 920, 1000, 3 kg/m^3
         };
 
         /// <summary>
@@ -321,60 +324,60 @@ namespace ProgressAdventure.ItemManagement
         public static readonly Dictionary<ItemTypeID, List<RecipeDTO>> itemRecipes = new()
         {
             // weapon
-            [ItemType.Weapon.SWORD] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.SWORD_BLADE, 1), new IngredientDTO(ItemType.Misc.SWORD_HILT, 1) }),
-            },
-            [ItemType.Weapon.BOW] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ROD, 1), new IngredientDTO(ItemType.Misc.ROD, 1) }),
-            },
-            [ItemType.Weapon.ARROW] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.ARROW_TIP, 1), new IngredientDTO(ItemType.Misc.ROD, 1) }),
-            },
-            [ItemType.Weapon.CLUB] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) }),
-            },
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(Material.TEETH, 1, ItemAmountUnit.KG) }),
-            },
+            [ItemType.Weapon.SWORD] =
+            [
+                new([new(ItemType.Misc.SWORD_BLADE, 1), new(ItemType.Misc.SWORD_HILT, 1)]),
+            ],
+            [ItemType.Weapon.BOW] =
+            [
+                new([new(ItemType.Misc.ROD, 1), new(ItemType.Misc.ROD, 1)]),
+            ],
+            [ItemType.Weapon.ARROW] =
+            [
+                new([new(ItemType.Misc.ARROW_TIP, 1), new(ItemType.Misc.ROD, 1)]),
+            ],
+            [ItemType.Weapon.CLUB] =
+            [
+                new([new(null, 0.5, ItemAmountUnit.M3)]),
+            ],
+            [ItemType.Weapon.CLUB_WITH_TEETH] =
+            [
+                new([new(ItemType.Weapon.CLUB, 1), new(Material.TEETH, 1, ItemAmountUnit.KG)]),
+            ],
             // defence
-            [ItemType.Defence.SHIELD] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.6, ItemAmountUnit.M3) }),
-            },
-            [ItemType.Defence.HELMET] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.5, ItemAmountUnit.M3) }),
-            },
-            [ItemType.Defence.CHESTPLATE] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.9, ItemAmountUnit.M3) }),
-            },
-            [ItemType.Defence.PANTS] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.7, ItemAmountUnit.M3) }),
-            },
-            [ItemType.Defence.BOOTS] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.4, ItemAmountUnit.M3) }),
-            },
+            [ItemType.Defence.SHIELD] =
+            [
+                new([new(null, 0.6, ItemAmountUnit.M3)]),
+            ],
+            [ItemType.Defence.HELMET] =
+            [
+                new([new(null, 0.5, ItemAmountUnit.M3)]),
+            ],
+            [ItemType.Defence.CHESTPLATE] =
+            [
+                new([new(null, 0.9, ItemAmountUnit.M3)]),
+            ],
+            [ItemType.Defence.PANTS] =
+            [
+                new([new(null, 0.7, ItemAmountUnit.M3)]),
+            ],
+            [ItemType.Defence.BOOTS] =
+            [
+                new([new(null, 0.4, ItemAmountUnit.M3)]),
+            ],
             // misc
-            [ItemType.Misc.FILLED_BOTTLE] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(ItemType.Misc.BOTTLE, 1), new IngredientDTO(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L) }),
-            },
-            [ItemType.Misc.BOTTLE] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.1, ItemAmountUnit.M3) }),
-            },
-            [ItemType.Misc.COIN] = new List<RecipeDTO>
-            {
-                new RecipeDTO(new List<IngredientDTO> { new IngredientDTO(null, 0.02, ItemAmountUnit.M3) }),
-            },
+            [ItemType.Misc.FILLED_BOTTLE] =
+            [
+                new([new(ItemType.Misc.BOTTLE, 1), new(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L)]),
+            ],
+            [ItemType.Misc.BOTTLE] =
+            [
+                new([new(null, 0.1, ItemAmountUnit.M3)]),
+            ],
+            [ItemType.Misc.COIN] =
+            [
+                new([new(null, 0.02, ItemAmountUnit.M3)]),
+            ],
         };
         #endregion
 
@@ -756,7 +759,7 @@ namespace ProgressAdventure.ItemManagement
             // not craftable
             if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
-                return new CompoundItem(targetItem, new List<AItem> { new MaterialItem(materials?.First() ?? Material.WOOD) }, amount);
+                return new CompoundItem(targetItem, [new MaterialItem(materials?.First() ?? Material.WOOD)], amount);
             }
 
             // get recipe
@@ -811,7 +814,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="material">The material to use, for the material of the item, if posible.</param>
         public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, double amount = 1, RecipeTreeDTO? targetRecipe = null)
         {
-            return CreateCompoundItem(targetItem, new List<Material?> { material }, amount, targetRecipe);
+            return CreateCompoundItem(targetItem, [material], amount, targetRecipe);
         }
 
         /// <summary>
@@ -833,7 +836,7 @@ namespace ProgressAdventure.ItemManagement
                     if (
                         item.Type == ingredient.itemType &&
                         (ingredient.material is null || item.Material == ingredient.material) &&
-                        (ingredient.unit is not null ? ConvertAmountToUnit(item, (ItemAmountUnit)ingredient.unit) : 1) >= ingredient.amount * amount &&
+                        (ingredient.unit is not null ? ConvertAmountToUnit(item, (ItemAmountUnit)ingredient.unit) : item.Amount) >= ingredient.amount * amount &&
                         !requiredItems.Contains(item)
                     )
                     {

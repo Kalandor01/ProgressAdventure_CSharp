@@ -170,8 +170,8 @@ namespace ProgressAdventure
         #endregion
 
         #region JsonConversion
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<RandomStates>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<RandomStates>.VersionCorrecters { get; } =
+        [
             // 2.1.1 -> 2.2
             (oldJson => {
                 // snake case rename
@@ -196,7 +196,7 @@ namespace ProgressAdventure
                     oldJson["chunk_seed_modifier"] = csmRename;
                 }
             }, "2.2"),
-        };
+        ];
 
         public Dictionary<string, object?> ToJson()
         {

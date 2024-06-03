@@ -1,13 +1,17 @@
-﻿using PACommon;
+﻿using NPrng.Generators;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
 {
     /// <summary>
     /// Object to store the currently loaded world.
     /// </summary>
-    public static class World
+    public static partial class World
     {
         #region Public properties
         /// <summary>
@@ -23,8 +27,8 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="chunks">The dictionary of chunks.</param>
         public static void Initialize(Dictionary<string, Chunk>? chunks = null)
         {
-            PACSingletons.Instance.Logger.Log($"{(chunks is null ? "Generating" : "Loading")} world", (chunks is null ? null : $"{chunks.Count} chunks"));
-            Chunks = chunks ?? new Dictionary<string, Chunk>();
+            PACSingletons.Instance.Logger.Log($"{(chunks is null ? "Generating" : "Loading")} world", chunks is null ? null : $"{chunks.Count} chunks");
+            Chunks = chunks ?? [];
         }
         #endregion
 
@@ -76,7 +80,7 @@ namespace ProgressAdventure.WorldManagement
             // clearing chunks
             if (clearChunks)
             {
-                chunkData = new Dictionary<string, Chunk>();
+                chunkData = [];
                 if (showProgressText is not null)
                 {
                     Console.Write($"{showProgressText}-COPYING...          ");
@@ -155,11 +159,11 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Loads all chunks from a save file.
+        /// Gets all chunk files that have the correct syntax from a chunks folder.
         /// </summary>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
-        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
-        public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null)
+        /// <returns>The list of chunk positions.</returns>
+        public static List<(long x , long y)> GetChunkFilesFromFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
@@ -171,27 +175,41 @@ namespace ProgressAdventure.WorldManagement
             foreach (var chunkFilePath in chunkFilePaths)
             {
                 var chunkFileName = Path.GetFileName(chunkFilePath);
-                if (
+                if (!(
                     chunkFileName is not null &&
                     Path.GetExtension(chunkFileName) == $".{Constants.SAVE_EXT}" &&
                     chunkFileName.StartsWith($"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}")
-                )
+                ))
                 {
-                    var chunkPositions = Path.GetFileNameWithoutExtension(chunkFileName).Replace($"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}", "").Split(Constants.CHUNK_FILE_NAME_SEP);
-                    if (
-                        chunkPositions.Length == 2 &&
-                        long.TryParse(chunkPositions[0], out long posX) &&
-                        long.TryParse(chunkPositions[1], out long posY)
-                    )
-                    {
-                        existingChunks.Add((posX, posY));
-                        continue;
-                    }
-                    PACSingletons.Instance.Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
+                    PACSingletons.Instance.Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
+                    continue;
                 }
-                PACSingletons.Instance.Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
-            }
 
+                var h = ChunkFileNameRegex().Match(Path.GetFileNameWithoutExtension(chunkFileName));
+                var chunkPositions = ChunkFileNameRegex().Match(Path.GetFileNameWithoutExtension(chunkFileName)).Groups.Values.Select(group => group.Value);
+                if (!(
+                    chunkPositions.Count() == 3 &&
+                    long.TryParse(chunkPositions.ElementAt(1), out long posX) &&
+                    long.TryParse(chunkPositions.ElementAt(2), out long posY)
+                ))
+                {
+                    PACSingletons.Instance.Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
+                    continue;
+                }
+
+                existingChunks.Add((posX, posY));
+            }
+            return existingChunks;
+        }
+
+        /// <summary>
+        /// Loads all chunks from a save file.
+        /// </summary>
+        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
+        public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null)
+        {
+            var existingChunks = GetChunkFilesFromFolder(saveFolderName);
             // load chunks
             if (showProgressText is not null)
             {
@@ -313,7 +331,7 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public static (long minX, long minY, long maxX, long maxY)? GetCorners()
         {
-            if (!Chunks.Any())
+            if (Chunks.Count == 0)
             {
                 return null;
             }
@@ -372,7 +390,7 @@ namespace ProgressAdventure.WorldManagement
                     for (long y = minY; y <= maxY; y += Constants.CHUNK_SIZE)
                     {
                         TryGetChunkAll((x, y), out _, saveFolderName);
-                        Console.Write($"\r{showProgressText}{Math.Round((((x - minX) / (double)Constants.CHUNK_SIZE) * columnNum + ((y - minY) / (double)Constants.CHUNK_SIZE)) / chunkNum * 100, 1)}%      ");
+                        Console.Write($"\r{showProgressText}{Math.Round(((x - minX) / (double)Constants.CHUNK_SIZE * columnNum + (y - minY) / (double)Constants.CHUNK_SIZE) / chunkNum * 100, 1)}%      ");
                     }
                 }
                 Console.WriteLine($"\r{showProgressText}DONE!                ");
@@ -387,6 +405,93 @@ namespace ProgressAdventure.WorldManagement
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Re-calculates all chunk files in a save folder, to have the correct chunk size.
+        /// </summary>
+        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
+        public static bool RecalculateChunkFileSizes(int oldChunkSize, string? saveFolderName = null, string? showProgressText = null)
+        {
+            if (oldChunkSize == Constants.CHUNK_SIZE)
+            {
+                return true;
+            }
+
+            // setup
+            PACSingletons.Instance.Logger.Log("Recalculating chunk file sizes", $"chunk size: {oldChunkSize} -> {Constants.CHUNK_SIZE}");
+            saveFolderName ??= SaveData.Instance.saveName;
+            var chunkSizeChangeFolderName = $"chunk_sizes_from_{oldChunkSize}_to_{Constants.CHUNK_SIZE}";
+            var saveFolderPath = Tools.GetSaveFolderPath(saveFolderName);
+            var chunkSizeChangeFolderPath = Path.Join(saveFolderPath, chunkSizeChangeFolderName);
+            var chunksFolderPath = Path.Join(saveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
+            PACTools.RecreateFolder(chunkSizeChangeFolderName, saveFolderPath, "chunk size change");
+
+            // correction
+            var success = true;
+            var chunkPositions = GetChunkFilesFromFolder(saveFolderName);
+
+            var versionCorrecters = typeof(Chunk)
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Static)
+                .FirstOrDefault(f => f.Name.Contains("VersionCorrecters"))?
+                .GetValue(null) as List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>;
+
+            foreach (var chunkPosition in chunkPositions)
+            {
+                var chunkFileName = Chunk.GetChunkFileName(chunkPosition, oldChunkSize);
+
+
+                if (
+                    Tools.DecodeSaveShortExpected<Chunk>(
+                        Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
+                        expected: true,
+                        extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"
+                    ) is not IDictionary<string, object?> chunkJson
+                )
+                {
+                    success &= false;
+                    continue;
+                }
+
+                var fileVersion = SaveManager.GetSaveVersion<Chunk>(chunkJson, Constants.JsonKeys.Chunk.FILE_VERSION, chunkFileName);
+                if (fileVersion is null)
+                {
+                    PACTools.LogJsonParseError<Chunk>(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");
+                    fileVersion = Constants.OLDEST_SAVE_VERSION;
+                }
+
+                if (versionCorrecters is not null)
+                {
+                    PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Chunk>(chunkJson, versionCorrecters, fileVersion);
+                }
+
+                success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
+                chunkRandom ??= Chunk.GetChunkRandom(chunkPosition);
+
+                if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
+                    if (!PACTools.TryCastAnyValueForJsonParsing<Tile, IDictionary<string, object?>>(tileJson, out var tileJsonValue, nameof(tileJson)))
+                    {
+                        success = false;
+                        return (false, default);
+                    }
+                    success &= Tile.FromJson(chunkRandom, tileJsonValue, fileVersion, out Tile? tile);
+                    var tileDictName = $"{Utils.Mod(chunkPosition.x, oldChunkSize)}_{Utils.Mod(chunkPosition.y, oldChunkSize)}";
+                    return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(tileDictName, tile));
+                }, out var tilesKvPair, true))
+                {
+                    return false;
+                }
+                var tiles = tilesKvPair.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                PACSingletons.Instance.Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
+            }
+
+            // done
+            Directory.Delete(chunksFolderPath, true);
+            Directory.Move(chunkSizeChangeFolderPath, chunksFolderPath);
+            PACSingletons.Instance.Logger.Log("Recalculated chunk file sizes", $"chunk size: {oldChunkSize} -> {Constants.CHUNK_SIZE}");
+            return success;
         }
         #endregion
 
@@ -409,6 +514,9 @@ namespace ProgressAdventure.WorldManagement
             Chunks.TryGetValue(chunkKey, out Chunk? chunk);
             return chunk;
         }
+
+        [GeneratedRegex("^chunk_(-?\\d+)_(-?\\d+)$")]
+        private static partial Regex ChunkFileNameRegex();
         #endregion
     }
 }

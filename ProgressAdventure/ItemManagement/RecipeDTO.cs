@@ -21,7 +21,7 @@
         /// <param name="resultAmount"><inheritdoc cref="resultAmount" path="//summary"/></param>
         public RecipeDTO(List<IngredientDTO> ingredients, double resultAmount = 1)
         {
-            if (!ingredients.Any())
+            if (ingredients.Count == 0)
             {
                 throw new ArgumentException("Ingredients list has no elements.", nameof(ingredients));
             }

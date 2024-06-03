@@ -90,25 +90,25 @@ namespace ProgressAdventure
         /// <summary>
         /// A list of logging severities to choose from in the menu.
         /// </summary>
-        private static readonly List<(LogSeverity value, string name)> loggingSeveritiesList = new()
-        {
+        private static readonly List<(LogSeverity value, string name)> loggingSeveritiesList =
+        [
             (LogSeverity.DISABLED, "MINIMAL"),
             (LogSeverity.FATAL, LogSeverity.FATAL.ToString()),
             (LogSeverity.ERROR, LogSeverity.ERROR.ToString()),
             (LogSeverity.WARN, LogSeverity.WARN.ToString()),
             (LogSeverity.INFO, LogSeverity.INFO.ToString()),
             (LogSeverity.DEBUG, "ALL"),
-        };
+        ];
 
         /// <summary>
         /// A list of default backup actions to choose from in the menu.
         /// </summary>
-        private static readonly List<(int value, string name)> defBackupActionsList = new()
-        {
+        private static readonly List<(int value, string name)> defBackupActionsList =
+        [
             (-1, "ask"),
             (0, "don't backup"),
             (1, "backup"),
-        };
+        ];
         #endregion
 
         #region Delegate functions
@@ -169,7 +169,7 @@ namespace ProgressAdventure
             {
                 elementsList.Add(new PAButton(new UIAction(ItemViever, item), text: item.ToString() ?? ""));
             }
-            if (!elementsList.Any())
+            if (elementsList.Count == 0)
             {
                 elementsList.Add(GetBackButton("Empty"));
             }
@@ -246,7 +246,7 @@ namespace ProgressAdventure
                 if (actionKey is null)
                 {
                     PACSingletons.Instance.Logger.Log("Action type doesn't exist in keybind", $"action type: {actionType}", LogSeverity.WARN);
-                    actionKey = new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) });
+                    actionKey = new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) });
                 }
                 elementList.Add(new KeyField<ActionType>(
                     actionKey,
@@ -281,7 +281,7 @@ namespace ProgressAdventure
         /// <param name="keybinds">The keybinds to use.</param>
         public static bool AskYesNoUIQuestion(string question, bool yesFirst = true, bool canEscape = true, Keybinds? keybinds = null)
         {
-            var answersList = yesFirst ? new List<string?> { "Yes", "No" } : new List<string?> { "No", "Yes" };
+            List<string?> answersList = yesFirst ? ["Yes", "No"] : ["No", "Yes"];
             IEnumerable<ActionKey> keybindList;
             IEnumerable<object>? resultsList = null;
             if (keybinds is null)
@@ -460,7 +460,7 @@ namespace ProgressAdventure
             loadSaveUI.answers = answers;
             loadSaveUI.actions = actions;
 
-            return SavesData.Any() ? null : -1;
+            return SavesData.Count != 0 ? null : -1;
         }
 
         /// <summary>
@@ -475,7 +475,7 @@ namespace ProgressAdventure
             loadSaveUI.answers = answers;
             loadSaveUI.actions = actions;
 
-            return SavesData.Any() ? null : -1;
+            return SavesData.Count != 0 ? null : -1;
         }
 
         /// <summary>
@@ -494,7 +494,7 @@ namespace ProgressAdventure
             deleteSavesUI.answers = answers;
             deleteSavesUI.actions = actions;
 
-            return SavesData.Any() ? null : -1;
+            return SavesData.Count != 0 ? null : -1;
         }
 
         /// <summary>
@@ -673,9 +673,9 @@ namespace ProgressAdventure
 
             var optionsMenuActions = new List<UIAction>
             {
-                new UIAction(KeybindSettings),
-                new UIAction(AskOptions),
-                new UIAction(OtherOptions),
+                new(KeybindSettings),
+                new(AskOptions),
+                new(OtherOptions),
             };
 
             return new UIList(
@@ -702,26 +702,26 @@ namespace ProgressAdventure
             List<string?> answers;
             List<UIAction?> actions;
 
-            if (SavesData.Any())
+            if (SavesData.Count != 0)
             {
                 var loadSaveAction = new UIAction(LoadSavesAction);
 
-                answers = new List<string?> { "New save", "Load/Delete save", "Options" };
-                actions = new List<UIAction?>
-                {
+                answers = ["New save", "Load/Delete save", "Options"];
+                actions =
+                [
                     newSaveAction,
                     loadSaveAction,
                     optionsAction,
-                };
+                ];
             }
             else
             {
-                answers = new List<string?> { "New save", "Options" };
-                actions = new List<UIAction?>
-                {
+                answers = ["New save", "Options"];
+                actions =
+                [
                     newSaveAction,
                     optionsAction,
-                };
+                ];
             }
 
             return (answers, actions);

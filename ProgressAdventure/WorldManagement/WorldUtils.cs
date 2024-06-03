@@ -327,7 +327,7 @@ namespace ProgressAdventure.WorldManagement
             where T : BaseContent
         {
             var minDiffContentType = CalculateClosestContentType<T>(noiseValues, noStructureDLOverride, noPopulationDLOverride);
-            var contentObj = Activator.CreateInstance(minDiffContentType, new object?[] { chunkRandom, null, null }) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
+            var contentObj = Activator.CreateInstance(minDiffContentType, [chunkRandom, null, null]) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
             return (T)contentObj;
         }
 

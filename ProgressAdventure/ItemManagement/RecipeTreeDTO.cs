@@ -59,7 +59,7 @@ namespace ProgressAdventure.ItemManagement
                 }
             }
             while (extractedSymbol != "");
-            return GetRecipeTreeFromSymbolArray(symbos.ToArray()).recipeTree;
+            return GetRecipeTreeFromSymbolArray([.. symbos]).recipeTree;
         }
         #endregion
 
@@ -117,7 +117,7 @@ namespace ProgressAdventure.ItemManagement
         private static (RecipeTreeDTO? recipeTree, int treeEndIndexInArray) GetRecipeTreeFromSymbolArray(object[] recipeSymbolsArray)
         {
             if (!(
-                recipeSymbolsArray.Any() &&
+                recipeSymbolsArray.Length != 0 &&
                 recipeSymbolsArray[0] is uint rootRecipe
             ))
             {

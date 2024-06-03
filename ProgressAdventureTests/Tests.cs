@@ -610,7 +610,7 @@ namespace ProgressAdventureTests
                 if (!requiredKeys.Contains(subType.Super))
                 {
                     requiredKeys.Add(subType.Super);
-                    subTypeDict[subType.Super] = new List<ContentTypeID>();
+                    subTypeDict[subType.Super] = [];
                 }
                 subTypeDict[subType.Super].Add(subType);
             }
@@ -973,10 +973,10 @@ namespace ProgressAdventureTests
                 new Troll(),
                 new Dragon(),
                 new Player(),
-                new CompoundItem(ItemType.Weapon.SWORD, new List<AItem> { new MaterialItem(Material.CLOTH) }),
+                new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
                 new Inventory(),
                 new MaterialItem(Material.FLINT),
-                new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo() }),
+                new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new() }),
                 new Keybinds(),
                 new Chunk((1, 1)),
                 RandomStates.Initialize(),
@@ -1108,15 +1108,15 @@ namespace ProgressAdventureTests
                 null, null,
                 new Player(
                     $"test player ({saveName})",
-                    new Inventory(new List<AItem>
-                    {
+                    new Inventory(
+                    [
                         new MaterialItem(Material.CLOTH, 15),
                         new MaterialItem(Material.GOLD, 5.27),
                         new MaterialItem(Material.HEALING_LIQUID, 0.3),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, new List<Material?> { Material.STEEL, Material.WOOD }, 12),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, new List<Material?> { Material.WOOD }, 3),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, new List<Material?> { Material.FLINT, Material.WOOD }, 152),
-                    }),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, [Material.STEEL, Material.WOOD], 12),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, [Material.WOOD], 3),
+                        ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, [Material.FLINT, Material.WOOD], 152),
+                    ]),
                     (15, -6))
             );
             World.Initialize();

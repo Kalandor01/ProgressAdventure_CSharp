@@ -130,8 +130,8 @@ namespace ProgressAdventure.WorldManagement
 
         #region JsonConvert
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = new()
-        {
+        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
+        [
             // 2.1.1 -> 2.2
             (oldJson =>
             {
@@ -145,7 +145,7 @@ namespace ProgressAdventure.WorldManagement
                     oldJson["y_position"] = ypRename;
                 }
             }, "2.2"),
-        };
+        ];
         #endregion
 
         public Dictionary<string, object?> ToJson()
@@ -170,7 +170,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="tileObject">The object representation of the json.</param>
         public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?> tileJson, string fileVersion, out Tile? tileObject)
         {
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(ref tileJson, VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(tileJson, VersionCorrecters, fileVersion);
 
             tileObject = null;
 

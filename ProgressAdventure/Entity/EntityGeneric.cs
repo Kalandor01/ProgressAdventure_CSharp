@@ -52,8 +52,8 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops = null
         ) : base(name, stats, drops) { }
 
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> BaseVersionCorrecters { get; } = new()
-        {
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> BaseVersionCorrecters { get; } =
+        [
             // 2.1 -> 2.1.1
             (oldJson =>
             {
@@ -104,25 +104,25 @@ namespace ProgressAdventure.Entity
                     oldJson["y_position"] = ypRnename;
                 }
             }, "2.2"),
-        };
+        ];
 
         static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref TEntity? convertedObject)
         {
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TEntity>(ref objectJson, BaseVersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TEntity>(objectJson, BaseVersionCorrecters, fileVersion);
 
             var miscVersionCorrectersProperty = typeof(TEntity).GetProperty(
                 "MiscVersionCorrecters",
                 BindingFlags.NonPublic | BindingFlags.Static,
                 null,
                 typeof(List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>),
-                Array.Empty<Type>(),
+                [],
                 null
             );
 
             var miscVersionCorrecters = miscVersionCorrectersProperty?.GetValue(null) as List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>;
             if (miscVersionCorrecters is not null)
             {
-                PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Entity<TEntity>>(ref objectJson, miscVersionCorrecters, fileVersion);
+                PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Entity<TEntity>>(objectJson, miscVersionCorrecters, fileVersion);
             }
 
             return FromJsonWithoutGeneralCorrection(objectJson, fileVersion, out convertedObject);

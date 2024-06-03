@@ -65,7 +65,7 @@ namespace PACommon.Logging
         #region Public methods
         public async Task LogTextAsync(List<(string message, DateTime time)> logsBuffer, bool newLine = false)
         {
-            if (!logsBuffer.Any())
+            if (logsBuffer.Count == 0)
             {
                 return;
             }
@@ -94,7 +94,7 @@ namespace PACommon.Logging
                 logsBuffer.RemoveRange(0, x);
                 await LogSameDayBatchAsync(logsJoined.ToString(), firstTime);
             }
-            while (logsBuffer.Any());
+            while (logsBuffer.Count != 0);
         }
 
         public async Task LogSameDayBatchAsync(string joinedLogs, DateTime date)

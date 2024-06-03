@@ -150,9 +150,10 @@ namespace PAExtras
             }
 
             // display data
-            var displayLine = new Dictionary<string, object>();
-
-            displayLine["saveVersion"] = Constants.IMPORT_SAVE_VERSION;
+            var displayLine = new Dictionary<string, object>
+            {
+                ["saveVersion"] = Constants.IMPORT_SAVE_VERSION
+            };
             var displayName = (string)dataFileData["display_name"];
             displayLine["displayName"] = displayName;
             var lastSaveRaw = (IEnumerable<object>)dataFileData["last_access"];

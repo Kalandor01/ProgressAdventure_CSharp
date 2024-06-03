@@ -15,7 +15,7 @@ namespace ProgressAdventure.ItemManagement
         #region Constructors
         public Inventory(List<AItem>? items = null)
         {
-            this.items = items ?? new List<AItem>();
+            this.items = items ?? [];
         }
         #endregion
 
@@ -102,7 +102,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="material">The material of the item.</param>
         public bool Add(ItemTypeID itemType, Material material, int amount = 1)
         {
-            return Add(itemType, new List<Material?> { material }, amount);
+            return Add(itemType, [material], amount);
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace ProgressAdventure.ItemManagement
             {
                 if (items.ElementAt(x).Type == itemType && items.ElementAt(x).Material == material)
                 {
-                    // add back use???
+                    // TODO: add back use???
                     // here
                     if (items.ElementAt(x).Amount == 0)
                     {

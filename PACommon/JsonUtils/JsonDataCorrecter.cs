@@ -96,7 +96,80 @@ namespace PACommon.JsonUtils
         public static void CorrectJsonDataVersion(
             string objectName,
             Action<IDictionary<string, object?>> objectJsonCorrecter,
-            ref IDictionary<string, object?> objectJson,
+            IDictionary<string, object?> objectJson,
+            ref string fileVersion,
+            string newFileVersion
+        )
+        {
+            CorrectJsonDataVersionPrivate(objectName, () => objectJsonCorrecter(objectJson), ref fileVersion, newFileVersion);
+        }
+
+        /// <inheritdoc cref="CorrectJsonDataVersion(string, Action{IDictionary{string, object?}}, ref IDictionary{string, object?}, ref string, string)"/>
+        /// <typeparam name="TE">The type of the extra data to input with the correcter.</typeparam>
+        /// <param name="extraData">The extra data to input with the correcter.</param>
+        public static void CorrectJsonDataVersion<TE>(
+            string objectName,
+            Action<IDictionary<string, object?>, TE> objectJsonCorrecter,
+            IDictionary<string, object?> objectJson,
+            TE extraData,
+            ref string fileVersion,
+            string newFileVersion
+        )
+        {
+            CorrectJsonDataVersionPrivate(objectName, () => objectJsonCorrecter(objectJson, extraData), ref fileVersion, newFileVersion);
+        }
+        #endregion
+
+        #region Public methods
+        public void CorrectJsonData(
+            string objectName,
+            IDictionary<string, object?> objectJson,
+            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion,
+            bool? orderCorrecters = null
+        )
+        {
+            CorrectJsonDataPrivate(objectName, objectJson, false, correcters, fileVersion, orderCorrecters);
+        }
+
+        public void CorrectJsonData<T>(
+            IDictionary<string, object?> objectJson,
+            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion,
+            bool? orderCorrecters = null
+        )
+        {
+            CorrectJsonData(typeof(T).ToString(), objectJson, correcters, fileVersion, orderCorrecters);
+        }
+
+        public void CorrectJsonData<TE>(
+            string objectName,
+            IDictionary<string, object?> objectJson,
+            TE extraData,
+            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion,
+            bool? orderCorrecters = null
+        )
+        {
+            CorrectJsonDataPrivate(objectName, objectJson, extraData, correcters, fileVersion, orderCorrecters);
+        }
+
+        public void CorrectJsonData<T, TE>(
+            IDictionary<string, object?> objectJson,
+            TE extraData,
+            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            string fileVersion,
+            bool? orderCorrecters = null
+        )
+        {
+            CorrectJsonData(typeof(T).ToString(), objectJson, extraData, correcters, fileVersion, orderCorrecters);
+        }
+        #endregion
+
+        #region Private Functions
+        private static void CorrectJsonDataVersionPrivate(
+            string objectName,
+            Action objectJsonCorrecterWrapped,
             ref string fileVersion,
             string newFileVersion
         )
@@ -106,114 +179,53 @@ namespace PACommon.JsonUtils
                 return;
             }
 
-            objectJsonCorrecter(objectJson);
+            objectJsonCorrecterWrapped();
             PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
             fileVersion = newFileVersion;
         }
 
-        /// <inheritdoc cref="CorrectJsonDataVersion(string, Action{IDictionary{string, object?}}, ref IDictionary{string, object?}, ref string, string)"/>
-        /// <typeparam name="TE">The type of the extra data to input with the correcter.</typeparam>
-        /// <param name="extraData">The extra data to input with the correcter.</param>
-        public static void CorrectJsonDataVersion<TE>(string objectName, Action<IDictionary<string, object?>, TE> objectJsonCorrecter, ref IDictionary<string, object?> objectJson, TE extraData, ref string fileVersion, string newFileVersion)
-        {
-            if (Utils.IsUpToDate(newFileVersion, fileVersion))
-            {
-                return;
-            }
-
-            objectJsonCorrecter(objectJson, extraData);
-            PACSingletons.Instance.Logger.Log($"Corrected {objectName} json data", $"{fileVersion} -> {newFileVersion}", LogSeverity.DEBUG);
-            fileVersion = newFileVersion;
-        }
-        #endregion
-
-        #region Public methods
-        public void CorrectJsonData(
+        private void CorrectJsonDataPrivate<TA, TE>(
             string objectName,
-            ref IDictionary<string, object?> objectJson,
-            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            IDictionary<string, object?> objectJson,
+            TE? extraData,
+            List<(TA objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         )
         {
-            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion))
+            if (correcters.Count == 0 || Utils.IsUpToDate(saveVersion, fileVersion))
             {
                 return;
             }
 
-            orderCorrecters ??= this.orderCorrecters;
-            var orderedCorrecters = (bool)orderCorrecters ? correcters.StableSort(
-                (correcter1, correcter2) =>
-                    correcter1.newFileVersion == correcter2.newFileVersion ? 0 :
-                        (Utils.IsUpToDate(correcter1.newFileVersion, correcter2.newFileVersion) ? -1 : 1)
-                ) : correcters;
+            var orderedCorrecters = orderCorrecters ?? this.orderCorrecters
+                ? correcters.StableSort(
+                    (correcter1, correcter2) =>
+                        correcter1.newFileVersion == correcter2.newFileVersion ? 0 :
+                            (Utils.IsUpToDate(correcter1.newFileVersion, correcter2.newFileVersion) ? -1 : 1)
+                    )
+                : correcters;
 
+            var lastCorrecter = orderedCorrecters.Last();
             if (Utils.IsUpToDate(orderedCorrecters.Last().newFileVersion, fileVersion))
             {
                 return;
             }
 
             PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
+            var isPassInExtraData = lastCorrecter.objectJsonCorrecter is Action<IDictionary<string, object?>, TE>;
             foreach (var (objectJsonCorrecter, newFileVersion) in orderedCorrecters)
             {
-                CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, ref fileVersion, newFileVersion);
+                if (isPassInExtraData)
+                {
+                    CorrectJsonDataVersionPrivate(objectName, () => (objectJsonCorrecter as Action<IDictionary<string, object?>, TE>)(objectJson, extraData), ref fileVersion, newFileVersion);
+                }
+                else
+                {
+                    CorrectJsonDataVersionPrivate(objectName, () => (objectJsonCorrecter as Action<IDictionary<string, object?>>)(objectJson), ref fileVersion, newFileVersion);
+                }
             }
             PACSingletons.Instance.Logger.Log($"{objectName} json data corrected");
-        }
-
-        public void CorrectJsonData<T>(
-            ref IDictionary<string, object?> objectJson,
-            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
-            string fileVersion,
-            bool? orderCorrecters = null
-        )
-        {
-            CorrectJsonData(typeof(T).ToString(), ref objectJson, correcters, fileVersion, orderCorrecters);
-        }
-
-        public void CorrectJsonData<TE>(
-            string objectName,
-            ref IDictionary<string, object?> objectJson,
-            TE extraData,
-            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
-            string fileVersion,
-            bool? orderCorrecters = null
-        )
-        {
-            if (!correcters.Any() || Utils.IsUpToDate(saveVersion, fileVersion))
-            {
-                return;
-            }
-
-            orderCorrecters ??= this.orderCorrecters;
-            var orderedCorrecters = (bool)orderCorrecters ? correcters.StableSort(
-                (correcter1, correcter2) =>
-                    correcter1.newFileVersion == correcter2.newFileVersion ? 0 :
-                        (Utils.IsUpToDate(correcter1.newFileVersion, correcter2.newFileVersion) ? -1 : 1)
-                ) : correcters;
-
-            if (Utils.IsUpToDate(orderedCorrecters.Last().newFileVersion, fileVersion))
-            {
-                return;
-            }
-
-            PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
-            foreach (var (objectJsonCorrecter, newFileVersion) in orderedCorrecters)
-            {
-                CorrectJsonDataVersion(objectName, objectJsonCorrecter, ref objectJson, extraData, ref fileVersion, newFileVersion);
-            }
-            PACSingletons.Instance.Logger.Log($"{objectName} json data corrected");
-        }
-
-        public void CorrectJsonData<T, TE>(
-            ref IDictionary<string, object?> objectJson,
-            TE extraData,
-            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
-            string fileVersion,
-            bool? orderCorrecters = null
-        )
-        {
-            CorrectJsonData(typeof(T).ToString(), ref objectJson, extraData, correcters, fileVersion, orderCorrecters);
         }
         #endregion
     }

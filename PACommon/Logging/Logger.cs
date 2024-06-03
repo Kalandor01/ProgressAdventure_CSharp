@@ -134,7 +134,7 @@ namespace PACommon.Logging
             _isLoggingEnabled = loggingLevel != LogSeverity.DISABLED;
             _loggingLevel = loggingLevel;
             _forceLogInterval = forceLogInterval ?? new TimeSpan(0, 0, 5);
-            _logMessageBuffer = new List<(string message, DateTime time)>();
+            _logMessageBuffer = [];
             _lastLogTime = DateTime.Now;
         }
         #endregion
@@ -232,7 +232,7 @@ namespace PACommon.Logging
             {
                 if (LoggingEnabled)
                 {
-                    if (!_logMessageBuffer.Any())
+                    if (_logMessageBuffer.Count == 0)
                     {
                         await loggerStream.LogNewLineAsync();
                         return;
@@ -290,7 +290,7 @@ namespace PACommon.Logging
             {
                 _lastLogTime = DateTime.Now;
                 var previousList = _logMessageBuffer.ToList();
-                _logMessageBuffer = new List<(string message, DateTime time)>();
+                _logMessageBuffer = [];
                 await loggerStream.LogTextAsync(previousList, newLine);
             }
         }

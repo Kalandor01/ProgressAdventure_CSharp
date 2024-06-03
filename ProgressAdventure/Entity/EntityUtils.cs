@@ -335,7 +335,7 @@ namespace ProgressAdventure.Entity
                     }
                     else
                     {
-                        teams[teamName] = new List<Entity> { entity };
+                        teams[teamName] = [entity];
                     }
                 }
             }
@@ -633,7 +633,7 @@ namespace ProgressAdventure.Entity
                 Console.WriteLine($"{(multiEntityTeamExists ? "Other e" : "E")}ntities:\n");
                 foreach (var team in teams)
                 {
-                    if (!team.Value.Any())
+                    if (team.Value.Count == 0)
                     {
                         PACSingletons.Instance.Logger.Log("Fight log", $"no entity in team \"{team.Key}\", did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
                         return;
@@ -665,7 +665,7 @@ namespace ProgressAdventure.Entity
         /// <param name="player">The (first) player in the fight, or null.</param>
         private static void UnpreparedFight(Dictionary<string, List<Entity>> teams, string? playerTeam, Player? player, bool writeOut)
         {
-            if (!teams.Any())
+            if (teams.Count == 0)
             {
                 PACSingletons.Instance.Logger.Log("Fight log", $"no teams in fight, did you call {nameof(UnpreparedFight)} directly???", LogSeverity.ERROR);
                 return;

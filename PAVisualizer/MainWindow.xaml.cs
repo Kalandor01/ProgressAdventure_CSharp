@@ -84,9 +84,9 @@ namespace PAVisualizer
         {
             center = (0, 0);
             worldGridScale = 1;
-            layers = new List<WorldLayer> { WorldLayer.Terrain };
+            layers = [WorldLayer.Terrain];
             saveName = string.Empty;
-            worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>();
+            worldTileTypeCounts = [];
             worldInfoString = string.Empty;
             TileCountsNeedToBeRefreshed = true;
 
@@ -158,7 +158,7 @@ namespace PAVisualizer
 
         private void CreateImageCommand(object sender, RoutedEventArgs e)
         {
-            if (!SelectedSave || !layers.Any())
+            if (!SelectedSave || layers.Count == 0)
             {
                 return;
             }
@@ -365,9 +365,9 @@ namespace PAVisualizer
             {
                 worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>
                 {
-                    [WorldLayer.Terrain] = new Dictionary<ContentTypeID, long>(),
-                    [WorldLayer.Structure] = new Dictionary<ContentTypeID, long>(),
-                    [WorldLayer.Population] = new Dictionary<ContentTypeID, long>(),
+                    [WorldLayer.Terrain] = [],
+                    [WorldLayer.Structure] = [],
+                    [WorldLayer.Population] = [],
                 };
             }
 
@@ -417,7 +417,7 @@ namespace PAVisualizer
             }
 
             // world
-            if (!layers.Any())
+            if (layers.Count == 0)
             {
                 return;
             }

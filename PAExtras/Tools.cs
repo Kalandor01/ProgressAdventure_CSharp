@@ -68,7 +68,7 @@ namespace PAExtras
             try
             {
                 using var f = File.OpenText(Path.Join(savesFolderPath, saveFolderName) + ".decoded.json");
-                saveData = f.ReadToEnd().Split("\n").ToList();
+                saveData = [.. f.ReadToEnd().Split("\n")];
             }
             catch (FileNotFoundException)
             {
@@ -223,7 +223,7 @@ namespace PAExtras
             PATools.RecreateSaveFileFolder();
             var backupFiles = GetSavesData();
 
-            if (!backupFiles.Any())
+            if (backupFiles.Count == 0)
             {
                 PACUtils.PressKey("No backups found!");
                 return;
@@ -265,7 +265,7 @@ namespace PAExtras
         {
             if (PATools.RecreateBackupsFolder())
             {
-                return new List<(string fileName, string saveName, DateTime backupDate)>();
+                return [];
             }
 
             var backups = new List<(string fileName, string saveName, DateTime backupDate)>();

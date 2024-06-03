@@ -46,13 +46,13 @@ namespace ProgressAdventure.ItemManagement
                 throw new ArgumentException("Item type is not a compound item type", nameof(type));
             }
 
-            if (!parts.Any())
+            if (parts.Count == 0)
             {
                 PACSingletons.Instance.Logger.Log("Compound item has no parts", $"id: {type}", LogSeverity.ERROR);
                 throw new ArgumentException("Parts list doesn't have an element.", nameof(parts));
             }
 
-            Parts = parts.ToImmutableList();
+            Parts = [.. parts];
             Material = Parts.First().Material;
             Amount = amount;
             SetAttributes();
@@ -67,7 +67,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (Amount > 0)
             {
-                // DO THIS WITH TAGS!
+                // TODO: DO THIS WITH TAGS!
 
                 //if (Consumable)
                 //{
@@ -149,8 +149,8 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<CompoundItem>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<CompoundItem>.VersionCorrecters { get; } =
+        [
             // 2.0.2 -> 2.1
             (oldJson =>
             {
@@ -177,7 +177,7 @@ namespace ProgressAdventure.ItemManagement
                     oldJson["parts"] = compoundItemFixedJson.partsJson;
                 }
             }, "2.2"),
-        };
+        ];
 
         public override Dictionary<string, object?> ToJson()
         {
