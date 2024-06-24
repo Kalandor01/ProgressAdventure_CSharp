@@ -240,7 +240,32 @@ namespace ProgressAdventure
         static void Main(string[] args)
         {
             PreloadingErrorHandler();
-            MainErrorHandler();
+
+            SaveManager.LoadSave("all items + world", false, true);
+            SaveManager.MakeSave();
+
+            var huh = ulong.TryParse("1.0151659769158949E+19", out var h);
+            var gg = 10151659769158949000;
+
+            //var rn = PACTools.SerializeRandom(new NPrng.Generators.SplittableRandom());
+            //var d1 = 0.512;
+            //var b1 = true;
+            //var ul = 16579432132123449811;
+            //var h = new Dictionary<string, object?>()
+            //{
+            //    ["dou"] = d1,
+            //    ["b1"] = b1,
+            //    ["r"] = rn,
+            //    ["ul"] = ul,
+            //};
+            //var js = JsonSerializer.SerializeJson(h);
+            //var d = JsonSerializer.DeserializeJson(js);
+            //var d1d = double.TryParse(h["dou"].ToString(), out var d1d1d);
+            //var b1d = (bool)h["b1"];
+            //var ulds = ulong.TryParse(h["ul"].ToString(), out var uld);
+            //var rnd = PACTools.DeserializeRandom(d["r"].ToString());
+            //MainErrorHandler();
+            PACSingletons.Instance.Logger.Log("end", "", LogSeverity.INFO, forceLog: true);
         }
     }
 }

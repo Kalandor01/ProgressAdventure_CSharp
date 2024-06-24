@@ -1,7 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PACommon.Enums;
-using System.Collections;
+﻿using System.Collections;
+using System.Text.Json;
+using SysJsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PACommon.JsonUtils
 {
@@ -14,114 +13,72 @@ namespace PACommon.JsonUtils
         /// <param name="jsonString">The json string.</param>
         public static Dictionary<string, object?>? DeserializeJson(string jsonString)
         {
-            var partialDict = JsonConvert.DeserializeObject<Dictionary<string, object?>>(jsonString);
-            return partialDict is not null ? DeserializePartialJTokenDict(partialDict) : null;
+            var rootElement = SysJsonSerializer.Deserialize<JsonElement?>(jsonString);
+            return rootElement is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Object
+                ? DeserializeJsonObjectEnumerator(jsonElement.EnumerateObject())
+                : null;
         }
 
         public static string SerializeJson(IDictionary? jsonData)
         {
-            return JsonConvert.SerializeObject(jsonData);
+            return SysJsonSerializer.Serialize(jsonData);
         }
 
         /// <summary>
-        /// Returns the value of the JToken
+        /// Returns the value of the JsonElement.
         /// </summary>
-        /// <param name="token">The JToken to deserialize.</param>
-        public static object? DeserializeJToken(JToken token)
+        /// <param name="element">The JsonElement to deserialize.</param>
+        public static object? DeserializeJsonElement(JsonElement element)
         {
-            switch (token.Type)
+            return element.ValueKind switch
             {
-                case JTokenType.None:
-                case JTokenType.Null:
-                    return null;
-                case JTokenType.Undefined:
-                    PACSingletons.Instance.Logger.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
-                    return null;
-                case JTokenType.Object:
-                    var partialDict = token.ToObject<Dictionary<string, object?>>();
-                    return partialDict is not null ? DeserializePartialJTokenDict(partialDict) : null;
-                case JTokenType.Array:
-                    var partialList = token.ToObject<List<object?>>();
-                    return partialList is not null ? DeserializePartialJTokenList(partialList) : null;
-                case JTokenType.Constructor:
-                    return ((JConstructor)token).ToString();
-                case JTokenType.Property:
-                    var prop = (JProperty)token;
-                    return DeserializeJToken(prop.Value);
-                case JTokenType.Comment:
-                case JTokenType.String:
-                case JTokenType.Raw:
-                case JTokenType.Uri:
-                    return token.ToString();
-                case JTokenType.Integer:
-                    return (long)token;
-                case JTokenType.Float:
-                    return (double)token;
-                case JTokenType.Boolean:
-                    return (bool)token;
-                case JTokenType.Date:
-                    return (DateTime)token;
-                case JTokenType.Bytes:
-                    return (byte)token;
-                case JTokenType.Guid:
-                    return (Guid)token;
-                case JTokenType.TimeSpan:
-                    return (TimeSpan)token;
-                default:
-                    return token;
-            }
+                JsonValueKind.Object => DeserializeJsonObjectEnumerator(element.EnumerateObject()),
+                JsonValueKind.Array => DeserializeJsonArrayEnumerator(element.EnumerateArray()),
+                JsonValueKind.String => element.TryGetGuid(out var guidValue)
+                                        ? guidValue
+                                        : (element.TryGetDateTime(out var dateTimeValue)
+                                            ? dateTimeValue
+                                            : element.GetString()
+                                        ),
+                JsonValueKind.Number => element.TryGetInt64(out var longValue)
+                                        ? longValue
+                                        : (element.TryGetUInt64(out var ulongValue)
+                                            ? ulongValue
+                                            : element.GetDouble()
+                                        ),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                _ => null,
+            };
         }
         #endregion
 
         #region Private functions
         /// <summary>
-        /// Turns the JTokens in a dictionary into the value of the JToken.
+        /// Turns the JsonElement object enumerator into a dictionary of elements names and values.
         /// </summary>
-        /// <param name="partialJsonDict">The dictionary containing values, including JTokens.</param>
-        private static Dictionary<string, object?> DeserializePartialJTokenDict(IDictionary<string, object?> partialJsonDict)
+        /// <param name="objectEnumerator">The object enumerator containing the JsonElements.</param>
+        private static Dictionary<string, object?> DeserializeJsonObjectEnumerator(JsonElement.ObjectEnumerator objectEnumerator)
         {
             var jsonDict = new Dictionary<string, object?>();
-            foreach (var kvPair in partialJsonDict)
+            foreach (var property in objectEnumerator)
             {
-                object? kvValue;
-                if (
-                    kvPair.Value is not null &&
-                    typeof(JToken).IsAssignableFrom(kvPair.Value.GetType())
-                )
-                {
-                    kvValue = DeserializeJToken((JToken)kvPair.Value);
-                }
-                else
-                {
-                    kvValue = kvPair.Value;
-                }
-                jsonDict.Add(kvPair.Key, kvValue);
+                var jsonValue = DeserializeJsonElement(property.Value);
+                jsonDict.Add(property.Name, jsonValue);
             }
             return jsonDict;
         }
 
         /// <summary>
-        /// Turns the JTokens in a list into the value of the JToken. 
+        /// Turns the JsonElements array enumerator into a list of the elements values. 
         /// </summary>
-        /// <param name="partialJsonList">The list containing values, including JTokens.</param>
-        private static List<object?> DeserializePartialJTokenList(IEnumerable<object?> partialJsonList)
+        /// <param name="jsonListEnumerator">The json array enumerator.</param>
+        private static List<object?> DeserializeJsonArrayEnumerator(JsonElement.ArrayEnumerator jsonListEnumerator)
         {
             var jsonList = new List<object?>();
-            foreach (var element in partialJsonList)
+            foreach (var element in jsonListEnumerator)
             {
-                object? value;
-                if (
-                    element is not null &&
-                    typeof(JToken).IsAssignableFrom(element.GetType())
-                )
-                {
-                    value = DeserializeJToken((JToken)element);
-                }
-                else
-                {
-                    value = element;
-                }
-                jsonList.Add(value);
+                jsonList.Add(DeserializeJsonElement(element));
             }
             return jsonList;
         }

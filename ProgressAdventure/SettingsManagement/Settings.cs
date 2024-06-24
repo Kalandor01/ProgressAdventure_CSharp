@@ -186,7 +186,7 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (
                 !TryGetFromSettingAsType(SettingsKey.LOGGING_LEVEL, out object logLevel) ||
-                !ILogger.TryParseSeverityValue((int)(long)logLevel, out LogSeverity severity)
+                !ILogger.TryParseSeverityValue((int)logLevel, out LogSeverity severity)
                 )
             {
                 PACSingletons.Instance.Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
@@ -236,7 +236,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static int GetDefBackupAction()
         {
-            return (int)(long)GetFromSettingAsType(SettingsKey.DEF_BACKUP_ACTION);
+            return (int)GetFromSettingAsType(SettingsKey.DEF_BACKUP_ACTION);
         }
 
         /// <summary>
@@ -375,6 +375,8 @@ namespace ProgressAdventure.SettingsManagement
         private static bool TryGetFromSettingAsType(SettingsKey settingsKey, out object value)
         {
             value = SettingsManager(settingsKey);
+            var tt = value.GetType();
+            var et = SettingsUtils.settingValueTypeMap[settingsKey];
             return value.GetType() == SettingsUtils.settingValueTypeMap[settingsKey];
         }
 
