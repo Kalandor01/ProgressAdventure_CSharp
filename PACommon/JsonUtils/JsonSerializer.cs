@@ -32,6 +32,10 @@ namespace PACommon.JsonUtils
             switch (token.Type)
             {
                 case JTokenType.None:
+                case JTokenType.Null:
+                    return null;
+                case JTokenType.Undefined:
+                    PACSingletons.Instance.Logger.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
                     return null;
                 case JTokenType.Object:
                     var partialDict = token.ToObject<Dictionary<string, object?>>();
@@ -45,30 +49,22 @@ namespace PACommon.JsonUtils
                     var prop = (JProperty)token;
                     return DeserializeJToken(prop.Value);
                 case JTokenType.Comment:
+                case JTokenType.String:
+                case JTokenType.Raw:
+                case JTokenType.Uri:
                     return token.ToString();
                 case JTokenType.Integer:
                     return (long)token;
                 case JTokenType.Float:
                     return (double)token;
-                case JTokenType.String:
-                    return token.ToString();
                 case JTokenType.Boolean:
                     return (bool)token;
-                case JTokenType.Null:
-                    return null;
-                case JTokenType.Undefined:
-                    PACSingletons.Instance.Logger.Log("Undefined JToken value", token.ToString(), LogSeverity.WARN);
-                    return null;
                 case JTokenType.Date:
                     return (DateTime)token;
-                case JTokenType.Raw:
-                    return token.ToString();
                 case JTokenType.Bytes:
                     return (byte)token;
                 case JTokenType.Guid:
                     return (Guid)token;
-                case JTokenType.Uri:
-                    return token.ToString();
                 case JTokenType.TimeSpan:
                     return (TimeSpan)token;
                 default:

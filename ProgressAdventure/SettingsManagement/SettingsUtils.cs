@@ -57,17 +57,17 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static List<ActionKey> GetDefaultKeybindList()
         {
-            return new List<ActionKey>
-            {
-                new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) }),
-                new ActionKey(ActionType.UP, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, false, false, false) }),
-                new ActionKey(ActionType.DOWN, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, false, false, false) }),
-                new ActionKey(ActionType.LEFT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, false) }),
-                new ActionKey(ActionType.RIGHT, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, false) }),
-                new ActionKey(ActionType.ENTER, new List<ConsoleKeyInfo> { new ConsoleKeyInfo((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) }),
-                new ActionKey(ActionType.STATS, new List<ConsoleKeyInfo> { new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) }),
-                new ActionKey(ActionType.SAVE, new List<ConsoleKeyInfo> { new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false) }),
-            };
+            return
+            [
+                new(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) }),
+                new(ActionType.UP, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.UpArrow, false, false, false) }),
+                new(ActionType.DOWN, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.DownArrow, false, false, false) }),
+                new(ActionType.LEFT, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.LeftArrow, false, false, false) }),
+                new(ActionType.RIGHT, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.RightArrow, false, false, false) }),
+                new(ActionType.ENTER, new List<ConsoleKeyInfo> { new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) }),
+                new(ActionType.STATS, new List<ConsoleKeyInfo> { new('e', ConsoleKey.E, false, false, false) }),
+                new(ActionType.SAVE, new List<ConsoleKeyInfo> { new('s', ConsoleKey.S, false, false, false) }),
+            ];
         }
 
         /// <summary>

@@ -103,14 +103,13 @@ namespace ProgressAdventure.ConfigManagement
         public static void UpdateConfigs()
         {
             Initialize(
-                new JsonConverter[]
-                {
+                [
                     new ItemTypeIDConverter(),
                     new CompoundItemAttributesDTOConverter(),
                     new MaterialItemAttributesDTOConverter(),
                     new IngredientDTOConverter(),
                     new EnumConverter(),
-                },
+                ],
                 PACommon.Constants.ROOT_FOLDER,
                 Constants.CONFIGS_FOLDER,
                 Constants.CONFIG_EXT,

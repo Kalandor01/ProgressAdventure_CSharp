@@ -52,7 +52,7 @@ namespace PACommon
             string? currentConfigFileVersion = null
         )
         {
-            _converters = converters ?? Array.Empty<JsonConverter>();
+            _converters = converters ?? [];
             _configsFolderParrentPath = configsFolderParrentPath ?? Constants.ROOT_FOLDER;
             if (!Directory.Exists(_configsFolderParrentPath))
             {
@@ -204,7 +204,7 @@ namespace PACommon
                 ["version"] = _currentConfigFileVersion,
                 ["data"] = configData,
             };
-            var jsonString = JsonConvert.SerializeObject(configFileData, _converters);
+            var jsonString = JsonConvert.SerializeObject(configFileData, Formatting.Indented, _converters);
             File.WriteAllText(filePath, jsonString);
             PACSingletons.Instance.Logger.Log($"Config file recreated", $"file path: \"{safeFilePath}\"");
         }

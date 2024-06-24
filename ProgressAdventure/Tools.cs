@@ -70,22 +70,23 @@ namespace ProgressAdventure
             string? extraFileInformation = null
         )
         {
+            var objectTpeName = typeof(T).Name;
             try
             {
                 var chunkJson = DecodeSaveShort(filePath, lineNum, seed, extension, expected);
                 if (chunkJson is null)
                 {
-                    PACTools.LogJsonNullError<T>(nameof(T), extraFileInformation, true);
+                    PACTools.LogJsonNullError<T>(objectTpeName, extraFileInformation, true);
                     return null;
                 }
                 return chunkJson;
             }
             catch (Exception e)
             {
-                fileTypeName ??= nameof(T);
+                fileTypeName ??= objectTpeName;
                 if (e is FormatException)
                 {
-                    PACTools.LogJsonParseError<T>(nameof(T), $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
+                    PACTools.LogJsonParseError<T>(objectTpeName, $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
                     return null;
                 }
                 else if (e is FileNotFoundException)
