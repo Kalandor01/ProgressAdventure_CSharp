@@ -7,6 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Label="Normalise stack trace file locations">
+    <PathMap>$(MSBuildProjectDirectory)=.\\$(MSBuildProjectName)</PathMap>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ProgressAdventure\ProgressAdventure.csproj" />
   </ItemGroup>
