@@ -28,7 +28,7 @@ namespace PACommon.JsonUtils
         /// Returns the value of the JsonElement.
         /// </summary>
         /// <param name="element">The JsonElement to deserialize.</param>
-        public static object? DeserializeJsonElement(JsonElement element)
+        public static JsonObject? DeserializeJsonElement(JsonElement element)
         {
             return element.ValueKind switch
             {
@@ -58,7 +58,7 @@ namespace PACommon.JsonUtils
         /// Turns the JsonElement object enumerator into a dictionary of elements names and values.
         /// </summary>
         /// <param name="objectEnumerator">The object enumerator containing the JsonElements.</param>
-        private static Dictionary<string, object?> DeserializeJsonObjectEnumerator(JsonElement.ObjectEnumerator objectEnumerator)
+        private static Dictionary<string, JsonObject?> DeserializeJsonObjectEnumerator(JsonElement.ObjectEnumerator objectEnumerator)
         {
             var jsonDict = new Dictionary<string, object?>();
             foreach (var property in objectEnumerator)
@@ -73,8 +73,9 @@ namespace PACommon.JsonUtils
         /// Turns the JsonElements array enumerator into a list of the elements values. 
         /// </summary>
         /// <param name="jsonListEnumerator">The json array enumerator.</param>
-        private static List<object?> DeserializeJsonArrayEnumerator(JsonElement.ArrayEnumerator jsonListEnumerator)
+        private static List<JsonObject?> DeserializeJsonArrayEnumerator(JsonElement.ArrayEnumerator jsonListEnumerator)
         {
+            // TODO: custom DTO for storing json (like JsonElment but more primitive)
             var jsonList = new List<object?>();
             foreach (var element in jsonListEnumerator)
             {
