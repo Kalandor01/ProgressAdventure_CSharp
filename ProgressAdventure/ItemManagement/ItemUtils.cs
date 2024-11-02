@@ -372,11 +372,11 @@ namespace ProgressAdventure.ItemManagement
             ],
             [ItemType.Misc.BOTTLE] =
             [
-                new([new(null, 0.1, ItemAmountUnit.M3)]),
+                new([new(null, 6e-4, ItemAmountUnit.M3)]),
             ],
             [ItemType.Misc.COIN] =
             [
-                new([new(null, 0.02, ItemAmountUnit.M3)]),
+                new([new(null, 7e-6, ItemAmountUnit.M3)]),
             ],
         };
         #endregion

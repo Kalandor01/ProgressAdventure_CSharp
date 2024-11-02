@@ -214,7 +214,7 @@ namespace ProgressAdventure
             if (!backupChoice && automaticBackup)
             {
                 Tools.CreateBackup(saveName);
-                return false;
+                return !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion);
             }
 
             if (

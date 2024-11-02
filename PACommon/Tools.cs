@@ -1,4 +1,4 @@
-﻿using NPrng;
+using NPrng;
 using NPrng.Generators;
 using NPrng.Serializers;
 using PACommon.Enums;
@@ -23,7 +23,7 @@ namespace PACommon
         /// <inheritdoc cref="EncodeSaveShort(IEnumerable{IDictionary}, string, long, string)"/>
         public static void EncodeSaveShort(IDictionary data, string filePath, long seed, string extension)
         {
-            EncodeSaveShort(new List<IDictionary> { data }, filePath, seed, extension);
+            EncodeSaveShort([data], filePath, seed, extension);
         }
 
         /// <summary>
