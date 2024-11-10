@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Text.Json;
+﻿using System.Text.Json;
 using SysJsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PACommon.JsonUtils
@@ -8,10 +7,10 @@ namespace PACommon.JsonUtils
     {
         #region Public functions
         /// <summary>
-        /// Turns the json string into a dictionary.
+        /// Turns the json string into a JsonDictionary.
         /// </summary>
         /// <param name="jsonString">The json string.</param>
-        public static Dictionary<string, object?>? DeserializeJson(string jsonString)
+        public static JsonDictionary? DeserializeJson(string jsonString)
         {
             var rootElement = SysJsonSerializer.Deserialize<JsonElement?>(jsonString);
             return rootElement is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Object
@@ -19,7 +18,7 @@ namespace PACommon.JsonUtils
                 : null;
         }
 
-        public static string SerializeJson(IDictionary? jsonData)
+        public static string SerializeJson(JsonDictionary? jsonData)
         {
             return SysJsonSerializer.Serialize(jsonData);
         }
@@ -35,19 +34,25 @@ namespace PACommon.JsonUtils
                 JsonValueKind.Object => DeserializeJsonObjectEnumerator(element.EnumerateObject()),
                 JsonValueKind.Array => DeserializeJsonArrayEnumerator(element.EnumerateArray()),
                 JsonValueKind.String => element.TryGetGuid(out var guidValue)
-                                        ? guidValue
+                                        ? new JsonValue(guidValue)
                                         : (element.TryGetDateTime(out var dateTimeValue)
-                                            ? dateTimeValue
-                                            : element.GetString()
+                                            ? new JsonValue(dateTimeValue)
+                                            : (TimeSpan.TryParse(element.ToString(), out var timeSpanValue)
+                                                ? new JsonValue(timeSpanValue)
+                                                : new JsonValue(element.ToString())
+                                            )
                                         ),
                 JsonValueKind.Number => element.TryGetInt64(out var longValue)
-                                        ? longValue
+                                        ? new JsonValue(longValue)
                                         : (element.TryGetUInt64(out var ulongValue)
-                                            ? ulongValue
-                                            : element.GetDouble()
+                                            ? new JsonValue(ulongValue)
+                                            : (element.TryGetDouble(out var doubleValue)
+                                                ? new JsonValue(doubleValue)
+                                                : new JsonValue(element.ToString(), true)
+                                            )
                                         ),
-                JsonValueKind.True => true,
-                JsonValueKind.False => false,
+                JsonValueKind.True => new JsonValue(true),
+                JsonValueKind.False => new JsonValue(false),
                 _ => null,
             };
         }
@@ -55,33 +60,32 @@ namespace PACommon.JsonUtils
 
         #region Private functions
         /// <summary>
-        /// Turns the JsonElement object enumerator into a dictionary of elements names and values.
+        /// Turns the JsonElement object enumerator into a JsonDictionary.
         /// </summary>
         /// <param name="objectEnumerator">The object enumerator containing the JsonElements.</param>
-        private static Dictionary<string, JsonObject?> DeserializeJsonObjectEnumerator(JsonElement.ObjectEnumerator objectEnumerator)
+        private static JsonDictionary DeserializeJsonObjectEnumerator(JsonElement.ObjectEnumerator objectEnumerator)
         {
-            var jsonDict = new Dictionary<string, object?>();
+            var jsonDict = new Dictionary<string, JsonObject?>();
             foreach (var property in objectEnumerator)
             {
                 var jsonValue = DeserializeJsonElement(property.Value);
                 jsonDict.Add(property.Name, jsonValue);
             }
-            return jsonDict;
+            return new JsonDictionary(jsonDict);
         }
 
         /// <summary>
-        /// Turns the JsonElements array enumerator into a list of the elements values. 
+        /// Turns the JsonElements array enumerator into a JsonArray. 
         /// </summary>
         /// <param name="jsonListEnumerator">The json array enumerator.</param>
-        private static List<JsonObject?> DeserializeJsonArrayEnumerator(JsonElement.ArrayEnumerator jsonListEnumerator)
+        private static JsonArray DeserializeJsonArrayEnumerator(JsonElement.ArrayEnumerator jsonListEnumerator)
         {
-            // TODO: custom DTO for storing json (like JsonElment but more primitive)
-            var jsonList = new List<object?>();
+            var jsonList = new List<JsonObject?>();
             foreach (var element in jsonListEnumerator)
             {
                 jsonList.Add(DeserializeJsonElement(element));
             }
-            return jsonList;
+            return new JsonArray(jsonList);
         }
         #endregion
     }
