@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 
 namespace PACommon.JsonUtils
 {
     public class JsonValue : JsonObject<object>
     {
+        #region Constructors
         public JsonValue(JsonObjectType type, string value)
             : base(type, value) { }
 
@@ -34,70 +34,96 @@ namespace PACommon.JsonUtils
 
         public JsonValue(Guid value)
             : base(JsonObjectType.Guid, value) { }
+        #endregion
 
-        public bool TryAsType([NotNullWhen(true)] out object? value)
+        #region Public methods
+        public bool TryAsULong(out ulong value)
         {
-            bool success;
-            switch (Type)
+            value = default;
+            if (TryAsValueType(JsonObjectType.WholeNumber, out object? objValue))
             {
-                case JsonObjectType.Dictionary:
-                    value = Value as Dictionary<string, JsonObject?>;
-                    success = value is not null;
-                    break;
-                case JsonObjectType.Array:
-                    value = Value as List<JsonObject?>;
-                    success = value is not null;
-                    break;
-                case JsonObjectType.String:
-                    value = Value.ToString();
-                    success = value is not null;
-                    break;
-                case JsonObjectType.Double:
-                    success = double.TryParse(Value?.ToString(), out var doubleValue);
-                    value = doubleValue;
-                    break;
-                case JsonObjectType.WholeNumber:
-                    success = BigInteger.TryParse(Value?.ToString(), out var number);
-                    if (
-                        !success ||
-                        number > ulong.MaxValue ||
-                        number < long.MinValue
-                    )
-                    {
-                        value = null;
-                        break;
-                    }
-
-                    success = true;
-                    if (number > long.MaxValue)
-                    {
-                        value = (ulong)number;
-                        break;
-                    }
-                    value = (long)number;
-                    break;
-                case JsonObjectType.Bool:
-                    success = bool.TryParse(Value?.ToString(), out var boolValue);
-                    value = boolValue;
-                    break;
-                case JsonObjectType.DateTime:
-                    success = DateTime.TryParse(Value?.ToString(), out var dateTimeValue);
-                    value = dateTimeValue;
-                    break;
-                case JsonObjectType.TimeSpan:
-                    success = TimeSpan.TryParse(Value?.ToString(), out var timeSpanValue);
-                    value = timeSpanValue;
-                    break;
-                case JsonObjectType.Guid:
-                    success = Guid.TryParse(Value?.ToString(), out var guidValue);
-                    value = guidValue;
-                    break;
-                default:
-                    value = null;
-                    success = false;
-                    break;
+                if (
+                    objValue is long lValue &&
+                    lValue < 0
+                )
+                {
+                    return false;
+                }
+                value = objValue is ulong ulValue ? ulValue : Convert.ToUInt64(objValue);
+                return true;
             }
-            return success;
+            return false;
         }
+
+        public bool TryAsLong(out long value)
+        {
+            value = default;
+            if (TryAsValueType(JsonObjectType.WholeNumber, out object? objValue))
+            {
+                if (
+                    objValue is ulong ulValue &&
+                    ulValue > long.MaxValue
+                )
+                {
+                    return false;
+                }
+                value = objValue is long lValue ? lValue : Convert.ToInt64(objValue);
+                return true;
+            }
+            return false;
+        }
+
+        public bool TryAsString([NotNullWhen(true)] out string? value, bool strict = true)
+        {
+            if (!strict)
+            {
+                value = Value.ToString();
+                return value is not null;
+            }
+
+            return TryAsValueType(JsonObjectType.String, out value);
+        }
+
+        public bool TryAsDouble(out double value)
+        {
+            return TryAsValueType(JsonObjectType.Double, out value);
+        }
+
+        public bool TryAsBool(out bool value)
+        {
+            return TryAsValueType(JsonObjectType.Bool, out value);
+        }
+
+        public bool TryAsDateTime(out DateTime value)
+        {
+            return TryAsValueType(JsonObjectType.DateTime, out value);
+        }
+
+        public bool TryAsTimeSpan(out TimeSpan value)
+        {
+            return TryAsValueType(JsonObjectType.TimeSpan, out value);
+        }
+
+        public bool TryAsGuid(out Guid value)
+        {
+            return TryAsValueType(JsonObjectType.Guid, out value);
+        }
+        #endregion
+
+        #region Private methods
+        private bool TryAsValueType<T>(JsonObjectType type, [NotNullWhen(true)] out T? value)
+        {
+            value = default;
+            if (
+                Type == type &&
+                TryAsType(out var objValue)
+            )
+            {
+                value = (T)objValue;
+                return true;
+            }
+            return false;
+        }
+        #endregion
     }
 }
