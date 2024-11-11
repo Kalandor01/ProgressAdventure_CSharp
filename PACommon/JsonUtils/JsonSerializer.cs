@@ -20,7 +20,8 @@ namespace PACommon.JsonUtils
 
         public static string SerializeJson(JsonDictionary? jsonData)
         {
-            return SysJsonSerializer.Serialize(jsonData);
+            var convertedData = SerializeJsonDictionary(jsonData);
+            return SysJsonSerializer.Serialize(convertedData);
         }
 
         /// <summary>
@@ -86,6 +87,28 @@ namespace PACommon.JsonUtils
                 jsonList.Add(DeserializeJsonElement(element));
             }
             return new JsonArray(jsonList);
+        }
+
+        private static Dictionary<string, object?>? SerializeJsonDictionary(JsonDictionary? jsonObject)
+        {
+            return jsonObject?.ToDictionary(k => k.Key, v => SerializeJsonObject(v.Value));
+        }
+
+        private static object? SerializeJsonObject(JsonObject? jsonObject)
+        {
+            if (jsonObject is null)
+            {
+                return null;
+            }
+            if (jsonObject is JsonDictionary jsonDictionary)
+            {
+                return SerializeJsonDictionary(jsonDictionary);
+            }
+            if (jsonObject is JsonArray jsonArray)
+            {
+                return jsonArray.Select(SerializeJsonObject);
+            }
+            return jsonObject.Value;
         }
         #endregion
     }

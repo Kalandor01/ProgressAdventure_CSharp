@@ -6,8 +6,19 @@ namespace PACommon.JsonUtils
     [DebuggerDisplay("Length = {Value.Count}")]
     public class JsonArray : JsonObject<List<JsonObject?>>, IList<JsonObject?>
     {
+        #region Constructors
         public JsonArray(List<JsonObject?> value)
-            : base(JsonObjectType.Array, value) { }
+            : base(JsonObjectType.Array, value)
+        {
+
+        }
+
+        public JsonArray()
+            : this([])
+        {
+
+        }
+        #endregion
 
         #region Interface methods
         public JsonObject? this[int index] { get => Value[index]; set => Value[index] = value; }

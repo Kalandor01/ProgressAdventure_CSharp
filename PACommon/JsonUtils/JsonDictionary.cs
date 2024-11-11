@@ -7,8 +7,19 @@ namespace PACommon.JsonUtils
     [DebuggerDisplay("Count = {Value.Count}")]
     public class JsonDictionary : JsonObject<Dictionary<string, JsonObject?>>, IDictionary<string, JsonObject?>
     {
+        #region Constructors
         public JsonDictionary(Dictionary<string, JsonObject?> value)
-            : base(JsonObjectType.Dictionary, value) { }
+            : base(JsonObjectType.Dictionary, value)
+        {
+
+        }
+
+        public JsonDictionary()
+            : this([])
+        {
+
+        }
+        #endregion
 
         #region Interface methods
         public JsonObject? this[string key] { get => Value[key]; set => Value[key] = value; }

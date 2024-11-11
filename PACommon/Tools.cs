@@ -1,10 +1,9 @@
-using NPrng;
+﻿using NPrng;
 using NPrng.Generators;
 using NPrng.Serializers;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using SaveFileManager;
-using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -20,8 +19,8 @@ namespace PACommon
         #region Public functions
         #region Encode/decode short
         /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
-        /// <inheritdoc cref="EncodeSaveShort(IEnumerable{IDictionary}, string, long, string)"/>
-        public static void EncodeSaveShort(IDictionary data, string filePath, long seed, string extension)
+        /// <inheritdoc cref="EncodeSaveShort(IEnumerable{JsonDictionary}, string, long, string)"/>
+        public static void EncodeSaveShort(JsonDictionary data, string filePath, long seed, string extension)
         {
             EncodeSaveShort([data], filePath, seed, extension);
         }
@@ -34,10 +33,10 @@ namespace PACommon
         /// If the path contains a *, it will be replaced with the seed.</param>
         /// <param name="seed">The seed for encoding the file.</param>
         /// <param name="extension">The extension of the file that will be created.</param>
-        public static void EncodeSaveShort(IEnumerable<IDictionary> dataList, string filePath, long seed, string extension)
+        public static void EncodeSaveShort(IEnumerable<JsonDictionary> dataList, string filePath, long seed, string extension)
         {
-            var JsonDataList = dataList.Select(JsonSerializer.SerializeJson);
-            FileConversion.EncodeFile(JsonDataList, seed, filePath, extension, Constants.FILE_ENCODING_VERSION, Constants.ENCODING);
+            var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
+            FileConversion.EncodeFile(jsonDataList, seed, filePath, extension, Constants.FILE_ENCODING_VERSION, Constants.ENCODING);
         }
 
         /// <summary>
@@ -53,7 +52,7 @@ namespace PACommon
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
         /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
-        public static Dictionary<string, object?>? DecodeSaveShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
+        public static JsonDictionary? DecodeSaveShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
         {
             var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
 
