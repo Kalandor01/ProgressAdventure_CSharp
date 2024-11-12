@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
 using ProgressAdventure.WorldManagement;
 using System.Collections;
@@ -124,7 +125,7 @@ namespace ProgressAdventure
 
             // LOADING
             PACSingletons.Instance.Logger.Log("Preparing game data");
-            data[Constants.JsonKeys.SaveData.SAVE_NAME] = saveName;
+            data[Constants.JsonKeys.SaveData.SAVE_NAME] = new JsonValue(saveName);
             success &= PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
             PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             World.Initialize();
@@ -169,7 +170,7 @@ namespace ProgressAdventure
         /// <param name="dataJson">The json representation of a file json data.</param>
         /// <param name="newJsonKey">The new json key for the save version.</param>
         /// <param name="fileName">The name of the currenly loaded save file.</param>
-        public static string? GetSaveVersion<T>(IDictionary<string, object?> dataJson, string newJsonKey, string fileName)
+        public static string? GetSaveVersion<T>(JsonDictionary dataJson, string newJsonKey, string fileName)
         {
             if (PACTools.TryParseJsonValue<T, string>(dataJson, newJsonKey, out var fileVersion))
             {
@@ -198,7 +199,7 @@ namespace ProgressAdventure
             var displayData = DisplaySaveData.ToJsonFromSaveData(SaveData.Instance);
             var mainData = SaveData.Instance.ToJson();
             // create new save
-            Tools.EncodeSaveShort(new List<IDictionary> { displayData, mainData }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
+            Tools.EncodeSaveShort(new List<JsonDictionary> { displayData, mainData }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
         }
 
         /// <summary>
@@ -244,10 +245,10 @@ namespace ProgressAdventure
         /// Formats the json display data from a save file, into a displayable string.
         /// </summary>
         /// <param name="data">The save folder's name, and the data extracted from the data file's diplay data.</param>
-        public static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, Dictionary<string, object?>? jsonData) data)
+        public static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, JsonDictionary? jsonData) data)
         {
             var folderName = data.folderName;
-            var dataJson = (IDictionary<string, object?>?)data.jsonData;
+            var dataJson = data.jsonData;
 
             try
             {
@@ -325,12 +326,12 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="folders">A list of valid save folders.</param>
         /// <returns>A list of tuples, containing the folder name, and the data in it. The data will be null, if the folder wasn't readable.</returns>
-        private static List<(string folderName, Dictionary<string, object?>? data)> GetFoldersDisplayData(IEnumerable<string> folders)
+        private static List<(string folderName, JsonDictionary? data)> GetFoldersDisplayData(IEnumerable<string> folders)
         {
-            var datas = new List<(string folderName, Dictionary<string, object?>? data)>();
+            var datas = new List<(string folderName, JsonDictionary? data)>();
             foreach (var folder in folders)
             {
-                Dictionary<string, object?>? data = null;
+                JsonDictionary? data = null;
                 try
                 {
                     data = Tools.DecodeSaveShort(Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA), 0);

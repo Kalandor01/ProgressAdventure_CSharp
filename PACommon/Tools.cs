@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PACommon
 {
@@ -185,7 +186,7 @@ namespace PACommon
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static bool TryFromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
+        public static bool TryFromJson<T>(JsonDictionary? objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
             where T : IJsonConvertable<T>
         {
             return T.FromJson(objectJson, fileVersion, out convertedObject);
@@ -196,7 +197,7 @@ namespace PACommon
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
-        public static T? FromJson<T>(IDictionary<string, object?>? objectJson, string fileVersion)
+        public static T? FromJson<T>(JsonDictionary? objectJson, string fileVersion)
             where T : IJsonConvertable<T>
         {
             T.FromJson(objectJson, fileVersion, out T? convertedObject);
@@ -210,7 +211,7 @@ namespace PACommon
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static T? FromJsonWithoutCorrection<T>(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject)
+        public static T? FromJsonWithoutCorrection<T>(JsonDictionary objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject)
             where T : IJsonConvertable<T>
         {
             T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
@@ -285,6 +286,80 @@ namespace PACommon
 
         #region Json parse short
         /// <summary>
+        /// Tries to parse a value to a json value, and logs a warning, if it can't pe parsed.<br/>
+        /// Usable types:<br/>
+        /// - bool<br/>
+        /// - string<br/>
+        /// - numbers<br/>
+        /// - enums<br/>
+        /// - SplittableRandom<br/>
+        /// - array of JsonObjects
+        /// - dictionary of JsonObjects
+        /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
+        /// - null
+        /// </summary>
+        /// <typeparam name="T">The type to parse from.</typeparam>
+        public static JsonObject? ParseToJsonValue<T>(
+            T value,
+            bool logParseWarnings = true,
+            bool isCritical = true
+        )
+        {
+            switch (value)
+            {
+                case null:
+                    return null;
+                case int tValue:
+                    return new JsonValue(tValue);
+                case uint tValue:
+                    return new JsonValue(tValue);
+                case long tValue:
+                    return new JsonValue(tValue);
+                case ulong tValue:
+                    return new JsonValue(tValue);
+                case bool tValue:
+                    return new JsonValue(tValue);
+                case string tValue:
+                    return new JsonValue(tValue);
+                case char tValue:
+                    return new JsonValue(tValue.ToString());
+                case double tValue:
+                    return new JsonValue(tValue);
+                case float tValue:
+                    return new JsonValue(tValue);
+                case DateTime tValue:
+                    return new JsonValue(tValue);
+                case TimeSpan tValue:
+                    return new JsonValue(tValue);
+                case Guid tValue:
+                    return new JsonValue(tValue);
+                case Enum tValue:
+                    return new JsonValue(tValue.ToString());
+                case SplittableRandom tValue:
+                    return new JsonValue(SerializeRandom(tValue));
+                case List<JsonObject?> tValue:
+                    return new JsonArray(tValue);
+                case IEnumerable<JsonObject?> tValue:
+                    return new JsonArray(tValue.ToList());
+                case Dictionary<string, JsonObject?> tValue:
+                    return new JsonDictionary(tValue);
+                case IDictionary<string, JsonObject?> tValue:
+                    return new JsonDictionary(tValue.ToDictionary());
+            }
+
+            if (logParseWarnings)
+            {
+                var stackTrace = GetFromJsonCallStackString();
+                PACSingletons.Instance.Logger.Log(
+                    $"Json parse {(isCritical ? "error" : "warning")}",
+                    $"couldn't parse {typeof(T)} type to json value" + (stackTrace is null ? "" : $"\n{stackTrace}"),
+                    isCritical ? LogSeverity.ERROR : LogSeverity.WARN
+                );
+            }
+            return new JsonValue(value.ToString()!);
+        }
+
+        /// <summary>
         /// Tries to get a value from a json dictionary, and logs a warning, if it doesn't exist or null.
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
@@ -296,9 +371,9 @@ namespace PACommon
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was sucessfuly parsed.</returns>
         public static bool TryGetJsonObjectValue<T>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             string jsonKey,
-            [NotNullWhen(true)] out object? value,
+            [NotNullWhen(true)] out JsonObject? value,
             bool logParseWarnings = true,
             bool isCritical = false
         )
@@ -323,7 +398,7 @@ namespace PACommon
         /// <param name="objectValue">The value to try to cast.</param>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
         /// <param name="parameterName">The name of the parameter to try to cast.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryCastAnyValueForJsonParsing<T, TRes>(object? objectValue, [NotNullWhen(true)] out TRes? value, string? parameterName = null, bool isCritical = false)
         {
             value = default;
@@ -342,9 +417,9 @@ namespace PACommon
         /// Tries to get a value of a specific type from a json dictionary, and logs a warning, if it doesn't exist, or it can't be cast to the expected type.
         /// </summary>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryCastJsonAnyValue<T, TRes>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             string jsonKey,
             [NotNullWhen(true)] out TRes? value,
             bool isCritical = false
@@ -381,7 +456,7 @@ namespace PACommon
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was successfuly parsed.</returns>
         public static bool TryParseValueForJsonParsing<T, TRes>(
-            object? value,
+            JsonObject? value,
             [NotNullWhen(true)] out TRes? parsedValue,
             string? parameterName = null,
             bool logParseWarnings = true,
@@ -390,7 +465,7 @@ namespace PACommon
         )
         {
             parsedValue = default;
-            var valueText = value?.ToString();
+            var valueText = value?.Value.ToString();
 
             if (valueText is null)
             {
@@ -460,9 +535,9 @@ namespace PACommon
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
         /// <typeparam name="TRes">The type to parse to.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryParseJsonValue<T, TRes>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             string jsonKey,
             [NotNullWhen(true)] out TRes? value,
             bool logParseWarnings = true,
@@ -484,9 +559,9 @@ namespace PACommon
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <typeparam name="TJc">The IJsonConvertable class to convert to.</typeparam>
         /// <returns>If the object was parsed without warnings.</returns>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryParseJsonConvertableValue<T, TJc>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             string fileVersion,
             string jsonKey,
             [NotNullWhen(true)] out TJc? value,
@@ -495,7 +570,7 @@ namespace PACommon
             where TJc : IJsonConvertable<TJc>
         {
             value = default;
-            if (!TryCastJsonAnyValue<T, IDictionary<string, object?>>(objectJson, jsonKey, out var result, isCritical))
+            if (!TryCastJsonAnyValue<T, JsonDictionary>(objectJson, jsonKey, out var result, isCritical))
             {
                 return false;
             }
@@ -517,7 +592,7 @@ namespace PACommon
         /// <param name="listName">The name of the list.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryParseListValueForJsonParsing<T, TIn, TRes>(
             IEnumerable<TIn> listValue,
             string listName,
@@ -549,15 +624,15 @@ namespace PACommon
         /// <param name="listName">The name of the list.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryParseListValueForJsonParsing<T, TRes>(
-            IEnumerable<object?> listValue,
+            JsonArray listValue,
             string listName,
-            Func<object?, (bool success, TRes? result)> parseFunction,
+            Func<JsonObject?, (bool success, TRes? result)> parseFunction,
             out List<TRes> value
         )
         {
-            return TryParseListValueForJsonParsing<T, object?, TRes>(listValue, listName, parseFunction, out value);
+            return TryParseListValueForJsonParsing<T, JsonObject?, TRes>(listValue, listName, parseFunction, out value);
         }
 
         /// <summary>
@@ -566,18 +641,18 @@ namespace PACommon
         /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(IDictionary{string, object?}, string, out object?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryParseJsonListValue<T, TRes>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             string jsonKey,
-            Func<object?, (bool success, TRes? result)> parseFunction,
+            Func<JsonObject?, (bool success, TRes? result)> parseFunction,
             [NotNullWhen(true)] out List<TRes>? value,
             bool isCritical = false
         )
         {
             value = null;
             if (!(
-                TryCastJsonAnyValue<T, IEnumerable<object?>>(objectJson, jsonKey, out var resultList, isCritical) &&
+                TryCastJsonAnyValue<T, JsonArray>(objectJson, jsonKey, out var resultList, isCritical) &&
                 resultList is not null
             ))
             {

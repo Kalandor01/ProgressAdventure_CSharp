@@ -130,7 +130,7 @@ namespace ProgressAdventure.WorldManagement
 
         #region JsonConvert
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
+        protected static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
         [
             // 2.1.1 -> 2.2
             (oldJson =>
@@ -148,16 +148,16 @@ namespace ProgressAdventure.WorldManagement
         ];
         #endregion
 
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [Constants.JsonKeys.Tile.RELATIVE_POSITION_X] = relativePosition.x,
-                [Constants.JsonKeys.Tile.RELATIVE_POSITION_Y] = relativePosition.y,
-                [Constants.JsonKeys.Tile.VISITED] = Visited,
-                [Constants.JsonKeys.Tile.TERRAIN] = terrain.ToJson(),
-                [Constants.JsonKeys.Tile.STRUCTURE] = structure.ToJson(),
-                [Constants.JsonKeys.Tile.POPULATION] = population.ToJson(),
+                [Constants.JsonKeys.Tile.RELATIVE_POSITION_X] = PACTools.ParseToJsonValue(relativePosition.x),
+                [Constants.JsonKeys.Tile.RELATIVE_POSITION_Y] = PACTools.ParseToJsonValue(relativePosition.y),
+                [Constants.JsonKeys.Tile.VISITED] = PACTools.ParseToJsonValue(Visited),
+                [Constants.JsonKeys.Tile.TERRAIN] = PACTools.ParseToJsonValue(terrain.ToJson()),
+                [Constants.JsonKeys.Tile.STRUCTURE] = PACTools.ParseToJsonValue(structure.ToJson()),
+                [Constants.JsonKeys.Tile.POPULATION] = PACTools.ParseToJsonValue(population.ToJson()),
             };
         }
 
@@ -168,7 +168,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="tileJson">The json representation of the tile.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="tileObject">The object representation of the json.</param>
-        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?> tileJson, string fileVersion, out Tile? tileObject)
+        public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary tileJson, string fileVersion, out Tile? tileObject)
         {
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(tileJson, VersionCorrecters, fileVersion);
 
@@ -184,11 +184,11 @@ namespace ProgressAdventure.WorldManagement
 
             var success = true;
             success &= PACTools.TryParseJsonValue<Tile, int?>(tileJson, Constants.JsonKeys.Tile.VISITED, out var visited);
-            success &= PACTools.TryCastJsonAnyValue<Tile, Dictionary<string, object?>>(tileJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson);
             success &= TerrainContent.FromJson(chunkRandom, terrainJson, fileVersion, out var terrain);
-            success &= PACTools.TryCastJsonAnyValue<Tile, Dictionary<string, object?>>(tileJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson);
             success &= StructureContent.FromJson(chunkRandom, structureJson, fileVersion, out var structure);
-            success &= PACTools.TryCastJsonAnyValue<Tile, Dictionary<string, object?>>(tileJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson);
             success &= PopulationContent.FromJson(chunkRandom, populationJson, fileVersion, out var population);
 
             tileObject = new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);

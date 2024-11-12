@@ -1,10 +1,10 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using System.Collections;
 using System.IO.Compression;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
@@ -19,20 +19,20 @@ namespace ProgressAdventure
     {
         #region Public functions
         #region Encode/decode Short
-        /// <inheritdoc cref="PACTools.EncodeSaveShort(IDictionary, string, long, string)"/>
+        /// <inheritdoc cref="PACTools.EncodeSaveShort(JsonDictionary, string, long, string)"/>
         public static void EncodeSaveShort(
-            IDictionary data,
+            JsonDictionary data,
             string filePath,
             long seed = SAVE_SEED,
             string extension = SAVE_EXT
         )
         {
-            EncodeSaveShort(new List<IDictionary> { data }, filePath, seed, extension);
+            EncodeSaveShort(new List<JsonDictionary> { data }, filePath, seed, extension);
         }
 
-        /// <inheritdoc cref="PACTools.EncodeSaveShort(IEnumerable{IDictionary}, string, long, string)"/>
+        /// <inheritdoc cref="PACTools.EncodeSaveShort(IEnumerable{JsonDictionary}, string, long, string)"/>
         public static void EncodeSaveShort(
-            IEnumerable<IDictionary> dataList,
+            IEnumerable<JsonDictionary> dataList,
             string filePath,
             long seed = SAVE_SEED,
             string extension = SAVE_EXT
@@ -42,7 +42,7 @@ namespace ProgressAdventure
         }
 
         /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
-        public static Dictionary<string, object?>? DecodeSaveShort(
+        public static JsonDictionary? DecodeSaveShort(
             string filePath,
             int lineNum = 0,
             long seed = SAVE_SEED,
@@ -60,7 +60,7 @@ namespace ProgressAdventure
         /// <typeparam name="T"></typeparam>
         /// <param name="fileTypeName">The name of the file that is being loaded.</param>
         /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
-        public static Dictionary<string, object?>? DecodeSaveShortExpected<T>(
+        public static JsonDictionary? DecodeSaveShortExpected<T>(
             string filePath,
             int lineNum = 0,
             long seed = SAVE_SEED,
@@ -70,23 +70,23 @@ namespace ProgressAdventure
             string? extraFileInformation = null
         )
         {
-            var objectTpeName = typeof(T).Name;
+            var objectTypeName = typeof(T).Name;
             try
             {
-                var chunkJson = DecodeSaveShort(filePath, lineNum, seed, extension, expected);
-                if (chunkJson is null)
+                var fileJson = DecodeSaveShort(filePath, lineNum, seed, extension, expected);
+                if (fileJson is null)
                 {
-                    PACTools.LogJsonNullError<T>(objectTpeName, extraFileInformation, true);
+                    PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, true);
                     return null;
                 }
-                return chunkJson;
+                return fileJson;
             }
             catch (Exception e)
             {
-                fileTypeName ??= objectTpeName;
+                fileTypeName ??= objectTypeName;
                 if (e is FormatException)
                 {
-                    PACTools.LogJsonParseError<T>(objectTpeName, $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
+                    PACTools.LogJsonParseError<T>(objectTypeName, $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
                     return null;
                 }
                 else if (e is FileNotFoundException)

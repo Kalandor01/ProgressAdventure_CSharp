@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
@@ -18,8 +19,8 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         /// <summary>
         /// <inheritdoc cref="ShoreTerrain"/>
         /// </summary>
-        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public ShoreTerrain(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, JsonDictionary?)"/>
+        public ShoreTerrain(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
             : base(chunkRandom, ContentType.Terrain.SHORE, name, data)
         {
             depth = GetLongValueFromData<ShoreTerrain>(base.chunkRandom, Constants.JsonKeys.ShoreTerrain.DEPTH, data, (1, 100));
@@ -36,10 +37,10 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         #endregion
 
         #region JsonConvert
-        public override Dictionary<string, object?> ToJson()
+        public override JsonDictionary ToJson()
         {
             var terrainJson = base.ToJson();
-            terrainJson.Add(Constants.JsonKeys.ShoreTerrain.DEPTH, depth);
+            terrainJson.Add(Constants.JsonKeys.ShoreTerrain.DEPTH, PACommon.Tools.ParseToJsonValue(depth));
             return terrainJson;
         }
         #endregion

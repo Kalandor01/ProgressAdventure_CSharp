@@ -95,8 +95,8 @@ namespace PACommon.JsonUtils
         /// <param name="newFileVersion">The version number, this function will correct the json data to.</param>
         public static void CorrectJsonDataVersion(
             string objectName,
-            Action<IDictionary<string, object?>> objectJsonCorrecter,
-            IDictionary<string, object?> objectJson,
+            Action<JsonDictionary> objectJsonCorrecter,
+            JsonDictionary objectJson,
             ref string fileVersion,
             string newFileVersion
         )
@@ -109,8 +109,8 @@ namespace PACommon.JsonUtils
         /// <param name="extraData">The extra data to input with the correcter.</param>
         public static void CorrectJsonDataVersion<TE>(
             string objectName,
-            Action<IDictionary<string, object?>, TE> objectJsonCorrecter,
-            IDictionary<string, object?> objectJson,
+            Action<JsonDictionary, TE> objectJsonCorrecter,
+            JsonDictionary objectJson,
             TE extraData,
             ref string fileVersion,
             string newFileVersion
@@ -123,8 +123,8 @@ namespace PACommon.JsonUtils
         #region Public methods
         public void CorrectJsonData(
             string objectName,
-            IDictionary<string, object?> objectJson,
-            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            JsonDictionary objectJson,
+            List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         )
@@ -133,8 +133,8 @@ namespace PACommon.JsonUtils
         }
 
         public void CorrectJsonData<T>(
-            IDictionary<string, object?> objectJson,
-            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            JsonDictionary objectJson,
+            List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         )
@@ -144,9 +144,9 @@ namespace PACommon.JsonUtils
 
         public void CorrectJsonData<TE>(
             string objectName,
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             TE extraData,
-            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            List<(Action<JsonDictionary, TE> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         )
@@ -155,9 +155,9 @@ namespace PACommon.JsonUtils
         }
 
         public void CorrectJsonData<T, TE>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             TE extraData,
-            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            List<(Action<JsonDictionary, TE> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         )
@@ -186,7 +186,7 @@ namespace PACommon.JsonUtils
 
         private void CorrectJsonDataPrivate<TA, TE>(
             string objectName,
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             TE? extraData,
             List<(TA objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
@@ -213,16 +213,16 @@ namespace PACommon.JsonUtils
             }
 
             PACSingletons.Instance.Logger.Log($"{objectName} json data is old", "correcting data");
-            var isPassInExtraData = lastCorrecter.objectJsonCorrecter is Action<IDictionary<string, object?>, TE>;
+            var isPassInExtraData = lastCorrecter.objectJsonCorrecter is Action<JsonDictionary, TE>;
             foreach (var (objectJsonCorrecter, newFileVersion) in orderedCorrecters)
             {
                 if (isPassInExtraData)
                 {
-                    CorrectJsonDataVersionPrivate(objectName, () => (objectJsonCorrecter as Action<IDictionary<string, object?>, TE>)(objectJson, extraData), ref fileVersion, newFileVersion);
+                    CorrectJsonDataVersionPrivate(objectName, () => (objectJsonCorrecter as Action<JsonDictionary, TE>)(objectJson, extraData), ref fileVersion, newFileVersion);
                 }
                 else
                 {
-                    CorrectJsonDataVersionPrivate(objectName, () => (objectJsonCorrecter as Action<IDictionary<string, object?>>)(objectJson), ref fileVersion, newFileVersion);
+                    CorrectJsonDataVersionPrivate(objectName, () => (objectJsonCorrecter as Action<JsonDictionary>)(objectJson), ref fileVersion, newFileVersion);
                 }
             }
             PACSingletons.Instance.Logger.Log($"{objectName} json data corrected");

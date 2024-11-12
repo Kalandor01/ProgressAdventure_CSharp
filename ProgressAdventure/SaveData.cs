@@ -134,52 +134,52 @@ namespace ProgressAdventure
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<SaveData>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<SaveData>.VersionCorrecters { get; } =
+        [
             // 2.0.1 -> 2.0.2
             (oldJson => {
                 // saved entity types
                 if (
-                    oldJson.TryGetValue("player", out object? playerJson) &&
-                    playerJson is IDictionary<string, object?> playerDict
+                    oldJson.TryGetValue("player", out var playerJson) &&
+                    playerJson is JsonDictionary playerDict
                 )
                 {
-                    playerDict["type"] = "player";
+                    playerDict["type"] = PACTools.ParseToJsonValue("player");
                 }
             }, "2.0.2"),
             // 2.1.1 -> 2.2
             (oldJson => {
                 // snake case rename
-                if (oldJson.TryGetValue("displayName", out object? dnRename))
+                if (oldJson.TryGetValue("displayName", out var dnRename))
                 {
                     oldJson["display_name"] = dnRename;
                 }
-                if (oldJson.TryGetValue("lastSave", out object? lsRename))
+                if (oldJson.TryGetValue("lastSave", out var lsRename))
                 {
                     oldJson["last_save"] = lsRename;
                 }
-                if (oldJson.TryGetValue("randomStates", out object? rsRename))
+                if (oldJson.TryGetValue("randomStates", out var rsRename))
                 {
                     oldJson["random_states"] = rsRename;
                 }
             }, "2.2"),
-        };
+        ];
 
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
-                [Constants.JsonKeys.SaveData.SAVE_NAME] = saveName,
-                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,
-                [Constants.JsonKeys.SaveData.LAST_SAVE] = LastSave,
-                [Constants.JsonKeys.SaveData.PLAYTIME] = GetPlaytime(),
-                [Constants.JsonKeys.SaveData.PLAYER] = player.ToJson(),
-                [Constants.JsonKeys.SaveData.RANDOM_STATES] = RandomStates.Instance.ToJson()
+                [Constants.JsonKeys.SaveData.SAVE_VERSION] = PACTools.ParseToJsonValue(Constants.SAVE_VERSION),
+                [Constants.JsonKeys.SaveData.SAVE_NAME] = PACTools.ParseToJsonValue(saveName),
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = PACTools.ParseToJsonValue(displaySaveName),
+                [Constants.JsonKeys.SaveData.LAST_SAVE] = PACTools.ParseToJsonValue(LastSave),
+                [Constants.JsonKeys.SaveData.PLAYTIME] = PACTools.ParseToJsonValue(GetPlaytime()),
+                [Constants.JsonKeys.SaveData.PLAYER] = PACTools.ParseToJsonValue(player.ToJson()),
+                [Constants.JsonKeys.SaveData.RANDOM_STATES] = PACTools.ParseToJsonValue(RandomStates.Instance.ToJson()),
             };
         }
 
-        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(IDictionary<string, object?> saveDataJson, string fileVersion, [NotNullWhen(true)] ref SaveData? saveData)
+        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(JsonDictionary saveDataJson, string fileVersion, [NotNullWhen(true)] ref SaveData? saveData)
         {
             var success = true;
 

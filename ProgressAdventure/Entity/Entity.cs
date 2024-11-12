@@ -402,29 +402,29 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region Methods
-        public virtual Dictionary<string, object?> ToJson()
+        public virtual JsonDictionary ToJson()
         {
             // attributes
             var attributesProcessed = attributes.Select(a => a.ToString()).ToList();
             // drops
             var dropsJson = drops.Select(drop => drop.ToJson()).ToList();
             // properties
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [Constants.JsonKeys.Entity.TYPE] = EntityUtils.GetEntityTypeName(this),
-                [Constants.JsonKeys.Entity.NAME] = name,
-                [Constants.JsonKeys.Entity.BASE_MAX_HP] = baseMaxHp,
-                [Constants.JsonKeys.Entity.CURRENT_HP] = CurrentHp,
-                [Constants.JsonKeys.Entity.BASE_ATTACK] = baseAttack,
-                [Constants.JsonKeys.Entity.BASE_DEFENCE] = baseDefence,
-                [Constants.JsonKeys.Entity.BASE_AGILITY] = baseAgility,
-                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = originalTeam,
-                [Constants.JsonKeys.Entity.CURRENT_TEAM] = currentTeam,
-                [Constants.JsonKeys.Entity.ATTRIBUTES] = attributesProcessed,
-                [Constants.JsonKeys.Entity.DROPS] = dropsJson,
-                [Constants.JsonKeys.Entity.X_POSITION] = position.x,
-                [Constants.JsonKeys.Entity.Y_POSITION] = position.y,
-                [Constants.JsonKeys.Entity.FACING] = (int)facing,
+                [Constants.JsonKeys.Entity.TYPE] = PACTools.ParseToJsonValue(EntityUtils.GetEntityTypeName(this)),
+                [Constants.JsonKeys.Entity.NAME] = PACTools.ParseToJsonValue(name),
+                [Constants.JsonKeys.Entity.BASE_MAX_HP] = PACTools.ParseToJsonValue(baseMaxHp),
+                [Constants.JsonKeys.Entity.CURRENT_HP] = PACTools.ParseToJsonValue(CurrentHp),
+                [Constants.JsonKeys.Entity.BASE_ATTACK] = PACTools.ParseToJsonValue(baseAttack),
+                [Constants.JsonKeys.Entity.BASE_DEFENCE] = PACTools.ParseToJsonValue(baseDefence),
+                [Constants.JsonKeys.Entity.BASE_AGILITY] = PACTools.ParseToJsonValue(baseAgility),
+                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = PACTools.ParseToJsonValue(originalTeam),
+                [Constants.JsonKeys.Entity.CURRENT_TEAM] = PACTools.ParseToJsonValue(currentTeam),
+                [Constants.JsonKeys.Entity.ATTRIBUTES] = PACTools.ParseToJsonValue(attributesProcessed),
+                [Constants.JsonKeys.Entity.DROPS] = PACTools.ParseToJsonValue(dropsJson),
+                [Constants.JsonKeys.Entity.X_POSITION] = PACTools.ParseToJsonValue(position.x),
+                [Constants.JsonKeys.Entity.Y_POSITION] = PACTools.ParseToJsonValue(position.y),
+                [Constants.JsonKeys.Entity.FACING] = PACTools.ParseToJsonValue((int)facing),
             };
         }
 
@@ -434,7 +434,7 @@ namespace ProgressAdventure.Entity
         /// <param name="miscJson">The json representation of the misc data for the specific entity type.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <returns>If it was succesful without any warnings.</returns>
-        protected virtual bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
+        protected virtual bool FromMiscJson(JsonDictionary miscJson, string fileVersion)
         {
             return true;
         }
@@ -450,7 +450,7 @@ namespace ProgressAdventure.Entity
         /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
         /// <returns>If it was succesful without any warnings.</returns>
-        public static bool FromJsonWithoutGeneralCorrection<T>(IDictionary<string, object?>? entityJson, string fileVersion, out T? entityObject)
+        public static bool FromJsonWithoutGeneralCorrection<T>(JsonDictionary? entityJson, string fileVersion, out T? entityObject)
             where T : Entity<T>
         {
             if (entityJson is null)
@@ -471,7 +471,7 @@ namespace ProgressAdventure.Entity
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityObject">The converted entity object.</param>
         /// <returns>If it was succesful without any warnings.</returns>
-        public static bool AnyEntityFromJson(IDictionary<string, object?>? entityJson, string fileVersion, out Entity? entityObject)
+        public static bool AnyEntityFromJson(JsonDictionary? entityJson, string fileVersion, out Entity? entityObject)
         {
             entityObject = null;
             if (entityJson is null)
@@ -519,7 +519,7 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<AItem> GetDefaultDrops()
         {
-            return new List<AItem> { ItemUtils.CreateCompoundItem(ItemType.Misc.COIN, Material.COPPER) };
+            return [ItemUtils.CreateCompoundItem(ItemType.Misc.COIN, Material.COPPER)];
         }
         #endregion
 
@@ -533,7 +533,7 @@ namespace ProgressAdventure.Entity
         /// <param name="entityObject">The converted entity object.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
         /// <returns>If it was succesful without any warnings.</returns>
-        private static bool AnyEntityFromJsonPrivate(Type entityType, IDictionary<string, object?> entityJson, string fileVersion, out Entity? entityObject)
+        private static bool AnyEntityFromJsonPrivate(Type entityType, JsonDictionary entityJson, string fileVersion, out Entity? entityObject)
         {
             var success = CommonAttributesFromJson(entityJson, fileVersion, out (
                 string? name,
@@ -554,10 +554,10 @@ namespace ProgressAdventure.Entity
             var constructor = entityType.GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
                 null,
-                new[] { entityData.GetType() },
+                [entityData.GetType()],
                 null
             ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{entityType}\"!", null);
-            var entity = constructor.Invoke(new object[] { entityData }) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
+            var entity = constructor.Invoke([entityData]) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
             entityObject = (Entity?)entity;
             if (entityObject is null)
             {
@@ -578,7 +578,7 @@ namespace ProgressAdventure.Entity
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityData">The basic data of the entity.</param>
         /// <returns>If it was succesful without any warnings.</returns>
-        private static bool CommonAttributesFromJson(IDictionary<string, object?> entityJson, string fileVersion, out (
+        private static bool CommonAttributesFromJson(JsonDictionary entityJson, string fileVersion, out (
             string? name,
             int? baseMaxHp,
             int? currentHp,
@@ -611,7 +611,7 @@ namespace ProgressAdventure.Entity
                 out var attributes);
             success &= PACTools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 dropJson => {
-                    var parseSuccess = PACTools.TryFromJson(dropJson as IDictionary<string, object?>, fileVersion, out AItem? dropObject);
+                    var parseSuccess = PACTools.TryFromJson(dropJson as JsonDictionary, fileVersion, out AItem? dropObject);
                     success &= parseSuccess;
                     return (parseSuccess, dropObject);
                 },

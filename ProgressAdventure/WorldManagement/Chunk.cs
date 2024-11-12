@@ -44,7 +44,7 @@ namespace ProgressAdventure.WorldManagement
             this.basePosition = (baseX, baseY);
             PACSingletons.Instance.Logger.Log("Creating chunk", $"baseX: {this.basePosition.x} , baseY: {this.basePosition.y}");
             ChunkRandomGenerator = chunkRandom ?? GetChunkRandom(basePosition);
-            this.tiles = tiles ?? new Dictionary<string, Tile>();
+            this.tiles = tiles ?? [];
             FillChunk(tiles is not null);
         }
         #endregion
@@ -145,8 +145,8 @@ namespace ProgressAdventure.WorldManagement
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
-            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_X, position.x);
-            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_Y, position.y);
+            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_X, PACTools.ParseToJsonValue(position.x));
+            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_Y, PACTools.ParseToJsonValue(position.y));
 
             var success = PACTools.TryFromJson(chunkJson, fileVersion, out chunk);
             PACSingletons.Instance.Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
@@ -252,8 +252,8 @@ namespace ProgressAdventure.WorldManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<Chunk>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<Chunk>.VersionCorrecters { get; } =
+        [
             // 2.1.1 -> 2.2
             (oldJson =>
             {
@@ -263,26 +263,26 @@ namespace ProgressAdventure.WorldManagement
                     oldJson["chunk_random"] = crRename;
                 }
             }, "2.2"),
-        };
+        ];
 
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            var tilesJson = new List<Dictionary<string, object?>>();
+            var tilesJson = new List<JsonDictionary>();
             foreach (var tile in tiles)
             {
                 tilesJson.Add(tile.Value.ToJson());
             }
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [Constants.JsonKeys.Chunk.POSITION_X] = basePosition.x,
-                [Constants.JsonKeys.Chunk.POSITION_Y] = basePosition.y,
-                [Constants.JsonKeys.Chunk.FILE_VERSION] = Constants.SAVE_VERSION,
-                [Constants.JsonKeys.Chunk.CHUNK_RANDOM] = PACTools.SerializeRandom(ChunkRandomGenerator),
-                [Constants.JsonKeys.Chunk.TILES] = tilesJson,
+                [Constants.JsonKeys.Chunk.POSITION_X] = PACTools.ParseToJsonValue(basePosition.x),
+                [Constants.JsonKeys.Chunk.POSITION_Y] = PACTools.ParseToJsonValue(basePosition.y),
+                [Constants.JsonKeys.Chunk.FILE_VERSION] = PACTools.ParseToJsonValue(Constants.SAVE_VERSION),
+                [Constants.JsonKeys.Chunk.CHUNK_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(ChunkRandomGenerator)),
+                [Constants.JsonKeys.Chunk.TILES] = PACTools.ParseToJsonValue(tilesJson),
             };
         }
 
-        static bool IJsonConvertable<Chunk>.FromJsonWithoutCorrection(IDictionary<string, object?> chunkJson, string fileVersion, [NotNullWhen(true)] ref Chunk? chunkObject)
+        static bool IJsonConvertable<Chunk>.FromJsonWithoutCorrection(JsonDictionary chunkJson, string fileVersion, [NotNullWhen(true)] ref Chunk? chunkObject)
         {
             var success = true;
 
@@ -300,7 +300,7 @@ namespace ProgressAdventure.WorldManagement
             chunkRandom ??= GetChunkRandom(position);
 
             if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
-                if (!PACTools.TryCastAnyValueForJsonParsing<Tile, IDictionary<string, object?>>(tileJson, out var tileJsonValue, nameof(tileJson)))
+                if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, nameof(tileJson)))
                 {
                     success = false;
                     return (false, default);

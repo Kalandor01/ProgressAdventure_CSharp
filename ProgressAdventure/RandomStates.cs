@@ -170,7 +170,7 @@ namespace ProgressAdventure
         #endregion
 
         #region JsonConversion
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<RandomStates>.VersionCorrecters { get; } =
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<RandomStates>.VersionCorrecters { get; } =
         [
             // 2.1.1 -> 2.2
             (oldJson => {
@@ -198,15 +198,15 @@ namespace ProgressAdventure
             }, "2.2"),
         ];
 
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [Constants.JsonKeys.RandomStates.MAIN_RANDOM] = PACTools.SerializeRandom(MainRandom),
-                [Constants.JsonKeys.RandomStates.WORLD_RANDOM] = PACTools.SerializeRandom(WorldRandom),
-                [Constants.JsonKeys.RandomStates.MISC_RANDOM] = PACTools.SerializeRandom(MiscRandom),
-                [Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS] = TileTypeNoiseSeeds,
-                [Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER] = ChunkSeedModifier,
+                [Constants.JsonKeys.RandomStates.MAIN_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(MainRandom)),
+                [Constants.JsonKeys.RandomStates.WORLD_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(WorldRandom)),
+                [Constants.JsonKeys.RandomStates.MISC_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(MiscRandom)),
+                [Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS] = PACTools.ParseToJsonValue(TileTypeNoiseSeeds),
+                [Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER] = PACTools.ParseToJsonValue(ChunkSeedModifier),
             };
         }
 
@@ -242,7 +242,7 @@ namespace ProgressAdventure
             return noiseSeedDict;
         }
 
-        static bool IJsonConvertable<RandomStates>.FromJsonWithoutCorrection(IDictionary<string, object?> randomStatesJson, string fileVersion, [NotNullWhen(true)] ref RandomStates? randomStates)
+        static bool IJsonConvertable<RandomStates>.FromJsonWithoutCorrection(JsonDictionary randomStatesJson, string fileVersion, [NotNullWhen(true)] ref RandomStates? randomStates)
         {
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
 

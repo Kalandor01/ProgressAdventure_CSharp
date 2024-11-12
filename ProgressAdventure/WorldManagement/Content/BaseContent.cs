@@ -48,7 +48,7 @@ namespace ProgressAdventure.WorldManagement.Content
             ContentTypeID type,
             ContentTypeID subtype,
             string? name = null,
-            IDictionary<string, object?>? data = null
+            JsonDictionary? data = null
         )
         {
             if (
@@ -98,7 +98,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         /// <param name="propertyName">The name of the property to search for.</param>
         /// <param name="property">The value of the property if it was found.</param>
-        public bool TryGetExtraProperty(string propertyName, out object? property)
+        public bool TryGetExtraProperty(string propertyName, out JsonObject? property)
         {
             return ToJson().TryGetValue(propertyName, out property);
         }
@@ -156,7 +156,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="jsonKey">The key to use.</param>
         /// <param name="data">The dictionary to search in.</param>
         /// <param name="defaultRange">The dafult range to use, if the value doesn't exist.</param>
-        protected static long GetLongValueFromData<T>(SplittableRandom chunkRandom, string jsonKey, IDictionary<string, object?>? data, (long min, long max)? defaultRange = null)
+        protected static long GetLongValueFromData<T>(SplittableRandom chunkRandom, string jsonKey, JsonDictionary? data, (long min, long max)? defaultRange = null)
         {
             if (!(
                 data is not null &&
@@ -171,7 +171,7 @@ namespace ProgressAdventure.WorldManagement.Content
 
         #region JsonConvert
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>, SplittableRandom> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
+        protected static List<(Action<JsonDictionary, SplittableRandom> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
         [
             // 2.2 -> 2.2.1
             ((oldJson, chunkRandom) =>
@@ -179,32 +179,32 @@ namespace ProgressAdventure.WorldManagement.Content
                 // subtype snake case rename, name not null
                 if (
                     oldJson.TryGetValue("subtype", out var oldSubtype) &&
-                    oldSubtype is string oldSubtypeString &&
-                    oldSubtypeString == "banditCamp"
+                    oldSubtype?.Value is string oldSubtypeValue &&
+                    oldSubtypeValue == "banditCamp"
                 )
                 {
-                    oldJson["subtype"] = "bandit_camp";
+                    oldJson["subtype"] = PACTools.ParseToJsonValue("bandit_camp");
                 }
                 if (
                     oldJson.TryGetValue("name", out var oldName) &&
                     oldName is null &&
                     oldJson.TryGetValue("subtype", out var subtype) &&
-                    subtype is string subtypeString
+                    subtype?.Type == JsonObjectType.String
                 )
                 {
-                    oldJson["name"] = GenerateContentName(chunkRandom);
+                    oldJson["name"] = PACTools.ParseToJsonValue(GenerateContentName(chunkRandom));
                 }
             }, "2.2.1"),
         ];
         #endregion
 
-        public virtual Dictionary<string, object?> ToJson()
+        public virtual JsonDictionary ToJson()
         {
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [JsonKeys.BaseContent.TYPE] = GetTypeName(),
-                [JsonKeys.BaseContent.SUBTYPE] = GetSubtypeName(),
-                [JsonKeys.BaseContent.NAME] = Name
+                [JsonKeys.BaseContent.TYPE] = PACTools.ParseToJsonValue(GetTypeName()),
+                [JsonKeys.BaseContent.SUBTYPE] = PACTools.ParseToJsonValue(GetSubtypeName()),
+                [JsonKeys.BaseContent.NAME] = PACTools.ParseToJsonValue(Name),
             };
         }
 
@@ -217,7 +217,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="contentObject">The content object that was loaded.</param>
         /// <returns>If the content was parsed without warnings.</returns>
-        protected static bool LoadContent<T>(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out T? contentObject)
+        protected static bool LoadContent<T>(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, out T? contentObject)
             where T : BaseContent
         {
             contentObject = null;

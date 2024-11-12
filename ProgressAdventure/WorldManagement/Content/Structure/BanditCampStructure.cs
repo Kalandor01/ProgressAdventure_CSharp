@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Structure
 {
@@ -11,8 +12,8 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         /// <summary>
         /// <inheritdoc cref="BanditCampStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public BanditCampStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, JsonDictionary?)"/>
+        public BanditCampStructure(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
             : base(chunkRandom, ContentType.Structure.BANDIT_CAMP, name, data) { }
         #endregion
 

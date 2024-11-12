@@ -52,13 +52,13 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops = null
         ) : base(name, stats, drops) { }
 
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> BaseVersionCorrecters { get; } =
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> BaseVersionCorrecters { get; } =
         [
             // 2.1 -> 2.1.1
             (oldJson =>
             {
                 // renamed speed to agility
-                if (oldJson.TryGetValue("baseSpeed", out object? baseSpeedValue))
+                if (oldJson.TryGetValue("baseSpeed", out var baseSpeedValue))
                 {
                     oldJson["baseAgility"] = baseSpeedValue;
                 }
@@ -67,46 +67,46 @@ namespace ProgressAdventure.Entity
             (oldJson =>
             {
                 // snake case keys
-                if (oldJson.TryGetValue("baseMaxHp", out object? baseMaxHpRename))
+                if (oldJson.TryGetValue("baseMaxHp", out var baseMaxHpRename))
                 {
                     oldJson["base_max_hp"] = baseMaxHpRename;
                 }
-                if (oldJson.TryGetValue("currentHp", out object? chRename))
+                if (oldJson.TryGetValue("currentHp", out var chRename))
                 {
                     oldJson["current_hp"] = chRename;
                 }
-                if (oldJson.TryGetValue("baseAttack", out object? baRename))
+                if (oldJson.TryGetValue("baseAttack", out var baRename))
                 {
                     oldJson["base_attack"] = baRename;
                 }
-                if (oldJson.TryGetValue("baseDefence", out object? bdRename))
+                if (oldJson.TryGetValue("baseDefence", out var bdRename))
                 {
                     oldJson["base_defence"] = bdRename;
                 }
-                if (oldJson.TryGetValue("baseAgility", out object? ba2Rename))
+                if (oldJson.TryGetValue("baseAgility", out var ba2Rename))
                 {
                     oldJson["base_agility"] = ba2Rename;
                 }
-                if (oldJson.TryGetValue("originalTeam", out object? otRename))
+                if (oldJson.TryGetValue("originalTeam", out var otRename))
                 {
                     oldJson["original_team"] = otRename;
                 }
-                if (oldJson.TryGetValue("currentTeam", out object? ctRename))
+                if (oldJson.TryGetValue("currentTeam", out var ctRename))
                 {
                     oldJson["current_team"] = ctRename;
                 }
-                if (oldJson.TryGetValue("xPos", out object? xpRename))
+                if (oldJson.TryGetValue("xPos", out var xpRename))
                 {
                     oldJson["x_position"] = xpRename;
                 }
-                if (oldJson.TryGetValue("yPos", out object? ypRnename))
+                if (oldJson.TryGetValue("yPos", out var ypRnename))
                 {
                     oldJson["y_position"] = ypRnename;
                 }
             }, "2.2"),
         ];
 
-        static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref TEntity? convertedObject)
+        static bool IJsonConvertable<TEntity>.FromJsonWithoutCorrection(JsonDictionary objectJson, string fileVersion, [NotNullWhen(true)] ref TEntity? convertedObject)
         {
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TEntity>(objectJson, BaseVersionCorrecters, fileVersion);
 
@@ -119,7 +119,7 @@ namespace ProgressAdventure.Entity
                 null
             );
 
-            var miscVersionCorrecters = miscVersionCorrectersProperty?.GetValue(null) as List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>;
+            var miscVersionCorrecters = miscVersionCorrectersProperty?.GetValue(null) as List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)>;
             if (miscVersionCorrecters is not null)
             {
                 PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Entity<TEntity>>(objectJson, miscVersionCorrecters, fileVersion);

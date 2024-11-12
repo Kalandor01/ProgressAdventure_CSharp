@@ -91,7 +91,7 @@ namespace PAExtras
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
         /// <param name="lineNum">The line number to read.</param>
-        private static Dictionary<string, object?>? ReadJsonLine(string filePath, int lineNum = 0)
+        private static JsonDictionary? ReadJsonLine(string filePath, int lineNum = 0)
         {
             // get folder
             var fullFilePath = filePath + "." + Constants.EXPORTED_SAVE_EXT;
@@ -126,7 +126,7 @@ namespace PAExtras
         /// </summary>
         /// <param name="exprotedSaveFolderPath">The path to the exported save folder.</param>
         /// <param name="correctedSaveFolderPath">The path to the save folder for the corrected data.</param>
-        private static (double chunkSeedMod, Dictionary<string, ulong> tileNoiseSeeds) CorrectDataFile(string exprotedSaveFolderPath, string correctedSaveFolderPath)
+        private static (double chunkSeedMod, JsonDictionary tileNoiseSeeds) CorrectDataFile(string exprotedSaveFolderPath, string correctedSaveFolderPath)
         {
             var dataFilePath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FILE_NAME_DATA);
             var dataFileData = ReadJsonLine(dataFilePath, 1);
@@ -142,7 +142,7 @@ namespace PAExtras
         /// </summary>
         /// <param name="dataFileData">The json data from the exported save.</param>
         /// <exception cref="Exception"></exception>
-        private static (List<Dictionary<string, object>> dataFileLines, double chunkSeedMod, Dictionary<string, ulong> tileNoiseSeeds) CorrectDataFileData(Dictionary<string, object?>? dataFileData)
+        private static (List<JsonDictionary> dataFileLines, double chunkSeedMod, JsonDictionary tileNoiseSeeds) CorrectDataFileData(JsonDictionary? dataFileData)
         {
             if (dataFileData is null || dataFileData["save_version"]?.ToString() != Constants.NEWEST_PYTHON_SAVE_VERSION)
             {
@@ -150,12 +150,12 @@ namespace PAExtras
             }
 
             // display data
-            var displayLine = new Dictionary<string, object>
+            var displayLine = new JsonDictionary
             {
-                ["saveVersion"] = Constants.IMPORT_SAVE_VERSION
+                ["saveVersion"] = PACTools.ParseToJsonValue(Constants.IMPORT_SAVE_VERSION),
             };
-            var displayName = (string)dataFileData["display_name"];
-            displayLine["displayName"] = displayName;
+            var displayName = (string)dataFileData["display_name"].Value;
+            displayLine["displayName"] = PACTools.ParseToJsonValue(displayName);
             var lastSaveRaw = (IEnumerable<object>)dataFileData["last_access"];
             var lastSaved = new DateTime(
                 (int)(long)lastSaveRaw.ElementAt(0),
@@ -165,74 +165,74 @@ namespace PAExtras
                 (int)(long)lastSaveRaw.ElementAt(4),
                 (int)(long)lastSaveRaw.ElementAt(5)
             );
-            displayLine["lastSave"] = lastSaved;
-            displayLine["playtime"] = TimeSpan.Zero;
+            displayLine["lastSave"] = PACTools.ParseToJsonValue(lastSaved);
+            displayLine["playtime"] = PACTools.ParseToJsonValue(TimeSpan.Zero);
 
             // normal data
             var dataLine = displayLine.DeepCopy();
 
             //player data
-            var playerData = (IDictionary<string, object>)dataFileData["player"];
+            var playerData = (JsonDictionary)dataFileData["player"];
 
             // player name
-            var playerName = (string)playerData["name"];
+            var playerName = playerData["name"];
             displayLine["playerName"] = playerName;
 
-            var inventoryJson = new List<Dictionary<string, object>>();
-            foreach (var item in (IEnumerable<object>)playerData["inventory"])
+            var inventoryJson = new JsonArray();
+            foreach (var item in (JsonArray)playerData["inventory"])
             {
-                var itemJson = item as IDictionary<string, object>;
-                inventoryJson.Add(new Dictionary<string, object>
+                var itemJson = item as JsonDictionary;
+                inventoryJson.Add(new JsonDictionary
                 {
-                    ["type"] = itemTypeMap[(string)itemJson["type"]].mID,
-                    ["amount"] = (int)(long)itemJson["amount"],
+                    ["type"] = PACTools.ParseToJsonValue(itemTypeMap[(string)itemJson["type"].Value].mID),
+                    ["amount"] = itemJson["amount"],
                 });
             }
 
-            dataLine["player"] = new Dictionary<string, object>
+            dataLine["player"] = new JsonDictionary
             {
-                ["name"] = playerName,
-                ["baseMaxHp"] = (int)(long)playerData["base_hp"],
-                ["currentHp"] = (int)(long)playerData["base_hp"],
-                ["baseAttack"] = (int)(long)playerData["base_attack"],
-                ["baseDefence"] = (int)(long)playerData["base_defence"],
-                ["baseSpeed"] = (int)(long)playerData["base_speed"],
-                ["currentTeam"] = (int)(long)playerData["team"],
-                ["originalTeam"] = (bool)playerData["switched"] ? 1 : (int)(long)playerData["team"],
-                ["attributes"] = (IEnumerable<object>)playerData["attributes"],
-                ["drops"] = (IEnumerable<object>)playerData["drops"],
-                ["xPos"] = (long)playerData["x_pos"],
-                ["yPos"] = (long)playerData["y_pos"],
-                ["facing"] = (int)(long)playerData["rotation"],
+                ["name"] = PACTools.ParseToJsonValue(playerName),
+                ["baseMaxHp"] = playerData["base_hp"],
+                ["currentHp"] = playerData["base_hp"],
+                ["baseAttack"] = playerData["base_attack"],
+                ["baseDefence"] = playerData["base_defence"],
+                ["baseSpeed"] = playerData["base_speed"],
+                ["currentTeam"] = playerData["team"],
+                ["originalTeam"] = (bool)playerData["switched"].Value ? PACTools.ParseToJsonValue(1) : playerData["team"],
+                ["attributes"] = playerData["attributes"],
+                ["drops"] = playerData["drops"],
+                ["xPos"] = playerData["x_pos"],
+                ["yPos"] = playerData["y_pos"],
+                ["facing"] = playerData["rotation"],
                 ["inventory"] = inventoryJson,
             };
 
             // random states
-            var seedData = (IDictionary<string, object>)dataFileData["seeds"];
-            var mainRandom = ParseRandomFromExprotedRandom((Dictionary<string, object>)seedData["main_seed"]);
-            var worldRandom = ParseRandomFromExprotedRandom((Dictionary<string, object>)seedData["world_seed"]);
+            var seedData = (JsonDictionary)dataFileData["seeds"];
+            var mainRandom = ParseRandomFromExprotedRandom((JsonDictionary)seedData["main_seed"]);
+            var worldRandom = ParseRandomFromExprotedRandom((JsonDictionary)seedData["world_seed"]);
             var miscRandom = mainRandom.Split();
-            var ttnsData = (Dictionary<string, object>)seedData["tile_type_noise_seeds"];
-            var ttnSeeds = new Dictionary<string, ulong>
+            var ttnsData = (JsonDictionary)seedData["tile_type_noise_seeds"];
+            var ttnSeeds = new JsonDictionary
             {
-                ["HEIGHT"] = (ulong)(long)ttnsData["height"],
-                ["TEMPERATURE"] = (ulong)(long)ttnsData["temperature"],
-                ["HUMIDITY"] = (ulong)(long)ttnsData["humidity"],
-                ["HOSTILITY"] = (ulong)(long)ttnsData["hostility"],
-                ["POPULATION"] = (ulong)(long)ttnsData["population"],
+                ["HEIGHT"] = ttnsData["height"],
+                ["TEMPERATURE"] = ttnsData["temperature"],
+                ["HUMIDITY"] = ttnsData["humidity"],
+                ["HOSTILITY"] = ttnsData["hostility"],
+                ["POPULATION"] = ttnsData["population"],
             };
             var chunkSeedModifier = worldRandom.GenerateDouble();
 
-            dataLine["randomStates"] = new Dictionary<string, object>
+            dataLine["randomStates"] = new JsonDictionary
             {
-                ["mainRandom"] = PACTools.SerializeRandom(mainRandom),
-                ["worldRandom"] = PACTools.SerializeRandom(worldRandom),
-                ["miscRandom"] = PACTools.SerializeRandom(miscRandom),
+                ["mainRandom"] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(mainRandom)),
+                ["worldRandom"] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(worldRandom)),
+                ["miscRandom"] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(miscRandom)),
                 ["tileTypeNoiseSeeds"] = ttnSeeds,
-                ["chunkSeedModifier"] = chunkSeedModifier,
+                ["chunkSeedModifier"] = PACTools.ParseToJsonValue(chunkSeedModifier),
             };
 
-            return (new List<Dictionary<string, object>> { displayLine, dataLine }, chunkSeedModifier, ttnSeeds);
+            return (new List<JsonDictionary> { displayLine, dataLine }, chunkSeedModifier, ttnSeeds);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace PAExtras
         /// Creates a new random from the json representation of an exported random.
         /// </summary>
         /// <param name="exportedRandom">The json representation of an exported random.</param>
-        private static SplittableRandom ParseRandomFromExprotedRandom(Dictionary<string, object> exportedRandom)
+        private static SplittableRandom ParseRandomFromExprotedRandom(JsonDictionary exportedRandom)
         {
             var randomString = new StringBuilder();
             randomString.Append(exportedRandom["type"].ToString());
@@ -273,7 +273,7 @@ namespace PAExtras
             string exprotedSaveFolderPath,
             string correctedSaveFolderPath,
             double chunkSeedMod,
-            Dictionary<string, ulong> tileNoiseSeeds,
+            JsonDictionary tileNoiseSeeds,
             bool showProggress = true
         )
         {
@@ -341,15 +341,15 @@ namespace PAExtras
         /// Calculates the perlin noise generators.
         /// </summary>
         /// <param name="tileNoiseSeeds">The tile noise seeds.</param>
-        private static Dictionary<string, PerlinNoise> CalculateNoiseGenerators(Dictionary<string, ulong> tileNoiseSeeds)
+        private static Dictionary<string, PerlinNoise> CalculateNoiseGenerators(JsonDictionary tileNoiseSeeds)
         {
             return new Dictionary<string, PerlinNoise>
             {
-                ["height"] = new PerlinNoise(tileNoiseSeeds["HEIGHT"]),
-                ["temperature"] = new PerlinNoise(tileNoiseSeeds["TEMPERATURE"]),
-                ["humidity"] = new PerlinNoise(tileNoiseSeeds["HUMIDITY"]),
-                ["hostility"] = new PerlinNoise(tileNoiseSeeds["HOSTILITY"]),
-                ["population"] = new PerlinNoise(tileNoiseSeeds["POPULATION"])
+                ["height"] = new PerlinNoise((ulong)tileNoiseSeeds["HEIGHT"].Value),
+                ["temperature"] = new PerlinNoise((ulong)tileNoiseSeeds["TEMPERATURE"].Value),
+                ["humidity"] = new PerlinNoise((ulong)tileNoiseSeeds["HUMIDITY"].Value),
+                ["hostility"] = new PerlinNoise((ulong)tileNoiseSeeds["HOSTILITY"].Value),
+                ["population"] = new PerlinNoise((ulong)tileNoiseSeeds["POPULATION"].Value)
             };
         }
 
@@ -385,23 +385,24 @@ namespace PAExtras
         /// <param name="chunkSeedMod">The chunk seed modifier.</param>
         /// <param name="tileNoiseGenerators">The tile noise generators.</param>
         /// <param name="chunkFileData">The data from the chunk file.</param>
-        private static Dictionary<string, object> CorrectChunkFileData(
+        private static JsonDictionary CorrectChunkFileData(
             (long x, long y) basePosition,
             double chunkSeedMod,
             Dictionary<string, PerlinNoise> tileNoiseGenerators,
-            Dictionary<string, object> chunkFileData)
+            JsonDictionary chunkFileData
+        )
         {
-            var correctedTiles = new List<Dictionary<string, object?>>();
-            var tilesData = (IEnumerable)chunkFileData["tiles"];
+            var correctedTiles = new JsonArray();
+            var tilesData = (JsonArray)chunkFileData["tiles"];
             foreach (var tileData in tilesData)
             {
-                correctedTiles.Add(CorrectTileData((Dictionary<string, object?>)tileData));
+                correctedTiles.Add(CorrectTileData((JsonDictionary)tileData));
             }
 
-            return new Dictionary<string, object>
+            return new JsonDictionary
             {
-                ["saveVersion"] = "2.0",
-                ["chunkRandom"] = PACTools.SerializeRandom(GetChunkRandom(basePosition, chunkSeedMod, tileNoiseGenerators)),
+                ["saveVersion"] = PACTools.ParseToJsonValue("2.0"),
+                ["chunkRandom"] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(GetChunkRandom(basePosition, chunkSeedMod, tileNoiseGenerators))),
                 ["tiles"] = correctedTiles,
             };
         }
@@ -410,16 +411,16 @@ namespace PAExtras
         /// Corrects a tile's data.
         /// </summary>
         /// <param name="tileData">The tile data.</param>
-        private static Dictionary<string, object?> CorrectTileData(Dictionary<string, object?> tileData)
+        private static JsonDictionary CorrectTileData(JsonDictionary tileData)
         {
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                ["xPos"] = (long)tileData["x"],
-                ["yPos"] = (long)tileData["y"],
-                ["visited"] = (long)tileData["visited"],
-                ["terrain"] = CorrectContentData((Dictionary<string, object?>)tileData["terrain"]),
-                ["structure"] = CorrectContentData((Dictionary<string, object?>)tileData["structure"]),
-                ["population"] = CorrectContentData((Dictionary<string, object?>)tileData["population"]),
+                ["xPos"] = tileData["x"],
+                ["yPos"] = tileData["y"],
+                ["visited"] = tileData["visited"],
+                ["terrain"] = CorrectContentData((JsonDictionary)tileData["terrain"]),
+                ["structure"] = CorrectContentData((JsonDictionary)tileData["structure"]),
+                ["population"] = CorrectContentData((JsonDictionary)tileData["population"]),
             };
         }
 
@@ -427,16 +428,16 @@ namespace PAExtras
         /// Corrects the content's data.
         /// </summary>
         /// <param name="contentData">The content data.</param>
-        private static Dictionary<string, object?> CorrectContentData(Dictionary<string, object?> contentData)
+        private static JsonDictionary CorrectContentData(JsonDictionary contentData)
         {
             var correctedContent = contentData.DeepCopy();
-            correctedContent["type"] = correctedContent["type"].ToString();
-            correctedContent["subtype"] = correctedContent["subtype"].ToString();
+            correctedContent["type"] = correctedContent["type"];
+            correctedContent["subtype"] = correctedContent["subtype"];
             if (correctedContent["subtype"]?.ToString() == "bandit_camp")
             {
-                correctedContent["subtype"] = "banditCamp";
+                correctedContent["subtype"] = PACTools.ParseToJsonValue("banditCamp");
             }
-            correctedContent["name"] = correctedContent["name"]?.ToString();
+            correctedContent["name"] = correctedContent["name"];
             if (correctedContent["name"]?.ToString() == "None")
             {
                 correctedContent["name"] = null;

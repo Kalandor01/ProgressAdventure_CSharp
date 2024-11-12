@@ -397,14 +397,7 @@ namespace ProgressAdventureTests
 
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out Type? value))
-                {
-                    if (value is null)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
-                    }
-                }
-                else
+                if (!checkedDictionary.TryGetValue(key, out var value))
                 {
                     return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
                 }
@@ -423,7 +416,7 @@ namespace ProgressAdventureTests
 
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key.ToString(), out object? value))
+                if (checkedDictionary.TryGetValue(key.ToString(), out var value))
                 {
                     if (value is null)
                     {
@@ -855,9 +848,9 @@ namespace ProgressAdventureTests
                 }
 
 
-                var defEntityJson = new Dictionary<string, object?>()
+                var defEntityJson = new JsonDictionary()
                 {
-                    ["type"] = typeName,
+                    ["type"] = PACTools.ParseToJsonValue(typeName),
                 };
 
                 Entity? entity;
@@ -976,7 +969,7 @@ namespace ProgressAdventureTests
                 new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
                 new Inventory(),
                 new MaterialItem(Material.FLINT),
-                new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new() }),
+                new ActionKey(ActionType.ESCAPE, [new()]),
                 new Keybinds(),
                 new Chunk((1, 1)),
                 RandomStates.Initialize(),

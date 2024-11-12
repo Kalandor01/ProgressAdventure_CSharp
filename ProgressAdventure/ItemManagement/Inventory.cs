@@ -209,21 +209,21 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvertable
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            return new Dictionary<string, object?>
+            return new JsonDictionary
             {
-                [Constants.JsonKeys.Inventory.ITEMS] = items.Select(item => item.ToJson())
+                [Constants.JsonKeys.Inventory.ITEMS] = PACTools.ParseToJsonValue(items.Select(item => item.ToJson()))
             };
         }
 
-        static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(IDictionary<string, object?> inventoryJson, string fileVersion, [NotNullWhen(true)] ref Inventory? inventory)
+        static bool IJsonConvertable<Inventory>.FromJsonWithoutCorrection(JsonDictionary inventoryJson, string fileVersion, [NotNullWhen(true)] ref Inventory? inventory)
         {
             var success = true;
             success = PACTools.TryParseJsonListValue<Inventory, AItem>(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
                 itemJson =>
                 {
-                    var parseSuccess = PACTools.TryFromJson(itemJson as IDictionary<string, object?>, fileVersion, out AItem? itemObject);
+                    var parseSuccess = PACTools.TryFromJson(itemJson as JsonDictionary, fileVersion, out AItem? itemObject);
                     success &= parseSuccess;
                     return (parseSuccess, itemObject);
                 },

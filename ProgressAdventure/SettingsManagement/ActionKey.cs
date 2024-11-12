@@ -77,7 +77,7 @@ namespace ProgressAdventure.SettingsManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<ActionKey>.VersionCorrecters { get; } =
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<ActionKey>.VersionCorrecters { get; } =
         [
             // 2.1.1 -> 2.2
             (oldJson =>
@@ -90,25 +90,25 @@ namespace ProgressAdventure.SettingsManagement
             }, "2.2"),
         ];
 
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            var keyListJson = new List<Dictionary<string, object>>();
+            var keyListJson = new JsonArray();
             foreach (var key in Keys)
             {
-                var keyJson = new Dictionary<string, object>()
+                var keyJson = new JsonDictionary()
                 {
-                    [Constants.JsonKeys.ActionKey.KEY] = (int)key.Key,
-                    [Constants.JsonKeys.ActionKey.KEY_CHAR] = key.KeyChar,
-                    [Constants.JsonKeys.ActionKey.MODIFIERS] = (int)key.Modifiers
+                    [Constants.JsonKeys.ActionKey.KEY] = PACTools.ParseToJsonValue((int)key.Key),
+                    [Constants.JsonKeys.ActionKey.KEY_CHAR] = PACTools.ParseToJsonValue(key.KeyChar),
+                    [Constants.JsonKeys.ActionKey.MODIFIERS] = PACTools.ParseToJsonValue((int)key.Modifiers),
                 };
                 keyListJson.Add(keyJson);
             }
-            return new Dictionary<string, object?> { [ActionType.ToString().ToLower()] = keyListJson };
+            return new JsonDictionary { [ActionType.ToString()] = keyListJson };
         }
 
-        static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(IDictionary<string, object?> actionKeyJson, string fileVersion, [NotNullWhen(true)] ref ActionKey? actionKeyObject)
+        static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(JsonDictionary actionKeyJson, string fileVersion, [NotNullWhen(true)] ref ActionKey? actionKeyObject)
         {
-            if (!actionKeyJson.Any())
+            if (actionKeyJson.Count == 0)
             {
                 PACTools.LogJsonError<ActionKey>($"{nameof(actionKeyJson)} is empty", true);
                 return false;
@@ -118,13 +118,13 @@ namespace ProgressAdventure.SettingsManagement
 
             if (!(
                 PACTools.TryParseValueForJsonParsing<ActionKey, ActionType>(
-                    actionJson.Key.ToUpper(),
+                    new JsonValue(actionJson.Key),
                     out var actionType,
                     parameterName: nameof(actionJson),
                     parameterExtraInfo: $"action type: {actionJson.Key}",
                     isCritical: true
                 ) &&
-                PACTools.TryCastAnyValueForJsonParsing<ActionKey, IEnumerable<object?>>(actionJson.Value, out var actionKeyList, nameof(actionJson) + " value", true)
+                PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonArray>(actionJson.Value, out var actionKeyList, nameof(actionJson) + " value", true)
             ))
             {
                 return false;
@@ -133,7 +133,7 @@ namespace ProgressAdventure.SettingsManagement
             var success = true;
             success = PACTools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
                 if (
-                    PACTools.TryCastAnyValueForJsonParsing<ActionKey, IDictionary<string, object?>>(actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue)) &&
+                    PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonDictionary>(actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue)) &&
                     PACTools.TryParseJsonValue<ActionKey, ConsoleKey>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY, out var keyEnum) &&
                     PACTools.TryParseJsonValue<ActionKey, char>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY_CHAR, out var keyChar) &&
                     PACTools.TryParseJsonValue<ActionKey, int>(actionKeyJson, Constants.JsonKeys.ActionKey.MODIFIERS, out var keyModifiers)

@@ -2,6 +2,7 @@
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using PACommon.JsonUtils;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using PACTools = PACommon.Tools;
@@ -435,7 +436,7 @@ namespace ProgressAdventure.WorldManagement
             var versionCorrecters = typeof(Chunk)
                 .GetFields(BindingFlags.NonPublic | BindingFlags.Static)
                 .FirstOrDefault(f => f.Name.Contains("VersionCorrecters"))?
-                .GetValue(null) as List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>;
+                .GetValue(null) as List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)>;
 
             foreach (var chunkPosition in chunkPositions)
             {
@@ -447,7 +448,7 @@ namespace ProgressAdventure.WorldManagement
                         Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
                         expected: true,
                         extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"
-                    ) is not IDictionary<string, object?> chunkJson
+                    ) is not JsonDictionary chunkJson
                 )
                 {
                     success &= false;
@@ -470,7 +471,7 @@ namespace ProgressAdventure.WorldManagement
                 chunkRandom ??= Chunk.GetChunkRandom(chunkPosition);
 
                 if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
-                    if (!PACTools.TryCastAnyValueForJsonParsing<Tile, IDictionary<string, object?>>(tileJson, out var tileJsonValue, nameof(tileJson)))
+                    if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, nameof(tileJson)))
                     {
                         success = false;
                         return (false, default);

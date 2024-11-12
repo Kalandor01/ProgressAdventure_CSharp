@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
 
 namespace ProgressAdventure.WorldManagement.Content
@@ -16,8 +17,8 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <summary>
         /// <inheritdoc cref="PopulationContent"/>
         /// </summary>
-        /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, IDictionary<string, object?>? data = null)
+        /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, JsonDictionary?)"/>
+        protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, JsonDictionary? data = null)
             : base(chunkRandom, ContentType.PopulationContentType, subtype, name, data)
         {
             amount = GetLongValueFromData<PopulationContent>(this.chunkRandom, Constants.JsonKeys.PopulationContent.AMOUNT, data, (1, 1000));
@@ -56,15 +57,15 @@ namespace ProgressAdventure.WorldManagement.Content
         #endregion
 
         #region JsonConvert
-        public override Dictionary<string, object?> ToJson()
+        public override JsonDictionary ToJson()
         {
             var populationJson = base.ToJson();
-            populationJson.Add(Constants.JsonKeys.PopulationContent.AMOUNT, amount);
+            populationJson.Add(Constants.JsonKeys.PopulationContent.AMOUNT, PACommon.Tools.ParseToJsonValue(amount));
             return populationJson;
         }
 
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, IDictionary{string, object?}?, string, out T)"/>
-        public static bool FromJson(SplittableRandom chunkRandom, IDictionary<string, object?>? contentJson, string fileVersion, out PopulationContent? contentObject)
+        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, JsonDictionary?, string, out T)"/>
+        public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, out PopulationContent? contentObject)
         {
             return LoadContent(chunkRandom, contentJson, fileVersion, out contentObject);
         }

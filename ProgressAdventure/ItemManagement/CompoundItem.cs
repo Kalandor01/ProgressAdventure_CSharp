@@ -149,7 +149,7 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<CompoundItem>.VersionCorrecters { get; } =
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<CompoundItem>.VersionCorrecters { get; } =
         [
             // 2.0.2 -> 2.1
             (oldJson =>
@@ -160,7 +160,7 @@ namespace ProgressAdventure.ItemManagement
                     int.TryParse(typeIDValue?.ToString(), out int itemID) &&
                     ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName))
                 {
-                    oldJson["type"] = itemName;
+                    oldJson["type"] = PACTools.ParseToJsonValue(itemName);
                 }
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -172,14 +172,14 @@ namespace ProgressAdventure.ItemManagement
                     ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson)
                 )
                 {
-                    oldJson["type"] = compoundItemFixedJson.typeName;
-                    oldJson["material"] = "WOOD";
-                    oldJson["parts"] = compoundItemFixedJson.partsJson;
+                    oldJson["type"] = PACTools.ParseToJsonValue(compoundItemFixedJson.typeName);
+                    oldJson["material"] = PACTools.ParseToJsonValue("WOOD");
+                    oldJson["parts"] = PACTools.ParseToJsonValue(compoundItemFixedJson.partsJson);
                 }
             }, "2.2"),
         ];
 
-        public override Dictionary<string, object?> ToJson()
+        public override JsonDictionary ToJson()
         {
             var itemJson = base.ToJson();
 
@@ -194,13 +194,13 @@ namespace ProgressAdventure.ItemManagement
                 PACSingletons.Instance.Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
             }
 
-            itemJson[Constants.JsonKeys.AItem.TYPE] = typeName;
-            itemJson[Constants.JsonKeys.CompoundItem.PARTS] = Parts.Select(part => part.ToJson());
+            itemJson[Constants.JsonKeys.AItem.TYPE] = PACTools.ParseToJsonValue(typeName);
+            itemJson[Constants.JsonKeys.CompoundItem.PARTS] = PACTools.ParseToJsonValue(Parts.Select(part => part.ToJson()));
 
             return itemJson;
         }
 
-        static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref CompoundItem? itemObject)
+        static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref CompoundItem? itemObject)
         {
             if (!(
                 PACTools.TryCastJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
@@ -214,7 +214,7 @@ namespace ProgressAdventure.ItemManagement
             var success = true;
             success &= PACTools.TryParseJsonListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
                 partJson => {
-                    success &= PACTools.TryFromJson(partJson as Dictionary<string, object?>, fileVersion, out AItem? part);
+                    success &= PACTools.TryFromJson(partJson as JsonDictionary, fileVersion, out AItem? part);
                     return (part is not null, part);
                 },
                 out var parts, true);

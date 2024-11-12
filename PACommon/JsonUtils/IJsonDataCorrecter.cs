@@ -16,8 +16,8 @@
         /// <param name="orderCorrecters">Whether to order the json correcters by version number, before correcting, or the default if null.</param>
         public void CorrectJsonData(
             string objectName,
-            IDictionary<string, object?> objectJson,
-            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            JsonDictionary objectJson,
+            List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         );
@@ -31,31 +31,31 @@
         /// <param name="correcters">The list of function to use, to correct the old json data.</param>
         /// <param name="orderCorrecters">Whether to order the json correcters by version number, before correcting, or the default if null.</param>
         public void CorrectJsonData<T>(
-            IDictionary<string, object?> objectJson,
-            List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> correcters,
+            JsonDictionary objectJson,
+            List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         );
 
-        /// <inheritdoc cref="CorrectJsonData(string, ref IDictionary{string, object?}, List{ValueTuple{Action{IDictionary{string, object?}}, string}}, string, bool?)"/>
+        /// <inheritdoc cref="CorrectJsonData(string, JsonDictionary, List{ValueTuple{Action{JsonDictionary}, string}}, string, bool?)"/>
         /// <typeparam name="TE">The type of the extra data to input with all correcters.</typeparam>
         /// <param name="extraData">The extra data to input with the correcter.</param>
         public void CorrectJsonData<TE>(
             string objectName,
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             TE extraData,
-            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            List<(Action<JsonDictionary, TE> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         );
 
-        /// <inheritdoc cref="CorrectJsonData{T}(ref IDictionary{string, object?}, List{ValueTuple{Action{IDictionary{string, object?}}, string}}, string, bool?)"/>
+        /// <inheritdoc cref="CorrectJsonData{T}(JsonDictionary, List{ValueTuple{Action{JsonDictionary}, string}}, string, bool?)"/>
         /// <typeparam name="TE">The type of the extra data to input with all correcters.</typeparam>
         /// <param name="extraData">The extra data to input with the correcter.</param>
         public void CorrectJsonData<T, TE>(
-            IDictionary<string, object?> objectJson,
+            JsonDictionary objectJson,
             TE extraData,
-            List<(Action<IDictionary<string, object?>, TE> objectJsonCorrecter, string newFileVersion)> correcters,
+            List<(Action<JsonDictionary, TE> objectJsonCorrecter, string newFileVersion)> correcters,
             string fileVersion,
             bool? orderCorrecters = null
         );

@@ -8,6 +8,6 @@
         /// <summary>
         /// Returns the json representation of the object.
         /// </summary>
-        Dictionary<string, object?> ToJson();
+        JsonDictionary ToJson();
     }
 }

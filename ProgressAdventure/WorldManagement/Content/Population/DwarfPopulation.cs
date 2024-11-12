@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Population
 {
@@ -11,8 +12,8 @@ namespace ProgressAdventure.WorldManagement.Content.Population
         /// <summary>
         /// <inheritdoc cref="DwarfPopulation"/>
         /// </summary>
-        /// <inheritdoc cref="PopulationContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public DwarfPopulation(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+        /// <inheritdoc cref="PopulationContent(SplittableRandom, ContentTypeID, string?, JsonDictionary?)"/>
+        public DwarfPopulation(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
             : base(chunkRandom, ContentType.Population.DWARF, name, data) { }
         #endregion
     }

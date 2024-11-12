@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
+using PACommon.JsonUtils;
 using PACommon.Logging;
 using ProgressAdventure.Enums;
 using PACConstants = PACommon.Constants;
@@ -185,12 +186,12 @@ namespace ProgressAdventure.SettingsManagement
         public static LogSeverity GetLoggingLevel()
         {
             if (
-                !TryGetFromSettingAsType(SettingsKey.LOGGING_LEVEL, out object logLevel) ||
-                !ILogger.TryParseSeverityValue((int)logLevel, out LogSeverity severity)
+                !TryGetFromSettingAsType(SettingsKey.LOGGING_LEVEL, out var logLevel) ||
+                !ILogger.TryParseSeverityValue((int)logLevel.Value, out LogSeverity severity)
                 )
             {
                 PACSingletons.Instance.Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
-                _ = ILogger.TryParseSeverityValue((int)SettingsUtils.GetDefaultSettings()[SettingsKey.LOGGING_LEVEL.ToString()], out severity);
+                _ = ILogger.TryParseSeverityValue((int)SettingsUtils.GetDefaultSettings()[SettingsKey.LOGGING_LEVEL.ToString()]!.Value, out severity);
             }
             return severity;
         }
@@ -204,7 +205,7 @@ namespace ProgressAdventure.SettingsManagement
             Keybinds? keybinds;
             try
             {
-                PACTools.TryFromJson(keybindsDict as IDictionary<string, object?>, Constants.SAVE_VERSION, out keybinds);
+                PACTools.TryFromJson(keybindsDict as JsonDictionary, Constants.SAVE_VERSION, out keybinds);
             }
             catch (Exception e)
             {
@@ -252,7 +253,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// Recreates the settings file from the default values, and returns the result.
         /// </summary>
-        private static Dictionary<string, object> RecreateSettings()
+        private static JsonDictionary RecreateSettings()
         {
             var newSettings = SettingsUtils.GetDefaultSettings();
             Tools.EncodeSaveShort(newSettings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
@@ -264,9 +265,9 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// Returns the contents of the settings file, and recreates it, if it doesn't exist.
         /// </summary>
-        private static Dictionary<string, object?> GetSettingsDict()
+        private static JsonDictionary GetSettingsDict()
         {
-            Dictionary<string, object?>? settingsJson = null;
+            JsonDictionary? settingsJson = null;
             try
             {
                 settingsJson = Tools.DecodeSaveShort(Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED, expected: false);
@@ -294,11 +295,11 @@ namespace ProgressAdventure.SettingsManagement
         /// Reads a value from the settings file.
         /// </summary>
         /// <param name="settingsKey">The settings value to get.</param>
-        private static object SettingsManager(SettingsKey settingsKey)
+        private static JsonObject SettingsManager(SettingsKey settingsKey)
         {
             var settings = GetSettingsDict();
             var settingsKeyName = settingsKey.ToString();
-            if (settings.TryGetValue(settingsKeyName, out object? settingValue))
+            if (settings.TryGetValue(settingsKeyName, out var settingValue))
             {
                 if (settingValue is not null)
                 {
@@ -316,7 +317,7 @@ namespace ProgressAdventure.SettingsManagement
 
             var defSettings = SettingsUtils.GetDefaultSettings();
             var defSettingValue = defSettings[settingsKeyName];
-            SettingsManager(settingsKey, defSettingValue);
+            SettingsManager(settingsKey, defSettingValue?.Value);
             return defSettingValue;
         }
 
@@ -329,10 +330,10 @@ namespace ProgressAdventure.SettingsManagement
         {
             var settings = GetSettingsDict();
             var settingsKeyName = settingsKey.ToString();
-            if (!settings.TryGetValue(settingsKeyName, out object? settingValue))
+            if (!settings.TryGetValue(settingsKeyName, out var settingValue))
             {
                 PACSingletons.Instance.Logger.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
-                settings[settingsKeyName] = value;
+                settings[settingsKeyName] = PACTools.ParseToJsonValue(value);
                 Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
                 return;
             }
@@ -343,7 +344,7 @@ namespace ProgressAdventure.SettingsManagement
                 Keybinds? oldKb = null;
                 try
                 {
-                    PACTools.TryFromJson(settingValue as IDictionary<string, object?>, Constants.SAVE_VERSION, out oldKb);
+                    PACTools.TryFromJson(settingValue as JsonDictionary, Constants.SAVE_VERSION, out oldKb);
                 }
                 catch (Exception e)
                 {
@@ -362,7 +363,7 @@ namespace ProgressAdventure.SettingsManagement
             if (!(keybindsEqual || value.Equals(settingValue)))
             {
                 PACSingletons.Instance.Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
-                settings[settingsKeyName] = value;
+                settings[settingsKeyName] = PACTools.ParseToJsonValue(value);
                 Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
             }
         }
@@ -372,12 +373,10 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         /// <param name="settingsKey">The settings key to get the value from.</param>
         /// <param name="value">The value returned from the settings file.</param>
-        private static bool TryGetFromSettingAsType(SettingsKey settingsKey, out object value)
+        private static bool TryGetFromSettingAsType(SettingsKey settingsKey, out JsonObject value)
         {
             value = SettingsManager(settingsKey);
-            var tt = value.GetType();
-            var et = SettingsUtils.settingValueTypeMap[settingsKey];
-            return value.GetType() == SettingsUtils.settingValueTypeMap[settingsKey];
+            return value.Type == SettingsUtils.settingValueTypeMap[settingsKey];
         }
 
         /// <summary>
@@ -386,16 +385,16 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="settingsKey">The settings key to get the value from.</param>
         private static object GetFromSettingAsType(SettingsKey settingsKey)
         {
-            if (TryGetFromSettingAsType(settingsKey, out object rawValue))
+            if (TryGetFromSettingAsType(settingsKey, out var rawValue))
             {
                 return rawValue;
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.settingValueTypeMap[settingsKey]} but is {rawValue.GetType()}, correcting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.settingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
                 var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
-                SettingsManager(settingsKey, newValue);
-                return newValue;
+                SettingsManager(settingsKey, newValue!);
+                return newValue!.Value;
             }
         }
         #endregion

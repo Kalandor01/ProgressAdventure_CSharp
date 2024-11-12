@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon.JsonUtils;
+using ProgressAdventure.Enums;
 using SaveFileManager;
 
 namespace ProgressAdventure.SettingsManagement
@@ -11,14 +12,14 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static readonly Dictionary<ActionType, List<GetKeyMode>> actionTypeIgnoreMapping = new()
         {
-            [ActionType.ESCAPE] = new List<GetKeyMode> { GetKeyMode.IGNORE_ESCAPE },
-            [ActionType.UP] = new List<GetKeyMode> { GetKeyMode.IGNORE_VERTICAL },
-            [ActionType.DOWN] = new List<GetKeyMode> { GetKeyMode.IGNORE_VERTICAL },
-            [ActionType.LEFT] = new List<GetKeyMode> { GetKeyMode.IGNORE_HORIZONTAL },
-            [ActionType.RIGHT] = new List<GetKeyMode> { GetKeyMode.IGNORE_HORIZONTAL },
-            [ActionType.ENTER] = new List<GetKeyMode> { GetKeyMode.IGNORE_ENTER },
-            [ActionType.STATS] = new List<GetKeyMode>(),
-            [ActionType.SAVE] = new List<GetKeyMode>(),
+            [ActionType.ESCAPE] = [GetKeyMode.IGNORE_ESCAPE],
+            [ActionType.UP] = [GetKeyMode.IGNORE_VERTICAL],
+            [ActionType.DOWN] = [GetKeyMode.IGNORE_VERTICAL],
+            [ActionType.LEFT] = [GetKeyMode.IGNORE_HORIZONTAL],
+            [ActionType.RIGHT] = [GetKeyMode.IGNORE_HORIZONTAL],
+            [ActionType.ENTER] = [GetKeyMode.IGNORE_ENTER],
+            [ActionType.STATS] = [],
+            [ActionType.SAVE] = [],
         };
 
         /// <summary>
@@ -39,15 +40,15 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
         /// </summary>
-        public static readonly Dictionary<SettingsKey, Type> settingValueTypeMap = new()
+        public static readonly Dictionary<SettingsKey, JsonObjectType> settingValueTypeMap = new()
         {
-            [SettingsKey.AUTO_SAVE] = typeof(bool),
-            [SettingsKey.LOGGING_LEVEL] = typeof(long),
-            [SettingsKey.KEYBINDS] = typeof(Dictionary<string, object?>),
-            [SettingsKey.ASK_DELETE_SAVE] = typeof(bool),
-            [SettingsKey.ASK_REGENERATE_SAVE] = typeof(bool),
-            [SettingsKey.DEF_BACKUP_ACTION] = typeof(long),
-            [SettingsKey.ENABLE_COLORED_TEXT] = typeof(bool),
+            [SettingsKey.AUTO_SAVE] = JsonObjectType.Bool,
+            [SettingsKey.LOGGING_LEVEL] = JsonObjectType.WholeNumber,
+            [SettingsKey.KEYBINDS] = JsonObjectType.Dictionary,
+            [SettingsKey.ASK_DELETE_SAVE] = JsonObjectType.Bool,
+            [SettingsKey.ASK_REGENERATE_SAVE] = JsonObjectType.Bool,
+            [SettingsKey.DEF_BACKUP_ACTION] = JsonObjectType.WholeNumber,
+            [SettingsKey.ENABLE_COLORED_TEXT] = JsonObjectType.Bool,
         };
         #endregion
 
@@ -59,31 +60,31 @@ namespace ProgressAdventure.SettingsManagement
         {
             return
             [
-                new(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) }),
-                new(ActionType.UP, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.UpArrow, false, false, false) }),
-                new(ActionType.DOWN, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.DownArrow, false, false, false) }),
-                new(ActionType.LEFT, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.LeftArrow, false, false, false) }),
-                new(ActionType.RIGHT, new List<ConsoleKeyInfo> { new((char)0, ConsoleKey.RightArrow, false, false, false) }),
-                new(ActionType.ENTER, new List<ConsoleKeyInfo> { new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false) }),
-                new(ActionType.STATS, new List<ConsoleKeyInfo> { new('e', ConsoleKey.E, false, false, false) }),
-                new(ActionType.SAVE, new List<ConsoleKeyInfo> { new('s', ConsoleKey.S, false, false, false) }),
+                new(ActionType.ESCAPE, [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]),
+                new(ActionType.UP, [new((char)0, ConsoleKey.UpArrow, false, false, false)]),
+                new(ActionType.DOWN, [new((char)0, ConsoleKey.DownArrow, false, false, false)]),
+                new(ActionType.LEFT, [new((char)0, ConsoleKey.LeftArrow, false, false, false)]),
+                new(ActionType.RIGHT, [new((char)0, ConsoleKey.RightArrow, false, false, false)]),
+                new(ActionType.ENTER, [new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false)]),
+                new(ActionType.STATS, [new('e', ConsoleKey.E, false, false, false)]),
+                new(ActionType.SAVE, [new('s', ConsoleKey.S, false, false, false)]),
             ];
         }
 
         /// <summary>
         /// Returns the "json" representation of the default settings file.
         /// </summary>
-        public static Dictionary<string, object> GetDefaultSettings()
+        public static JsonDictionary GetDefaultSettings()
         {
-            return new Dictionary<string, object>
+            return new JsonDictionary
             {
-                [SettingsKey.AUTO_SAVE.ToString()] = true,
-                [SettingsKey.LOGGING_LEVEL.ToString()] = 0,
+                [SettingsKey.AUTO_SAVE.ToString()] = PACommon.Tools.ParseToJsonValue(true),
+                [SettingsKey.LOGGING_LEVEL.ToString()] = PACommon.Tools.ParseToJsonValue(0),
                 [SettingsKey.KEYBINDS.ToString()] = new Keybinds().ToJson(),
-                [SettingsKey.ASK_DELETE_SAVE.ToString()] = true,
-                [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = true,
-                [SettingsKey.DEF_BACKUP_ACTION.ToString()] = -1,
-                [SettingsKey.ENABLE_COLORED_TEXT.ToString()] = true,
+                [SettingsKey.ASK_DELETE_SAVE.ToString()] = PACommon.Tools.ParseToJsonValue(true),
+                [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = PACommon.Tools.ParseToJsonValue(true),
+                [SettingsKey.DEF_BACKUP_ACTION.ToString()] = PACommon.Tools.ParseToJsonValue(-1),
+                [SettingsKey.ENABLE_COLORED_TEXT.ToString()] = PACommon.Tools.ParseToJsonValue(true),
             };
         }
         #endregion

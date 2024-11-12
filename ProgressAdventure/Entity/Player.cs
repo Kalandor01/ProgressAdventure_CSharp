@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon.JsonUtils;
+using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
@@ -133,14 +134,14 @@ namespace ProgressAdventure.Entity
 
         #region JsonConvertable
         #region Protected properties
-        protected static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> MiscVersionCorrecters { get; } =
+        protected static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> MiscVersionCorrecters { get; } =
         [
             // 2.0 -> 2.0.1
             (oldJson =>
             {
                 // inventory items in dictionary
-                oldJson.TryGetValue("inventory", out object? inventoryJson);
-                oldJson["inventory"] = new Dictionary<string, object?>() { ["items"] = inventoryJson };
+                oldJson.TryGetValue("inventory", out var inventoryJson);
+                oldJson["inventory"] = new JsonDictionary() { ["items"] = inventoryJson };
             }, "2.0.1"),
         ];
         #endregion
@@ -169,14 +170,14 @@ namespace ProgressAdventure.Entity
         #endregion
 
         #region Methods
-        public override Dictionary<string, object?> ToJson()
+        public override JsonDictionary ToJson()
         {
             var playerJson = base.ToJson();
             playerJson[Constants.JsonKeys.Player.INVENTORY] = inventory.ToJson();
             return playerJson;
         }
 
-        protected override bool FromMiscJson(IDictionary<string, object?> miscJson, string fileVersion)
+        protected override bool FromMiscJson(JsonDictionary miscJson, string fileVersion)
         {
             var success = PACTools.TryParseJsonConvertableValue<Player, Inventory>(miscJson, fileVersion, Constants.JsonKeys.Player.INVENTORY, out var inventory);
             this.inventory = inventory ?? new Inventory();

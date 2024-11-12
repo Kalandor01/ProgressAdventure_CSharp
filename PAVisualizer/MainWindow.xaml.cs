@@ -465,9 +465,9 @@ namespace PAVisualizer
 
                     var color = VisualizerTools.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
 
-                    var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out object? height) ?
+                    var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out var height) ?
                         $"(height: {height})" :
-                        (tileObj.terrain.TryGetExtraProperty("depth", out object? depth) ? $"(depth: {depth})" : "");
+                        (tileObj.terrain.TryGetExtraProperty("depth", out var depth) ? $"(depth: {depth})" : "");
                     var tooltipContent = new StackPanel()
                     {
                         Children =
@@ -479,7 +479,7 @@ namespace PAVisualizer
 
                     if (tileObj.structure.subtype != ContentType.Structure.NONE)
                     {
-                        var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out object? population) ? $"(population: {population})" : "";
+                        var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
                         tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} {extraStructureData}" });
                     }
                     if (tileObj.population.subtype != ContentType.Population.NONE)

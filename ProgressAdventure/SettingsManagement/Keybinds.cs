@@ -46,16 +46,16 @@ namespace ProgressAdventure.SettingsManagement
                 if(!KeybindList.Any(key => key.ActionType == defKeybind.ActionType))
                 {
                     PACSingletons.Instance.Logger.Log("Missing action key in keybinds list", $"action type: {defKeybind.ActionType}", LogSeverity.WARN);
-                    _keybinds = KeybindList.Concat(new List<ActionKey> { defKeybind });
+                    _keybinds = KeybindList.Concat([defKeybind]);
                 }
             }
         }
         #endregion
 
         #region JsonConvert
-        public Dictionary<string, object?> ToJson()
+        public JsonDictionary ToJson()
         {
-            var keybindsJson = new Dictionary<string, object?>();
+            var keybindsJson = new JsonDictionary();
             foreach (var keybind in KeybindList)
             {
                 var kbJson = keybind.ToJson().First();
@@ -64,12 +64,12 @@ namespace ProgressAdventure.SettingsManagement
             return keybindsJson;
         }
 
-        static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(IDictionary<string, object?> keybindsJson, string fileVersion, [NotNullWhen(true)] ref Keybinds? keybinds)
+        static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(JsonDictionary keybindsJson, string fileVersion, [NotNullWhen(true)] ref Keybinds? keybinds)
         {
             var success = true;
-            success = PACTools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, object?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
+            success = PACTools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, JsonObject?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
                 success &= PACTools.TryFromJson(
-                    new Dictionary<string, object?> { [keybind.Key] = keybind.Value },
+                    new JsonDictionary { [keybind.Key] = keybind.Value },
                     fileVersion,
                     out ActionKey? actionKey
                 );

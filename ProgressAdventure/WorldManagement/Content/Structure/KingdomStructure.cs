@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Structure
 {
@@ -18,8 +19,8 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         /// <summary>
         /// <inheritdoc cref="KingdomStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, IDictionary{string, object?}?)"/>
-        public KingdomStructure(SplittableRandom chunkRandom, string? name = null, IDictionary<string, object?>? data = null)
+        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, JsonDictionary?)"/>
+        public KingdomStructure(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
             : base(chunkRandom, ContentType.Structure.KINGDOM, name, data)
         {
             population = GetLongValueFromData<KingdomStructure>(base.chunkRandom, Constants.JsonKeys.KingdomStructure.POPULATION, data, (10000, 10000000));
@@ -36,10 +37,10 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         #endregion
 
         #region JsonConvert
-        public override Dictionary<string, object?> ToJson()
+        public override JsonDictionary ToJson()
         {
             var structureJson = base.ToJson();
-            structureJson.Add(Constants.JsonKeys.KingdomStructure.POPULATION, population);
+            structureJson.Add(Constants.JsonKeys.KingdomStructure.POPULATION, PACommon.Tools.ParseToJsonValue(population));
             return structureJson;
         }
         #endregion

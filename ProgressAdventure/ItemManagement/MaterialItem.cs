@@ -90,18 +90,18 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<MaterialItem>.VersionCorrecters { get; } = new()
-        {
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<MaterialItem>.VersionCorrecters { get; } =
+        [
             // 2.0.2 -> 2.1
             (oldJson =>
             {
                 // inventory items in dictionary
                 if (
                     oldJson.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue?.ToString(), out int itemID) &&
+                    int.TryParse(typeIDValue?.Value.ToString(), out int itemID) &&
                     ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName))
                 {
-                    oldJson["type"] = itemName;
+                    oldJson["type"] = PACTools.ParseToJsonValue(itemName);
                 }
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -109,16 +109,16 @@ namespace ProgressAdventure.ItemManagement
             {
                 // item material
                 if (oldJson.TryGetValue("type", out var typeValue) &&
-                    ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed)
+                    ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.Value.ToString() ?? "", out string? materialItemFixed)
                 )
                 {
-                    oldJson["type"] = "misc/material";
-                    oldJson["material"] = materialItemFixed;
+                    oldJson["type"] = PACTools.ParseToJsonValue("misc/material");
+                    oldJson["material"] = PACTools.ParseToJsonValue(materialItemFixed);
                 }
             }, "2.2"),
-        };
+        ];
 
-        static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(IDictionary<string, object?> itemJson, string fileVersion, [NotNullWhen(true)] ref MaterialItem? itemObject)
+        static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref MaterialItem? itemObject)
         {
             var success = true;
 

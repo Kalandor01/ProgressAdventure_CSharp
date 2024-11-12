@@ -11,7 +11,7 @@ namespace PACommon.JsonUtils
         where T : IJsonConvertable<T>
     {
         #region Protected properties
-        protected static virtual List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = [];
+        protected static virtual List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = [];
         #endregion
 
         #region Public functions
@@ -22,7 +22,7 @@ namespace PACommon.JsonUtils
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static virtual bool FromJson(IDictionary<string, object?>? objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
+        public static virtual bool FromJson(JsonDictionary? objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
         {
             convertedObject = default;
             if (objectJson is null)
@@ -45,7 +45,7 @@ namespace PACommon.JsonUtils
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public abstract static bool FromJsonWithoutCorrection(IDictionary<string, object?> objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject);
+        public abstract static bool FromJsonWithoutCorrection(JsonDictionary objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject);
         #endregion
     }
 }
