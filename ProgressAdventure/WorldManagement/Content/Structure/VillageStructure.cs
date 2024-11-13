@@ -40,7 +40,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override JsonDictionary ToJson()
         {
             var structureJson = base.ToJson();
-            structureJson.Add(Constants.JsonKeys.VillageStructure.POPULATION, PACommon.Tools.ParseToJsonValue(population));
+            structureJson.Add(Constants.JsonKeys.VillageStructure.POPULATION, population);
             return structureJson;
         }
         #endregion

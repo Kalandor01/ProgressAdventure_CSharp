@@ -53,11 +53,11 @@ namespace ProgressAdventure
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.SaveData.SAVE_VERSION] = PACTools.ParseToJsonValue(Constants.SAVE_VERSION),
-                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = PACTools.ParseToJsonValue(displaySaveName),
-                [Constants.JsonKeys.SaveData.LAST_SAVE] = PACTools.ParseToJsonValue(lastSave),
-                [Constants.JsonKeys.SaveData.PLAYTIME] = PACTools.ParseToJsonValue(playtime),
-                [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = PACTools.ParseToJsonValue(playerName),
+                [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,
+                [Constants.JsonKeys.SaveData.LAST_SAVE] = lastSave,
+                [Constants.JsonKeys.SaveData.PLAYTIME] = playtime,
+                [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = playerName,
             };
         }
 
@@ -68,11 +68,11 @@ namespace ProgressAdventure
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.SaveData.SAVE_VERSION] = PACTools.ParseToJsonValue(Constants.SAVE_VERSION),
-                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = PACTools.ParseToJsonValue(saveData.displaySaveName),
-                [Constants.JsonKeys.SaveData.LAST_SAVE] = PACTools.ParseToJsonValue(saveData.LastSave),
-                [Constants.JsonKeys.SaveData.PLAYTIME] = PACTools.ParseToJsonValue(saveData.GetPlaytime()),
-                [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = PACTools.ParseToJsonValue(saveData.player.name),
+                [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = saveData.displaySaveName,
+                [Constants.JsonKeys.SaveData.LAST_SAVE] = saveData.LastSave,
+                [Constants.JsonKeys.SaveData.PLAYTIME] = saveData.GetPlaytime(),
+                [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = saveData.player.name,
             };
         }
 

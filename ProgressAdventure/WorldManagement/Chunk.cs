@@ -145,8 +145,8 @@ namespace ProgressAdventure.WorldManagement
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
-            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_X, PACTools.ParseToJsonValue(position.x));
-            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_Y, PACTools.ParseToJsonValue(position.y));
+            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_X, position.x);
+            chunkJson.Add(Constants.JsonKeys.Chunk.POSITION_Y, position.y);
 
             var success = PACTools.TryFromJson(chunkJson, fileVersion, out chunk);
             PACSingletons.Instance.Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
@@ -267,18 +267,18 @@ namespace ProgressAdventure.WorldManagement
 
         public JsonDictionary ToJson()
         {
-            var tilesJson = new List<JsonDictionary>();
+            var tilesJson = new List<JsonObject?>();
             foreach (var tile in tiles)
             {
                 tilesJson.Add(tile.Value.ToJson());
             }
             return new JsonDictionary
             {
-                [Constants.JsonKeys.Chunk.POSITION_X] = PACTools.ParseToJsonValue(basePosition.x),
-                [Constants.JsonKeys.Chunk.POSITION_Y] = PACTools.ParseToJsonValue(basePosition.y),
-                [Constants.JsonKeys.Chunk.FILE_VERSION] = PACTools.ParseToJsonValue(Constants.SAVE_VERSION),
-                [Constants.JsonKeys.Chunk.CHUNK_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(ChunkRandomGenerator)),
-                [Constants.JsonKeys.Chunk.TILES] = PACTools.ParseToJsonValue(tilesJson),
+                [Constants.JsonKeys.Chunk.POSITION_X] = basePosition.x,
+                [Constants.JsonKeys.Chunk.POSITION_Y] = basePosition.y,
+                [Constants.JsonKeys.Chunk.FILE_VERSION] = Constants.SAVE_VERSION,
+                [Constants.JsonKeys.Chunk.CHUNK_RANDOM] = PACTools.SerializeRandom(ChunkRandomGenerator),
+                [Constants.JsonKeys.Chunk.TILES] = tilesJson,
             };
         }
 

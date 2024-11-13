@@ -40,7 +40,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override JsonDictionary ToJson()
         {
             var terrainJson = base.ToJson();
-            terrainJson.Add(Constants.JsonKeys.MountainTerrain.HEIGHT, PACommon.Tools.ParseToJsonValue(height));
+            terrainJson.Add(Constants.JsonKeys.MountainTerrain.HEIGHT, height);
             return terrainJson;
         }
         #endregion

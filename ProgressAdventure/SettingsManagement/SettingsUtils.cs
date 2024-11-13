@@ -78,13 +78,13 @@ namespace ProgressAdventure.SettingsManagement
         {
             return new JsonDictionary
             {
-                [SettingsKey.AUTO_SAVE.ToString()] = PACommon.Tools.ParseToJsonValue(true),
-                [SettingsKey.LOGGING_LEVEL.ToString()] = PACommon.Tools.ParseToJsonValue(0),
+                [SettingsKey.AUTO_SAVE.ToString()] = true,
+                [SettingsKey.LOGGING_LEVEL.ToString()] = 0,
                 [SettingsKey.KEYBINDS.ToString()] = new Keybinds().ToJson(),
-                [SettingsKey.ASK_DELETE_SAVE.ToString()] = PACommon.Tools.ParseToJsonValue(true),
-                [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = PACommon.Tools.ParseToJsonValue(true),
-                [SettingsKey.DEF_BACKUP_ACTION.ToString()] = PACommon.Tools.ParseToJsonValue(-1),
-                [SettingsKey.ENABLE_COLORED_TEXT.ToString()] = PACommon.Tools.ParseToJsonValue(true),
+                [SettingsKey.ASK_DELETE_SAVE.ToString()] = true,
+                [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = true,
+                [SettingsKey.DEF_BACKUP_ACTION.ToString()] = -1,
+                [SettingsKey.ENABLE_COLORED_TEXT.ToString()] = true,
             };
         }
         #endregion

@@ -60,7 +60,7 @@ namespace ProgressAdventure.WorldManagement.Content
         public override JsonDictionary ToJson()
         {
             var populationJson = base.ToJson();
-            populationJson.Add(Constants.JsonKeys.PopulationContent.AMOUNT, PACommon.Tools.ParseToJsonValue(amount));
+            populationJson.Add(Constants.JsonKeys.PopulationContent.AMOUNT, amount);
             return populationJson;
         }
 

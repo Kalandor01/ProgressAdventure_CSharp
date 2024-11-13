@@ -98,10 +98,10 @@ namespace ProgressAdventure.ItemManagement
                 // inventory items in dictionary
                 if (
                     oldJson.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue?.Value.ToString(), out int itemID) &&
-                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName))
+                    int.TryParse(typeIDValue?.Value.ToString(), out var itemID) &&
+                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName))
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue(itemName);
+                    oldJson["type"] = itemName;
                 }
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -109,11 +109,11 @@ namespace ProgressAdventure.ItemManagement
             {
                 // item material
                 if (oldJson.TryGetValue("type", out var typeValue) &&
-                    ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.Value.ToString() ?? "", out string? materialItemFixed)
+                    ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.Value.ToString() ?? "", out var materialItemFixed)
                 )
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue("misc/material");
-                    oldJson["material"] = PACTools.ParseToJsonValue(materialItemFixed);
+                    oldJson["type"] = "misc/material";
+                    oldJson["material"] = materialItemFixed;
                 }
             }, "2.2"),
         ];

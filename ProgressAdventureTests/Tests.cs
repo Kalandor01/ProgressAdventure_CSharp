@@ -850,14 +850,16 @@ namespace ProgressAdventureTests
 
                 var defEntityJson = new JsonDictionary()
                 {
-                    ["type"] = PACTools.ParseToJsonValue(typeName),
+                    ["type"] = typeName,
                 };
 
                 Entity? entity;
 
                 try
                 {
+                    PACSingletons.Instance.Logger.Log("Beggining mock entity creation", "ignore \"value is null\" warnings", LogSeverity.OTHER);
                     Entity.AnyEntityFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
+                    PACSingletons.Instance.Logger.Log("Mock entity creation ended", "", LogSeverity.OTHER);
 
                     if (entity is null)
                     {

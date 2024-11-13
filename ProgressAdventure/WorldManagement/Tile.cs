@@ -152,12 +152,12 @@ namespace ProgressAdventure.WorldManagement
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.Tile.RELATIVE_POSITION_X] = PACTools.ParseToJsonValue(relativePosition.x),
-                [Constants.JsonKeys.Tile.RELATIVE_POSITION_Y] = PACTools.ParseToJsonValue(relativePosition.y),
-                [Constants.JsonKeys.Tile.VISITED] = PACTools.ParseToJsonValue(Visited),
-                [Constants.JsonKeys.Tile.TERRAIN] = PACTools.ParseToJsonValue(terrain.ToJson()),
-                [Constants.JsonKeys.Tile.STRUCTURE] = PACTools.ParseToJsonValue(structure.ToJson()),
-                [Constants.JsonKeys.Tile.POPULATION] = PACTools.ParseToJsonValue(population.ToJson()),
+                [Constants.JsonKeys.Tile.RELATIVE_POSITION_X] = relativePosition.x,
+                [Constants.JsonKeys.Tile.RELATIVE_POSITION_Y] = relativePosition.y,
+                [Constants.JsonKeys.Tile.VISITED] = Visited,
+                [Constants.JsonKeys.Tile.TERRAIN] = terrain.ToJson(),
+                [Constants.JsonKeys.Tile.STRUCTURE] = structure.ToJson(),
+                [Constants.JsonKeys.Tile.POPULATION] = population.ToJson(),
             };
         }
 

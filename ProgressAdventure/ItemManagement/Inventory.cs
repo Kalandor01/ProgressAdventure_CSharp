@@ -213,7 +213,7 @@ namespace ProgressAdventure.ItemManagement
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.Inventory.ITEMS] = PACTools.ParseToJsonValue(items.Select(item => item.ToJson()))
+                [Constants.JsonKeys.Inventory.ITEMS] = items.Select(item => (JsonObject?)item.ToJson()).ToList(),
             };
         }
 

@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PACommon
 {
@@ -287,6 +286,7 @@ namespace PACommon
         #region Json parse short
         /// <summary>
         /// Tries to parse a value to a json value, and logs a warning, if it can't pe parsed.<br/>
+        /// You should use an implicit cast from JsonObject wherever you can instead!<br/>
         /// Usable types:<br/>
         /// - bool<br/>
         /// - string<br/>
@@ -310,41 +310,41 @@ namespace PACommon
                 case null:
                     return null;
                 case int tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case uint tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case long tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case ulong tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case bool tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case string tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case char tValue:
-                    return new JsonValue(tValue.ToString());
+                    return tValue;
                 case double tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case float tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case DateTime tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case TimeSpan tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case Guid tValue:
-                    return new JsonValue(tValue);
+                    return tValue;
                 case Enum tValue:
-                    return new JsonValue(tValue.ToString());
+                    return tValue;
                 case SplittableRandom tValue:
-                    return new JsonValue(SerializeRandom(tValue));
+                    return tValue;
                 case List<JsonObject?> tValue:
-                    return new JsonArray(tValue);
+                    return tValue;
                 case IEnumerable<JsonObject?> tValue:
-                    return new JsonArray(tValue.ToList());
+                    return tValue.ToList();
                 case Dictionary<string, JsonObject?> tValue:
-                    return new JsonDictionary(tValue);
+                    return tValue;
                 case IDictionary<string, JsonObject?> tValue:
-                    return new JsonDictionary(tValue.ToDictionary());
+                    return tValue.ToDictionary();
             }
 
             if (logParseWarnings)
@@ -398,31 +398,41 @@ namespace PACommon
         /// <param name="objectValue">The value to try to cast.</param>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
         /// <param name="parameterName">The name of the parameter to try to cast.</param>
+        /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
-        public static bool TryCastAnyValueForJsonParsing<T, TRes>(object? objectValue, [NotNullWhen(true)] out TRes? value, string? parameterName = null, bool isCritical = false)
+        public static bool TryCastAnyValueForJsonParsing<T, TRes>(
+            JsonObject? objectValue,
+            [NotNullWhen(true)] out TRes? value,
+            string? parameterName = null,
+            bool isCritical = false,
+            bool isStraigthCast = false
+        )
         {
             value = default;
+            var castableValue = isStraigthCast ? objectValue : objectValue?.Value;
 
-            if (objectValue is TRes resultValue)
+            if (castableValue is TRes resultValue)
             {
                 value = resultValue;
                 return true;
             }
 
-            LogJsonError<T>($"{parameterName ?? "parameter"} is not the expected type ({typeof(TRes)})", isCritical);
+            LogJsonError<T>($"{parameterName ?? "parameter"} is not the expected type (\"{castableValue?.GetType().ToString() ?? "null"}\" instead of \"{typeof(TRes)}\")", isCritical);
             return false;
         }
 
         /// <summary>
         /// Tries to get a value of a specific type from a json dictionary, and logs a warning, if it doesn't exist, or it can't be cast to the expected type.
         /// </summary>
+        /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
         public static bool TryCastJsonAnyValue<T, TRes>(
             JsonDictionary objectJson,
             string jsonKey,
             [NotNullWhen(true)] out TRes? value,
-            bool isCritical = false
+            bool isCritical = false,
+            bool isStraigthCast = false
         )
         {
             value = default;
@@ -431,7 +441,7 @@ namespace PACommon
                 return false;
             }
 
-            return TryCastAnyValueForJsonParsing<T, TRes>(result, out value, jsonKey, isCritical);
+            return TryCastAnyValueForJsonParsing<T, TRes>(result, out value, jsonKey, isCritical, isStraigthCast);
         }
 
         /// <summary>
@@ -652,7 +662,7 @@ namespace PACommon
         {
             value = null;
             if (!(
-                TryCastJsonAnyValue<T, JsonArray>(objectJson, jsonKey, out var resultList, isCritical) &&
+                TryCastJsonAnyValue<T, JsonArray>(objectJson, jsonKey, out var resultList, isCritical, true) &&
                 resultList is not null
             ))
             {

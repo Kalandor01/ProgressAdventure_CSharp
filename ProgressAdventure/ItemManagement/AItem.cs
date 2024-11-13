@@ -211,10 +211,10 @@ namespace ProgressAdventure.ItemManagement
                 if (
                     oldJson.TryGetValue("type", out var typeIDValue) &&
                     int.TryParse(typeIDValue?.ToString(), out int itemID) &&
-                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName)
+                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName)
                 )
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue(itemName);
+                    oldJson["type"] = itemName;
                 }
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -226,16 +226,16 @@ namespace ProgressAdventure.ItemManagement
                     return;
                 }
 
-                if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson))
+                if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out var compoundItemFixedJson))
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue(compoundItemFixedJson.typeName);
-                    oldJson["material"] = PACTools.ParseToJsonValue("WOOD");
-                    oldJson["parts"] = PACTools.ParseToJsonValue(compoundItemFixedJson.partsJson);
+                    oldJson["type"] = compoundItemFixedJson.typeName;
+                    oldJson["material"] = "WOOD";
+                    oldJson["parts"] = compoundItemFixedJson.partsJson;
                 }
                 else if (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed))
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue("misc/material");
-                    oldJson["material"] = PACTools.ParseToJsonValue(materialItemFixed);
+                    oldJson["type"] = "misc/material";
+                    oldJson["material"] = materialItemFixed;
                 }
             }, "2.2"),
         ];
@@ -244,11 +244,11 @@ namespace ProgressAdventure.ItemManagement
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.AItem.TYPE] = PACTools.ParseToJsonValue(Type == ItemUtils.MATERIAL_ITEM_TYPE
+                [Constants.JsonKeys.AItem.TYPE] = Type == ItemUtils.MATERIAL_ITEM_TYPE
                     ? ItemUtils.MATERIAL_TYPE_NAME
-                    : ItemUtils.ItemIDToTypeName(Type)),
-                [Constants.JsonKeys.AItem.MATERIAL] = PACTools.ParseToJsonValue(Material.ToString()),
-                [Constants.JsonKeys.AItem.AMOUNT] = PACTools.ParseToJsonValue(Amount),
+                    : ItemUtils.ItemIDToTypeName(Type),
+                [Constants.JsonKeys.AItem.MATERIAL] = Material.ToString(),
+                [Constants.JsonKeys.AItem.AMOUNT] = Amount,
             };
         }
 

@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -52,158 +53,158 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The dictionary pairing up old item type names, to the ones, including the material of the item.
         /// </summary>
-        internal static readonly Dictionary<string, (string typeName, List<Dictionary<string, object?>> partsJson)> _legacyCompoundtemMap = new()
+        internal static readonly Dictionary<string, (string typeName, JsonArray partsJson)> _legacyCompoundtemMap = new()
         {
             //weapons
-            ["weapon/wooden_sword"] = ("weapon/sword", new List<Dictionary<string, object?>>
+            ["weapon/wooden_sword"] = ("weapon/sword", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/sword_blade", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/sword_blade", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() {["type"] = "misc/material",["material"] = "WOOD",["amount"] = 1 }
                     }
                 },
             }),
-            ["weapon/stone_sword"] = ("weapon/sword", new List<Dictionary<string, object?>>
+            ["weapon/stone_sword"] = ("weapon/sword", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/sword_blade", ["material"] = "STONE", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/sword_blade", ["material"] = "STONE", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "STONE", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "STONE", ["amount"] = 1 }
                     }
                 },
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
-            ["weapon/steel_sword"] = ("weapon/sword", new List<Dictionary<string, object?>>
+            ["weapon/steel_sword"] = ("weapon/sword", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/sword_blade", ["material"] = "STEEL", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/sword_blade", ["material"] = "STEEL", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
                     }
                 },
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/sword_hilt", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
-            ["weapon/wooden_bow"] = ("weapon/bow", new List<Dictionary<string, object?>>
+            ["weapon/wooden_bow"] = ("weapon/bow", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/rod", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/rod", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/rod", ["material"] = "SILK", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/rod", ["material"] = "SILK", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "SILK", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "SILK", ["amount"] = 1 }
                     }
                 },
             }),
-            ["weapon/steel_arrow"] = ("weapon/arrow", new List<Dictionary<string, object?>>
+            ["weapon/steel_arrow"] = ("weapon/arrow", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/arrow_tip", ["material"] = "STEEL", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/arrow_tip", ["material"] = "STEEL", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "STEEL", ["amount"] = 1 }
                     }
                 },
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/rod", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/rod", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
             }),
-            ["weapon/wooden_club"] = ("weapon/club", new List<Dictionary<string, object?>>
+            ["weapon/wooden_club"] = ("weapon/club", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
             }),
-            ["weapon/club_with_teeth"] = ("weapon/club_with_teeth", new List<Dictionary<string, object?>>
+            ["weapon/club_with_teeth"] = ("weapon/club_with_teeth", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "weapon/club", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "weapon/club", ["material"] = "WOOD", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1 }
                     }
                 },
-                new() {["type"] = "misc/material", ["material"] = "TEETH", ["amount"] = 1},
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "TEETH", ["amount"] = 1},
             }),
             //defence
-            ["defence/wooden_shield"] = ("defence/shield", new List<Dictionary<string, object?>>
+            ["defence/wooden_shield"] = ("defence/shield", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "WOOD", ["amount"] = 1}
             }),
-            ["defence/leather_cap"] = ("defence/helmet", new List<Dictionary<string, object?>>
+            ["defence/leather_cap"] = ("defence/helmet", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
-            ["defence/leather_tunic"] = ("defence/chestplate", new List<Dictionary<string, object?>>
+            ["defence/leather_tunic"] = ("defence/chestplate", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
-            ["defence/leather_pants"] = ("defence/pants", new List<Dictionary<string, object?>>
+            ["defence/leather_pants"] = ("defence/pants", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
-            ["defence/leather_boots"] = ("defence/boots", new List<Dictionary<string, object?>>
+            ["defence/leather_boots"] = ("defence/boots", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "LEATHER", ["amount"] = 1}
             }),
             //materials
-            ["material/bootle"] = ("misc/bottle", new List<Dictionary<string, object?>>
+            ["material/bootle"] = ("misc/bottle", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1}
             }),
             //misc
-            ["misc/health_potion"] = ("misc/filled_bottle", new List<Dictionary<string, object?>>
+            ["misc/health_potion"] = ("misc/filled_bottle", new JsonArray
             {
-                new()
+                new JsonDictionary()
                 {
-                    ["type"] = "misc/bottle", ["material"] = "GLASS", ["amount"] = 1, ["parts"] = new List<Dictionary<string, object?>>
+                    ["type"] = "misc/bottle", ["material"] = "GLASS", ["amount"] = 1, ["parts"] = new JsonArray
                     {
-                        new() { ["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1 }
+                        new JsonDictionary() { ["type"] = "misc/material", ["material"] = "GLASS", ["amount"] = 1 }
                     }
                 },
-                new() {["type"] = "misc/material", ["material"] = "HEALING_LIQUID", ["amount"] = 1},
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "HEALING_LIQUID", ["amount"] = 1},
             }),
-            ["misc/gold_coin"] = ("misc/coin", new List<Dictionary<string, object?>>
+            ["misc/gold_coin"] = ("misc/coin", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "GOLD", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "GOLD", ["amount"] = 1}
             }),
-            ["misc/silver_coin"] = ("misc/coin", new List<Dictionary<string, object?>>
+            ["misc/silver_coin"] = ("misc/coin", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "SILVER", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "SILVER", ["amount"] = 1}
             }),
-            ["misc/copper_coin"] = ("misc/coin", new List<Dictionary<string, object?>>
+            ["misc/copper_coin"] = ("misc/coin", new JsonArray
             {
-                new() {["type"] = "misc/material", ["material"] = "COPPER", ["amount"] = 1}
+                new JsonDictionary() {["type"] = "misc/material", ["material"] = "COPPER", ["amount"] = 1}
             }),
         };
 

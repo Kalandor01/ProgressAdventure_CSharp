@@ -144,7 +144,7 @@ namespace ProgressAdventure
                     playerJson is JsonDictionary playerDict
                 )
                 {
-                    playerDict["type"] = PACTools.ParseToJsonValue("player");
+                    playerDict["type"] = "player";
                 }
             }, "2.0.2"),
             // 2.1.1 -> 2.2
@@ -169,13 +169,13 @@ namespace ProgressAdventure
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.SaveData.SAVE_VERSION] = PACTools.ParseToJsonValue(Constants.SAVE_VERSION),
-                [Constants.JsonKeys.SaveData.SAVE_NAME] = PACTools.ParseToJsonValue(saveName),
-                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = PACTools.ParseToJsonValue(displaySaveName),
-                [Constants.JsonKeys.SaveData.LAST_SAVE] = PACTools.ParseToJsonValue(LastSave),
-                [Constants.JsonKeys.SaveData.PLAYTIME] = PACTools.ParseToJsonValue(GetPlaytime()),
-                [Constants.JsonKeys.SaveData.PLAYER] = PACTools.ParseToJsonValue(player.ToJson()),
-                [Constants.JsonKeys.SaveData.RANDOM_STATES] = PACTools.ParseToJsonValue(RandomStates.Instance.ToJson()),
+                [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
+                [Constants.JsonKeys.SaveData.SAVE_NAME] = saveName,
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,
+                [Constants.JsonKeys.SaveData.LAST_SAVE] = LastSave,
+                [Constants.JsonKeys.SaveData.PLAYTIME] = GetPlaytime(),
+                [Constants.JsonKeys.SaveData.PLAYER] = player.ToJson(),
+                [Constants.JsonKeys.SaveData.RANDOM_STATES] = RandomStates.Instance.ToJson(),
             };
         }
 

@@ -183,7 +183,7 @@ namespace ProgressAdventure.WorldManagement.Content
                     oldSubtypeValue == "banditCamp"
                 )
                 {
-                    oldJson["subtype"] = PACTools.ParseToJsonValue("bandit_camp");
+                    oldJson["subtype"] = "bandit_camp";
                 }
                 if (
                     oldJson.TryGetValue("name", out var oldName) &&
@@ -192,7 +192,7 @@ namespace ProgressAdventure.WorldManagement.Content
                     subtype?.Type == JsonObjectType.String
                 )
                 {
-                    oldJson["name"] = PACTools.ParseToJsonValue(GenerateContentName(chunkRandom));
+                    oldJson["name"] = GenerateContentName(chunkRandom);
                 }
             }, "2.2.1"),
         ];
@@ -202,9 +202,9 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             return new JsonDictionary
             {
-                [JsonKeys.BaseContent.TYPE] = PACTools.ParseToJsonValue(GetTypeName()),
-                [JsonKeys.BaseContent.SUBTYPE] = PACTools.ParseToJsonValue(GetSubtypeName()),
-                [JsonKeys.BaseContent.NAME] = PACTools.ParseToJsonValue(Name),
+                [JsonKeys.BaseContent.TYPE] = GetTypeName(),
+                [JsonKeys.BaseContent.SUBTYPE] = GetSubtypeName(),
+                [JsonKeys.BaseContent.NAME] = Name,
             };
         }
 

@@ -109,12 +109,11 @@ namespace ProgressAdventureTests
         /// </summary>
         internal static void PrepareTest()
         {
-            PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
-
             PASingletons.Initialize(
                     new Globals(),
                     new Settings()
                 );
+            PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
         }
 

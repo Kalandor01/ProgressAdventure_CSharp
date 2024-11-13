@@ -202,11 +202,14 @@ namespace ProgressAdventure
         {
             return new JsonDictionary
             {
-                [Constants.JsonKeys.RandomStates.MAIN_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(MainRandom)),
-                [Constants.JsonKeys.RandomStates.WORLD_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(WorldRandom)),
-                [Constants.JsonKeys.RandomStates.MISC_RANDOM] = PACTools.ParseToJsonValue(PACTools.SerializeRandom(MiscRandom)),
-                [Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS] = PACTools.ParseToJsonValue(TileTypeNoiseSeeds),
-                [Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER] = PACTools.ParseToJsonValue(ChunkSeedModifier),
+                [Constants.JsonKeys.RandomStates.MAIN_RANDOM] = PACTools.SerializeRandom(MainRandom),
+                [Constants.JsonKeys.RandomStates.WORLD_RANDOM] = PACTools.SerializeRandom(WorldRandom),
+                [Constants.JsonKeys.RandomStates.MISC_RANDOM] = PACTools.SerializeRandom(MiscRandom),
+                [Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS] = TileTypeNoiseSeeds.ToDictionary(
+                    k => k.Key.ToString(),
+                    v => (JsonObject?)v.Value
+                ),
+                [Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER] = ChunkSeedModifier,
             };
         }
 

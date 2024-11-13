@@ -405,26 +405,26 @@ namespace ProgressAdventure.Entity
         public virtual JsonDictionary ToJson()
         {
             // attributes
-            var attributesProcessed = attributes.Select(a => a.ToString()).ToList();
+            var attributesProcessed = attributes.Select(a => (JsonObject?)a).ToList();
             // drops
-            var dropsJson = drops.Select(drop => drop.ToJson()).ToList();
+            var dropsJson = drops.Select(drop => (JsonObject?)drop.ToJson()).ToList();
             // properties
             return new JsonDictionary
             {
-                [Constants.JsonKeys.Entity.TYPE] = PACTools.ParseToJsonValue(EntityUtils.GetEntityTypeName(this)),
-                [Constants.JsonKeys.Entity.NAME] = PACTools.ParseToJsonValue(name),
-                [Constants.JsonKeys.Entity.BASE_MAX_HP] = PACTools.ParseToJsonValue(baseMaxHp),
-                [Constants.JsonKeys.Entity.CURRENT_HP] = PACTools.ParseToJsonValue(CurrentHp),
-                [Constants.JsonKeys.Entity.BASE_ATTACK] = PACTools.ParseToJsonValue(baseAttack),
-                [Constants.JsonKeys.Entity.BASE_DEFENCE] = PACTools.ParseToJsonValue(baseDefence),
-                [Constants.JsonKeys.Entity.BASE_AGILITY] = PACTools.ParseToJsonValue(baseAgility),
-                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = PACTools.ParseToJsonValue(originalTeam),
-                [Constants.JsonKeys.Entity.CURRENT_TEAM] = PACTools.ParseToJsonValue(currentTeam),
-                [Constants.JsonKeys.Entity.ATTRIBUTES] = PACTools.ParseToJsonValue(attributesProcessed),
-                [Constants.JsonKeys.Entity.DROPS] = PACTools.ParseToJsonValue(dropsJson),
-                [Constants.JsonKeys.Entity.X_POSITION] = PACTools.ParseToJsonValue(position.x),
-                [Constants.JsonKeys.Entity.Y_POSITION] = PACTools.ParseToJsonValue(position.y),
-                [Constants.JsonKeys.Entity.FACING] = PACTools.ParseToJsonValue((int)facing),
+                [Constants.JsonKeys.Entity.TYPE] = EntityUtils.GetEntityTypeName(this),
+                [Constants.JsonKeys.Entity.NAME] = name,
+                [Constants.JsonKeys.Entity.BASE_MAX_HP] = baseMaxHp,
+                [Constants.JsonKeys.Entity.CURRENT_HP] = CurrentHp,
+                [Constants.JsonKeys.Entity.BASE_ATTACK] = baseAttack,
+                [Constants.JsonKeys.Entity.BASE_DEFENCE] = baseDefence,
+                [Constants.JsonKeys.Entity.BASE_AGILITY] = baseAgility,
+                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = originalTeam,
+                [Constants.JsonKeys.Entity.CURRENT_TEAM] = currentTeam,
+                [Constants.JsonKeys.Entity.ATTRIBUTES] = attributesProcessed,
+                [Constants.JsonKeys.Entity.DROPS] = dropsJson,
+                [Constants.JsonKeys.Entity.X_POSITION] = position.x,
+                [Constants.JsonKeys.Entity.Y_POSITION] = position.y,
+                [Constants.JsonKeys.Entity.FACING] = (int)facing,
             };
         }
 
@@ -609,7 +609,7 @@ namespace ProgressAdventure.Entity
                     return (success, value);
                 },
                 out var attributes);
-            success &= PACTools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= PACTools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.DROPS,
                 dropJson => {
                     var parseSuccess = PACTools.TryFromJson(dropJson as JsonDictionary, fileVersion, out AItem? dropObject);
                     success &= parseSuccess;

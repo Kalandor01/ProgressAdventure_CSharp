@@ -97,9 +97,9 @@ namespace ProgressAdventure.SettingsManagement
             {
                 var keyJson = new JsonDictionary()
                 {
-                    [Constants.JsonKeys.ActionKey.KEY] = PACTools.ParseToJsonValue((int)key.Key),
-                    [Constants.JsonKeys.ActionKey.KEY_CHAR] = PACTools.ParseToJsonValue(key.KeyChar),
-                    [Constants.JsonKeys.ActionKey.MODIFIERS] = PACTools.ParseToJsonValue((int)key.Modifiers),
+                    [Constants.JsonKeys.ActionKey.KEY] = (int)key.Key,
+                    [Constants.JsonKeys.ActionKey.KEY_CHAR] = key.KeyChar,
+                    [Constants.JsonKeys.ActionKey.MODIFIERS] = (int)key.Modifiers,
                 };
                 keyListJson.Add(keyJson);
             }
@@ -124,7 +124,9 @@ namespace ProgressAdventure.SettingsManagement
                     parameterExtraInfo: $"action type: {actionJson.Key}",
                     isCritical: true
                 ) &&
-                PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonArray>(actionJson.Value, out var actionKeyList, nameof(actionJson) + " value", true)
+                PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonArray>(
+                    actionJson.Value, out var actionKeyList, nameof(actionJson) + " value", true, true
+                )
             ))
             {
                 return false;
@@ -133,7 +135,9 @@ namespace ProgressAdventure.SettingsManagement
             var success = true;
             success = PACTools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
                 if (
-                    PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonDictionary>(actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue)) &&
+                    PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonDictionary>(
+                        actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue), isStraigthCast: true
+                    ) &&
                     PACTools.TryParseJsonValue<ActionKey, ConsoleKey>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY, out var keyEnum) &&
                     PACTools.TryParseJsonValue<ActionKey, char>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY_CHAR, out var keyChar) &&
                     PACTools.TryParseJsonValue<ActionKey, int>(actionKeyJson, Constants.JsonKeys.ActionKey.MODIFIERS, out var keyModifiers)

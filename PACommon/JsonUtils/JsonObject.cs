@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using NPrng.Generators;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace PACommon.JsonUtils
@@ -14,6 +15,25 @@ namespace PACommon.JsonUtils
             Type = type;
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        #region Implicit casts
+        public static implicit operator JsonObject?(string? v) => v is null ? null : new JsonValue(v);
+        public static implicit operator JsonObject(char v) => new JsonValue(v.ToString());
+        public static implicit operator JsonObject(bool v) => new JsonValue(v);
+        public static implicit operator JsonObject(long v) => new JsonValue(v);
+        public static implicit operator JsonObject(ulong v) => new JsonValue(v);
+        public static implicit operator JsonObject(float v) => new JsonValue(v);
+        public static implicit operator JsonObject(double v) => new JsonValue(v);
+        public static implicit operator JsonObject(int v) => new JsonValue(v);
+        public static implicit operator JsonObject(uint v) => new JsonValue(v);
+        public static implicit operator JsonObject(Guid v) => new JsonValue(v);
+        public static implicit operator JsonObject(DateTime v) => new JsonValue(v);
+        public static implicit operator JsonObject(TimeSpan v) => new JsonValue(v);
+        public static implicit operator JsonObject?(Enum? v) => v is null ? null : new JsonValue(v.ToString());
+        public static implicit operator JsonObject?(SplittableRandom? v) => v is null ? null : new JsonValue(Tools.SerializeRandom(v));
+        public static implicit operator JsonObject?(List<JsonObject?>? v) => v is null ? null : new JsonArray(v);
+        public static implicit operator JsonObject?(Dictionary<string, JsonObject?>? v) => v is null ? null : new JsonDictionary(v);
+        #endregion
 
         public static bool operator ==(JsonObject obj1, JsonObject obj2)
         {

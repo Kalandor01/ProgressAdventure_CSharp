@@ -311,7 +311,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The minimum time between, where normal logging just stores the logs to a buffer for later logging.
         /// </summary>
-        public static readonly TimeSpan FORCE_LOG_INTERVAL = new(0, 0, 5);
+        public static readonly TimeSpan FORCE_LOG_INTERVAL = new(0, 0, 0);
         #endregion
 
         #region Chunks

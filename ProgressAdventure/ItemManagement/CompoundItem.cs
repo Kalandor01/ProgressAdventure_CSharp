@@ -157,10 +157,10 @@ namespace ProgressAdventure.ItemManagement
                 // inventory items in dictionary
                 if (
                     oldJson.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue?.ToString(), out int itemID) &&
-                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out string? itemName))
+                    int.TryParse(typeIDValue?.ToString(), out var itemID) &&
+                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName))
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue(itemName);
+                    oldJson["type"] = itemName;
                 }
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -169,12 +169,12 @@ namespace ProgressAdventure.ItemManagement
                 // item material
                 if (
                     oldJson.TryGetValue("type", out var typeValue) &&
-                    ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out (string typeName, List<Dictionary<string, object?>> partsJson) compoundItemFixedJson)
+                    ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out var compoundItemFixedJson)
                 )
                 {
-                    oldJson["type"] = PACTools.ParseToJsonValue(compoundItemFixedJson.typeName);
-                    oldJson["material"] = PACTools.ParseToJsonValue("WOOD");
-                    oldJson["parts"] = PACTools.ParseToJsonValue(compoundItemFixedJson.partsJson);
+                    oldJson["type"] = compoundItemFixedJson.typeName;
+                    oldJson["material"] = "WOOD";
+                    oldJson["parts"] = compoundItemFixedJson.partsJson;
                 }
             }, "2.2"),
         ];
@@ -194,8 +194,8 @@ namespace ProgressAdventure.ItemManagement
                 PACSingletons.Instance.Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
             }
 
-            itemJson[Constants.JsonKeys.AItem.TYPE] = PACTools.ParseToJsonValue(typeName);
-            itemJson[Constants.JsonKeys.CompoundItem.PARTS] = PACTools.ParseToJsonValue(Parts.Select(part => part.ToJson()));
+            itemJson[Constants.JsonKeys.AItem.TYPE] = typeName;
+            itemJson[Constants.JsonKeys.CompoundItem.PARTS] = Parts.Select(part => (JsonObject?)part.ToJson()).ToList();
 
             return itemJson;
         }
