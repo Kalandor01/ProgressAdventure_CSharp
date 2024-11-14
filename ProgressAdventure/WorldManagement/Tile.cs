@@ -184,11 +184,11 @@ namespace ProgressAdventure.WorldManagement
 
             var success = true;
             success &= PACTools.TryParseJsonValue<Tile, int?>(tileJson, Constants.JsonKeys.Tile.VISITED, out var visited);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson, isStraigthCast: true);
             success &= TerrainContent.FromJson(chunkRandom, terrainJson, fileVersion, out var terrain);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson, isStraigthCast: true);
             success &= StructureContent.FromJson(chunkRandom, structureJson, fileVersion, out var structure);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson, isStraigthCast: true);
             success &= PopulationContent.FromJson(chunkRandom, populationJson, fileVersion, out var population);
 
             tileObject = new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);

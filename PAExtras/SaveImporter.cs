@@ -156,14 +156,14 @@ namespace PAExtras
             };
             var displayName = (string)dataFileData["display_name"].Value;
             displayLine["displayName"] = PACTools.ParseToJsonValue(displayName);
-            var lastSaveRaw = (IEnumerable<object>)dataFileData["last_access"];
+            var lastSaveRaw = (IEnumerable<JsonObject>)dataFileData["last_access"];
             var lastSaved = new DateTime(
-                (int)(long)lastSaveRaw.ElementAt(0),
-                (int)(long)lastSaveRaw.ElementAt(1),
-                (int)(long)lastSaveRaw.ElementAt(2),
-                (int)(long)lastSaveRaw.ElementAt(3),
-                (int)(long)lastSaveRaw.ElementAt(4),
-                (int)(long)lastSaveRaw.ElementAt(5)
+                (int)(long)lastSaveRaw.ElementAt(0).Value,
+                (int)(long)lastSaveRaw.ElementAt(1).Value,
+                (int)(long)lastSaveRaw.ElementAt(2).Value,
+                (int)(long)lastSaveRaw.ElementAt(3).Value,
+                (int)(long)lastSaveRaw.ElementAt(4).Value,
+                (int)(long)lastSaveRaw.ElementAt(5).Value
             );
             displayLine["lastSave"] = PACTools.ParseToJsonValue(lastSaved);
             displayLine["playtime"] = PACTools.ParseToJsonValue(TimeSpan.Zero);
@@ -345,11 +345,11 @@ namespace PAExtras
         {
             return new Dictionary<string, PerlinNoise>
             {
-                ["height"] = new PerlinNoise((ulong)tileNoiseSeeds["HEIGHT"].Value),
-                ["temperature"] = new PerlinNoise((ulong)tileNoiseSeeds["TEMPERATURE"].Value),
-                ["humidity"] = new PerlinNoise((ulong)tileNoiseSeeds["HUMIDITY"].Value),
-                ["hostility"] = new PerlinNoise((ulong)tileNoiseSeeds["HOSTILITY"].Value),
-                ["population"] = new PerlinNoise((ulong)tileNoiseSeeds["POPULATION"].Value)
+                ["height"] = new PerlinNoise((ulong)(long)tileNoiseSeeds["HEIGHT"].Value),
+                ["temperature"] = new PerlinNoise((ulong)(long)tileNoiseSeeds["TEMPERATURE"].Value),
+                ["humidity"] = new PerlinNoise((ulong)(long)tileNoiseSeeds["HUMIDITY"].Value),
+                ["hostility"] = new PerlinNoise((ulong)(long)tileNoiseSeeds["HOSTILITY"].Value),
+                ["population"] = new PerlinNoise((ulong)(long)tileNoiseSeeds["POPULATION"].Value)
             };
         }
 

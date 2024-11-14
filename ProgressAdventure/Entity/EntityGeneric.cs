@@ -114,7 +114,7 @@ namespace ProgressAdventure.Entity
                 "MiscVersionCorrecters",
                 BindingFlags.NonPublic | BindingFlags.Static,
                 null,
-                typeof(List<(Action<IDictionary<string, object?>> objectJsonCorrecter, string newFileVersion)>),
+                typeof(List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)>),
                 [],
                 null
             );

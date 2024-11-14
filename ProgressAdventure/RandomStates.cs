@@ -217,7 +217,7 @@ namespace ProgressAdventure
         /// Deserialises the json representation of the tile type noise seeds, into a potentialy partial dictionary.
         /// </summary>
         /// <param name="tileTypeNoiseSeeds">The json representation of the tile type noise seeds.</param>
-        private static Dictionary<TileNoiseType, ulong>? DeserialiseTileNoiseSeeds(IDictionary<string, object?>? tileTypeNoiseSeeds)
+        private static Dictionary<TileNoiseType, ulong>? DeserialiseTileNoiseSeeds(JsonDictionary? tileTypeNoiseSeeds)
         {
             if (tileTypeNoiseSeeds is null)
             {
@@ -232,7 +232,7 @@ namespace ProgressAdventure
                     tileTypeNoiseSeed.Value is not null &&
                     Enum.TryParse(tileTypeNoiseSeed.Key.ToString(), out TileNoiseType noiseTypeValue) &&
                     Enum.IsDefined(noiseTypeValue) &&
-                    ulong.TryParse(tileTypeNoiseSeed.Value.ToString(), out ulong noiseSeed)
+                    ulong.TryParse(tileTypeNoiseSeed.Value.Value.ToString(), out var noiseSeed)
                 )
                 {
                     noiseSeedDict.Add(noiseTypeValue, noiseSeed);
@@ -255,10 +255,11 @@ namespace ProgressAdventure
             success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MISC_RANDOM, out var miscRandom);
 
             if (
-                PACTools.TryCastJsonAnyValue<RandomStates, IDictionary<string, object?>>(
+                PACTools.TryCastJsonAnyValue<RandomStates, JsonDictionary>(
                     randomStatesJson,
                     Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS,
-                    out var tileTypeNoiseSeedsJson
+                    out var tileTypeNoiseSeedsJson,
+                    isStraigthCast: true
                 )
             )
             {

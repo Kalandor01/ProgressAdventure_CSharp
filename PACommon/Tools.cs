@@ -580,7 +580,7 @@ namespace PACommon
             where TJc : IJsonConvertable<TJc>
         {
             value = default;
-            if (!TryCastJsonAnyValue<T, JsonDictionary>(objectJson, jsonKey, out var result, isCritical))
+            if (!TryCastJsonAnyValue<T, JsonDictionary>(objectJson, jsonKey, out var result, isCritical, true))
             {
                 return false;
             }
