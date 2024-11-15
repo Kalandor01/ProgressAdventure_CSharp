@@ -159,21 +159,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
         public static SplittableRandom GetChunkRandom((long x, long y) absolutePosition)
         {
-            var posX = Utils.FloorRound(absolutePosition.x, Constants.CHUNK_SIZE);
-            var posY = Utils.FloorRound(absolutePosition.y, Constants.CHUNK_SIZE);
-            var noiseValues = WorldUtils.GetNoiseValues(posX, posY);
-            var noiseNum = noiseValues.Count;
-            var seedNumSize = 19.0;
-            var noiseTenMulti = (int)Math.Floor(seedNumSize / noiseNum);
-            var noiseMulti = Math.Pow(10, noiseTenMulti);
-            ulong seed = 1;
-            for (int x = 0; x < noiseValues.Count; x++)
-            {
-                var noiseVal = noiseValues.ElementAt(x).Value;
-                seed *= (ulong)(noiseVal * noiseMulti);
-            }
-            seed = (ulong)(seed * RandomStates.Instance.ChunkSeedModifier);
-            return new SplittableRandom(seed);
+            return GetChunkRandom(absolutePosition, Constants.CHUNK_SIZE);
         }
         #endregion
 
@@ -248,6 +234,30 @@ namespace ProgressAdventure.WorldManagement
         public static string GetChunkFileName((long x, long y) absolutePosition)
         {
             return GetChunkFileName(absolutePosition, Constants.CHUNK_SIZE);
+        }
+
+        /// <summary>
+        /// Generates the chunk random genrator for a chunk.
+        /// </summary>
+        /// <param name="absolutePosition">The absolute position of the chunk.</param>
+        /// <param name="chunkSize">The size of a chunk.</param>
+        internal static SplittableRandom GetChunkRandom((long x, long y) absolutePosition, int chunkSize)
+        {
+            var posX = Utils.FloorRound(absolutePosition.x, chunkSize);
+            var posY = Utils.FloorRound(absolutePosition.y, chunkSize);
+            var noiseValues = WorldUtils.GetNoiseValues(posX, posY);
+            var noiseNum = noiseValues.Count;
+            var seedNumSize = 19.0;
+            var noiseTenMulti = (int)Math.Floor(seedNumSize / noiseNum);
+            var noiseMulti = Math.Pow(10, noiseTenMulti);
+            ulong seed = 1;
+            for (int x = 0; x < noiseValues.Count; x++)
+            {
+                var noiseVal = noiseValues.ElementAt(x).Value;
+                seed *= (ulong)(noiseVal * noiseMulti);
+            }
+            seed = (ulong)(seed * RandomStates.Instance.ChunkSeedModifier);
+            return new SplittableRandom(seed);
         }
         #endregion
 

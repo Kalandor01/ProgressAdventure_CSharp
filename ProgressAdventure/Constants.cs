@@ -102,10 +102,6 @@ namespace ProgressAdventure
         /// The seed used for encoded saves, and most other encoded files.
         /// </summary>
         public const long SAVE_SEED = 87531;
-        /// <summary>
-        /// The seed used for the encoded settings file.
-        /// </summary>
-        public const long SETTINGS_SEED = 1;
         #endregion
 
         #region Cursor types
@@ -311,7 +307,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The minimum time between, where normal logging just stores the logs to a buffer for later logging.
         /// </summary>
-        public static readonly TimeSpan FORCE_LOG_INTERVAL = new(0, 0, 0);
+        public static readonly TimeSpan FORCE_LOG_INTERVAL = new(0, 0, 5);
         #endregion
 
         #region Chunks

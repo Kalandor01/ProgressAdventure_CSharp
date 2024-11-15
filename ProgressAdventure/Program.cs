@@ -53,7 +53,7 @@ namespace ProgressAdventure
             );
 
 
-            var h = World.RecalculateChunkFileSizes(7, "all items + world", "Recalculating chunk sizes...");
+            var h = World.RecalculateChunkFileSizes(Constants.CHUNK_SIZE, 7, "all items + world", "Recalculating chunk sizes...");
 
 
             var inventory = new Inventory(
@@ -71,7 +71,7 @@ namespace ProgressAdventure
         {
             var recipeElements = new List<BaseUI?> { new Toggle() };
 
-            var menu = new OptionsUI(recipeElements, "Craftnig", scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2));
+            var menu = new OptionsUI(recipeElements, "Crafting", scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2));
             
             CalculateCraftables(menu, recipeElements, inventory);
 
@@ -101,7 +101,11 @@ namespace ProgressAdventure
                         recipeAmount.ToString(),
                         rawText,
                         textValidatorFunction: (inputValue) => {
-                            var success = CraftItem(itemRecipe.Key, inventory, recipeElements, recipe, menu, int.Parse(inputValue));
+                            if (!int.TryParse(inputValue, out var amount))
+                            {
+                                return (TextFieldValidatorStatus.RETRY, null);
+                            }
+                            var success = CraftItem(itemRecipe.Key, inventory, recipeElements, recipe, menu, amount);
                             return (success ? TextFieldValidatorStatus.VALID : TextFieldValidatorStatus.INVALID, null);
                         },
                         keyValidatorFunction: (value, key, pos) => {

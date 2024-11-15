@@ -19,7 +19,7 @@ namespace ProgressAdventure
     {
         #region Public functions
         #region Encode/decode Short
-        /// <inheritdoc cref="PACTools.EncodeSaveShort(JsonDictionary, string, long, string)"/>
+        /// <inheritdoc cref="PACTools.EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
         public static void EncodeSaveShort(
             JsonDictionary data,
             string filePath,
@@ -27,10 +27,10 @@ namespace ProgressAdventure
             string extension = SAVE_EXT
         )
         {
-            EncodeSaveShort(new List<JsonDictionary> { data }, filePath, seed, extension);
+            EncodeSaveShort([data], filePath, seed, extension);
         }
 
-        /// <inheritdoc cref="PACTools.EncodeSaveShort(IEnumerable{JsonDictionary}, string, long, string)"/>
+        /// <inheritdoc cref="PACTools.EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
         public static void EncodeSaveShort(
             IEnumerable<JsonDictionary> dataList,
             string filePath,
@@ -38,7 +38,7 @@ namespace ProgressAdventure
             string extension = SAVE_EXT
         )
         {
-            PACTools.EncodeSaveShort(dataList, filePath, seed, extension);
+            PACTools.EncodeFileShort(dataList, filePath, seed, extension);
         }
 
         /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
@@ -132,7 +132,6 @@ namespace ProgressAdventure
         public static bool RecreateSaveFileFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.saveName;
-            RecreateSavesFolder();
             return PACTools.RecreateFolder(saveFolderName, SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
         }
 
@@ -145,7 +144,6 @@ namespace ProgressAdventure
         public static bool RecreateChunksFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.saveName;
-            RecreateSaveFileFolder(saveFolderName);
             return PACTools.RecreateFolder(SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
         }
         #endregion

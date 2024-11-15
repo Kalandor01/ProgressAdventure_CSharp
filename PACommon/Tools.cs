@@ -18,29 +18,67 @@ namespace PACommon
     {
         #region Public functions
         #region Encode/decode short
-        /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
-        /// <inheritdoc cref="EncodeSaveShort(IEnumerable{JsonDictionary}, string, long, string)"/>
-        public static void EncodeSaveShort(JsonDictionary data, string filePath, long seed, string extension)
+        /// <summary>
+        /// Same as <see cref="EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>, but for plain json files.
+        /// </summary>
+        /// <param name="dataList">The data to write to the file.</param>
+        /// <param name="filePath">The path and the name of the file without the extension, that will be created.</param>
+        /// <param name="extension">The extension of the file that will be created.</param>
+        public static void SaveJsonFile(IEnumerable<JsonDictionary> dataList, string filePath, string extension = "json")
         {
-            EncodeSaveShort([data], filePath, seed, extension);
+            var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
+            File.WriteAllLines($"{filePath}.{extension}", jsonDataList, Constants.ENCODING);
         }
 
         /// <summary>
-        /// Shorthand for <c>EncodeFile</c> + convert from json to string.
+        /// Same as <see cref="EncodeFileShort(JsonDictionary, string, long, string)"/>, but for plain json files.
+        /// </summary>
+        /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
+        /// <inheritdoc cref="SaveJsonFile(IEnumerable{JsonDictionary}, string, string)"/>
+        public static void SaveJsonFile(JsonDictionary data, string filePath, string extension = "json")
+        {
+            SaveJsonFile([data], filePath, extension);
+        }
+
+        /// <summary>
+        /// Shorthand for <see cref="FileConversion.EncodeFile(IEnumerable{string}, long, string, string, int, Encoding?)"/> + convert from json to string.
         /// </summary>
         /// <param name="dataList">The data to write to the file.</param>
         /// <param name="filePath">The path and the name of the file without the extension, that will be created.<br/>
         /// If the path contains a *, it will be replaced with the seed.</param>
         /// <param name="seed">The seed for encoding the file.</param>
         /// <param name="extension">The extension of the file that will be created.</param>
-        public static void EncodeSaveShort(IEnumerable<JsonDictionary> dataList, string filePath, long seed, string extension)
+        public static void EncodeFileShort(IEnumerable<JsonDictionary> dataList, string filePath, long seed, string extension)
         {
             var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
             FileConversion.EncodeFile(jsonDataList, seed, filePath, extension, Constants.FILE_ENCODING_VERSION, Constants.ENCODING);
         }
 
+        /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
+        /// <inheritdoc cref="EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
+        public static void EncodeFileShort(JsonDictionary data, string filePath, long seed, string extension)
+        {
+            EncodeFileShort(data, filePath, seed, extension);
+        }
+
         /// <summary>
-        /// Shorthand for <c>DecodeFile</c> + convert from string to json.
+        /// Same as <see cref="DecodeSaveShort(string, long, string, int, bool)"/>, but for plain json files.
+        /// </summary>
+        /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.<br/>
+        /// If the path contains a *, it will be replaced with the seed.</param>
+        /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
+        /// <param name="extension">The extension of the file that will be loaded.</param>
+        /// <param name="expected">If the file is expected to exist.<br/>
+        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
+        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
+        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
+        public static JsonDictionary? LoadJsonFile(string filePath, int lineNum = 0, string extension = "json", bool expected = true)
+        {
+            return DecodeSaveAny(filePath, null, extension, lineNum, expected);
+        }
+
+        /// <summary>
+        /// Shorthand for <see cref="FileConversion.DecodeFile(long, string, string, int, Encoding?)"/> + convert from string to json.
         /// </summary>
         /// <param name="filePath">The path and the name of the file without the extension, that will be decoded.<br/>
         /// If the path contains a *, it will be replaced with the seed.</param>
@@ -54,38 +92,7 @@ namespace PACommon
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
         public static JsonDictionary? DecodeSaveShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
         {
-            var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
-
-            string decodedLine;
-            try
-            {
-                decodedLine = FileConversion.DecodeFile(seed, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
-            }
-            catch (FormatException)
-            {
-                PACSingletons.Instance.Logger.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
-                throw;
-            }
-            catch (FileNotFoundException)
-            {
-                PACSingletons.Instance.Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                throw;
-            }
-            catch (DirectoryNotFoundException)
-            {
-                PACSingletons.Instance.Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                throw;
-            }
-
-            try
-            {
-                return JsonSerializer.DeserializeJson(decodedLine);
-            }
-            catch (Exception)
-            {
-                PACSingletons.Instance.Logger.Log("Json decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
-                throw;
-            }
+            return DecodeSaveAny(filePath, seed, extension, lineNum, expected);
         }
         #endregion
 
@@ -689,6 +696,63 @@ namespace PACommon
             return currentValue.ToString().Insert(cursorPosition, inputKey?.KeyChar.ToString() ?? "");
         }
         #endregion
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// Loads a jsn line from a file.
+        /// </summary>
+        /// <param name="filePath">The path and the name of the file without the extension, that will be decoded.</param>
+        /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
+        /// <param name="seed">The seed for decoding the file.</param>
+        /// <param name="extension">The extension of the file that will be decoded.</param>
+        /// <param name="expected">If the file is expected to exist.<br/>
+        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
+        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
+        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
+        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
+        public static JsonDictionary? DecodeSaveAny(string filePath, long? seed, string extension, int lineNum = 0, bool expected = true)
+        {
+            var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
+
+            string loadedLine;
+            try
+            {
+                if (seed is null)
+                {
+                    loadedLine = File.ReadLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum);
+                }
+                else
+                {
+                    loadedLine = FileConversion.DecodeFile((long)seed, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
+                }
+            }
+            catch (FormatException)
+            {
+                PACSingletons.Instance.Logger.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                throw;
+            }
+            catch (FileNotFoundException)
+            {
+                PACSingletons.Instance.Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                throw;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                PACSingletons.Instance.Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                throw;
+            }
+
+            try
+            {
+                return JsonSerializer.DeserializeJson(loadedLine);
+            }
+            catch (Exception)
+            {
+                PACSingletons.Instance.Logger.Log("Json decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                throw;
+            }
+        }
         #endregion
     }
 }

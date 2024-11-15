@@ -625,7 +625,10 @@ namespace ProgressAdventure.ItemManagement
             for (int x = 0; x < recipe.ingredients.Count; x++)
             {
                 var ingredient = recipe.ingredients[x];
-                var usedAmount = ingredient.unit is not null ? ConvertAmountToUnit(inputItems[x], (ItemAmountUnit)ingredient.unit) : ingredient.amount;
+                var usedAmountMultiplier = ingredient.unit is not null
+                    ? 1 / ConvertAmountToUnitMultiplier(inputItems[x], (ItemAmountUnit)ingredient.unit)
+                    : 1;
+                var usedAmount = usedAmountMultiplier * ingredient.amount;
                 var usedItem = inputItems[x].DeepCopy();
                 inputItems[x].Amount -= usedAmount * amount;
 

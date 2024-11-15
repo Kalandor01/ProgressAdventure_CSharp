@@ -256,7 +256,7 @@ namespace ProgressAdventure.SettingsManagement
         private static JsonDictionary RecreateSettings()
         {
             var newSettings = SettingsUtils.GetDefaultSettings();
-            Tools.EncodeSaveShort(newSettings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+            PACTools.SaveJsonFile(newSettings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME));
             // log
             PACSingletons.Instance.Logger.Log("Recreated settings");
             return newSettings;
@@ -270,7 +270,7 @@ namespace ProgressAdventure.SettingsManagement
             JsonDictionary? settingsJson = null;
             try
             {
-                settingsJson = Tools.DecodeSaveShort(Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, Constants.SETTINGS_SEED, expected: false);
+                settingsJson = PACTools.LoadJsonFile(Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), 0, expected: false);
                 if (settingsJson is null)
                 {
                     PACSingletons.Instance.Logger.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
@@ -334,7 +334,7 @@ namespace ProgressAdventure.SettingsManagement
             {
                 PACSingletons.Instance.Logger.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
                 settings[settingsKeyName] = PACTools.ParseToJsonValue(value);
-                Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+                PACTools.SaveJsonFile(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME));
                 return;
             }
 
@@ -364,7 +364,7 @@ namespace ProgressAdventure.SettingsManagement
             {
                 PACSingletons.Instance.Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
                 settings[settingsKeyName] = PACTools.ParseToJsonValue(value);
-                Tools.EncodeSaveShort(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), Constants.SETTINGS_SEED);
+                PACTools.SaveJsonFile(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME));
             }
         }
 

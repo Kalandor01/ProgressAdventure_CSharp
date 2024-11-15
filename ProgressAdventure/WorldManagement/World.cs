@@ -413,15 +413,15 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
-        public static bool RecalculateChunkFileSizes(int oldChunkSize, string? saveFolderName = null, string? showProgressText = null)
+        public static bool RecalculateChunkFileSizes(int oldChunkSize, int newChunkSize, string? saveFolderName = null, string? showProgressText = null)
         {
-            if (oldChunkSize == Constants.CHUNK_SIZE)
+            if (oldChunkSize == newChunkSize)
             {
                 return true;
             }
 
             // setup
-            PACSingletons.Instance.Logger.Log("Recalculating chunk file sizes", $"chunk size: {oldChunkSize} -> {Constants.CHUNK_SIZE}");
+            PACSingletons.Instance.Logger.Log("Recalculating chunk file sizes", $"chunk size: {oldChunkSize} -> {newChunkSize}");
             saveFolderName ??= SaveData.Instance.saveName;
             var chunkSizeChangeFolderName = $"chunk_sizes_from_{oldChunkSize}_to_{Constants.CHUNK_SIZE}";
             var saveFolderPath = Tools.GetSaveFolderPath(saveFolderName);
@@ -468,17 +468,21 @@ namespace ProgressAdventure.WorldManagement
                 }
 
                 success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
-                chunkRandom ??= Chunk.GetChunkRandom(chunkPosition);
+                chunkRandom ??= Chunk.GetChunkRandom(chunkPosition, newChunkSize);
 
                 if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
-                    if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, nameof(tileJson)))
+                    if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, nameof(tileJson), isStraigthCast: true))
                     {
                         success = false;
                         return (false, default);
                     }
                     success &= Tile.FromJson(chunkRandom, tileJsonValue, fileVersion, out Tile? tile);
-                    var tileDictName = $"{Utils.Mod(chunkPosition.x, oldChunkSize)}_{Utils.Mod(chunkPosition.y, oldChunkSize)}";
-                    return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(tileDictName, tile));
+                    if (tile is null)
+                    {
+                        return (false, default);
+                    }
+                    var tileDictName = $"{Utils.Mod(tile.relativePosition.x, oldChunkSize)}_{Utils.Mod(tile.relativePosition.y, oldChunkSize)}";
+                    return (true, new KeyValuePair<string, Tile>(tileDictName, tile));
                 }, out var tilesKvPair, true))
                 {
                     return false;
@@ -491,7 +495,7 @@ namespace ProgressAdventure.WorldManagement
             // done
             Directory.Delete(chunksFolderPath, true);
             Directory.Move(chunkSizeChangeFolderPath, chunksFolderPath);
-            PACSingletons.Instance.Logger.Log("Recalculated chunk file sizes", $"chunk size: {oldChunkSize} -> {Constants.CHUNK_SIZE}");
+            PACSingletons.Instance.Logger.Log("Recalculated chunk file sizes", $"chunk size: {oldChunkSize} -> {newChunkSize}");
             return success;
         }
         #endregion
