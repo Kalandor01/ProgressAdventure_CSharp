@@ -1,5 +1,6 @@
 ﻿using PACommon.Extensions;
 using ProgressAdventure.Enums;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -26,6 +27,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
+        [JsonConstructor]
         public MaterialItemAttributesDTO(string displayName, ItemAmountUnit unit = ItemAmountUnit.KG)
             : base(
                   ItemUtils.MATERIAL_TYPE_NAME,

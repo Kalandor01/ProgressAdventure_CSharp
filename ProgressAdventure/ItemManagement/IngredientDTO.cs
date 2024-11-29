@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using ProgressAdventure.Enums;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -13,18 +14,22 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The type of the item.
         /// </summary>
+        [JsonPropertyName("item_type")]
         public readonly ItemTypeID itemType;
         /// <summary>
         /// The material of the item, the is required for the recipe.
         /// </summary>
+        [JsonPropertyName("material")]
         public readonly Material? material;
         /// <summary>
         /// The amount of the item, that the recipe requires.
         /// </summary>
+        [JsonPropertyName("amount")]
         public readonly double amount;
         /// <summary>
         /// The unit to interpret the amount in.
         /// </summary>
+        [JsonPropertyName("unit")]
         public readonly ItemAmountUnit? unit;
         #endregion
 
@@ -66,6 +71,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/><br/>
         /// Amount does nothing (the same as null).</param>
         /// <exception cref="ArgumentException">Thrown, if the item type is material, and the unit is amount.</exception>
+        [JsonConstructor]
         public IngredientDTO(ItemTypeID itemType, Material? material = null, double amount = 1, ItemAmountUnit? unit = null)
         {
             this.itemType = itemType;

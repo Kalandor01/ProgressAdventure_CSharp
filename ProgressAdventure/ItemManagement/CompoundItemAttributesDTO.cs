@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -28,8 +29,23 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         public CompoundItemAttributesDTO(ItemTypeID itemTypeID, string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
-            : base(
+            : this(
                   ItemUtils.ItemIDToTypeName(itemTypeID),
+                  displayName,
+                  unit
+                )
+        { }
+
+        /// <summary>
+        /// <inheritdoc cref="CompoundItemAttributesDTO"/>
+        /// </summary>
+        /// <param name="typeName">The type name of the item.</param>
+        /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
+        /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
+        [JsonConstructor]
+        private CompoundItemAttributesDTO(string typeName, string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
+            : base(
+                  typeName,
                   displayName,
                   unit
                 )

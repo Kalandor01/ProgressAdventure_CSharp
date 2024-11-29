@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using System.Text.Json.Serialization;
+
+namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
     /// DTO used for storing a recipe for an item, and how many items that recipe creates.
@@ -8,10 +10,12 @@
         /// <summary>
         /// The list of items required to complete the recipe.
         /// </summary>
+        [JsonPropertyName("ingredients")]
         public readonly List<IngredientDTO> ingredients;
         /// <summary>
         /// The amount of items that get created when completing this recipe.
         /// </summary>
+        [JsonPropertyName("result_amount")]
         public readonly double resultAmount;
 
         /// <summary>
@@ -19,6 +23,7 @@
         /// </summary>
         /// <param name="ingredients"><inheritdoc cref="ingredients" path="//summary"/></param>
         /// <param name="resultAmount"><inheritdoc cref="resultAmount" path="//summary"/></param>
+        [JsonConstructor]
         public RecipeDTO(List<IngredientDTO> ingredients, double resultAmount = 1)
         {
             if (ingredients.Count == 0)

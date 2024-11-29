@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using PACommon;
+﻿using PACommon;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ConfigManagement
 {
@@ -45,7 +45,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <summary>
         /// <inheritdoc cref="ConfigManager"/>
         /// </summary>
-        /// <param name="converters"><inheritdoc cref="AConfigManager._converters" path="//summary"/></param>
+        /// <param name="converters"><inheritdoc cref="AConfigManager._jsonReaderOptions" path="//summary"/></param>
         /// <param name="configsFolderParrentPath"><inheritdoc cref="AConfigManager._configsFolderParrentPath" path="//summary"/></param>
         /// <param name="configsFolderName"><inheritdoc cref="AConfigManager._configsFolderName" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="AConfigManager._configExtension" path="//summary"/></param>
@@ -65,7 +65,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
-        /// <param name="converters"><inheritdoc cref="AConfigManager._converters" path="//summary"/></param>
+        /// <param name="converters"><inheritdoc cref="AConfigManager._jsonReaderOptions" path="//summary"/></param>
         /// <param name="configsFolderParrentPath"><inheritdoc cref="AConfigManager._configsFolderParrentPath" path="//summary"/></param>
         /// <param name="configsFolderName"><inheritdoc cref="AConfigManager._configsFolderName" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="AConfigManager._configExtension" path="//summary"/></param>
@@ -104,11 +104,9 @@ namespace ProgressAdventure.ConfigManagement
         {
             Initialize(
                 [
+                    new JsonStringEnumConverter(allowIntegerValues: false),
                     new ItemTypeIDConverter(),
-                    new CompoundItemAttributesDTOConverter(),
                     new MaterialItemAttributesDTOConverter(),
-                    new IngredientDTOConverter(),
-                    new EnumConverter(),
                 ],
                 PACommon.Constants.ROOT_FOLDER,
                 Constants.CONFIGS_FOLDER,
@@ -119,8 +117,8 @@ namespace ProgressAdventure.ConfigManagement
             Instance.TryGetConfig(
                 "compound_item_attributes",
                 ItemUtils.compoundItemAttributes,
-                ItemUtils.ItemIDToTypeName,
-                key => ItemUtils.ParseItemType(key) ?? throw new ArgumentNullException("item type")
+                key => key.ToString()!,
+                key => ItemUtils.ParseItemTypeFromRealName(key) ?? throw new ArgumentNullException("item type")
             );
             Instance.TryGetConfig(
                 "item_recipes",

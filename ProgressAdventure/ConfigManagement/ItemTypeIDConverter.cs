@@ -1,22 +1,24 @@
-﻿using Newtonsoft.Json;
-using ProgressAdventure.ItemManagement;
+﻿using ProgressAdventure.ItemManagement;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ConfigManagement
 {
     internal class ItemTypeIDConverter : JsonConverter<ItemTypeID>
     {
-        public override ItemTypeID ReadJson(JsonReader reader, Type objectType, ItemTypeID existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override ItemTypeID Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if(ItemUtils.TryParseItemType(reader.Value?.ToString(), out var itemType))
+            var value = reader.GetString();
+            if (!ItemUtils.TryParseItemType(value, out var itemType))
             {
-                throw new JsonException($"Unknown item type name: \"{reader.Value}\"");
+                throw new JsonException($"Unknown item type name: \"{value}\"");
             }
             return itemType;
         }
 
-        public override void WriteJson(JsonWriter writer, ItemTypeID value, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, ItemTypeID value, JsonSerializerOptions options)
         {
-            writer.WriteValue(ItemUtils.ItemIDToTypeName(value));
+            writer.WriteStringValue(ItemUtils.ItemIDToTypeName(value));
         }
     }
 }

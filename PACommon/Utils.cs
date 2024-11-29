@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using PInvoke;
-using System.Collections;
+﻿using System.Collections;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -120,20 +118,28 @@ namespace PACommon
             return dateTime.ToString($"HH{separation}mm{separation}ss{(writeMs ? $"{msSeparation}ffffff" : "")}");
         }
 
+
+        const int STD_OUTPUT_HANDLE = -11;
+        const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr GetStdHandle(int nStdHandle);
+
+        [DllImport("kernel32.dll")]
+        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+        [DllImport("kernel32.dll")]
+        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
         /// <summary>
         /// Tries to enable ANSI codes, so they work for the terminal outside of the debug console.
         /// </summary>
         public static bool TryEnableAnsiCodes()
         {
-            var stdHandle = Kernel32.StdHandle.STD_OUTPUT_HANDLE;
-
-            var consoleHandle = Kernel32.GetStdHandle(stdHandle);
-            if (Kernel32.GetConsoleMode(consoleHandle, out var consoleBufferModes) &&
-                consoleBufferModes.HasFlag(Kernel32.ConsoleBufferModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING))
-                return true;
-
-            consoleBufferModes |= Kernel32.ConsoleBufferModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            return Kernel32.SetConsoleMode(consoleHandle, consoleBufferModes);
+            var handle = GetStdHandle(STD_OUTPUT_HANDLE);
+            GetConsoleMode(handle, out var mode);
+            mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            return SetConsoleMode(handle, mode);
         }
 
         /// <summary>

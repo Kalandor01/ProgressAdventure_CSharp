@@ -1,4 +1,5 @@
 ﻿using ProgressAdventure.Enums;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ItemManagement
 {
@@ -12,14 +13,17 @@ namespace ProgressAdventure.ItemManagement
         /// The unique name of the item, used in the json representation of the item.<br/>
         /// Usualy "item_category/item_type".
         /// </summary>
+        [JsonPropertyName("type_name")]
         public readonly string typeName;
         /// <summary>
         /// The display name of the item.
         /// </summary>
+        [JsonPropertyName("display_name")]
         public readonly string displayName;
         /// <summary>
         /// <inheritdoc cref="ItemAmountUnit"/>
         /// </summary>
+        [JsonPropertyName("unit")]
         public readonly ItemAmountUnit unit;
         #endregion
 
@@ -30,6 +34,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="typeName"><inheritdoc cref="typeName" path="//summary"/></param>
         /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
+        [JsonConstructor]
         protected AItemAttributesDTO(string typeName, string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
         {
             this.typeName = typeName;

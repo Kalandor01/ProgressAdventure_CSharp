@@ -417,6 +417,20 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
+        /// Returs the item type, if the item type ID is an id for an item type.
+        /// </summary>
+        /// <param name="itemTypeID">The uint representation of the item's ID.</param>
+        public static ItemTypeID? ParseItemTypeFromRealName(string? itemTypeRealName)
+        {
+            if (string.IsNullOrWhiteSpace(itemTypeRealName))
+            {
+                return null;
+            }
+            var resultItem = compoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Key.ToString() == itemTypeRealName).Key;
+            return resultItem == default ? null : resultItem;
+        }
+
+        /// <summary>
         /// Tries to convert the int representation of the item ID to an item ID, and returns the success.
         /// </summary>
         /// <param name="itemTypeID">The uint representation of the item's ID.</param>
@@ -451,27 +465,27 @@ namespace ProgressAdventure.ItemManagement
             if (name is null || !TryParseItemType(itemTypeID.mID, out _))
             {
                 PACSingletons.Instance.Logger.Log("Unknown item type", $"ID: {itemTypeID.mID}", LogSeverity.ERROR);
+                return "[UNKNOWN ITEM TYPE]";
             }
-            else
+
+            var actualNamePath = name.Split(nameof(ItemType) + ".").Last();
+            var pathParts = actualNamePath.Split('.');
+            for (var x = 0; x < pathParts.Length - 1; x++)
             {
-                var actualNamePath = name.Split(nameof(ItemType) + ".").Last();
-                var pathParts = actualNamePath.Split('.');
-                for (var x = 0; x < pathParts.Length - 1; x++)
+                var pathPart = pathParts[x];
+                var modifiedPathPart = new StringBuilder();
+                for (var y = 0; y < pathPart.Length; y++)
                 {
-                    var pathPart = pathParts[x];
-                    var modifiedPathPart = new StringBuilder();
-                    for (var y = 0; y < pathPart.Length; y++)
+                    if (y != 0 && char.IsUpper(pathPart[y]))
                     {
-                        if (y != 0 && char.IsUpper(pathPart[y]))
-                        {
-                            modifiedPathPart.Append('_');
-                        }
-                        modifiedPathPart.Append(pathPart[y]);
+                        modifiedPathPart.Append('_');
                     }
-                    modifiedPath.Append(modifiedPathPart + "/");
+                    modifiedPathPart.Append(pathPart[y]);
                 }
-                modifiedPath.Append(pathParts.Last());
+                modifiedPath.Append(modifiedPathPart + "/");
             }
+
+            modifiedPath.Append(pathParts.Last());
             var modifiedPathStr = modifiedPath.ToString().ToLower();
             return string.IsNullOrWhiteSpace(modifiedPathStr) ? "[UNKNOWN ITEM TYPE]" : modifiedPathStr;
         }

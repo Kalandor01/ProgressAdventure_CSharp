@@ -1,31 +1,33 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ProgressAdventure.Enums;
+﻿using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ConfigManagement
 {
     internal class MaterialItemAttributesDTOConverter : JsonConverter<MaterialItemAttributesDTO>
     {
-        public override MaterialItemAttributesDTO? ReadJson(JsonReader reader, Type objectType, MaterialItemAttributesDTO? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override MaterialItemAttributesDTO? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var value = JObject.Load(reader);
-            var unitStr = value[nameof(MaterialItemAttributesDTO.unit)].Value<string>();
+            var jsonDict = reader.GetObjectDictionary();
+
+            var unitStr = jsonDict[nameof(CompoundItemAttributesDTO.unit)]!;
             unitStr = $"\"{unitStr}\"";
-            var converters = ConfigManager.Instance.GetConvertersNonInclusive<MaterialItemAttributesDTOConverter>();
+
             return new MaterialItemAttributesDTO(
-                value[nameof(MaterialItemAttributesDTO.displayName)].Value<string>(),
-                JsonConvert.DeserializeObject<ItemAmountUnit>(unitStr, converters)
+                jsonDict["display_name"] ?? throw new ArgumentNullException("display name"),
+                JsonSerializer.Deserialize<ItemAmountUnit>(unitStr, options)
             );
         }
 
-        public override void WriteJson(JsonWriter writer, MaterialItemAttributesDTO? value, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, MaterialItemAttributesDTO value, JsonSerializerOptions options)
         {
-            var jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                Converters = ConfigManager.Instance.GetConvertersNonInclusive<MaterialItemAttributesDTOConverter>(),
-            };
-            JsonSerializer.Create(jsonSerializerSettings).Serialize(writer, value);
+            var j = JsonSerializer.Serialize(value.unit, options);
+            writer.WriteStartObject();
+            writer.WriteString("display_name", value.displayName);
+            writer.WritePropertyName("unit");
+            writer.WriteRawValue(JsonSerializer.Serialize(value.unit, options));
+            writer.WriteEndObject();
         }
     }
 }

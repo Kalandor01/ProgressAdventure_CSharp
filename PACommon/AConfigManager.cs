@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PACommon.Enums;
+﻿using PACommon.Enums;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace PACommon
 {
@@ -10,10 +10,8 @@ namespace PACommon
     public abstract class AConfigManager
     {
         #region Protected fields
-        /// <summary>
-        /// The list of json converters to use, when converting to/from specific types.
-        /// </summary>
-        protected readonly JsonConverter[] _converters;
+        private readonly JsonSerializerOptions _jsonReaderOptions;
+        private readonly JsonSerializerOptions _jsonWriterOptions;
 
         /// <summary>
         /// The path to the folder, where the config folder should be.
@@ -38,7 +36,7 @@ namespace PACommon
         /// <summary>
         /// <inheritdoc cref="AConfigManager"/>
         /// </summary>
-        /// <param name="converters"><inheritdoc cref="_converters" path="//summary"/></param>
+        /// <param name="converters">The list of json serializers to use when converting to/from specific types.</param>
         /// <param name="configsFolderParrentPath"><inheritdoc cref="_configsFolderParrentPath" path="//summary"/></param>
         /// <param name="configsFolderName"><inheritdoc cref="_configsFolderName" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="_configExtension" path="//summary"/></param>
@@ -52,7 +50,20 @@ namespace PACommon
             string? currentConfigFileVersion = null
         )
         {
-            _converters = converters ?? [];
+            _jsonReaderOptions = new JsonSerializerOptions
+            {
+                IncludeFields = true,
+            };
+            _jsonWriterOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                IncludeFields = true,
+            };
+            foreach (var converter in converters ?? [])
+            {
+                _jsonReaderOptions.Converters.Add(converter);
+                _jsonWriterOptions.Converters.Add(converter);
+            }
             _configsFolderParrentPath = configsFolderParrentPath ?? Constants.ROOT_FOLDER;
             if (!Directory.Exists(_configsFolderParrentPath))
             {
@@ -78,27 +89,22 @@ namespace PACommon
             var safeFilePath = Path.GetRelativePath(_configsFolderParrentPath, filePath);
 
             var fileData = File.ReadAllText(filePath);
-            var rawData = JsonConvert.DeserializeObject<Dictionary<string, object?>>(fileData, _converters)
+            var rawData = JsonSerializer.Deserialize<Dictionary<string, object?>>(fileData, _jsonReaderOptions)
                 ?? throw new NullReferenceException($"The config json is null in \"{safeFilePath}\".");
             if (!(
                 rawData.TryGetValue("version", out var configVersion) &&
                 rawData.TryGetValue("data", out var configDataObj) &&
-                configDataObj is JToken configDataJson
+                configDataObj is JsonElement configDataJson
             ))
             {
                 throw new Exception($"Incorrect config file structure in \"{safeFilePath}\".");
             }
-            var configData = configDataJson.ToObject<T>(
-                JsonSerializer.Create(
-                    new JsonSerializerSettings()
-                    {
-                        Converters = _converters,
-                    }
-                )
-            ) ?? throw new NullReferenceException($"The config json data is null in \"{safeFilePath}\".");
+            var configData = configDataJson.Deserialize<T>(_jsonReaderOptions)
+                ?? throw new NullReferenceException($"The config json data is null in \"{safeFilePath}\".");
             if (_currentConfigFileVersion is not null &&
                 !(
-                configVersion is string configVersionStr &&
+                configVersion is JsonElement versionElement &&
+                versionElement.GetString() is string configVersionStr &&
                 _currentConfigFileVersion == configVersionStr
             ))
             {
@@ -174,16 +180,6 @@ namespace PACommon
                 return GetConfig<TK, TV>(configName, deserializeDictionaryKeys);
             }
         }
-
-        /// <summary>
-        /// Returns all of the custom json converters from this config manager, except the one, with a specific type.
-        /// </summary>
-        /// <typeparam name="T">The type of the json converter to not return.</typeparam>
-        public JsonConverter[] GetConvertersNonInclusive<T>()
-            where T : JsonConverter
-        {
-            return _converters.Where(converter => converter.GetType() != typeof(T)).ToArray();
-        }
         #endregion
 
         #region protected functions
@@ -204,7 +200,7 @@ namespace PACommon
                 ["version"] = _currentConfigFileVersion,
                 ["data"] = configData,
             };
-            var jsonString = JsonConvert.SerializeObject(configFileData, Formatting.Indented, _converters);
+            var jsonString = JsonSerializer.Serialize(configFileData, _jsonWriterOptions);
             File.WriteAllText(filePath, jsonString);
             PACSingletons.Instance.Logger.Log($"Config file recreated", $"file path: \"{safeFilePath}\"");
         }

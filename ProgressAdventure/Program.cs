@@ -125,7 +125,7 @@ namespace ProgressAdventure
         /*
             CompountItemPrpertiesDTO has Material items?
             IngredientDTO.unit can be null???
-            Item crafting/creating is wrong!!!
+            Item crafting/creating is wrong?
          */
 
 
