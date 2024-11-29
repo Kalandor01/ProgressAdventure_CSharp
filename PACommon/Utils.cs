@@ -19,7 +19,7 @@ namespace PACommon
         /// <returns></returns>
         public static int ReadInt(string text = "Number: ", string errorText = "Not a whole number!")
         {
-            return SaveFileManager.Utils.ReadInt(text, errorText);
+            return FileManager.Utils.ReadInt(text, errorText);
         }
 
         /// <summary>
@@ -65,7 +65,8 @@ namespace PACommon
         /// <param name="text">The text to write out.</param>
         public static string? Input(string text)
         {
-            return SaveFileManager.Utils.Input(text);
+            Console.Write(text);
+            return Console.ReadLine();
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace PACommon
         /// <param name="text">The text to write out.</param>
         public static void PressKey(string text = "")
         {
-            SaveFileManager.Utils.PressKey(text);
+            FileManager.Utils.PressKey(text);
         }
 
         /// <summary>
@@ -163,16 +164,16 @@ namespace PACommon
             return txt.Append($"{text}\u001b[0m").ToString();
         }
 
-        /// <inheritdoc cref="SaveFileManager.Utils.MoveCursor(ValueTuple{int, int})"/>
+        /// <inheritdoc cref="ConsoleUI.Utils.MoveCursor(ValueTuple{int, int})"/>
         public static void MoveCursor((int x, int y) offset)
         {
-            SaveFileManager.Utils.MoveCursor(offset);
+            ConsoleUI.Utils.MoveCursor(offset);
         }
 
-        /// <inheritdoc cref="SaveFileManager.Utils.GetDisplayLen(string, int)"/>
+        /// <inheritdoc cref="ConsoleUI.Utils.GetDisplayLen(string, int, bool)"/>
         public static int GetDisplayLen(string text, int startingXPos = 0)
         {
-            return SaveFileManager.Utils.GetDisplayLen(text, startingXPos);
+            return ConsoleUI.Utils.GetDisplayLen(text, startingXPos);
         }
 
         /// <summary>

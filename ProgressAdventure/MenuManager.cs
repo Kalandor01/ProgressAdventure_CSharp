@@ -1,4 +1,6 @@
-﻿using PACommon;
+﻿using ConsoleUI;
+using ConsoleUI.UIElements;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.SettingsManagement;
@@ -6,8 +8,7 @@ using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using SaveFileManager;
-using SFMUtils = SaveFileManager.Utils;
+using CUIUtils = ConsoleUI.Utils;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
@@ -22,11 +23,6 @@ namespace ProgressAdventure
         /// The action list for <c>OptionsUI</c> and <c>UIList</c>.
         /// </summary>
         private static List<ActionKey> _actionList;
-
-        /// <summary>
-        /// The key results.
-        /// </summary>
-        private static List<object> _resultsList;
 
         /// <summary>
         /// The current list of saves data.<br/>
@@ -48,29 +44,12 @@ namespace ProgressAdventure
         {
             get
             {
-                if (_actionList is null)
-                {
-                    _actionList = PASingletons.Instance.Settings.Keybinds.KeybindList.ToList();
-                    _resultsList = SFMUtils.GetResultsList(_actionList).ToList();
-                }
+                _actionList ??= PASingletons.Instance.Settings.Keybinds.KeybindList.ToList();
                 return _actionList;
             }
             set
             {
                 _actionList = value;
-                _resultsList = SFMUtils.GetResultsList(_actionList).ToList();
-            }
-        }
-
-        /// <summary>
-        /// The key results.
-        /// </summary>
-        private static List<object> ResultsList
-        {
-            get
-            {
-                _resultsList ??= SFMUtils.GetResultsList(ActionList).ToList();
-                return _resultsList;
             }
         }
 
@@ -143,7 +122,7 @@ namespace ProgressAdventure
 
             if (item is not CompoundItem compundItem)
             {
-                new OptionsUI(new List<BaseUI> { backButton }, title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+                new OptionsUI([backButton], title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
                 return;
             }
 
@@ -246,7 +225,7 @@ namespace ProgressAdventure
                 if (actionKey is null)
                 {
                     PACSingletons.Instance.Logger.Log("Action type doesn't exist in keybind", $"action type: {actionType}", LogSeverity.WARN);
-                    actionKey = new ActionKey(ActionType.ESCAPE, new List<ConsoleKeyInfo> { new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false) });
+                    actionKey = new ActionKey(ActionType.ESCAPE, [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]);
                 }
                 elementList.Add(new KeyField<ActionType>(
                     actionKey,
@@ -259,7 +238,7 @@ namespace ProgressAdventure
             elementList.Add(null);
             elementList.Add(new PAButton(new UIAction(SaveKeybinds), text: "Save"));
 
-            new OptionsUI(elementList, " Keybinds", Constants.STANDARD_CURSOR_ICONS).Display(ActionList, ResultsList);
+            new OptionsUI(elementList, " Keybinds", Constants.STANDARD_CURSOR_ICONS).Display(ActionList);
         }
         #endregion
 
@@ -283,17 +262,15 @@ namespace ProgressAdventure
         {
             List<string?> answersList = yesFirst ? ["Yes", "No"] : ["No", "Yes"];
             IEnumerable<ActionKey> keybindList;
-            IEnumerable<object>? resultsList = null;
             if (keybinds is null)
             {
                 keybindList = ActionList;
-                resultsList = ResultsList;
             }
             else
             {
                 keybindList = keybinds.KeybindList;
             }
-            return (int)new UIList(answersList, question, Constants.STANDARD_CURSOR_ICONS, canEscape: canEscape).Display(keybindList, resultsList) == (yesFirst ? 0 : 1);
+            return (int)new UIList(answersList, question, Constants.STANDARD_CURSOR_ICONS, canEscape: canEscape).Display(keybindList) == (yesFirst ? 0 : 1);
         }
 
         /// <summary>
@@ -414,7 +391,7 @@ namespace ProgressAdventure
                 canEscape: true,
                 actions: actions,
                 modifiableUIList: true
-            ).Display(ActionList, ResultsList);
+            ).Display(ActionList);
         }
         #endregion
 
@@ -439,7 +416,7 @@ namespace ProgressAdventure
         /// <param name="mainMenuUI">The main menu <c>UIList</c>.</param>
         private static void LoadSavesAction(UIList mainMenuUI)
         {
-            GetSavesMenu().Display(ActionList, ResultsList);
+            GetSavesMenu().Display(ActionList);
 
             var (answers, actions) = GetMainMenuLists();
             mainMenuUI.answers = answers;
@@ -469,7 +446,7 @@ namespace ProgressAdventure
         /// <param name="loadSaveUI">The load save menu <c>UIList</c>.</param>
         private static object? DeleteSavesAction(UIList loadSaveUI)
         {
-            GetDeleteSavesMenu().Display(ActionList, ResultsList);
+            GetDeleteSavesMenu().Display(ActionList);
 
             var (answers, actions) = GetSavesMenuLists();
             loadSaveUI.answers = answers;
@@ -546,8 +523,6 @@ namespace ProgressAdventure
             // in place keybinds switch
             ActionList.Clear();
             ActionList.AddRange(PASingletons.Instance.Settings.Keybinds.KeybindList);
-            ResultsList.Clear();
-            ResultsList.AddRange(SFMUtils.GetResultsList(ActionList));
 
             return -1;
         }

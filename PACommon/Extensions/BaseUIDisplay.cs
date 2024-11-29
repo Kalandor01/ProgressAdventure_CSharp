@@ -1,6 +1,8 @@
-﻿using SaveFileManager;
+﻿using ConsoleUI;
+using ConsoleUI.Keybinds;
+using ConsoleUI.UIElements;
 using System.Text;
-using SFMUtils = SaveFileManager.Utils;
+using CUIUtils = ConsoleUI.Utils;
 
 namespace PACommon.Extensions
 {
@@ -28,7 +30,7 @@ namespace PACommon.Extensions
                 _element = value;
                 if (optionsUI is not null)
                 {
-                    optionsUI.elements = new List<BaseUI> { _element };
+                    optionsUI.elements = [_element];
                 }
             }
         }
@@ -50,7 +52,7 @@ namespace PACommon.Extensions
             cursorIcon ??= Constants.NO_CURSOR_ICONS;
             if (createOptionsUIObject)
             {
-                optionsUI = new OptionsUI(new List<BaseUI?> { element }, title, cursorIcon, canEscape, true);
+                optionsUI = new OptionsUI([element], title, cursorIcon, canEscape, true);
             }
             Element = element;
 
@@ -66,39 +68,31 @@ namespace PACommon.Extensions
         /// <summary>
         /// Displays the UI element.
         /// </summary>
-        /// <param name="keybinds">The list of KeyAction objects to use, if the selected action is a UIList.</param>
-        /// <param name="keyResults">The list of posible results returned by pressing a key.<br/>
-        /// The order of the elements in the list should be:<br/>
-        /// - escape, up, down, left, right, enter<br/>
-        /// If it is null, the default value is either returned from the keybinds or:<br/>
-        /// - { Key.ESCAPE, Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT, Key.ENTER }</param>
+        /// <param name="keybinds">The list of KeyAction objects to use. The order of the actions should be:<br/>
+        /// - escape, up, down, left, right, enter.</param>
+        /// <param name="getKeyFunction">The function to get the next valid key the user pressed.<br/>
+        /// Should function similarly to <see cref="CUIUtils.GetKey(GetKeyMode, IEnumerable{KeyAction}?)"/>.</param>
         /// <exception cref="UINoSelectablesExeption">Trown, if the UI element is not selectable.</exception>
-        public object? Display(IEnumerable<KeyAction>? keybinds = null, IEnumerable<object>? keyResults = null)
+        public object? Display(IEnumerable<KeyAction>? keybinds = null, CUIUtils.GetKeyFunctionDelegate? getKeyFunction = null)
         {
             if (!Element.IsSelectable)
             {
                 throw new UINoSelectablesExeption();
             }
 
-            var firstLoop = true;
-
-            if (keyResults is null || keyResults.Count() < 6)
+            if (keybinds == null || keybinds.Count() < 6)
             {
-                if (keybinds is null)
-                {
-                    keyResults = new List<object> { Key.ESCAPE, Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT, Key.ENTER };
-                }
-                else
-                {
-                    keyResults = SFMUtils.GetResultsList(keybinds);
-                }
+                keybinds = CUIUtils.GetDefaultKeybinds();
             }
+
+            getKeyFunction ??= CUIUtils.GetKey;
 
             // is enter needed?
             var enterKeyNeeded = Element.IsClickable;
 
             // render/getkey loop
-            object pressedKey;
+            var firstLoop = true;
+            KeyAction pressedKey;
             do
             {
                 // prevent infinite loop
@@ -108,7 +102,7 @@ namespace PACommon.Extensions
                 }
 
                 // clear screen + render
-                var txt = new StringBuilder(clearScreen ? "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" : "");
+                var txt = new StringBuilder(clearScreen ? "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" : "");
 
                 // title
                 if (title is not null)
@@ -130,7 +124,7 @@ namespace PACommon.Extensions
                 do
                 {
                     // get pressedKey
-                    pressedKey = keyResults.ElementAt((int)Key.ENTER);
+                    pressedKey = keybinds.ElementAt((int)Key.ENTER);
 
                     // auto enter
                     if (!(firstLoop && autoEnter))
@@ -140,16 +134,16 @@ namespace PACommon.Extensions
                             Element.IsOnlyClickable
                         )
                         {
-                            pressedKey = SFMUtils.GetKey(GetKeyMode.IGNORE_HORIZONTAL, keybinds);
+                            pressedKey = CUIUtils.GetKey(GetKeyMode.IGNORE_HORIZONTAL, keybinds);
                         }
                         else
                         {
-                            while (pressedKey.Equals(keyResults.ElementAt((int)Key.ENTER)))
+                            while (pressedKey.Equals(keybinds.ElementAt((int)Key.ENTER)))
                             {
-                                pressedKey = SFMUtils.GetKey(GetKeyMode.IGNORE_VERTICAL, keybinds);
-                                if (pressedKey.Equals(keyResults.ElementAt((int)Key.ENTER)) && !enterKeyNeeded)
+                                pressedKey = CUIUtils.GetKey(GetKeyMode.IGNORE_VERTICAL, keybinds);
+                                if (pressedKey.Equals(keybinds.ElementAt((int)Key.ENTER)) && !enterKeyNeeded)
                                 {
-                                    pressedKey = keyResults.ElementAt((int)Key.ESCAPE);
+                                    pressedKey = keybinds.ElementAt((int)Key.ESCAPE);
                                 }
                             }
                         }
@@ -160,12 +154,12 @@ namespace PACommon.Extensions
                     if (
                         Element.IsSelectable &&
                         (
-                            pressedKey.Equals(keyResults.ElementAt((int)Key.LEFT)) ||
-                            pressedKey.Equals(keyResults.ElementAt((int)Key.RIGHT)) ||
-                            pressedKey.Equals(keyResults.ElementAt((int)Key.ENTER)))
+                            pressedKey.Equals(keybinds.ElementAt((int)Key.LEFT)) ||
+                            pressedKey.Equals(keybinds.ElementAt((int)Key.RIGHT)) ||
+                            pressedKey.Equals(keybinds.ElementAt((int)Key.ENTER)))
                         )
                     {
-                        var returned = Element.HandleAction(pressedKey, keyResults, keybinds, optionsUI);
+                        var returned = Element.HandleAction(pressedKey, keybinds, getKeyFunction, optionsUI);
                         if (returned is not null)
                         {
                             if (returned.GetType() == typeof(bool))
@@ -178,14 +172,14 @@ namespace PACommon.Extensions
                             }
                         }
                     }
-                    else if (canEscape && pressedKey.Equals(keyResults.ElementAt((int)Key.ESCAPE)))
+                    else if (canEscape && pressedKey.Equals(keybinds.ElementAt((int)Key.ESCAPE)))
                     {
                         actualMove = true;
                     }
                 }
                 while (!(actualMove || autoEnter));
             }
-            while ((!canEscape || !pressedKey.Equals(keyResults.ElementAt((int)Key.ESCAPE))) && !autoEnter);
+            while ((!canEscape || !pressedKey.Equals(keybinds.ElementAt((int)Key.ESCAPE))) && !autoEnter);
             return null;
         }
         #endregion

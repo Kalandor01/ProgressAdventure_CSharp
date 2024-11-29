@@ -1,4 +1,6 @@
-﻿using ProgressAdventure.WorldManagement;
+﻿using ConsoleUI;
+using FileManager;
+using ProgressAdventure.WorldManagement;
 using System.IO.Compression;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
@@ -29,7 +31,7 @@ namespace PAExtras
             List<string> saveData;
             try
             {
-                saveData = SaveFileManager.FileConversion.DecodeFile((long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension);
+                saveData = FileConversion.DecodeFile((long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension);
             }
             catch (FileNotFoundException)
             {
@@ -76,7 +78,7 @@ namespace PAExtras
                 return false;
             }
 
-            SaveFileManager.FileConversion.EncodeFile(saveData, (long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension, Constants.FILE_ENCODING_VERSION);
+            FileConversion.EncodeFile(saveData, (long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension, Constants.FILE_ENCODING_VERSION);
             return true;
         }
 
@@ -105,7 +107,7 @@ namespace PAExtras
             List<string> saveData;
             try
             {
-                saveData = SaveFileManager.FileConversion.DecodeFile((long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension);
+                saveData = FileConversion.DecodeFile((long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension);
             }
             catch (FileNotFoundException)
             {
@@ -113,7 +115,7 @@ namespace PAExtras
                 return false;
             }
 
-            SaveFileManager.FileConversion.EncodeFile(saveData, (long)newSaveSeed, Path.Join(newSavesFolderPath, newSaveFolderName), newSaveExtension, Constants.FILE_ENCODING_VERSION);
+            FileConversion.EncodeFile(saveData, (long)newSaveSeed, Path.Join(newSavesFolderPath, newSaveFolderName), newSaveExtension, Constants.FILE_ENCODING_VERSION);
             return true;
         }
 
@@ -237,7 +239,7 @@ namespace PAExtras
                     lines.Add($"{saveName}: {PACUtils.MakeDate(backupDate, ".")} {PACUtils.MakeTime(backupDate)}");
                     lines.Add(null);
                 }
-                var option = (int)new SaveFileManager.UIList(lines, " Backup loading", null, false, true, null, true).Display();
+                var option = (int)new UIList(lines, " Backup loading", null, false, true, null, true).Display();
                 // unzip
                 if (option == -1)
                 {

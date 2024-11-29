@@ -199,7 +199,7 @@ namespace ProgressAdventure
             var displayData = DisplaySaveData.ToJsonFromSaveData(SaveData.Instance);
             var mainData = SaveData.Instance.ToJson();
             // create new save
-            Tools.EncodeSaveShort(new List<JsonDictionary> { displayData, mainData }, Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
+            Tools.EncodeSaveShort([displayData, mainData], Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
         }
 
         /// <summary>

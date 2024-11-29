@@ -1,4 +1,6 @@
-﻿using PACommon;
+﻿using ConsoleUI;
+using ConsoleUI.UIElements;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
@@ -8,7 +10,6 @@ using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using SaveFileManager;
 using System.Text;
 using AItem = ProgressAdventure.ItemManagement.AItem;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;

@@ -13,9 +13,8 @@
   
 
   <ItemGroup>
-    <PackageReference Include="NPrng" Version="1.0.0.2" />
-    <PackageReference Include="RandomSentence" Version="1.1.1.2" />
-    <PackageReference Include="SaveFileManager" Version="1.2.4" />
+    <PackageReference Include="NPrng" Version="1.0.0.3" />
+    <PackageReference Include="RandomSentence" Version="1.1.1.4" />
   </ItemGroup>
   
 

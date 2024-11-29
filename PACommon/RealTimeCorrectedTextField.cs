@@ -1,6 +1,8 @@
-﻿using PACommon.Extensions;
-using SaveFileManager;
+﻿using ConsoleUI.Keybinds;
+using ConsoleUI.UIElements;
+using PACommon.Extensions;
 using System.Text;
+using static ConsoleUI.Utils;
 
 namespace PACommon
 {
@@ -158,16 +160,14 @@ namespace PACommon
         /// <summary>
         /// Displays the <c>TextField</c>.
         /// </summary>
-        /// <param name="keybinds">The list of KeyAction objects to use, if the selected action is a UIList.</param>
-        /// <param name="keyResults">The list of posible results returned by pressing a key.<br/>
-        /// The order of the elements in the list should be:<br/>
-        /// - escape, up, down, left, right, enter<br/>
-        /// If it is null, the default value is either returned from the keybinds or:<br/>
-        /// - { Key.ESCAPE, Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT, Key.ENTER }</param>
+        /// <param name="keybinds">The list of <c>KeyAction</c> objects to use. The order of the actions should be:<br/>
+        /// - escape, up, down, left, right, enter.</param>
+        /// <param name="getKeyFunction">The function to get the next valid key the user pressed.<br/>
+        /// Should function similarly to <see cref="GetKey(GetKeyMode, IEnumerable{KeyAction}?)"/>.></param>
         /// <returns>The uncorrected version of the final string.</returns>
-        public string GetString(IEnumerable<KeyAction>? keybinds = null, IEnumerable<object>? keyResults = null)
+        public string GetString(IEnumerable<KeyAction>? keybinds = null, GetKeyFunctionDelegate? getKeyFunction = null)
         {
-            baseUIDisplay.Display(keybinds, keyResults);
+            baseUIDisplay.Display(keybinds, getKeyFunction);
             Console.WriteLine();
             return correctorTextField.Value;
         }

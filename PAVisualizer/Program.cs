@@ -1,10 +1,11 @@
-﻿using PACommon;
+﻿using ConsoleUI;
+using ConsoleUI.UIElements;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.SettingsManagement;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
-using SaveFileManager;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -38,7 +39,7 @@ namespace PAVisualizer
         static void VisualizeSaveCommand()
         {
             var saveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}";
-            string? folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog(new List<(string regex, string displayName)> { (saveDataFileName, $"Data file ({saveDataFileName})") }))?.folderPath;
+            string? folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog([(saveDataFileName, $"Data file ({saveDataFileName})")]))?.folderPath;
             var selectedFolder = VisualizerTools.GetSaveFolderFromPath(folderPath);
             if (selectedFolder is not null)
             {
@@ -135,7 +136,7 @@ namespace PAVisualizer
                     {
                         Console.WriteLine("ERROR: " + e.Message);
                         var ans = Utils.Input("Restart?(Y/N): ");
-                        if (ans is not null && ans.ToUpper() == "Y")
+                        if (ans is not null && ans.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
                         {
                             PACSingletons.Instance.Logger.Log("Restarting instance");
                             exitGame = false;

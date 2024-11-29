@@ -1,5 +1,8 @@
-﻿using PACommon.Extensions;
-using SaveFileManager;
+﻿using ConsoleUI;
+using ConsoleUI.Keybinds;
+using ConsoleUI.UIElements;
+using ConsoleUI.UIElements.EventArgs;
+using PACommon.Extensions;
 using System.Text;
 
 namespace PACommon.SettingsManagement
@@ -87,11 +90,11 @@ namespace PACommon.SettingsManagement
         }
 
         /// <inheritdoc cref="BaseUI.HandleAction"/>
-        public override object HandleAction(object key, IEnumerable<object> keyResults, IEnumerable<KeyAction>? keybinds = null, OptionsUI? optionsUI = null)
+        protected override object HandleActionProtected(UIKeyPressedEventArgs args)
         {
-            if (key.Equals(keyResults.ElementAt((int)Key.ENTER)))
+            if (args.pressedKey.Equals(args.keybinds.ElementAt((int)Key.ENTER)))
             {
-                if (optionsUI == null || !optionsUI.elements.Any(element => element == this))
+                if (args.optionsUI == null || !args.optionsUI.elements.Any(element => element == this))
                 {
                     Console.WriteLine(preText);
                     var keys = new List<ConsoleKeyInfo>();
@@ -109,8 +112,8 @@ namespace PACommon.SettingsManagement
                 }
                 else
                 {
-                    var xOffset = GetCurrentLineCharCountBeforeValue(optionsUI.cursorIcon);
-                    var yOffset = GetLineNumberAfterTextFieldValue(optionsUI);
+                    var xOffset = GetCurrentLineCharCountBeforeValue(args.optionsUI.cursorIcon);
+                    var yOffset = GetLineNumberAfterTextFieldValue(args.optionsUI);
                     Utils.MoveCursor((xOffset, yOffset));
 
                     var keys = new List<ConsoleKeyInfo>();
@@ -121,7 +124,7 @@ namespace PACommon.SettingsManagement
                         do
                         {
                             retry = false;
-                            var newValue = ReadInput(optionsUI.cursorIcon, keys);
+                            var newValue = ReadInput(args.optionsUI.cursorIcon, keys);
                             if (validatorFunction is null)
                             {
                                 keys.Add(newValue);
@@ -143,7 +146,7 @@ namespace PACommon.SettingsManagement
                                     var (Left, Top) = Console.GetCursorPosition();
                                     if (multiline)
                                     {
-                                        Console.Write(postValue.Replace("\n", optionsUI.cursorIcon.sIconR + "\n" + optionsUI.cursorIcon.sIcon));
+                                        Console.Write(postValue.Replace("\n", args.optionsUI.cursorIcon.sIconR + "\n" + args.optionsUI.cursorIcon.sIcon));
                                     }
                                     else
                                     {
