@@ -80,11 +80,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public Keybinds Keybinds
         {
-            get
-            {
-                _keybinds ??= GetKeybins();
-                return _keybinds;
-            }
+            get => _keybinds;
             set
             {
                 SettingsManager(SettingsKey.KEYBINDS, value);

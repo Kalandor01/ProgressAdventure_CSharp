@@ -42,11 +42,12 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
             var existingValues = new List<(int x, int y)>();
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (checkedDictionary.TryGetValue(key, out (int x, int y) value))
@@ -55,7 +56,8 @@ namespace ProgressAdventureTests
                         existingValues.Contains(value)
                     )
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        errorMessages.Add($"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        continue;
                     }
                     else
                     {
@@ -64,15 +66,21 @@ namespace ProgressAdventureTests
                             value.y < -1 || value.y > 1
                         )
                         {
-                            return new TestResultDTO(LogSeverity.FAIL, $"The value associated to \"{key}\" is wrong.");
+                            errorMessages.Add($"The value associated to \"{key}\" is wrong.");
+                            continue;
                         }
                         existingValues.Add(value);
                     }
                 }
                 else
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -92,18 +100,20 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
             var existingValues = new List<(double maxHp, double attack, double defence, double agility)>();
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (checkedDictionary.TryGetValue(key, out (double maxHp, double attack, double defence, double agility) value))
                 {
                     if (existingValues.Contains(value))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        errorMessages.Add($"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                        continue;
                     }
                     else
                     {
@@ -112,8 +122,13 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -139,11 +154,12 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
             var existingKeys = new List<string>();
 
+            var errorMessages = new List<string>();
             foreach (var value in requiredValues)
             {
                 if (checkedDictionary.Values.Contains(value))
@@ -151,12 +167,14 @@ namespace ProgressAdventureTests
                     var key = checkedDictionary.FirstOrDefault(x => x.Value == value).Key;
                     if (string.IsNullOrWhiteSpace(key))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary key at value \"{value}\" is null or whitespace.");
+                        errorMessages.Add($"The dictionary key at value \"{value}\" is null or whitespace.");
+                        continue;
                     }
 
                     if (existingKeys.Contains(key))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the key \"{key}\", associated with \"{value}\".");
+                        errorMessages.Add($"The dictionary already contains the key \"{key}\", associated with \"{value}\".");
+                        continue;
                     }
                     else
                     {
@@ -165,8 +183,13 @@ namespace ProgressAdventureTests
                 }
                 else
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a key for \"{value}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a key for \"{value}\".");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -182,6 +205,7 @@ namespace ProgressAdventureTests
             var requiredKeys = Enum.GetValues<Material>();
             var checkedDictionary = ItemUtils.materialProperties;
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (
@@ -189,8 +213,13 @@ namespace ProgressAdventureTests
                     value is null
                 )
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -206,20 +235,25 @@ namespace ProgressAdventureTests
 
             var existingValues = new List<string>();
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out MaterialItemAttributesDTO? value))
+                if (!checkedDictionary.TryGetValue(key, out MaterialItemAttributesDTO? value))
                 {
-                    if (value.typeName is null)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The type name in the dictionary at \"{key}\" is null.");
-                    }
-                    existingValues.Add(value.typeName);
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
-                else
+
+                if (value.typeName is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The type name in the dictionary at \"{key}\" is null.");
+                    continue;
                 }
+                existingValues.Add(value.typeName);
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -235,27 +269,31 @@ namespace ProgressAdventureTests
 
             var existingValues = new List<string>();
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out CompoundItemAttributesDTO? value))
+                if (!checkedDictionary.TryGetValue(key, out CompoundItemAttributesDTO? value))
                 {
-                    if (value.typeName is null)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The type name in the dictionary at \"{key}\" is null.");
-                    }
-                    if (existingValues.Contains(value.typeName))
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the type name \"{value.typeName}\", associated with \"{key}\".");
-                    }
-                    else
-                    {
-                        existingValues.Add(value.typeName);
-                    }
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
-                else
+
+                if (value.typeName is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The type name in the dictionary at \"{key}\" is null.");
+                    continue;
                 }
+                if (existingValues.Contains(value.typeName))
+                {
+                    errorMessages.Add($"The dictionary already contains the type name \"{value.typeName}\", associated with \"{key}\".");
+                    continue;
+                }
+
+                existingValues.Add(value.typeName);
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -268,26 +306,34 @@ namespace ProgressAdventureTests
         {
             var checkedDictionary = ItemUtils.itemRecipes;
 
+            var errorMessages = new List<string>();
             foreach (var itemRecipes in checkedDictionary)
             {
                 if (itemRecipes.Value is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The recipes list at item type \"{itemRecipes.Key}\" is null.");
+                    errorMessages.Add($"The recipes list at item type \"{itemRecipes.Key}\" is null.");
+                    continue;
                 }
                 foreach (var itemRecipe in itemRecipes.Value)
                 {
                     if (itemRecipe is null)
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"A recipe in the recipes list at item type \"{itemRecipes.Key}\" is null.");
+                        errorMessages.Add($"A recipe in the recipes list at item type \"{itemRecipes.Key}\" is null.");
+                        continue;
                     }
                     if (
                         ItemUtils.compoundItemAttributes[itemRecipes.Key].unit == ItemAmountUnit.AMOUNT &&
                         itemRecipe.resultAmount % 1 != 0
                     )
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"A recipe in the recipes list at item type \"{itemRecipes.Key}\" is has a {nameof(itemRecipe.resultAmount)} that isn't an integer, but the item type that will be created can only have an integer amount.");
+                        errorMessages.Add($"A recipe in the recipes list at item type \"{itemRecipes.Key}\" has a {nameof(itemRecipe.resultAmount)} that isn't an integer, but the item type that will be created can only have an integer amount.");
+                        continue;
                     }
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -303,19 +349,24 @@ namespace ProgressAdventureTests
             var requiredKeys = Enum.GetValues<ActionType>();
             var checkedDictionary = SettingsUtils.actionTypeIgnoreMapping;
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out List<GetKeyMode>? value))
+                if (!checkedDictionary.TryGetValue(key, out List<GetKeyMode>? value))
                 {
-                    if (value is null)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
-                    }
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
-                else
+
+                if (value is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The ignore map in the dictionary at \"{key}\" is null.");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -331,23 +382,26 @@ namespace ProgressAdventureTests
 
             var existingValues = new List<object>();
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out object? value))
+                if (!checkedDictionary.TryGetValue(key, out object? value))
                 {
-                    if (existingValues.Contains(value))
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
-                    }
-                    else
-                    {
-                        existingValues.Add(value);
-                    }
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
-                else
+
+                if (existingValues.Contains(value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
+                    continue;
                 }
+
+                existingValues.Add(value);
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -363,25 +417,28 @@ namespace ProgressAdventureTests
             var existingKeys = new List<ConsoleKey>();
             var existingValues = new List<string>();
 
+            var errorMessages = new List<string>();
             foreach (var element in checkedDictionary)
             {
                 if (existingKeys.Contains(element.Key))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the key \"{element.Key}\".");
+                    errorMessages.Add($"The dictionary already contains the key \"{element.Key}\".");
+                    continue;
                 }
-                else
-                {
-                    existingKeys.Add(element.Key);
-                }
+
+                existingKeys.Add(element.Key);
 
                 if (existingValues.Contains(element.Value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary already contains the value \"{element.Value}\", associated with \"{element.Key}\".");
+                    errorMessages.Add($"The dictionary already contains the value \"{element.Value}\", associated with \"{element.Key}\".");
+                    continue;
                 }
-                else
-                {
-                    existingValues.Add(element.Value);
-                }
+
+                existingValues.Add(element.Value);
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -395,12 +452,18 @@ namespace ProgressAdventureTests
             var requiredKeys = Enum.GetValues<SettingsKey>();
             var checkedDictionary = SettingsUtils.settingValueTypeMap;
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (!checkedDictionary.TryGetValue(key, out var value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -414,19 +477,24 @@ namespace ProgressAdventureTests
             var requiredKeys = Enum.GetValues<SettingsKey>();
             var checkedDictionary = SettingsUtils.GetDefaultSettings();
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key.ToString(), out var value))
+                if (!checkedDictionary.TryGetValue(key.ToString(), out var value))
                 {
-                    if (value is null)
-                    {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The ignore map in the dictionary at \"{key}\" is null.");
-                    }
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
-                else
+
+                if (value is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The ignore map in the dictionary at \"{key}\" is null.");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -448,15 +516,21 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (!checkedDictionary.TryGetValue(key, out double value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -482,19 +556,22 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (!checkedDictionary.TryGetValue(key, out Dictionary<ContentTypeID, Type>? value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
 
                 if (value is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
+                    continue;
                 }
 
                 var unfilteredSubTypes = paAssembly.GetTypes().Where(key.IsAssignableFrom);
@@ -505,29 +582,33 @@ namespace ProgressAdventureTests
 
                 foreach (var subValue in requiredValues)
                 {
-                    if (value.ContainsValue(subValue))
+                    if (!value.ContainsValue(subValue))
                     {
-                        var subKey = value.FirstOrDefault(x => x.Value == subValue).Key;
-                        if (!WorldUtils.TryParseContentType(subKey.mID, out _))
-                        {
-                            return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary key at value \"{subValue}\" is not a valid ContentTypeID.");
-                        }
+                        errorMessages.Add($"The sub-dictionary doesn't contain a key for \"{subValue}\".");
+                        continue;
+                    }
 
-                        if (existingSubKeys.Contains(subKey))
-                        {
-                            return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary already contains the key \"{subKey}\", associated with \"{subValue}\".");
-                        }
-                        else
-                        {
-                            existingSubKeys.Add(subKey);
-                        }
-                    }
-                    else
+                    var subKey = value.FirstOrDefault(x => x.Value == subValue).Key;
+                    if (!WorldUtils.TryParseContentType(subKey.mID, out _))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary doesn't contain a key for \"{subValue}\".");
+                        errorMessages.Add($"The sub-dictionary key at value \"{subValue}\" is not a valid ContentTypeID.");
+                        continue;
                     }
+
+                    if (existingSubKeys.Contains(subKey))
+                    {
+                        errorMessages.Add($"The sub-dictionary already contains the key \"{subKey}\", associated with \"{subValue}\".");
+                        continue;
+                    }
+
+                    existingSubKeys.Add(subKey);
                 }
             }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
+
             return null;
         }
 
@@ -551,19 +632,22 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (!checkedDictionary.TryGetValue(key, out Dictionary<Type, Dictionary<TileNoiseType, double>>? value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
 
                 if (value is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
+                    continue;
                 }
 
                 var unfilteredSubTypes = paAssembly.GetTypes().Where(key.IsAssignableFrom);
@@ -575,15 +659,22 @@ namespace ProgressAdventureTests
                 {
                     if (!value.TryGetValue(subKey, out Dictionary<TileNoiseType, double>? subValue))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary doesn't contain a value for \"{subKey}\".");
+                        errorMessages.Add($"The sub-dictionary doesn't contain a value for \"{subKey}\".");
+                        continue;
                     }
 
                     if (subValue is null)
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The value of the sub-dictionary at \"{subKey}\" is null.");
+                        errorMessages.Add($"The value of the sub-dictionary at \"{subKey}\" is null.");
+                        continue;
                     }
                 }
             }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
+
             return null;
         }
 
@@ -617,7 +708,7 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
             try
@@ -626,19 +717,22 @@ namespace ProgressAdventureTests
             }
             catch (Exception ex)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
+            var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
                 if (!checkedDictionary.TryGetValue(key, out Dictionary<ContentTypeID, string>? value))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
                 }
 
                 if (value is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The value of the dictionary at \"{key}\" is null.");
+                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
+                    continue;
                 }
 
                 var requiredSubKeys = subTypeDict[key];
@@ -647,15 +741,22 @@ namespace ProgressAdventureTests
                 {
                     if (!value.TryGetValue(subKey, out string? subValue))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The sub-dictionary doesn't contain a value for \"{subKey}\".");
+                        errorMessages.Add($"The sub-dictionary doesn't contain a value for \"{subKey}\".");
+                        continue;
                     }
 
                     if (string.IsNullOrWhiteSpace(subValue))
                     {
-                        return new TestResultDTO(LogSeverity.FAIL, $"The value of the sub-dictionary at \"{subKey}\" is null or whitespace.");
+                        errorMessages.Add($"The value of the sub-dictionary at \"{subKey}\" is null or whitespace.");
+                        continue;
                     }
                 }
             }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
+
             return null;
         }
         #endregion
@@ -672,6 +773,7 @@ namespace ProgressAdventureTests
             var allItems = new List<MaterialItem>();
 
             // all item IDs can turn into items
+            var errorMessages = new List<string>();
             foreach (var material in Enum.GetValues<Material>())
             {
                 var attributes = ItemUtils.materialItemAttributes[material];
@@ -682,13 +784,19 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{material}\": " + ex);
+                    errorMessages.Add($"Couldn't create item from type \"{material}\": " + ex);
+                    continue;
                 }
 
                 allItems.Add(item);
             }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
 
             // items loadable from json and are the same as before load
+            errorMessages = [];
             foreach (var item in allItems)
             {
                 MaterialItem loadedItem;
@@ -707,7 +815,8 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
+                    errorMessages.Add($"Loading item from json failed for \"{item.Type}\": " + ex);
+                    continue;
                 }
 
                 if (
@@ -723,7 +832,12 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                return new TestResultDTO(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+                errorMessages.Add($"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+                continue;
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -739,6 +853,7 @@ namespace ProgressAdventureTests
             var allItems = new List<CompoundItem>();
 
             // all item IDs can turn into items
+            var errorMessages = new List<string>();
             foreach (var itemID in ItemUtils.GetAllItemTypes())
             {
                 if (itemID == ItemType.Misc.MATERIAL)
@@ -754,13 +869,19 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't create item from type \"{itemID}\": " + ex);
+                    errorMessages.Add($"Couldn't create item from type \"{itemID}\": " + ex);
+                    continue;
                 }
 
                 allItems.Add(item);
             }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
 
             // items loadable from json and are the same as before load
+            errorMessages = [];
             foreach (var item in allItems)
             {
                 CompoundItem loadedItem;
@@ -779,7 +900,8 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Loading item from json failed for \"{item.Type}\": " + ex);
+                    errorMessages.Add($"Loading item from json failed for \"{item.Type}\": " + ex);
+                    continue;
                 }
 
                 if (
@@ -796,7 +918,11 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                return new TestResultDTO(LogSeverity.FAIL, $"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+                errorMessages.Add($"Original item, and item loaded from json are not the same for \"{item.Type}\"");
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -817,6 +943,7 @@ namespace ProgressAdventureTests
             var entities = new List<Entity>();
 
             // check if entity exists and loadable from jsom
+            var errorMessages = new List<string>();
             foreach (var type in filteredEntityTypes)
             {
                 // get entity type name
@@ -829,7 +956,8 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                    errorMessages.Add($"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+                    continue;
                 }
 
                 string? typeName = null;
@@ -844,7 +972,8 @@ namespace ProgressAdventureTests
 
                 if (typeName is null)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, "Entity type has no type name in entity type map");
+                    errorMessages.Add("Entity type has no type name in entity type map");
+                    continue;
                 }
 
 
@@ -868,13 +997,19 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Entity creation from default json failed for \"{entityType}\": " + ex);
+                    errorMessages.Add($"Entity creation from default json failed for \"{entityType}\": " + ex);
+                    continue;
                 }
 
                 entities.Add(entity);
             }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
 
             // entities loadable from json and are the same as before load
+            errorMessages = [];
             foreach (var entity in entities)
             {
                 Entity? loadedEntity;
@@ -891,7 +1026,8 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception ex)
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"Loading entity from json failed for \"{entity.GetType()}\": " + ex);
+                    errorMessages.Add($"Loading entity from json failed for \"{entity.GetType()}\": " + ex);
+                    continue;
                 }
 
                 if (
@@ -907,7 +1043,12 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                return new TestResultDTO(LogSeverity.FAIL, $"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
+                errorMessages.Add($"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
+                continue;
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             return null;
@@ -991,14 +1132,21 @@ namespace ProgressAdventureTests
             if (filteredTypes.Count() != testObjects.Count)
             {
                 var diff = testObjects.Count - filteredTypes.Count();
-                return new TestResultDTO(LogSeverity.FAIL, $"There are {Math.Abs(diff)} {(diff > 0 ? "more" : "less")} test objects in the test objects list than there should be.");
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tThere are {Math.Abs(diff)} {(diff > 0 ? "more" : "less")} test objects in the test objects list than there should be.");
             }
+
+            var errorMessages = new List<string>();
             foreach (var testObject in testObjects)
             {
                 if (!filteredTypes.Any(type => type == testObject.GetType()))
                 {
-                    return new TestResultDTO(LogSeverity.FAIL, $"The {testObject.GetType()} type object should not be in the test objects list.");
+                    errorMessages.Add($"The {testObject.GetType()} type object should not be in the test objects list.");
+                    continue;
                 }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
             //to/from json

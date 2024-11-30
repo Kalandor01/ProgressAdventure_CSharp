@@ -1,4 +1,4 @@
-using ConsoleUI;
+﻿using ConsoleUI;
 using PACConstants = PACommon.Constants;
 
 namespace ProgressAdventure
@@ -307,7 +307,12 @@ namespace ProgressAdventure
         /// <summary>
         /// The minimum time between, where normal logging just stores the logs to a buffer for later logging.
         /// </summary>
-        public static readonly TimeSpan FORCE_LOG_INTERVAL = new(0, 0, 5);
+        public static readonly TimeSpan FORCE_LOG_INTERVAL =
+#if DEBUG
+            new(0, 0, 0);
+#else
+            new(0, 0, 5);
+#endif
         #endregion
 
         #region Chunks
