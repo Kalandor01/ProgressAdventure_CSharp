@@ -6,6 +6,7 @@ using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.Logging;
 using PACommon.SettingsManagement;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
@@ -13,7 +14,6 @@ using ProgressAdventure.WorldManagement;
 using System.Text;
 using AItem = ProgressAdventure.ItemManagement.AItem;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
-using PACConstants = PACommon.Constants;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
@@ -29,9 +29,6 @@ namespace ProgressAdventure
             //Settings.UpdateLoggingLevel(0);
 
             //SaveManager.CreateSaveData("test", "me");
-
-            //ConfigManagement.ConfigManager.UpdateConfigs();
-
 
             //var recipeTreeStr = "[SWORD] base: 2, parts(0 blade(1 5 blade_mold?(7)) 0 hilt(1))";
             //var recipeMiniStr = "2(0(1 5(7))0(1))";
@@ -88,7 +85,7 @@ namespace ProgressAdventure
             recipeElements.Clear();
 
             var sValueIndex = 0;
-            foreach (var itemRecipe in ItemUtils.itemRecipes)
+            foreach (var itemRecipe in ItemUtils.ItemRecipes)
             {
                 foreach (var recipe in itemRecipe.Value)
                 {
@@ -157,7 +154,7 @@ namespace ProgressAdventure
             Console.WriteLine("Loading...");
 
             // initializing PAC singletons
-            var loggingStream = new FileLoggerStream(PACConstants.ROOT_FOLDER, Constants.LOGS_FOLDER, Constants.LOG_EXT);
+            var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
@@ -174,9 +171,15 @@ namespace ProgressAdventure
                 new Globals(),
                 new Settings()
             );
+
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
-            PACSingletons.Instance.Logger.Log("Preloading resources");
+            ConfigManager.Initialize(
+                null,
+                Constants.CONFIGS_FOLDER_PATH,
+                Constants.CONFIG_EXT
+            );
+
             Tools.PreloadResources();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }

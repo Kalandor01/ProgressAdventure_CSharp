@@ -157,6 +157,7 @@ namespace ProgressAdventure.SettingsManagement
             bool? enableColoredText = null
         )
         {
+            SettingsUtils.LoadDefaultConfigs();
             AutoSave = autoSave ?? GetAutoSave();
             LoggingLevel = loggingLevel ?? GetLoggingLevel();
             Keybinds = keybinds ?? GetKeybins();
@@ -372,7 +373,7 @@ namespace ProgressAdventure.SettingsManagement
         private static bool TryGetFromSettingAsType(SettingsKey settingsKey, out JsonObject value)
         {
             value = SettingsManager(settingsKey);
-            return value.Type == SettingsUtils.settingValueTypeMap[settingsKey];
+            return value.Type == SettingsUtils.SettingValueTypeMap[settingsKey];
         }
 
         /// <summary>
@@ -387,7 +388,7 @@ namespace ProgressAdventure.SettingsManagement
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.settingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.SettingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
                 var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
                 SettingsManager(settingsKey, newValue!);
                 return newValue!.Value;

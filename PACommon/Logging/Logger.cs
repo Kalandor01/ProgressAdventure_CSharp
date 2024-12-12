@@ -62,7 +62,7 @@ namespace PACommon.Logging
                 {
                     lock (_threadLock)
                     {
-                        _instance ??= Initialize(new FileLoggerStream(Constants.ROOT_FOLDER));
+                        _instance ??= Initialize(new FileLoggerStream(Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER)));
                     }
                 }
                 return _instance;

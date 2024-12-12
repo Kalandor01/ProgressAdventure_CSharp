@@ -3,6 +3,7 @@ using PACommon.Enums;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using System.IO.Compression;
@@ -115,6 +116,13 @@ namespace ProgressAdventureTests
                 );
             PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
+
+            ConfigManager.Initialize(null,
+                PAConstants.CONFIGS_FOLDER_PATH,
+                PAConstants.CONFIG_EXT
+            );
+
+            PATools.ReloadConfigs();
         }
 
         /// <summary>

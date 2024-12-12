@@ -2,6 +2,7 @@
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -237,11 +238,11 @@ namespace ProgressAdventure.ItemManagement
         internal static readonly string MATERIAL_TYPE_NAME = ItemIDToTypeName(MATERIAL_ITEM_TYPE);
         #endregion
 
-        #region Public dicts
+        #region Default config dicts
         /// <summary>
-        /// The dictionary pairing up item types, to their attributes.
+        /// The default value for the config used for the value of <see cref="CompoundItemAttributes"/>.
         /// </summary>
-        public static readonly Dictionary<ItemTypeID, CompoundItemAttributesDTO> compoundItemAttributes = new()
+        private static readonly Dictionary<ItemTypeID, CompoundItemAttributesDTO> _defaultCompoundItemAttributes = new()
         {
             //weapons
             [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD),
@@ -267,11 +268,10 @@ namespace ProgressAdventure.ItemManagement
         };
 
         /// <summary>
-        /// The dictionary pairing up material types, to their item attributes.
+        /// The default value for the config used for the value of <see cref="MaterialItemAttributes"/>.
         /// </summary>
-        public static readonly Dictionary<Material, MaterialItemAttributesDTO> materialItemAttributes = new()
+        private static readonly Dictionary<Material, MaterialItemAttributesDTO> _defaultMaterialItemAttributes = new()
         {
-            //weapons
             [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS),
             [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH),
             [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER),
@@ -292,11 +292,10 @@ namespace ProgressAdventure.ItemManagement
         };
 
         /// <summary>
-        /// The dictionary pairing up material types, to their properties.
+        /// The default value for the config used for the value of <see cref="MaterialProperties"/>.
         /// </summary>
-        public static readonly Dictionary<Material, MaterialPropertiesDTO> materialProperties = new()
+        private static readonly Dictionary<Material, MaterialPropertiesDTO> _defaultMaterialProperties = new()
         {
-            //weapons
             [Material.BRASS] = new MaterialPropertiesDTO(8730),
             [Material.CLOTH] = new MaterialPropertiesDTO(1550),
             [Material.COPPER] = new MaterialPropertiesDTO(8960),
@@ -320,69 +319,188 @@ namespace ProgressAdventure.ItemManagement
         };
 
         /// <summary>
+        /// The default value for the config used for the value of <see cref="ItemRecipes"/>.
+        /// </summary>
+        private static Dictionary<ItemTypeID, List<RecipeDTO>> _defaultItemRecipes;
+        private static void LoadDefaultItemRecipes()
+        {
+            _defaultItemRecipes ??= new()
+            {
+                // weapon
+                [ItemType.Weapon.SWORD] =
+                [
+                    new([new(ItemType.Misc.SWORD_BLADE, 1), new(ItemType.Misc.SWORD_HILT, 1)]),
+                ],
+                [ItemType.Weapon.BOW] =
+                [
+                    new([new(ItemType.Misc.ROD, 1), new(ItemType.Misc.ROD, 1)]),
+                ],
+                [ItemType.Weapon.ARROW] =
+                [
+                    new([new(ItemType.Misc.ARROW_TIP, 1), new(ItemType.Misc.ROD, 1)]),
+                ],
+                [ItemType.Weapon.CLUB] =
+                [
+                    new([new(null, 0.5, ItemAmountUnit.M3)]),
+                ],
+                [ItemType.Weapon.CLUB_WITH_TEETH] =
+                [
+                    new([new(ItemType.Weapon.CLUB, 1), new(Material.TEETH, 1, ItemAmountUnit.KG)]),
+                ],
+                // defence
+                [ItemType.Defence.SHIELD] =
+                [
+                    new([new(null, 0.6, ItemAmountUnit.M3)]),
+                ],
+                [ItemType.Defence.HELMET] =
+                [
+                    new([new(null, 0.5, ItemAmountUnit.M3)]),
+                ],
+                [ItemType.Defence.CHESTPLATE] =
+                [
+                    new([new(null, 0.9, ItemAmountUnit.M3)]),
+                ],
+                [ItemType.Defence.PANTS] =
+                [
+                    new([new(null, 0.7, ItemAmountUnit.M3)]),
+                ],
+                [ItemType.Defence.BOOTS] =
+                [
+                    new([new(null, 0.4, ItemAmountUnit.M3)]),
+                ],
+                // misc
+                [ItemType.Misc.FILLED_BOTTLE] =
+                [
+                    new([new(ItemType.Misc.BOTTLE, 1), new(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L)]),
+                ],
+                [ItemType.Misc.BOTTLE] =
+                [
+                    new([new(null, 6e-4, ItemAmountUnit.M3)]),
+                ],
+                [ItemType.Misc.COIN] =
+                [
+                    new([new(null, 7e-6, ItemAmountUnit.M3)]),
+                ],
+            };
+        }
+        #endregion
+
+        #region Public dicts
+        /// <summary>
+        /// The dictionary pairing up item types, to their attributes.
+        /// </summary>
+        public static Dictionary<ItemTypeID, CompoundItemAttributesDTO> CompoundItemAttributes { get; private set; }
+
+        /// <summary>
+        /// The dictionary pairing up material types, to their item attributes.
+        /// </summary>
+        public static Dictionary<Material, MaterialItemAttributesDTO> MaterialItemAttributes { get; private set; }
+
+        /// <summary>
+        /// The dictionary pairing up material types, to their properties.
+        /// </summary>
+        public static Dictionary<Material, MaterialPropertiesDTO> MaterialProperties { get; private set; }
+
+        /// <summary>
         /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
         /// </summary>
-        public static readonly Dictionary<ItemTypeID, List<RecipeDTO>> itemRecipes = new()
-        {
-            // weapon
-            [ItemType.Weapon.SWORD] =
-            [
-                new([new(ItemType.Misc.SWORD_BLADE, 1), new(ItemType.Misc.SWORD_HILT, 1)]),
-            ],
-            [ItemType.Weapon.BOW] =
-            [
-                new([new(ItemType.Misc.ROD, 1), new(ItemType.Misc.ROD, 1)]),
-            ],
-            [ItemType.Weapon.ARROW] =
-            [
-                new([new(ItemType.Misc.ARROW_TIP, 1), new(ItemType.Misc.ROD, 1)]),
-            ],
-            [ItemType.Weapon.CLUB] =
-            [
-                new([new(null, 0.5, ItemAmountUnit.M3)]),
-            ],
-            [ItemType.Weapon.CLUB_WITH_TEETH] =
-            [
-                new([new(ItemType.Weapon.CLUB, 1), new(Material.TEETH, 1, ItemAmountUnit.KG)]),
-            ],
-            // defence
-            [ItemType.Defence.SHIELD] =
-            [
-                new([new(null, 0.6, ItemAmountUnit.M3)]),
-            ],
-            [ItemType.Defence.HELMET] =
-            [
-                new([new(null, 0.5, ItemAmountUnit.M3)]),
-            ],
-            [ItemType.Defence.CHESTPLATE] =
-            [
-                new([new(null, 0.9, ItemAmountUnit.M3)]),
-            ],
-            [ItemType.Defence.PANTS] =
-            [
-                new([new(null, 0.7, ItemAmountUnit.M3)]),
-            ],
-            [ItemType.Defence.BOOTS] =
-            [
-                new([new(null, 0.4, ItemAmountUnit.M3)]),
-            ],
-            // misc
-            [ItemType.Misc.FILLED_BOTTLE] =
-            [
-                new([new(ItemType.Misc.BOTTLE, 1), new(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L)]),
-            ],
-            [ItemType.Misc.BOTTLE] =
-            [
-                new([new(null, 6e-4, ItemAmountUnit.M3)]),
-            ],
-            [ItemType.Misc.COIN] =
-            [
-                new([new(null, 7e-6, ItemAmountUnit.M3)]),
-            ],
-        };
+        public static Dictionary<ItemTypeID, List<RecipeDTO>> ItemRecipes { get; private set; }
         #endregion
 
         #region Public fuctions
+        #region Reload configs
+        /// <summary>
+        /// Resets all variables that come from configs.
+        /// </summary>
+        public static void LoadDefaultConfigs()
+        {
+            CompoundItemAttributes = _defaultCompoundItemAttributes;
+            MaterialItemAttributes = _defaultMaterialItemAttributes;
+            MaterialProperties = _defaultMaterialProperties;
+            ItemRecipes = _defaultItemRecipes;
+        }
+
+        /// <summary>
+        /// Resets all config files to their default states.
+        /// </summary>
+        public static void WriteDefaultConfigs()
+        {
+            ConfigManager.Instance.SetConfig(
+                "compound_item_attributes",
+                "v.1",
+                _defaultCompoundItemAttributes,
+                key => key.ToString()!
+            );
+
+            ConfigManager.Instance.SetConfig("material_item_attributes", "v.1", _defaultMaterialItemAttributes);
+            ConfigManager.Instance.SetConfig("material_properties", "v.1", _defaultMaterialProperties);
+
+            ConfigManager.Instance.SetConfig(
+                "item_recipes",
+                "v.1",
+                _defaultItemRecipes,
+                ItemIDToTypeName
+            );
+        }
+
+        private static void ReloadConfigs1()
+        {
+            CompoundItemAttributes =
+                ConfigManager.Instance.TryGetConfig(
+                    "compound_item_attributes",
+                    "v.1",
+                    _defaultCompoundItemAttributes,
+                    key => key.ToString()!,
+                    key => ParseItemTypeFromRealName(key)
+                        ?? throw new ArgumentNullException($"Unknown item type real name in \"compound_item_attributes\" config: \"{key}\"", "item type")
+                );
+
+            MaterialItemAttributes =
+                ConfigManager.Instance.TryGetConfig("material_item_attributes", "v.1", _defaultMaterialItemAttributes);
+
+            MaterialProperties =
+                ConfigManager.Instance.TryGetConfig("material_properties", "v.1", _defaultMaterialProperties);
+        }
+
+        private static void ReloadConfigs2()
+        {
+            ItemRecipes =
+                ConfigManager.Instance.TryGetConfig(
+                    "item_recipes",
+                    "v.1",
+                    _defaultItemRecipes,
+                    ItemIDToTypeName,
+                    key => ParseItemType(key)
+                        ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type")
+                );
+        }
+        #endregion
+
+        /// <summary>
+        /// Reloads all values that come from configs.
+        /// </summary>
+        public static void ReloadConfigs()
+        {
+            ReloadConfigs1();
+            ReloadConfigs2();
+        }
+
+        /// <summary>
+        /// Loads variables that don't get loaded until they are queried.
+        /// </summary>
+        public static void PreloadResources()
+        {
+            _ = _legacyItemTypeNameMap;
+            _ = _legacyCompoundtemMap;
+            _ = _legacyMaterialItemMap;
+
+            ReloadConfigs1();
+
+            LoadDefaultItemRecipes();
+
+            ReloadConfigs2();
+        }
+
         /// <summary>
         /// Return all item type IDs.
         /// </summary>
@@ -412,21 +530,21 @@ namespace ProgressAdventure.ItemManagement
             {
                 return null;
             }
-            var resultItem = compoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Value.typeName == itemTypeName).Key;
+            var resultItem = CompoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Value.typeName == itemTypeName).Key;
             return resultItem == default ? null : resultItem;
         }
 
         /// <summary>
-        /// Returs the item type, if the item type ID is an id for an item type.
+        /// Returs the item type, if the item name is a name for an item type.
         /// </summary>
-        /// <param name="itemTypeID">The uint representation of the item's ID.</param>
+        /// <param name="itemTypeRealName">The real name of the item.</param>
         public static ItemTypeID? ParseItemTypeFromRealName(string? itemTypeRealName)
         {
             if (string.IsNullOrWhiteSpace(itemTypeRealName))
             {
                 return null;
             }
-            var resultItem = compoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Key.ToString() == itemTypeRealName).Key;
+            var resultItem = GetAllItemTypes().FirstOrDefault(itemAttribute => itemAttribute.ToString() == itemTypeRealName);
             return resultItem == default ? null : resultItem;
         }
 
@@ -706,7 +824,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amount">How many times to complete the recipe.</param>
         public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int amount = 1, RecipeDTO? targetRecipe = null)
         {
-            if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
+            if (!ItemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
                 return null;
             }
@@ -748,7 +866,7 @@ namespace ProgressAdventure.ItemManagement
         /// <inheritdoc cref="CompleteRecipe(ItemTypeID, List{AItem}, int, RecipeDTO?)"/>
         public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int amount, int targetRecipeIndex)
         {
-            if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
+            if (!ItemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
                 return null;
             }
@@ -775,7 +893,7 @@ namespace ProgressAdventure.ItemManagement
         public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, double amount = 1, RecipeTreeDTO? targetRecipeTree = null)
         {
             // not craftable
-            if (!itemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
+            if (!ItemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
                 return new CompoundItem(targetItem, [new MaterialItem(materials?.First() ?? Material.WOOD)], amount);
             }

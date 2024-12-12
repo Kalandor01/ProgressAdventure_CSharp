@@ -78,7 +78,7 @@ namespace ProgressAdventure.ItemManagement
             this.material = material;
             this.amount = Math.Max(amount, 0);
 
-            var itemUnit = ItemUtils.compoundItemAttributes[this.itemType].unit;
+            var itemUnit = ItemUtils.CompoundItemAttributes[this.itemType].unit;
 
             if (itemUnit == ItemAmountUnit.AMOUNT)
             {

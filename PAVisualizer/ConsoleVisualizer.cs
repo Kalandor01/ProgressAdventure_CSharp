@@ -169,7 +169,7 @@ namespace PAVisualizer
             if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.Instance.saveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
             {
                 PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
-                PACTools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
+                PACTools.RecreateFolder(Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName));
                 File.AppendAllText(Path.Join(visualizedSavePath, Constants.EXPORT_DATA_FILE), $"{txt}\n\n");
             }
 
@@ -181,7 +181,7 @@ namespace PAVisualizer
 
             // get chunks data
             PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
-            PACTools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
+            PACTools.RecreateFolder(Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName));
             World.LoadAllChunksFromFolder(showProgressText: "Getting chunk data...");
 
             // make rectangle

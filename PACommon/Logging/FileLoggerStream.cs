@@ -12,11 +12,7 @@ namespace PACommon.Logging
         /// <summary>
         /// The name of the folder, where the logs will be placed.
         /// </summary>
-        private readonly string logsFolder;
-        /// <summary>
-        /// The path to the folder that contains the logs folder. Must be an existing folder.
-        /// </summary>
-        private readonly string logsFolderParrentPath;
+        private readonly string logsFolderPath;
         /// <summary>
         /// The extension used for log files.
         /// </summary>
@@ -27,23 +23,16 @@ namespace PACommon.Logging
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="logsFolderParrentPath"><inheritdoc cref="logsFolderParrentPath" path="//summary"/></param>
-        /// <param name="logsFolder"><inheritdoc cref="logsFolder" path="//summary"/></param>
+        /// <param name="logsFolderPath"><inheritdoc cref="logsFolderPath" path="//summary"/></param>
         /// <param name="logsExtension"><inheritdoc cref="logsExt" path="//summary"/></param>
         public FileLoggerStream(
-            string logsFolderParrentPath,
-            string logsFolder = Constants.DEFAULT_LOGS_FOLDER,
+            string? logsFolderPath = null,
             string logsExtension = Constants.DEFAULT_LOG_EXT
         )
         {
-            if (string.IsNullOrWhiteSpace(logsFolderParrentPath))
+            if (string.IsNullOrWhiteSpace(logsFolderPath))
             {
-                throw new ArgumentException($"'{nameof(logsFolderParrentPath)}' cannot be null or whitespace.", nameof(logsFolderParrentPath));
-            }
-
-            if (string.IsNullOrWhiteSpace(logsFolder))
-            {
-                throw new ArgumentException($"'{nameof(logsFolder)}' cannot be null or whitespace.", nameof(logsFolder));
+                throw new ArgumentException($"'{nameof(logsFolderPath)}' cannot be null or whitespace.", nameof(logsFolderPath));
             }
 
             if (string.IsNullOrWhiteSpace(logsExtension))
@@ -51,13 +40,7 @@ namespace PACommon.Logging
                 throw new ArgumentException($"'{nameof(logsExtension)}' cannot be null or whitespace.", nameof(logsExtension));
             }
 
-            if (!Directory.Exists(logsFolderParrentPath))
-            {
-                throw new DirectoryNotFoundException($"'{nameof(logsFolderParrentPath)}' is not an existing directory.");
-            }
-
-            this.logsFolderParrentPath = logsFolderParrentPath;
-            this.logsFolder = logsFolder;
+            this.logsFolderPath = logsFolderPath ?? Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER);
             logsExt = logsExtension;
         }
         #endregion
@@ -106,8 +89,8 @@ namespace PACommon.Logging
             {
                 try
                 {
-                    using var f = File.AppendText(Path.Join(logsFolderParrentPath, logsFolder, $"{currentDate}.{logsExt}"));
-                    await f.WriteAsync(joinedLogs);
+                    using var writer = File.AppendText(Path.Join(logsFolderPath, $"{currentDate}.{logsExt}"));
+                    await writer.WriteAsync(joinedLogs);
                     break;
                 }
                 catch (IOException) { }
@@ -116,14 +99,14 @@ namespace PACommon.Logging
 
         public async Task LogNewLineAsync()
         {
-            using var f = File.AppendText(Path.Join(logsFolderParrentPath, logsFolder, $"{Utils.MakeDate(DateTime.Now)}.{logsExt}"));
+            using var f = File.AppendText(Path.Join(logsFolderPath, $"{Utils.MakeDate(DateTime.Now)}.{logsExt}"));
             await f.WriteAsync("\n");
         }
 
         public async Task WriteOutLogAsync(string text, bool newLine = false)
         {
             var currentDate = Utils.MakeDate(DateTime.Now);
-            Console.Write($"{(newLine ? "\n" : "")}{Path.Join(logsFolder, $"{currentDate}.{logsExt}")} -> {text}");
+            Console.Write($"{(newLine ? "\n" : "")}{Path.Join(logsFolderPath, $"{currentDate}.{logsExt}")} -> {text}");
         }
 
         public async Task LogLoggingExceptionAsync(Exception exception)
@@ -145,7 +128,7 @@ namespace PACommon.Logging
         /// <returns><inheritdoc cref="Tools.RecreateFolder(string, string?, string?)"/></returns>
         public bool RecreateLogsFolder()
         {
-            return Tools.RecreateFolder(logsFolder, logsFolderParrentPath);
+            return Tools.RecreateFolder(logsFolderPath);
         }
         #endregion
     }

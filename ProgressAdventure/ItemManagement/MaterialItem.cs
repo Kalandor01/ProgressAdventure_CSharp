@@ -57,7 +57,7 @@ namespace ProgressAdventure.ItemManagement
 
             // L / M3 (/ amount???)
             var densityMultiplier = Unit == ItemAmountUnit.L ? 0.001 : 1;
-            return ItemUtils.materialProperties[Material].density * densityMultiplier;
+            return ItemUtils.MaterialProperties[Material].density * densityMultiplier;
         }
 
         protected override double GetVolumeMultiplier()
@@ -73,7 +73,7 @@ namespace ProgressAdventure.ItemManagement
             }
 
             // KG (/ amount???)
-            return 1 / ItemUtils.materialProperties[Material].density;
+            return 1 / ItemUtils.MaterialProperties[Material].density;
         }
         #endregion
 
@@ -83,7 +83,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private void SetAttributes()
         {
-            var attributes = ItemUtils.materialItemAttributes[Material];
+            var attributes = ItemUtils.MaterialItemAttributes[Material];
             Unit = attributes.unit;
             DisplayName = attributes.displayName;
         }

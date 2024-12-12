@@ -100,16 +100,14 @@ namespace PACommon
         /// <summary>
         /// Recreates the folder, if it doesn't exist.
         /// </summary>
-        /// <param name="folderName">The name of the folder to check.</param>
-        /// <param name="parentFolderPath">The path to the parrent folder, where the folder should be located.</param>
+        /// <param name="folderPath">The path of the folder to check.</param>
         /// <param name="displayName">The display name of the folder, for the logger, if it needs to be recreated.</param>
         /// <returns>If the folder needed to be recreated.</returns>
-        public static bool RecreateFolder(string folderName, string? parentFolderPath = null, string? displayName = null)
+        public static bool RecreateFolder(string folderPath, string? displayName = null)
         {
-            parentFolderPath ??= Constants.ROOT_FOLDER;
-            displayName ??= folderName.ToLower();
+            folderPath = folderPath.Contains(Path.DirectorySeparatorChar) ? folderPath : Path.Join(Constants.ROOT_FOLDER, folderPath);
+            displayName ??= new DirectoryInfo(folderPath).Name.ToLower();
 
-            var folderPath = Path.Join(parentFolderPath, folderName);
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);

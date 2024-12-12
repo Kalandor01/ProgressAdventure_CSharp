@@ -39,7 +39,6 @@ namespace ProgressAdventure.ItemManagement
             }
 
             Type = (ItemTypeID)typeValue;
-
             if (Type == ItemUtils.MATERIAL_ITEM_TYPE)
             {
                 PACSingletons.Instance.Logger.Log("Item type cannot be \"material\" for a compound item", null, LogSeverity.ERROR);
@@ -124,7 +123,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private void SetAttributes()
         {
-            var attributes = ItemUtils.compoundItemAttributes[Type];
+            var attributes = ItemUtils.CompoundItemAttributes[Type];
             DisplayName = ItemUtils.ParseCompoundItemDisplayName(attributes.displayName, Parts);
         }
         #endregion
@@ -184,7 +183,7 @@ namespace ProgressAdventure.ItemManagement
             var itemJson = base.ToJson();
 
             string typeName;
-            if (ItemUtils.compoundItemAttributes.TryGetValue(Type, out CompoundItemAttributesDTO? attributes))
+            if (ItemUtils.CompoundItemAttributes.TryGetValue(Type, out CompoundItemAttributesDTO? attributes))
             {
                 typeName = attributes.typeName;
             }

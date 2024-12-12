@@ -144,8 +144,7 @@ namespace PAVisualizer
             var now = DateTime.Now;
             var visualizedContentDistributionFolderName = $"{Utils.MakeDate(now)}_{Utils.MakeTime(now, ";")}";
             var visualizedContentDistributionPath = Path.Join(Constants.VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER_PATH, visualizedContentDistributionFolderName);
-            PACTools.RecreateFolder(Constants.VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER);
-            PACTools.RecreateFolder(visualizedContentDistributionFolderName, Constants.VISUALIZED_CONTENT_DISTRIBUTION_DATA_FOLDER_PATH);
+            PACTools.RecreateFolder(visualizedContentDistributionPath);
 
             // select layers
             var noiseTypes = Enum.GetValues<TileNoiseType>();

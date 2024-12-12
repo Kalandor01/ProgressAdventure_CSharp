@@ -22,9 +22,9 @@ namespace ProgressAdventure.SettingsManagement
         public ActionKey(ActionType actionType, IEnumerable<ConsoleKeyInfo> keys)
             : base(
                   actionType,
-                  SettingsUtils.actionTypeResponseMapping[actionType],
+                  SettingsUtils.ActionTypeResponseMapping[actionType],
                   keys,
-                  SettingsUtils.actionTypeIgnoreMapping[actionType]
+                  SettingsUtils.ActionTypeIgnoreMapping[actionType]
             )
         { }
         #endregion

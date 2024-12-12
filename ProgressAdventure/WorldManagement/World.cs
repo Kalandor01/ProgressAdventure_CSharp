@@ -427,7 +427,7 @@ namespace ProgressAdventure.WorldManagement
             var saveFolderPath = Tools.GetSaveFolderPath(saveFolderName);
             var chunkSizeChangeFolderPath = Path.Join(saveFolderPath, chunkSizeChangeFolderName);
             var chunksFolderPath = Path.Join(saveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
-            PACTools.RecreateFolder(chunkSizeChangeFolderName, saveFolderPath, "chunk size change");
+            PACTools.RecreateFolder(Path.Join(saveFolderPath, chunkSizeChangeFolderName), "chunk size change");
 
             // correction
             var success = true;

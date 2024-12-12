@@ -203,7 +203,7 @@ namespace ProgressAdventureTests
         public static TestResultDTO? ItemUtilsMaterialPropertiesDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Material>();
-            var checkedDictionary = ItemUtils.materialProperties;
+            var checkedDictionary = ItemUtils.MaterialProperties;
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
@@ -231,7 +231,7 @@ namespace ProgressAdventureTests
         public static TestResultDTO? ItemUtilsMaterialItemAttributesDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Material>();
-            var checkedDictionary = ItemUtils.materialItemAttributes;
+            var checkedDictionary = ItemUtils.MaterialItemAttributes;
 
             var existingValues = new List<string>();
 
@@ -265,7 +265,7 @@ namespace ProgressAdventureTests
         public static TestResultDTO? ItemUtilsCompoundItemAttributesDictionaryCheck()
         {
             var requiredKeys = ItemUtils.GetAllItemTypes();
-            var checkedDictionary = ItemUtils.compoundItemAttributes;
+            var checkedDictionary = ItemUtils.CompoundItemAttributes;
 
             var existingValues = new List<string>();
 
@@ -304,7 +304,7 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? ItemUtilsItemRecipesDictionaryCheck()
         {
-            var checkedDictionary = ItemUtils.itemRecipes;
+            var checkedDictionary = ItemUtils.ItemRecipes;
 
             var errorMessages = new List<string>();
             foreach (var itemRecipes in checkedDictionary)
@@ -322,7 +322,7 @@ namespace ProgressAdventureTests
                         continue;
                     }
                     if (
-                        ItemUtils.compoundItemAttributes[itemRecipes.Key].unit == ItemAmountUnit.AMOUNT &&
+                        ItemUtils.CompoundItemAttributes[itemRecipes.Key].unit == ItemAmountUnit.AMOUNT &&
                         itemRecipe.resultAmount % 1 != 0
                     )
                     {
@@ -347,7 +347,7 @@ namespace ProgressAdventureTests
         public static TestResultDTO? SettingsUtilsActionTypeIgnoreMappingDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
-            var checkedDictionary = SettingsUtils.actionTypeIgnoreMapping;
+            var checkedDictionary = SettingsUtils.ActionTypeIgnoreMapping;
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
@@ -378,14 +378,14 @@ namespace ProgressAdventureTests
         public static TestResultDTO? SettingsUtilsActionTypeResponseMappingDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
-            var checkedDictionary = SettingsUtils.actionTypeResponseMapping;
+            var checkedDictionary = SettingsUtils.ActionTypeResponseMapping;
 
-            var existingValues = new List<object>();
+            var existingValues = new List<string>();
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out object? value))
+                if (!checkedDictionary.TryGetValue(key, out string? value))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
@@ -450,7 +450,7 @@ namespace ProgressAdventureTests
         public static TestResultDTO? SettingsUtilsSettingValueTypeMapDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<SettingsKey>();
-            var checkedDictionary = SettingsUtils.settingValueTypeMap;
+            var checkedDictionary = SettingsUtils.SettingValueTypeMap;
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
@@ -776,7 +776,7 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var material in Enum.GetValues<Material>())
             {
-                var attributes = ItemUtils.materialItemAttributes[material];
+                var attributes = ItemUtils.MaterialItemAttributes[material];
                 MaterialItem item;
                 try
                 {
@@ -861,7 +861,7 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                var attributes = ItemUtils.compoundItemAttributes[itemID];
+                var attributes = ItemUtils.CompoundItemAttributes[itemID];
                 CompoundItem item;
                 try
                 {
@@ -1169,7 +1169,7 @@ namespace ProgressAdventureTests
             {
                 Directory.Delete(configFolderPath, true);
             }
-            ConfigManager.UpdateConfigs();
+            PATools.ReloadConfigs();
             return null;
         }
         #endregion

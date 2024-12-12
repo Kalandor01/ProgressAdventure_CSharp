@@ -5,12 +5,10 @@ using ProgressAdventure.WorldManagement.Content;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
 
@@ -163,12 +161,10 @@ namespace PAVisualizer
                 return;
             }
 
-            PATools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER, PACConstants.ROOT_FOLDER);
-
             var visualizedSaveFolderName = $"{saveName}_{Utils.MakeDate(lastWorldChange)}_{Utils.MakeTime(lastWorldChange, ";")}";
             var visualizedSavePath = Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName);
 
-            PATools.RecreateFolder(visualizedSaveFolderName, Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH);
+            PATools.RecreateFolder(visualizedSavePath);
 
             var imageName = string.Join("-", layers) + ".png";
             ConsoleVisualizer.MakeImage(layers, Path.Join(visualizedSavePath, imageName));

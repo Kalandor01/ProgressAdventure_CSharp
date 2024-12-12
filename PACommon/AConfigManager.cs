@@ -14,22 +14,13 @@ namespace PACommon
         private readonly JsonSerializerOptions _jsonWriterOptions;
 
         /// <summary>
-        /// The path to the folder, where the config folder should be.
+        /// The path to the configs folder.
         /// </summary>
-        protected readonly string _configsFolderParrentPath;
-        /// <summary>
-        /// The name of the configs folder.
-        /// </summary>
-        protected readonly string _configsFolderName;
+        protected readonly string _configsFolderPath;
         /// <summary>
         /// The extension of config files.
         /// </summary>
         protected readonly string _configExtension;
-        /// <summary>
-        /// The config file version, that every config file should have.<br/>
-        /// If not null, and the version in the file is not the same, it will regenerate the config file.
-        /// </summary>
-        protected readonly string? _currentConfigFileVersion;
         #endregion
 
         #region Protected constructors
@@ -37,17 +28,13 @@ namespace PACommon
         /// <inheritdoc cref="AConfigManager"/>
         /// </summary>
         /// <param name="converters">The list of json serializers to use when converting to/from specific types.</param>
-        /// <param name="configsFolderParrentPath"><inheritdoc cref="_configsFolderParrentPath" path="//summary"/></param>
-        /// <param name="configsFolderName"><inheritdoc cref="_configsFolderName" path="//summary"/></param>
+        /// <param name="configsFolderPath"><inheritdoc cref="_configsFolderPath" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="_configExtension" path="//summary"/></param>
-        /// <param name="currentConfigFileVersion"><inheritdoc cref="_currentConfigFileVersion" path="//summary"/></param>
         /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
         protected AConfigManager(
             JsonConverter[]? converters = null,
-            string? configsFolderParrentPath = null,
-            string configsFolderName = Constants.CONFIGS_FOLDER,
-            string configExtension = Constants.CONFIG_EXT,
-            string? currentConfigFileVersion = null
+            string? configsFolderPath = null,
+            string configExtension = Constants.CONFIG_EXT
         )
         {
             _jsonReaderOptions = new JsonSerializerOptions
@@ -64,14 +51,8 @@ namespace PACommon
                 _jsonReaderOptions.Converters.Add(converter);
                 _jsonWriterOptions.Converters.Add(converter);
             }
-            _configsFolderParrentPath = configsFolderParrentPath ?? Constants.ROOT_FOLDER;
-            if (!Directory.Exists(_configsFolderParrentPath))
-            {
-                throw new DirectoryNotFoundException("Configs folder parrent directory not found.");
-            }
-            _configsFolderName = configsFolderName;
+            _configsFolderPath = configsFolderPath ?? Path.Join(Constants.ROOT_FOLDER, Constants.CONFIGS_FOLDER);
             _configExtension = configExtension;
-            _currentConfigFileVersion = currentConfigFileVersion;
         }
         #endregion
 
@@ -81,12 +62,15 @@ namespace PACommon
         /// </summary>
         /// <typeparam name="T">The type of the config object.</typeparam>
         /// <param name="configName">The name of the config file.</param>
+        /// <param name="expectedVersion">The expected version of the config json.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
         /// <exception cref="NullReferenceException">Trown if the deserialized config object is null.</exception>
-        public T GetConfig<T>(string configName)
+        public T GetConfig<T>(string configName, string? expectedVersion)
         {
-            Tools.RecreateFolder(_configsFolderName, _configsFolderParrentPath, "configs");
-            var filePath = Path.Join(_configsFolderParrentPath, _configsFolderName, $"{configName}.{_configExtension}");
-            var safeFilePath = Path.GetRelativePath(_configsFolderParrentPath, filePath);
+            Tools.RecreateFolder(_configsFolderPath, "configs");
+            var filePath = Path.Join(_configsFolderPath, $"{configName}.{_configExtension}");
+            var parrentPath = Path.GetDirectoryName(_configsFolderPath);
+            var safeFilePath = parrentPath is null ? filePath : Path.GetRelativePath(parrentPath, filePath);
 
             var fileData = File.ReadAllText(filePath);
             var rawData = JsonSerializer.Deserialize<Dictionary<string, object?>>(fileData, _jsonReaderOptions)
@@ -101,14 +85,14 @@ namespace PACommon
             }
             var configData = configDataJson.Deserialize<T>(_jsonReaderOptions)
                 ?? throw new NullReferenceException($"The config json data is null in \"{safeFilePath}\".");
-            if (_currentConfigFileVersion is not null &&
+            if (expectedVersion is not null &&
                 !(
                 configVersion is JsonElement versionElement &&
                 versionElement.GetString() is string configVersionStr &&
-                _currentConfigFileVersion == configVersionStr
+                expectedVersion == configVersionStr
             ))
             {
-                throw new Exception($"Incorrect config file version in \"{safeFilePath}\" ({_currentConfigFileVersion} => {configVersion?.ToString() ?? "[NULL]"}).");
+                throw new Exception($"Incorrect config file version in \"{safeFilePath}\" ({expectedVersion} => {configVersion?.ToString() ?? "[NULL]"}).");
             }
             return configData;
         }
@@ -120,14 +104,16 @@ namespace PACommon
         /// <typeparam name="TK">The type of the keys in the resulting dictionary.</typeparam>
         /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
         /// <param name="configName">The name of the config file.</param>
+        /// <param name="expectedVersion">The expected version of the config json.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
         /// <exception cref="ArgumentNullException">Thrown if the deserialized config object, or it's converted version is null.</exception>
-        public Dictionary<TK, TV> GetConfig<TK, TV>(string configName, Func<string, TK> deserializeDictionaryKeys)
+        public Dictionary<TK, TV> GetConfig<TK, TV>(string configName, string? expectedVersion, Func<string, TK> deserializeDictionaryKeys)
             where TK : notnull
         {
-            var tempResult = GetConfig<IDictionary<string, TV>>(configName);
+            var tempResult = GetConfig<IDictionary<string, TV>>(configName, expectedVersion);
             return tempResult?.ToDictionary(key => deserializeDictionaryKeys(key.Key), value => value.Value)
-                ?? throw new ArgumentNullException(nameof(tempResult));
+                ?? throw new ArgumentNullException("The deserialized config is null!", nameof(tempResult));
         }
 
         /// <summary>
@@ -135,18 +121,20 @@ namespace PACommon
         /// </summary>
         /// <typeparam name="T">The type of the config object.</typeparam>
         /// <param name="configName">The name of the config file.</param>
+        /// <param name="expectedVersion">The expected version of the config json.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
         /// <param name="defaultContent">The default config object value.</param>
-        public T TryGetConfig<T>(string configName, T defaultContent)
+        public T TryGetConfig<T>(string configName, string? expectedVersion, T defaultContent)
         {
             try
             {
-                return GetConfig<T>(configName);
+                return GetConfig<T>(configName, expectedVersion);
             }
             catch (Exception e)
             {
                 PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
-                SetConfig(configName, defaultContent);
-                return GetConfig<T>(configName);
+                SetConfig(configName, expectedVersion, defaultContent);
+                return GetConfig<T>(configName, expectedVersion);
             }
         }
 
@@ -157,11 +145,14 @@ namespace PACommon
         /// <typeparam name="TK">The type of the keys in the resulting dictionary.</typeparam>
         /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
         /// <param name="configName">The name of the config file.</param>
+        /// <param name="expectedVersion">The expected version of the config json.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
         /// <param name="defaultContent">The default config object value.</param>
         /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
         public Dictionary<TK, TV> TryGetConfig<TK, TV>(
             string configName,
+            string? expectedVersion,
             IDictionary<TK, TV> defaultContent,
             Func<TK, string> serializeDictionaryKeys,
             Func<string, TK> deserializeDictionaryKeys
@@ -170,39 +161,60 @@ namespace PACommon
         {
             try
             {
-                return GetConfig<TK, TV>(configName, deserializeDictionaryKeys);
+                return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
             }
             catch (Exception e)
             {
                 PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
-                var tempDefaultContent = defaultContent.ToDictionary(key => serializeDictionaryKeys(key.Key), value => value.Value);
-                SetConfig(configName, tempDefaultContent);
-                return GetConfig<TK, TV>(configName, deserializeDictionaryKeys);
+                SetConfig(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
+                return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
             }
         }
-        #endregion
 
-        #region protected functions
         /// <summary>
         /// Sets the value of an object in a config file.
         /// </summary>
         /// <typeparam name="T">The type of the config data.</typeparam>
         /// <param name="configName">The name of the config file.</param>
         /// <param name="configData">The object to put into the config file.</param>
-        protected void SetConfig<T>(string configName, T configData)
+        /// <param name="configVersion">The version of the config json.</param>
+        public void SetConfig<T>(string configName, string? configVersion, T configData)
         {
-            Tools.RecreateFolder(_configsFolderName, _configsFolderParrentPath, "configs");
-            var filePath = Path.Join(_configsFolderParrentPath, _configsFolderName, $"{configName}.{_configExtension}");
-            var safeFilePath = Path.GetRelativePath(_configsFolderParrentPath, filePath);
+            Tools.RecreateFolder(_configsFolderPath, "configs");
+            var filePath = Path.Join(_configsFolderPath, $"{configName}.{_configExtension}");
+            var parrentPath = Path.GetDirectoryName(_configsFolderPath);
+            var safeFilePath = parrentPath is null ? filePath : Path.GetRelativePath(parrentPath, filePath);
 
             var configFileData = new Dictionary<string, object?>
             {
-                ["version"] = _currentConfigFileVersion,
+                ["version"] = configVersion,
                 ["data"] = configData,
             };
             var jsonString = JsonSerializer.Serialize(configFileData, _jsonWriterOptions);
             File.WriteAllText(filePath, jsonString);
             PACSingletons.Instance.Logger.Log($"Config file recreated", $"file path: \"{safeFilePath}\"");
+        }
+
+        /// <summary>
+        /// Sets the value of an object in a config file.<br/>
+        /// For config objects, where the type of the object is a dictionary, where the keys are not serializable.
+        /// </summary>
+        /// <typeparam name="TK">The type of the keys in the config data.</typeparam>
+        /// <typeparam name="TV">The type of the values in the config data.</typeparam>
+        /// <param name="configName">The name of the config file.</param>
+        /// <param name="configVersion">The version of the config json.</param>
+        /// <param name="configData">The object to put into the config file.</param>
+        /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
+        public void SetConfig<TK, TV>(
+            string configName,
+            string? configVersion,
+            IDictionary<TK, TV> configData,
+            Func<TK, string> serializeDictionaryKeys
+        )
+            where TK : notnull
+        {
+            var tempconfigData = configData.ToDictionary(key => serializeDictionaryKeys(key.Key), value => value.Value);
+            SetConfig(configName, configVersion, tempconfigData);
         }
         #endregion
     }

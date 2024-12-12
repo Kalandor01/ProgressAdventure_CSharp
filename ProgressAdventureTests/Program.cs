@@ -5,6 +5,7 @@ using PACommon.Logging;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
 using PACConstants = PACommon.Constants;
@@ -40,7 +41,7 @@ namespace ProgressAdventureTests
             Console.WriteLine("Loading...");
 
             //initializing PAC singletons
-            var loggingStream = new FileLoggerStream(PACConstants.ROOT_FOLDER, PAConstants.LOGS_FOLDER, PAConstants.LOG_EXT);
+            var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
@@ -60,9 +61,14 @@ namespace ProgressAdventureTests
                     new Settings()
                 );
                 KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
+
+                ConfigManager.Initialize(
+                    null,
+                    PAConstants.CONFIGS_FOLDER_PATH,
+                    PAConstants.CONFIG_EXT
+                );
             }
 
-            PACSingletons.Instance.Logger.Log("Preloading resources");
             PATools.PreloadResources();
             PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);
         }

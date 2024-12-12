@@ -1,6 +1,4 @@
 ﻿using PACommon;
-using ProgressAdventure.ItemManagement;
-using ProgressAdventure.SettingsManagement;
 using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ConfigManagement
@@ -45,92 +43,53 @@ namespace ProgressAdventure.ConfigManagement
         /// <summary>
         /// <inheritdoc cref="ConfigManager"/>
         /// </summary>
-        /// <param name="converters"><inheritdoc cref="AConfigManager._jsonReaderOptions" path="//summary"/></param>
-        /// <param name="configsFolderParrentPath"><inheritdoc cref="AConfigManager._configsFolderParrentPath" path="//summary"/></param>
-        /// <param name="configsFolderName"><inheritdoc cref="AConfigManager._configsFolderName" path="//summary"/></param>
+        /// <param name="converters">The list of json serializers to use when converting to/from specific types.<br/>
+        /// Loads the default list of converters if null.</param>
+        /// <param name="configsFolderPath"><inheritdoc cref="AConfigManager._configsFolderPath" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="AConfigManager._configExtension" path="//summary"/></param>
-        /// <param name="currentConfigFileVersion"><inheritdoc cref="AConfigManager._currentConfigFileVersion" path="//summary"/></param>
         /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
         public ConfigManager(
             JsonConverter[]? converters,
-            string? configsFolderParrentPath,
-            string configsFolderName = Constants.CONFIGS_FOLDER,
-            string configExtension = Constants.CONFIG_EXT,
-            string currentConfigFileVersion = Constants.CONFIG_VERSION
+            string? configsFolderPath = null,
+            string configExtension = Constants.CONFIG_EXT
         )
-            : base(converters, configsFolderParrentPath, configsFolderName, configExtension, currentConfigFileVersion) { }
+            : base(converters, configsFolderPath, configExtension) { }
         #endregion
 
         #region "Constructors"
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
-        /// <param name="converters"><inheritdoc cref="AConfigManager._jsonReaderOptions" path="//summary"/></param>
-        /// <param name="configsFolderParrentPath"><inheritdoc cref="AConfigManager._configsFolderParrentPath" path="//summary"/></param>
-        /// <param name="configsFolderName"><inheritdoc cref="AConfigManager._configsFolderName" path="//summary"/></param>
+        /// <param name="converters">The list of json serializers to use when converting to/from specific types.<br/>
+        /// Loads the default list of converters if null.</param>
+        /// <param name="configsFolderPath"><inheritdoc cref="AConfigManager._configsFolderPath" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="AConfigManager._configExtension" path="//summary"/></param>
-        /// <param name="currentConfigFileVersion"><inheritdoc cref="AConfigManager._currentConfigFileVersion" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
         /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
         public static ConfigManager Initialize(
             JsonConverter[]? converters = null,
-            string? configsFolderParrentPath = null,
-            string configsFolderName = Constants.CONFIGS_FOLDER,
+            string? configsFolderPath = null,
             string configExtension = Constants.CONFIG_EXT,
-            string currentConfigFileVersion = Constants.CONFIG_VERSION,
             bool logInitialization = true
         )
         {
+            converters ??=
+            [
+                new JsonStringEnumConverter(allowIntegerValues: false),
+                new ItemTypeIDConverter(),
+                new MaterialItemAttributesDTOConverter(),
+            ];
+
             _instance = new ConfigManager(
                 converters,
-                configsFolderParrentPath,
-                configsFolderName,
-                configExtension,
-                currentConfigFileVersion
+                configsFolderPath,
+                configExtension
             );
             if (logInitialization)
             {
                 PACSingletons.Instance.Logger.Log($"{nameof(ConfigManager)} initialized");
             }
             return _instance;
-        }
-        #endregion
-
-        #region Temp functions
-        /// <summary>
-        /// TEMP FUNCTION!!!
-        /// </summary>
-        public static void UpdateConfigs()
-        {
-            Initialize(
-                [
-                    new JsonStringEnumConverter(allowIntegerValues: false),
-                    new ItemTypeIDConverter(),
-                    new MaterialItemAttributesDTOConverter(),
-                ],
-                PACommon.Constants.ROOT_FOLDER,
-                Constants.CONFIGS_FOLDER,
-                Constants.CONFIG_EXT,
-                Constants.CONFIG_VERSION
-            );
-
-            Instance.TryGetConfig(
-                "compound_item_attributes",
-                ItemUtils.compoundItemAttributes,
-                key => key.ToString()!,
-                key => ItemUtils.ParseItemTypeFromRealName(key) ?? throw new ArgumentNullException("item type")
-            );
-            Instance.TryGetConfig(
-                "item_recipes",
-                ItemUtils.itemRecipes,
-                ItemUtils.ItemIDToTypeName,
-                key => ItemUtils.ParseItemType(key) ?? throw new ArgumentNullException("item type")
-            );
-            Instance.TryGetConfig("material_item_attributes", ItemUtils.materialItemAttributes);
-            Instance.TryGetConfig("material_properties", ItemUtils.materialProperties);
-            Instance.TryGetConfig("action_type_ignore_mapping", SettingsUtils.actionTypeIgnoreMapping);
-            Instance.TryGetConfig("action_type_response_mapping", SettingsUtils.actionTypeResponseMapping);
-            Instance.TryGetConfig("setting_value_type_map", SettingsUtils.settingValueTypeMap);
         }
         #endregion
     }

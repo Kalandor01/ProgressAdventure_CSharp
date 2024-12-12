@@ -89,6 +89,7 @@ namespace PAVisualizer
                 new Settings()
             );
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
+            ProgressAdventure.Tools.PreloadResources();
         }
 
         /// <summary>
@@ -128,6 +129,7 @@ namespace PAVisualizer
                     MainFunction();
                     //exit
                     PACSingletons.Instance.Logger.Log("Instance ended succesfuly");
+                    PACSingletons.Instance.Dispose();
                 }
                 catch (Exception e)
                 {

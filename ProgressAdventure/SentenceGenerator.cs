@@ -121,7 +121,7 @@ namespace ProgressAdventure
         /// Generates a sequence of names, seperated by a space.
         /// </summary>
         /// <param name="nameCount">The number of names in the sequence.</param>
-        /// <param name="letterCount">The number of letters in a name.</param>
+        /// <param name="letterCount">The number of letters in a name. By default: 2-8.</param>
         /// <param name="randomGenerator">The generator to use to generate the names.</param>
         public static string GenerateNameSequence((int min, int max) nameCount, (int min, int max)? letterCount = null, SplittableRandom? randomGenerator = null)
         {

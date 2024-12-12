@@ -132,7 +132,7 @@ namespace ProgressAdventure
         public static bool RecreateSaveFileFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.saveName;
-            return PACTools.RecreateFolder(saveFolderName, SAVES_FOLDER_PATH, $"save file: \"{saveFolderName}\"");
+            return PACTools.RecreateFolder(Path.Join(SAVES_FOLDER_PATH, saveFolderName), $"save file: \"{saveFolderName}\"");
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace ProgressAdventure
         public static bool RecreateChunksFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.saveName;
-            return PACTools.RecreateFolder(SAVE_FOLDER_NAME_CHUNKS, GetSaveFolderPath(saveFolderName), $"chunks: \"{saveFolderName}\"");
+            return PACTools.RecreateFolder(Path.Join(GetSaveFolderPath(saveFolderName), SAVE_FOLDER_NAME_CHUNKS), $"chunks: \"{saveFolderName}\"");
         }
         #endregion
 
@@ -258,25 +258,108 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Loads the default vlues for all variables that come from configs;
+        /// </summary>
+        public static void LoadDefaultConfigs()
+        {
+            SettingsUtils.LoadDefaultConfigs();
+
+            //_ = EntityUtils.facingToMovementVectorMap;
+            //_ = EntityUtils.entityTypeMap;
+            //_ = EntityUtils.attributeStatChangeMap;
+
+            ItemUtils.LoadDefaultConfigs();
+
+            //_ = WorldUtils._tileNoiseOffsets;
+            //_ = WorldUtils._terrainContentTypePropertyMap;
+            //_ = WorldUtils._structureContentTypePropertyMap;
+            //_ = WorldUtils._populationContentTypePropertyMap;
+            //_ = WorldUtils._contentTypePropertyMap;
+            //_ = WorldUtils._terrainContentTypeMap;
+            //_ = WorldUtils._structureContentTypeMap;
+            //_ = WorldUtils._populationContentTypeMap;
+            //_ = WorldUtils.contentTypeMap;
+            //_ = WorldUtils.terrainContentTypeIDTextMap;
+            //_ = WorldUtils.structureContentSubtypeIDTextMap;
+            //_ = WorldUtils.populationContentSubtypeIDTextMap;
+            //_ = WorldUtils.contentTypeIDTextMap;
+            //_ = WorldUtils.contentTypeIDSubtypeTextMap;
+            PACSingletons.Instance.Logger.Log("Loaded all default configs");
+        }
+
+        /// <summary>
+        /// Resets all config files to their default states.
+        /// </summary>
+        public static void WriteDefaultConfigs()
+        {
+            SettingsUtils.WriteDefaultConfigs();
+
+            //_ = EntityUtils.facingToMovementVectorMap;
+            //_ = EntityUtils.entityTypeMap;
+            //_ = EntityUtils.attributeStatChangeMap;
+
+            ItemUtils.WriteDefaultConfigs();
+
+            //_ = WorldUtils._tileNoiseOffsets;
+            //_ = WorldUtils._terrainContentTypePropertyMap;
+            //_ = WorldUtils._structureContentTypePropertyMap;
+            //_ = WorldUtils._populationContentTypePropertyMap;
+            //_ = WorldUtils._contentTypePropertyMap;
+            //_ = WorldUtils._terrainContentTypeMap;
+            //_ = WorldUtils._structureContentTypeMap;
+            //_ = WorldUtils._populationContentTypeMap;
+            //_ = WorldUtils.contentTypeMap;
+            //_ = WorldUtils.terrainContentTypeIDTextMap;
+            //_ = WorldUtils.structureContentSubtypeIDTextMap;
+            //_ = WorldUtils.populationContentSubtypeIDTextMap;
+            //_ = WorldUtils.contentTypeIDTextMap;
+            //_ = WorldUtils.contentTypeIDSubtypeTextMap;
+            PACSingletons.Instance.Logger.Log("Reset all config files");
+        }
+
+        /// <summary>
+        /// Reload all variables that come from configs.
+        /// </summary>
+        public static void ReloadConfigs()
+        {
+            SettingsUtils.ReloadConfigs();
+
+            //_ = EntityUtils.facingToMovementVectorMap;
+            //_ = EntityUtils.entityTypeMap;
+            //_ = EntityUtils.attributeStatChangeMap;
+
+            ItemUtils.ReloadConfigs();
+
+            //_ = WorldUtils._tileNoiseOffsets;
+            //_ = WorldUtils._terrainContentTypePropertyMap;
+            //_ = WorldUtils._structureContentTypePropertyMap;
+            //_ = WorldUtils._populationContentTypePropertyMap;
+            //_ = WorldUtils._contentTypePropertyMap;
+            //_ = WorldUtils._terrainContentTypeMap;
+            //_ = WorldUtils._structureContentTypeMap;
+            //_ = WorldUtils._populationContentTypeMap;
+            //_ = WorldUtils.contentTypeMap;
+            //_ = WorldUtils.terrainContentTypeIDTextMap;
+            //_ = WorldUtils.structureContentSubtypeIDTextMap;
+            //_ = WorldUtils.populationContentSubtypeIDTextMap;
+            //_ = WorldUtils.contentTypeIDTextMap;
+            //_ = WorldUtils.contentTypeIDSubtypeTextMap;
+            PACSingletons.Instance.Logger.Log("All configs reloaded");
+        }
+
+        /// <summary>
         /// Loads variables that don't get loaded until they are queried.
         /// </summary>
         public static void PreloadResources()
         {
+            PACSingletons.Instance.Logger.Log("Preloading resources");
+            SettingsUtils.ReloadConfigs();
+
             _ = EntityUtils.facingToMovementVectorMap;
             _ = EntityUtils.entityTypeMap;
             _ = EntityUtils.attributeStatChangeMap;
 
-            _ = ItemUtils._legacyItemTypeNameMap;
-            _ = ItemUtils._legacyCompoundtemMap;
-            _ = ItemUtils._legacyMaterialItemMap;
-            _ = ItemUtils.compoundItemAttributes;
-            _ = ItemUtils.materialItemAttributes;
-            _ = ItemUtils.materialProperties;
-            _ = ItemUtils.itemRecipes;
-
-            _ = SettingsUtils.actionTypeIgnoreMapping;
-            _ = SettingsUtils.actionTypeResponseMapping;
-            _ = SettingsUtils.settingValueTypeMap;
+            ItemUtils.PreloadResources();
 
             _ = WorldUtils._tileNoiseOffsets;
             _ = WorldUtils._terrainContentTypePropertyMap;
@@ -292,6 +375,7 @@ namespace ProgressAdventure
             _ = WorldUtils.populationContentSubtypeIDTextMap;
             _ = WorldUtils.contentTypeIDTextMap;
             _ = WorldUtils.contentTypeIDSubtypeTextMap;
+            PACSingletons.Instance.Logger.Log("Preloading finished");
         }
         #endregion
         #endregion

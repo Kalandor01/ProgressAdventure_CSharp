@@ -189,7 +189,7 @@ namespace ProgressAdventure.WorldManagement.Content
                     oldJson.TryGetValue("name", out var oldName) &&
                     oldName is null &&
                     oldJson.TryGetValue("subtype", out var subtype) &&
-                    subtype?.Type == JsonObjectType.String
+                    subtype?.Value is string
                 )
                 {
                     oldJson["name"] = GenerateContentName(chunkRandom);
