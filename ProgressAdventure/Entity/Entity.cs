@@ -196,7 +196,7 @@ namespace ProgressAdventure.Entity
         /// <param name="facing">If not null, it will move in that direction instead.</param>
         public void Move((double x, double y)? multiplierVector = null, Facing? facing = null)
         {
-            var moveRaw = EntityUtils.facingToMovementVectorMap[facing ?? this.facing];
+            var moveRaw = EntityUtils.FacingToMovementVectorMap[facing ?? this.facing];
             var move = Utils.VectorMultiply(moveRaw, multiplierVector ?? (1, 1));
             EntityUtils.EntityMover(this, ((long x, long y))move);
         }
@@ -309,7 +309,7 @@ namespace ProgressAdventure.Entity
 
             foreach (var attribute in attributes)
             {
-                var (maxHp, attack, defence, agility) = EntityUtils.attributeStatChangeMap[attribute];
+                var (maxHp, attack, defence, agility) = EntityUtils.AttributeStatChangeMap[attribute];
                 tempMaxHp *= maxHp;
                 tempAttack *= attack;
                 tempDefence *= defence;
@@ -487,7 +487,7 @@ namespace ProgressAdventure.Entity
                     out var entityTypeValue,
                     isCritical: true
                 ) &&
-                EntityUtils.entityTypeMap.TryGetValue(entityTypeValue ?? "", out Type? entityType) &&
+                EntityUtils.EntityTypeMap.TryGetValue(entityTypeValue ?? "", out Type? entityType) &&
                 entityType is not null
             ))
             {

@@ -407,17 +407,42 @@ namespace ProgressAdventure.ItemManagement
         public static Dictionary<ItemTypeID, List<RecipeDTO>> ItemRecipes { get; private set; }
         #endregion
 
+        #region Constructors
+        static ItemUtils()
+        {
+            _ = _legacyItemTypeNameMap;
+            _ = _legacyCompoundtemMap;
+            _ = _legacyMaterialItemMap;
+
+            LoadDefaultConfigs1();
+
+            LoadDefaultItemRecipes();
+
+            LoadDefaultConfigs2();
+        }
+        #endregion
+
         #region Public fuctions
-        #region Reload configs
+        #region Configs
+        public static void LoadDefaultConfigs1()
+        {
+            CompoundItemAttributes = _defaultCompoundItemAttributes;
+            MaterialItemAttributes = _defaultMaterialItemAttributes;
+            MaterialProperties = _defaultMaterialProperties;
+        }
+
+        public static void LoadDefaultConfigs2()
+        {
+            ItemRecipes = _defaultItemRecipes;
+        }
+
         /// <summary>
         /// Resets all variables that come from configs.
         /// </summary>
         public static void LoadDefaultConfigs()
         {
-            CompoundItemAttributes = _defaultCompoundItemAttributes;
-            MaterialItemAttributes = _defaultMaterialItemAttributes;
-            MaterialProperties = _defaultMaterialProperties;
-            ItemRecipes = _defaultItemRecipes;
+            LoadDefaultConfigs1();
+            LoadDefaultConfigs2();
         }
 
         /// <summary>
@@ -474,7 +499,6 @@ namespace ProgressAdventure.ItemManagement
                         ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type")
                 );
         }
-        #endregion
 
         /// <summary>
         /// Reloads all values that come from configs.
@@ -484,22 +508,7 @@ namespace ProgressAdventure.ItemManagement
             ReloadConfigs1();
             ReloadConfigs2();
         }
-
-        /// <summary>
-        /// Loads variables that don't get loaded until they are queried.
-        /// </summary>
-        public static void PreloadResources()
-        {
-            _ = _legacyItemTypeNameMap;
-            _ = _legacyCompoundtemMap;
-            _ = _legacyMaterialItemMap;
-
-            ReloadConfigs1();
-
-            LoadDefaultItemRecipes();
-
-            ReloadConfigs2();
-        }
+        #endregion
 
         /// <summary>
         /// Return all item type IDs.

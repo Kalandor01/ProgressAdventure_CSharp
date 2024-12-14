@@ -27,7 +27,7 @@ namespace PACommon.JsonUtils
             convertedObject = default;
             if (objectJson is null)
             {
-                PACSingletons.Instance.Logger.Log($"{typeof(T)} parse error", $"{typeof(T).ToString().ToLower()} json is null", LogSeverity.ERROR);
+                Tools.LogJsonNullError<T>(typeof(T).ToString(), isError: true);
                 return false;
             }
 

@@ -70,7 +70,15 @@ namespace ProgressAdventure.SettingsManagement
         public static Dictionary<SettingsKey, JsonObjectType> SettingValueTypeMap { get; private set; }
         #endregion
 
+        #region Constructors
+        static SettingsUtils()
+        {
+            LoadDefaultConfigs();
+        }
+        #endregion
+
         #region Public functions
+        #region Configs
         /// <summary>
         /// Resets all variables that come from configs.
         /// </summary>
@@ -98,11 +106,14 @@ namespace ProgressAdventure.SettingsManagement
         {
             ActionTypeIgnoreMapping =
                 ConfigManager.Instance.TryGetConfig("action_type_ignore_mapping", "v.1", _defaultActionTypeIgnoreMapping);
+
             ActionTypeResponseMapping =
                 ConfigManager.Instance.TryGetConfig("action_type_response_mapping", "v.1", _defaultActionTypeResponseMapping);
+
             SettingValueTypeMap =
                 ConfigManager.Instance.TryGetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
         }
+        #endregion
 
         /// <summary>
         /// Returns the default keybind list, for a Keybinds object.

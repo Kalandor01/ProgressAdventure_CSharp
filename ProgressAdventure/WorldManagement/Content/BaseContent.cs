@@ -1,6 +1,7 @@
 ﻿using NPrng.Generators;
 using PACommon;
 using PACommon.JsonUtils;
+using System.Diagnostics.CodeAnalysis;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
 
@@ -53,8 +54,8 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             if (
                 subtype.Super != type ||
-                type.Super != ContentType.BaseContentType ||
-                subtype.Super == ContentType.BaseContentType
+                type.Super != ContentType.AllContentType ||
+                subtype.Super == ContentType.AllContentType
             )
             {
                 throw new ArgumentException("Content types are missmached.");
@@ -73,7 +74,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         public string GetTypeName()
         {
-            return WorldUtils.contentTypeIDTextMap[type];
+            return WorldUtils.BaseContentTypeMap[type].typeName;
         }
 
         /// <summary>
@@ -81,7 +82,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         public string GetSubtypeName()
         {
-            return WorldUtils.contentTypeIDSubtypeTextMap[type][subtype];
+            return WorldUtils.contentTypeSubtypesMap[type][subtype].typeName;
         }
 
         /// <summary>
@@ -195,6 +196,31 @@ namespace ProgressAdventure.WorldManagement.Content
                     oldJson["name"] = GenerateContentName(chunkRandom);
                 }
             }, "2.2.1"),
+            // 2.2.1 -> 2.2.2
+            ((oldJson, chunkRandom) =>
+            {
+                // no more "content" content type, content type IDs are like item type IDs
+                if (
+                    oldJson.TryGetValue("type", out var oldType) &&
+                    oldType?.Value is string oldTypeValue
+                )
+                {
+                    if (oldTypeValue == "content")
+                    {
+                        oldJson["type"] = "structure";
+                        oldTypeValue = "structure";
+                    }
+
+                    if (
+                        oldJson.TryGetValue("subtype", out var oldSubtype) &&
+                        oldSubtype?.Value is string oldSubtypeValue &&
+                        WorldUtils._legacyContentSubtypeNameMap.TryGetValue((oldTypeValue, oldSubtypeValue), out var newSubtype)
+                    )
+                    {
+                        oldJson["subtype"] = newSubtype;
+                    }
+                }
+            }, "2.2.2")
         ];
         #endregion
 
@@ -217,10 +243,10 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="contentObject">The content object that was loaded.</param>
         /// <returns>If the content was parsed without warnings.</returns>
-        protected static bool LoadContent<T>(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, out T? contentObject)
+        protected static bool FromJson<T>(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, [NotNullWhen(true)] out T? contentObject)
             where T : BaseContent
         {
-            contentObject = null;
+            contentObject = default;
             if (contentJson is null)
             {
                 PACTools.LogJsonNullError<T>(typeof(T).ToString(), isError: true);
@@ -229,13 +255,25 @@ namespace ProgressAdventure.WorldManagement.Content
 
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, SplittableRandom>(contentJson, chunkRandom, VersionCorrecters, fileVersion);
 
-            var contentSubtypeTypeMap = WorldUtils.contentTypeMap[typeof(T)];
-            var contentTypeID = contentSubtypeTypeMap.First().Key.Super;
+            return FromJsonWithoutCorrection(chunkRandom, contentJson, fileVersion, ref contentObject);
+        }
+
+        /// <summary>
+        /// Tries to load a content object from the content json, and returns, if it was successful without any warnings.
+        /// </summary>
+        /// <typeparam name="T">The content type to return.</typeparam>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
+        /// <param name="contentJson">The json representation of the content.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="contentObject">The content object that was loaded.</param>
+        /// <returns>If the content was parsed without warnings.</returns>
+        private static bool FromJsonWithoutCorrection<T>(SplittableRandom chunkRandom, JsonDictionary contentJson, string fileVersion, ref T? contentObject)
+        {
+            var contentTypeID = WorldUtils.BaseContentTypeMap.First(props => props.Value.matchingType == typeof(T)).Key;
 
             if (!(
                 PACTools.TryCastJsonAnyValue<T, string>(contentJson, JsonKeys.BaseContent.SUBTYPE, out var contentSubtypeString, true) &&
-                WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString, out ContentTypeID contentSubtype) &&
-                contentSubtypeTypeMap.TryGetValue(contentSubtype, out var contentType)
+                WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString, out var contentProperties)
             ))
             {
                 if (contentSubtypeString is not null)
@@ -248,10 +286,10 @@ namespace ProgressAdventure.WorldManagement.Content
             var success = PACTools.TryParseJsonValue<T, string?>(contentJson, JsonKeys.BaseContent.NAME, out var contentName);
 
             // get content
-            var content = Activator.CreateInstance(contentType, [chunkRandom, contentName, contentJson]);
+            var content = Activator.CreateInstance(contentProperties.matchingType, [chunkRandom, contentName, contentJson]);
             if (content is null)
             {
-                PACTools.LogJsonError<T>($"couldn't create content object from type \"{contentType}\"!", true);
+                PACTools.LogJsonError<T>($"couldn't create content object from type \"{contentProperties}\"!", true);
                 return false;
             }
 

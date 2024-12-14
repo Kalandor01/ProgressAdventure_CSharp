@@ -70,7 +70,7 @@ namespace ProgressAdventure.WorldManagement
             tiles[tileKey] = tile;
             var posX = Utils.Mod(absolutePosition.x, Constants.CHUNK_SIZE);
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
-            PACSingletons.Instance.Logger.Log("Created tile", $"x: {posX}, y: {posY}, terrain: {WorldUtils.terrainContentTypeIDTextMap[tile.terrain.subtype]}, structure: {WorldUtils.structureContentSubtypeIDTextMap[tile.structure.subtype]}, population: {WorldUtils.populationContentSubtypeIDTextMap[tile.population.subtype]}", LogSeverity.DEBUG);
+            PACSingletons.Instance.Logger.Log("Created tile", $"x: {posX}, y: {posY}, terrain: {WorldUtils.TerrainContentTypeMap[tile.terrain.subtype].typeName}, structure: {WorldUtils.StructureContentTypeMap[tile.structure.subtype].typeName}, population: {WorldUtils.PopulationContentTypeMap[tile.population.subtype].typeName}", LogSeverity.DEBUG);
             return tile;
         }
 

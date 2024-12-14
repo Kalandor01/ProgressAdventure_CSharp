@@ -78,6 +78,7 @@ namespace ProgressAdventure.ConfigManagement
                 new JsonStringEnumConverter(allowIntegerValues: false),
                 new ItemTypeIDConverter(),
                 new MaterialItemAttributesDTOConverter(),
+                new TypeConverter(),
             ];
 
             _instance = new ConfigManager(

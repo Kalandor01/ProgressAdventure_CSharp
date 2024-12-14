@@ -1,15 +1,45 @@
 ﻿using NPrng.Generators;
 using PACommon;
+using PACommon.Enums;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 using ProgressAdventure.WorldManagement.Content.Population;
 using ProgressAdventure.WorldManagement.Content.Structure;
 using ProgressAdventure.WorldManagement.Content.Terrain;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Text.Json;
 
 namespace ProgressAdventure.WorldManagement
 {
     public static class WorldUtils
     {
+        #region Json correction dicts
+        /// <summary>
+        /// The dictionary pairing up pre and post 2.2.2 content subtype names.
+        /// </summary>
+        internal static readonly Dictionary<(string type, string subtype), string> _legacyContentSubtypeNameMap = new()
+        {
+            //terrain
+            [("terrain", "field")] = "terrain/field",
+            [("terrain", "mountain")] = "terrain/mountain",
+            [("terrain", "ocean")] = "terrain/ocean",
+            [("terrain", "shore")] = "terrain/shore",
+            //structure
+            [("structure", "none")] = "structure/none",
+            [("structure", "bandit_camp")] = "structure/bandit_camp",
+            [("structure", "village")] = "structure/village",
+            [("structure", "kingdom")] = "structure/kingdom",
+            //population
+            [("population", "none")] = "population/none",
+            [("population", "human")] = "population/human",
+            [("population", "elf")] = "population/elf",
+            [("population", "dwarf")] = "population/dwarf",
+            [("population", "demon")] = "population/demon",
+        };
+        #endregion
+
         #region Constatnts
         /// <summary>
         /// If difference is larger than this the structure will not generate.
@@ -21,11 +51,11 @@ namespace ProgressAdventure.WorldManagement
         public static readonly double noPopulationDifferenceLimit = 0.2;
         #endregion
 
-        #region Config dictionaries
+        #region Default config dicts
         /// <summary>
-        /// Offsets for tile noise values.
+        /// The default value for the config used for the value of <see cref="TileNoiseOffsets"/>.
         /// </summary>
-        internal static readonly Dictionary<TileNoiseType, double> _tileNoiseOffsets = new()
+        private static readonly Dictionary<TileNoiseType, double> _defaultTileNoiseOffsets = new()
         {
             [TileNoiseType.HEIGHT] = 0,
             [TileNoiseType.TEMPERATURE] = 0,
@@ -35,9 +65,9 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
-        /// Dictionary to map terrain types to their ideal properties.
+        /// The default value for the config used for the value of <see cref="TerrainContentTypePropertyMap"/>.
         /// </summary>
-        internal static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _terrainContentTypePropertyMap = new()
+        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultTerrainContentTypePropertyMap = new()
         {
             [typeof(MountainTerrain)] = new Dictionary<TileNoiseType, double>()
             {
@@ -58,9 +88,9 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
-        /// Dictionary to map terrain types to their ideal properties.
+        /// The default value for the config used for the value of <see cref="StructureContentTypePropertyMap"/>.
         /// </summary>
-        internal static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _structureContentTypePropertyMap = new()
+        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultStructureContentTypePropertyMap = new()
         {
             [typeof(NoStructure)] = new Dictionary<TileNoiseType, double>()
             {
@@ -84,9 +114,9 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
-        /// Dictionary to map terrain types to their ideal properties.
+        /// The default value for the config used for the value of <see cref="PopulationContentTypePropertyMap"/>.
         /// </summary>
-        internal static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _populationContentTypePropertyMap = new()
+        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultPopulationContentTypePropertyMap = new()
         {
             [typeof(NoPopulation)] = new Dictionary<TileNoiseType, double>()
             {
@@ -121,117 +151,282 @@ namespace ProgressAdventure.WorldManagement
                 [TileNoiseType.HOSTILITY] = 0.9,
             },
         };
+        
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="BaseContentTypeMap"/>.
+        /// </summary>
+        private static readonly Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> _baseContentTypeMap = new()
+        {
+            [ContentType.TERRAIN] = new ContentTypeIDPropertiesDTO(ContentType.TERRAIN, typeof(TerrainContent)),
+            [ContentType.STRUCTURE] = new ContentTypeIDPropertiesDTO(ContentType.STRUCTURE, typeof(StructureContent)),
+            [ContentType.POPULATION] = new ContentTypeIDPropertiesDTO(ContentType.POPULATION, typeof(PopulationContent)),
+        };
+        
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="TerrainContentTypeMap"/>.
+        /// </summary>
+        private static readonly Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> _defaultTerrainContentTypeMap = new()
+        {
+            [ContentType.Terrain.FIELD] = new ContentTypeIDPropertiesDTO(ContentType.Terrain.FIELD, typeof(FieldTerrain)),
+            [ContentType.Terrain.MOUNTAIN] = new ContentTypeIDPropertiesDTO(ContentType.Terrain.MOUNTAIN, typeof(MountainTerrain)),
+            [ContentType.Terrain.OCEAN] = new ContentTypeIDPropertiesDTO(ContentType.Terrain.OCEAN, typeof(OceanTerrain)),
+            [ContentType.Terrain.SHORE] = new ContentTypeIDPropertiesDTO(ContentType.Terrain.SHORE, typeof(ShoreTerrain)),
+        };
+
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="StructureContentTypeMap"/>.
+        /// </summary>
+        private static readonly Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> _defaultStructureContentTypeMap = new()
+        {
+            [ContentType.Structure.NONE] = new ContentTypeIDPropertiesDTO(ContentType.Structure.NONE, typeof(NoStructure)),
+            [ContentType.Structure.BANDIT_CAMP] = new ContentTypeIDPropertiesDTO(ContentType.Structure.BANDIT_CAMP, typeof(BanditCampStructure)),
+            [ContentType.Structure.VILLAGE] = new ContentTypeIDPropertiesDTO(ContentType.Structure.VILLAGE, typeof(VillageStructure)),
+            [ContentType.Structure.KINGDOM] = new ContentTypeIDPropertiesDTO(ContentType.Structure.KINGDOM, typeof(KingdomStructure)),
+        };
+
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="PopulationContentTypeMap"/>.
+        /// </summary>
+        private static readonly Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> _defaultPopulationContentTypeMap = new()
+        {
+            [ContentType.Population.NONE] = new ContentTypeIDPropertiesDTO(ContentType.Population.NONE, typeof(NoPopulation)),
+            [ContentType.Population.HUMAN] = new ContentTypeIDPropertiesDTO(ContentType.Population.HUMAN, typeof(HumanPopulation)),
+            [ContentType.Population.ELF] = new ContentTypeIDPropertiesDTO(ContentType.Population.ELF, typeof(ElfPopulation)),
+            [ContentType.Population.DWARF] = new ContentTypeIDPropertiesDTO(ContentType.Population.DWARF, typeof(DwarfPopulation)),
+            [ContentType.Population.DEMON] = new ContentTypeIDPropertiesDTO(ContentType.Population.DEMON, typeof(DemonPopulation)),
+        };
+        #endregion
+
+        #region Config dictionaries
+        /// <summary>
+        /// Offsets for tile noise values.
+        /// </summary>
+        internal static Dictionary<TileNoiseType, double> TileNoiseOffsets { get; set; }
+
+        /// <summary>
+        /// Dictionary to map terrain types to their ideal properties.
+        /// </summary>
+        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> TerrainContentTypePropertyMap { get; set; }
+
+        /// <summary>
+        /// Dictionary to map terrain types to their ideal properties.
+        /// </summary>
+        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> StructureContentTypePropertyMap { get; set; }
+
+        /// <summary>
+        /// Dictionary to map terrain types to their ideal properties.
+        /// </summary>
+        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> PopulationContentTypePropertyMap { get; set; }
 
         /// <summary>
         /// Dictionary to map content types to their property maps.
         /// </summary>
-        internal static readonly Dictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> _contentTypePropertyMap = new()
+        internal static readonly Dictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> contentTypePropertyMap = new()
         {
-            [typeof(TerrainContent)] = _terrainContentTypePropertyMap,
-            [typeof(StructureContent)] = _structureContentTypePropertyMap,
-            [typeof(PopulationContent)] = _populationContentTypePropertyMap,
+            [typeof(TerrainContent)] = null,
+            [typeof(StructureContent)] = null,
+            [typeof(PopulationContent)] = null,
         };
 
         /// <summary>
-        /// Dictionary to map terrain content types to their object type.
+        /// Dictionary to map base content types to their content properties.
         /// </summary>
-        internal static readonly Dictionary<ContentTypeID, Type> _terrainContentTypeMap = new()
+        internal static Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> BaseContentTypeMap { get; set; }
+
+        /// <summary>
+        /// Dictionary to map content types to their content subtype property maps.
+        /// </summary>
+        internal static readonly Dictionary<ContentTypeID, Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO>> contentTypeSubtypesMap = new()
         {
-            [ContentType.Terrain.FIELD] = typeof(FieldTerrain),
-            [ContentType.Terrain.MOUNTAIN] = typeof(MountainTerrain),
-            [ContentType.Terrain.OCEAN] = typeof(OceanTerrain),
-            [ContentType.Terrain.SHORE] = typeof(ShoreTerrain),
+            [ContentType.TERRAIN] = null,
+            [ContentType.STRUCTURE] = null,
+            [ContentType.POPULATION] = null,
         };
 
         /// <summary>
-        /// Dictionary to map structure content types to their object type.
+        /// Dictionary to map terrain content types to their type properties.
         /// </summary>
-        internal static readonly Dictionary<ContentTypeID, Type> _structureContentTypeMap = new()
-        {
-            [ContentType.Structure.NONE] = typeof(NoStructure),
-            [ContentType.Structure.BANDIT_CAMP] = typeof(BanditCampStructure),
-            [ContentType.Structure.VILLAGE] = typeof(VillageStructure),
-            [ContentType.Structure.KINGDOM] = typeof(KingdomStructure),
-        };
+        internal static Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> TerrainContentTypeMap { get; set; }
 
         /// <summary>
-        /// Dictionary to map population content types to their object type.
+        /// Dictionary to map structure content types to their type properties.
         /// </summary>
-        internal static readonly Dictionary<ContentTypeID, Type> _populationContentTypeMap = new()
-        {
-            [ContentType.Population.NONE] = typeof(NoPopulation),
-            [ContentType.Population.HUMAN] = typeof(HumanPopulation),
-            [ContentType.Population.ELF] = typeof(ElfPopulation),
-            [ContentType.Population.DWARF] = typeof(DwarfPopulation),
-            [ContentType.Population.DEMON] = typeof(DemonPopulation),
-        };
+        internal static Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> StructureContentTypeMap { get; set; }
 
         /// <summary>
-        /// Dictionary to map content types to their object type maps.
+        /// Dictionary to map population content types to their type properties.
         /// </summary>
-        internal static readonly Dictionary<Type, Dictionary<ContentTypeID, Type>> contentTypeMap = new()
-        {
-            [typeof(TerrainContent)] = _terrainContentTypeMap,
-            [typeof(StructureContent)] = _structureContentTypeMap,
-            [typeof(PopulationContent)] = _populationContentTypeMap,
-        };
+        internal static Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO> PopulationContentTypeMap { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Dictionary to map terrain content types to their text representation.
-        /// </summary>
-        internal static readonly Dictionary<ContentTypeID, string> terrainContentTypeIDTextMap = new()
+        #region Constructors
+        static WorldUtils()
         {
-            [ContentType.Terrain.FIELD] = "field",
-            [ContentType.Terrain.MOUNTAIN] = "mountain",
-            [ContentType.Terrain.OCEAN] = "ocean",
-            [ContentType.Terrain.SHORE] = "shore",
-        };
-
-        /// <summary>
-        /// Dictionary to map structure content types to their text representation.
-        /// </summary>
-        internal static readonly Dictionary<ContentTypeID, string> structureContentSubtypeIDTextMap = new()
-        {
-            [ContentType.Structure.NONE] = "none",
-            [ContentType.Structure.BANDIT_CAMP] = "bandit_camp",
-            [ContentType.Structure.VILLAGE] = "village",
-            [ContentType.Structure.KINGDOM] = "kingdom",
-        };
-
-        /// <summary>
-        /// Dictionary to map population content types to their text representation.
-        /// </summary>
-        internal static readonly Dictionary<ContentTypeID, string> populationContentSubtypeIDTextMap = new()
-        {
-            [ContentType.Population.NONE] = "none",
-            [ContentType.Population.HUMAN] = "human",
-            [ContentType.Population.ELF] = "elf",
-            [ContentType.Population.DWARF] = "dwarf",
-            [ContentType.Population.DEMON] = "demon",
-        };
-
-        /// <summary>
-        /// Dictionary to map content types to their text representation.
-        /// </summary>
-        internal static readonly Dictionary<ContentTypeID, string> contentTypeIDTextMap = new()
-        {
-            [ContentType.TerrainContentType] = "terrain",
-            [ContentType.StructureContentType] = "content",
-            [ContentType.PopulationContentType] = "population",
-        };
-
-        /// <summary>
-        /// Dictionary to map content types to their content subtype text maps.
-        /// </summary>
-        internal static readonly Dictionary<ContentTypeID, Dictionary<ContentTypeID, string>> contentTypeIDSubtypeTextMap = new()
-        {
-            [ContentType.TerrainContentType] = terrainContentTypeIDTextMap,
-            [ContentType.StructureContentType] = structureContentSubtypeIDTextMap,
-            [ContentType.PopulationContentType] = populationContentSubtypeIDTextMap,
-        };
+            LoadDefaultConfigs();
+        }
         #endregion
 
         #region Public functions
+        #region Configs
+        private static void UpdateNonConfigDicts()
+        {
+            contentTypeSubtypesMap[ContentType.TERRAIN] = TerrainContentTypeMap;
+            contentTypeSubtypesMap[ContentType.STRUCTURE] = StructureContentTypeMap;
+            contentTypeSubtypesMap[ContentType.POPULATION] = PopulationContentTypeMap;
+
+            contentTypePropertyMap[typeof(TerrainContent)] = TerrainContentTypePropertyMap;
+            contentTypePropertyMap[typeof(StructureContent)] = StructureContentTypePropertyMap;
+            contentTypePropertyMap[typeof(PopulationContent)] = PopulationContentTypePropertyMap;
+        }
+
+        /// <summary>
+        /// Resets all variables that come from configs.
+        /// </summary>
+        public static void LoadDefaultConfigs()
+        {
+            TileNoiseOffsets = _defaultTileNoiseOffsets;
+            TerrainContentTypePropertyMap = _defaultTerrainContentTypePropertyMap;
+            StructureContentTypePropertyMap = _defaultStructureContentTypePropertyMap;
+            PopulationContentTypePropertyMap = _defaultPopulationContentTypePropertyMap;
+            BaseContentTypeMap = _baseContentTypeMap;
+            TerrainContentTypeMap = _defaultTerrainContentTypeMap;
+            StructureContentTypeMap = _defaultStructureContentTypeMap;
+            PopulationContentTypeMap = _defaultPopulationContentTypeMap;
+            UpdateNonConfigDicts();
+        }
+
+        /// <summary>
+        /// Resets all config files to their default states.
+        /// </summary>
+        public static void WriteDefaultConfigs()
+        {
+            ConfigManager.Instance.SetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
+
+            ConfigManager.Instance.SetConfig(
+                "terrain_content_type_property_map",
+                "v.1",
+                _defaultTerrainContentTypePropertyMap,
+                key => key.FullName ?? ""
+            );
+
+            ConfigManager.Instance.SetConfig(
+                "structure_content_type_property_map",
+                "v.1",
+                _defaultStructureContentTypePropertyMap,
+                key => key.FullName ?? ""
+            );
+
+            ConfigManager.Instance.SetConfig(
+                "population_content_type_property_map",
+                "v.1",
+                _defaultPopulationContentTypePropertyMap,
+                key => key.FullName ?? ""
+            );
+
+            ConfigManager.Instance.SetConfig(
+                "base_content_type_map",
+                "v.1",
+                _baseContentTypeMap,
+                key => key.ToString()!
+            );
+
+            ConfigManager.Instance.SetConfig(
+                "terrain_content_type_map",
+                "v.1",
+                _defaultTerrainContentTypeMap,
+                key => key.ToString()!
+            );
+
+            ConfigManager.Instance.SetConfig(
+                "structure_content_type_map",
+                "v.1",
+                _defaultStructureContentTypeMap,
+                key => key.ToString()!
+            );
+
+            ConfigManager.Instance.SetConfig(
+                "population_content_type_map",
+                "v.1",
+                _defaultPopulationContentTypeMap,
+                key => key.ToString()!
+            );
+        }
+
+        /// <summary>
+        /// Reloads all values that come from configs.
+        /// </summary>
+        public static void ReloadConfigs()
+        {
+            TileNoiseOffsets = 
+                ConfigManager.Instance.TryGetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
+
+            TerrainContentTypePropertyMap = 
+                ConfigManager.Instance.TryGetConfig(
+                    "terrain_content_type_property_map",
+                    "v.1",
+                    _defaultTerrainContentTypePropertyMap,
+                    key => key.FullName ?? "",
+                    key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
+                );
+
+            StructureContentTypePropertyMap = 
+                ConfigManager.Instance.TryGetConfig(
+                    "structure_content_type_property_map",
+                    "v.1",
+                    _defaultStructureContentTypePropertyMap,
+                    key => key.FullName ?? "",
+                    key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
+                );
+
+            PopulationContentTypePropertyMap = 
+                ConfigManager.Instance.TryGetConfig(
+                    "population_content_type_property_map",
+                    "v.1",
+                    _defaultPopulationContentTypePropertyMap,
+                    key => key.FullName ?? "",
+                    key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
+                );
+
+            BaseContentTypeMap =
+                ConfigManager.Instance.TryGetConfig(
+                    "base_content_type_map",
+                    "v.1",
+                    _baseContentTypeMap,
+                    key => key.ToString()!,
+                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
+                );
+
+            TerrainContentTypeMap = 
+                ConfigManager.Instance.TryGetConfig(
+                    "terrain_content_type_map",
+                    "v.1",
+                    _defaultTerrainContentTypeMap,
+                    key => key.ToString()!,
+                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
+                );
+
+            StructureContentTypeMap = 
+                ConfigManager.Instance.TryGetConfig(
+                    "structure_content_type_map",
+                    "v.1",
+                    _defaultStructureContentTypeMap,
+                    key => key.ToString()!,
+                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
+                );
+
+            PopulationContentTypeMap = 
+                ConfigManager.Instance.TryGetConfig(
+                    "population_content_type_map",
+                    "v.1",
+                    _defaultPopulationContentTypeMap,
+                    key => key.ToString()!,
+                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
+                );
+
+            UpdateNonConfigDicts();
+        }
+        #endregion
+
         /// <summary>
         /// Calculates the noise values for each perlin noise generator at a specific point, and normalises it between 0 and 1.
         /// </summary>
@@ -263,7 +458,7 @@ namespace ProgressAdventure.WorldManagement
         {
             foreach (var key in noiseValues.Keys)
             {
-                noiseValues[key] += _tileNoiseOffsets[key];
+                noiseValues[key] += TileNoiseOffsets[key];
             }
         }
 
@@ -279,8 +474,8 @@ namespace ProgressAdventure.WorldManagement
         {
             noStructureDLOverride ??= noStructureDifferenceLimit;
             noPopulationDLOverride ??= noPopulationDifferenceLimit;
-            var contentProperties = _contentTypePropertyMap[typeof(T)];
-            Type minDiffContentType = contentProperties.Keys.First();
+            var contentProperties = contentTypePropertyMap[typeof(T)];
+            var minDiffContentType = contentProperties.Keys.First();
             var minDiff = 1000000.0;
             foreach (var propertyEntry in contentProperties)
             {
@@ -303,11 +498,11 @@ namespace ProgressAdventure.WorldManagement
                 }
             }
             // no content if difference is too big
-            if (contentProperties == _structureContentTypePropertyMap && minDiff >= noStructureDLOverride)
+            if (contentProperties == StructureContentTypePropertyMap && minDiff >= noStructureDLOverride)
             {
                 minDiffContentType = typeof(NoStructure);
             }
-            else if (contentProperties == _populationContentTypePropertyMap && minDiff >= noPopulationDLOverride)
+            else if (contentProperties == PopulationContentTypePropertyMap && minDiff >= noPopulationDLOverride)
             {
                 minDiffContentType = typeof(NoPopulation);
             }
@@ -358,19 +553,21 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Returs the content type, if the string is the ttring representation of a content subtype.
+        /// Returs the content properties, if the string is the ttring representation of a content subtype.
         /// </summary>
         /// <param name="parrentContentType">The parrent content type ID.</param>
         /// <param name="contentSubtypeString">The string representation of the subtype content.</param>
-        public static ContentTypeID? ToContentType(ContentTypeID parrentContentType, string? contentSubtypeString)
+        public static ContentTypeIDPropertiesDTO? ToContentTypeProperties(ContentTypeID parrentContentType, string? contentSubtypeString)
         {
             if (
                 contentSubtypeString is not null &&
-                contentTypeIDSubtypeTextMap.TryGetValue(parrentContentType, out Dictionary<ContentTypeID, string>? subtypeTextMap) &&
-                subtypeTextMap.ContainsValue(contentSubtypeString)
+                contentTypeSubtypesMap.TryGetValue(parrentContentType, out Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO>? subtypePropertesMap) &&
+                subtypePropertesMap.FirstOrDefault(subtypeMap => subtypeMap.Value.typeName == contentSubtypeString)
+                    is KeyValuePair<ContentTypeID, ContentTypeIDPropertiesDTO> contentProperties &&
+                contentProperties.Value is not null
             )
             {
-                return subtypeTextMap.First(subtype => subtype.Value == contentSubtypeString).Key;
+                return contentProperties.Value;
             }
             return null;
         }
@@ -388,14 +585,97 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Tries to convert the string representation of the subtype content to a content ID, and returns the success.
+        /// Tries to convert the string representation of the subtype content to content properties, and returns the success.
         /// </summary>
         /// <param name="parrentContentType">The parrent content type ID.</param>
         /// <param name="contentSubtypeString">The string representation of the subtype content.</param>
-        /// <param name="contentType">The resulting content, or a default content.</param>
-        public static bool TryParseContentType(ContentTypeID parrentContentType, string? contentSubtypeString, out ContentTypeID contentType)
+        /// <param name="contentProperties">The resulting content properties.</param>
+        public static bool TryParseContentType(
+            ContentTypeID parrentContentType,
+            string? contentSubtypeString,
+            [NotNullWhen(true)] out ContentTypeIDPropertiesDTO? contentProperties
+        )
         {
-            var resultContent = ToContentType(parrentContentType, contentSubtypeString);
+            contentProperties = ToContentTypeProperties(parrentContentType, contentSubtypeString);
+            return contentProperties is not null;
+        }
+
+        /// <summary>
+        /// Returs the content type, if the content name is a name for a content type.
+        /// </summary>
+        /// <param name="contentTypeRealName">The real name of the content.</param>
+        public static ContentTypeID? ParseContentTypeFromRealName(string? contentTypeRealName)
+        {
+            if (string.IsNullOrWhiteSpace(contentTypeRealName))
+            {
+                return null;
+            }
+            var resultContent = GetAllContentTypes().FirstOrDefault(content => content.ToString() == contentTypeRealName);
+            return resultContent == default ? null : resultContent;
+        }
+
+        /// <summary>
+        /// Converts the content type ID, to it's default type name.
+        /// </summary>
+        /// <param name="contentTypeID">The content type ID.</param>
+        public static string ContentIDToTypeName(ContentTypeID contentTypeID)
+        {
+            var modifiedPath = new StringBuilder();
+            var name = contentTypeID.ToString();
+            if (name is null || !TryParseContentType(contentTypeID.mID, out _))
+            {
+                PACSingletons.Instance.Logger.Log("Unknown content type", $"ID: {contentTypeID.mID}", LogSeverity.ERROR);
+                return "[UNKNOWN CONTENT TYPE]";
+            }
+
+            var actualNamePath = name.Split(nameof(ContentType) + ".").Last();
+            var pathParts = actualNamePath.Split('.');
+            for (var x = 0; x < pathParts.Length - 1; x++)
+            {
+                var pathPart = pathParts[x];
+                var modifiedPathPart = new StringBuilder();
+                for (var y = 0; y < pathPart.Length; y++)
+                {
+                    if (y != 0 && char.IsUpper(pathPart[y]))
+                    {
+                        modifiedPathPart.Append('_');
+                    }
+                    modifiedPathPart.Append(pathPart[y]);
+                }
+                modifiedPath.Append(modifiedPathPart + "/");
+            }
+
+            modifiedPath.Append(pathParts.Last());
+            var modifiedPathStr = modifiedPath.ToString().ToLower();
+            return string.IsNullOrWhiteSpace(modifiedPathStr) ? "[UNKNOWN CONTENT TYPE]" : modifiedPathStr;
+        }
+
+        /// <summary>
+        /// Converts the string representation of the content's type to a content ID.
+        /// </summary>
+        /// <param name="contentTypeName">The string representation of the content's type.</param>
+        public static ContentTypeID? ParseContentType(string? contentTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(contentTypeName))
+            {
+                return null;
+            }
+            var properties = BaseContentTypeMap
+                .Select(t => t)
+                .ToList();
+            properties.AddRange(contentTypeSubtypesMap.SelectMany(s => s.Value.Select(t => t)));
+            var resultContent = properties.FirstOrDefault(contentAttribute => contentAttribute.Value.typeName == contentTypeName).Key;
+            return resultContent == default ? null : resultContent;
+        }
+
+        /// <summary>
+        /// Tries to convert the string representation of the content's type to a content ID, and returns the success.
+        /// </summary>
+        /// <param name="contentTypeName">The string representation of the content's type.</param>
+        /// <param name="contentType">The resulting content, or a default content.</param>
+        public static bool TryParseContentType(string? contentTypeName, out ContentTypeID contentType)
+        {
+            var resultContent = ParseContentType(contentTypeName);
             contentType = resultContent ?? ContentType.Terrain.FIELD;
             return resultContent is not null;
         }

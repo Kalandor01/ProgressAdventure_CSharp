@@ -561,6 +561,40 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Gets an internal property from a non-static class.
+        /// </summary>
+        /// <typeparam name="T">The type of the internal property.</typeparam>
+        /// <typeparam name="TClass">The type of the class to get the property from.</typeparam>
+        /// <param name="propertyName">The name of the internal property.</param>
+        /// <param name="instance">The instance to get the property from.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the property is null.</exception>
+        public static T GetInternalPropertyFromNonStaticClass<T, TClass>(TClass instance, string propertyName)
+            where TClass : class
+        {
+            return GetInternalPropertyValueFromClass<T>(instance.GetType(), propertyName, instance);
+        }
+
+        /// <summary>
+        /// Gets an internal property from a static class.
+        /// </summary>
+        /// <typeparam name="T">The type of the internal property.</typeparam>
+        /// <param name="classType">The type of the static class to get the property from.</param>
+        /// <param name="propertyName">The name of the internal property.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the property is null.</exception>
+        /// <exception cref="ArgumentException">Thrown if the class is not a static class.</exception>
+        public static T GetInternalPropertyFromStaticClass<T>(Type classType, string propertyName)
+        {
+            if (
+                !classType.IsAbstract ||
+                !classType.IsSealed
+            )
+            {
+                throw new ArgumentException("The class is not a static class.", nameof(classType));
+            }
+            return GetInternalPropertyValueFromClass<T>(classType, propertyName);
+        }
+
+        /// <summary>
         /// Searches for all public static fields in a (static) class, and all of its nested (public static) classes, and returns their values.<br/>
         /// (Normaly used for getting all types of a nested enum type. (ItemTypeID, ContentTypeID))
         /// </summary>
@@ -614,6 +648,24 @@ namespace PACommon
             ofn.lpstrTitle = windowTitle;
             return GetOpenFileName(ref ofn) ? ofn.lpstrFile : null;
         }
+
+        /// <summary>
+        /// Returns the type from it's full name.
+        /// </summary>
+        /// <param name="typeName">The full name of the type.</param>
+        public static Type? GetTypeFromName(string typeName)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var type = assembly.GetType(typeName);
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+
+            return null;
+        }
         #endregion
 
         #region Private functions
@@ -622,7 +674,7 @@ namespace PACommon
         /// </summary>
         /// <typeparam name="T">The type of the internal field.</typeparam>
         /// <param name="fieldName">The name of the internal field.</param>
-        /// <param name="instance">The instance to get the field from. If null, it assumes, that the class in a static class.</param>
+        /// <param name="instance">The instance to get the field from. If null, it assumes, that the class is a static class.</param>
         /// <exception cref="ArgumentNullException">Thrown if the field doesn't exist.</exception>
         private static T GetInternalFieldFromClass<T>(Type classType, string fieldName, object? instance = null)
         {
@@ -632,7 +684,27 @@ namespace PACommon
                 field.GetValue(instance) is not T value
             )
             {
-                throw new ArgumentNullException(nameof(field), "The internal filed doesn't exist.");
+                throw new ArgumentNullException(nameof(fieldName), "The internal filed doesn't exist.");
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Gets an internal property from a class.
+        /// </summary>
+        /// <typeparam name="T">The type of the internal property.</typeparam>
+        /// <param name="propertyName">The name of the internal property.</param>
+        /// <param name="instance">The instance to get the property from. If null, it assumes, that the class is a static class.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the property doesn't exist.</exception>
+        private static T GetInternalPropertyValueFromClass<T>(Type classType, string propertyName, object? instance = null)
+        {
+            var property = classType?.GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Static);
+            if (
+                property is null ||
+                property.GetValue(instance) is not T value
+            )
+            {
+                throw new ArgumentNullException(nameof(propertyName), "The internal property doesn't exist.");
             }
             return value;
         }

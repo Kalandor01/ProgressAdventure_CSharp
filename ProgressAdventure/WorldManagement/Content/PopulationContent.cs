@@ -19,7 +19,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, JsonDictionary?)"/>
         protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, JsonDictionary? data = null)
-            : base(chunkRandom, ContentType.PopulationContentType, subtype, name, data)
+            : base(chunkRandom, ContentType.POPULATION, subtype, name, data)
         {
             amount = GetLongValueFromData<PopulationContent>(this.chunkRandom, Constants.JsonKeys.PopulationContent.AMOUNT, data, (1, 1000));
         }
@@ -64,10 +64,10 @@ namespace ProgressAdventure.WorldManagement.Content
             return populationJson;
         }
 
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, JsonDictionary?, string, out T)"/>
+        /// <inheritdoc cref="BaseContent.FromJson{T}(SplittableRandom, JsonDictionary?, string, out T)"/>
         public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, out PopulationContent? contentObject)
         {
-            return LoadContent(chunkRandom, contentJson, fileVersion, out contentObject);
+            return BaseContent.FromJson(chunkRandom, contentJson, fileVersion, out contentObject);
         }
         #endregion
     }

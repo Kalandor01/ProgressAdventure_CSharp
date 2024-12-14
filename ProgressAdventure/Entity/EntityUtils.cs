@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Diagnostics;
 using Attribute = ProgressAdventure.Enums.Attribute;
@@ -12,11 +13,23 @@ namespace ProgressAdventure.Entity
     /// </summary>
     public static class EntityUtils
     {
-        #region Config dictionaries
+        #region Default config dicts
         /// <summary>
-        /// The dictionary pairing up facing types, to their vector equivalents.
+        /// The default value for the config used for the value of <see cref="EntityTypeMap"/>.
         /// </summary>
-        internal static readonly Dictionary<Facing, (int x, int y)> facingToMovementVectorMap = new()
+        private static readonly Dictionary<string, Type> _defaultEntityTypeMap = new()
+        {
+            ["player"] = typeof(Player),
+            ["caveman"] = typeof(Caveman),
+            ["ghoul"] = typeof(Ghoul),
+            ["troll"] = typeof(Troll),
+            ["dragon"] = typeof(Dragon),
+        };
+
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="FacingToMovementVectorMap"/>.
+        /// </summary>
+        private static readonly Dictionary<Facing, (int x, int y)> _defaultFacingToMovementVectorMap = new()
         {
             [Facing.NORTH] = (0, 1),
             [Facing.SOUTH] = (0, -1),
@@ -29,21 +42,9 @@ namespace ProgressAdventure.Entity
         };
 
         /// <summary>
-        /// The dictionary pairing up entity type strings, to entity types.
+        /// The default value for the config used for the value of <see cref="AttributeStatChangeMap"/>.
         /// </summary>
-        internal static readonly Dictionary<string, Type> entityTypeMap = new()
-        {
-            ["player"] = typeof(Player),
-            ["caveman"] = typeof(Caveman),
-            ["ghoul"] = typeof(Ghoul),
-            ["troll"] = typeof(Troll),
-            ["dragon"] = typeof(Dragon),
-        };
-
-        /// <summary>
-        /// The dictionary pairing up attribute types, to stat modifiers.
-        /// </summary>
-        internal static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double agility)> attributeStatChangeMap = new()
+        private static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double agility)> _defaultAttributeStatChangeMap = new()
         {
             [Attribute.RARE] = (2, 2, 2, 2),
             [Attribute.CRIPPLED] = (0.5, 0.5, 0.5, 0.5),
@@ -58,7 +59,110 @@ namespace ProgressAdventure.Entity
         };
         #endregion
 
+        #region Config dictionaries
+        /// <summary>
+        /// The dictionary pairing up entity type strings, to entity types.
+        /// </summary>
+        internal static Dictionary<string, Type> EntityTypeMap { get; private set; }
+
+        /// <summary>
+        /// The dictionary pairing up facing types, to their vector equivalents.
+        /// </summary>
+        internal static Dictionary<Facing, (int x, int y)> FacingToMovementVectorMap { get; private set; }
+
+        /// <summary>
+        /// The dictionary pairing up attribute types, to stat modifiers.
+        /// </summary>
+        internal static Dictionary<Attribute, (double maxHp, double attack, double defence, double agility)> AttributeStatChangeMap { get; private set; }
+        #endregion
+
+        #region Constructors
+        static EntityUtils()
+        {
+            LoadDefaultConfigs();
+        }
+        #endregion
+
         #region Public fuctions
+        #region Configs
+        /// <summary>
+        /// Resets all variables that come from configs.
+        /// </summary>
+        public static void LoadDefaultConfigs()
+        {
+            EntityTypeMap = _defaultEntityTypeMap;
+            FacingToMovementVectorMap = _defaultFacingToMovementVectorMap;
+            AttributeStatChangeMap = _defaultAttributeStatChangeMap;
+        }
+
+        /// <summary>
+        /// Resets all config files to their default states.
+        /// </summary>
+        public static void WriteDefaultConfigs()
+        {
+            ConfigManager.Instance.SetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
+            ConfigManager.Instance.SetConfig(
+                "facing_to_movement_vector_map",
+                "v.1",
+                _defaultFacingToMovementVectorMap,
+                move => new Dictionary<string, int>
+                {
+                    [nameof(move.x)] = move.x,
+                    [nameof(move.y)] = move.y,
+                }
+            );
+            ConfigManager.Instance.SetConfig(
+                "attribute_stat_change_map",
+                "v.1",
+                _defaultAttributeStatChangeMap,
+                stats => new Dictionary<string, double>
+                {
+                    [nameof(stats.maxHp)] = stats.maxHp,
+                    [nameof(stats.attack)] = stats.attack,
+                    [nameof(stats.defence)] = stats.defence,
+                    [nameof(stats.agility)] = stats.agility,
+                }
+            );
+        }
+
+        /// <summary>
+        /// Reloads all values that come from configs.
+        /// </summary>
+        public static void ReloadConfigs()
+        {
+            EntityTypeMap =
+                ConfigManager.Instance.TryGetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
+
+            FacingToMovementVectorMap =
+                ConfigManager.Instance.TryGetConfig(
+                    "facing_to_movement_vector_map",
+                    "v.1",
+                    _defaultFacingToMovementVectorMap,
+                    move => new Dictionary<string, int>
+                    {
+                        [nameof(move.x)] = move.x,
+                        [nameof(move.y)] = move.y,
+                    },
+                    move => (move["x"], move["y"])
+                );
+
+            AttributeStatChangeMap =
+                ConfigManager.Instance.TryGetConfig(
+                    "attribute_stat_change_map",
+                    "v.1",
+                    _defaultAttributeStatChangeMap,
+                    stats => new Dictionary<string, double>
+                    {
+                        [nameof(stats.maxHp)] = stats.maxHp,
+                        [nameof(stats.attack)] = stats.attack,
+                        [nameof(stats.defence)] = stats.defence,
+                        [nameof(stats.agility)] = stats.agility,
+                    },
+                    stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"])
+                );
+        }
+        #endregion
+
         /// <summary>
         /// Function to create the stats for an entity object.<br/>
         /// All values calculated from ranges will be calcualted with a trangular distribution. 
@@ -192,7 +296,7 @@ namespace ProgressAdventure.Entity
         /// <param name="entity">The entity.</param>
         public static string? GetEntityTypeName(Entity entity)
         {
-            foreach (var entityType in entityTypeMap)
+            foreach (var entityType in EntityTypeMap)
             {
                 if (entityType.Value == entity.GetType())
                 {
@@ -234,9 +338,9 @@ namespace ProgressAdventure.Entity
         /// <param name="vector">The movement vector.</param>
         public static Facing? MovementVectorToFacing((int x, int y) vector)
         {
-            if (facingToMovementVectorMap.ContainsValue(vector))
+            if (FacingToMovementVectorMap.ContainsValue(vector))
             {
-                return facingToMovementVectorMap.First(facing => facing.Value == vector).Key;
+                return FacingToMovementVectorMap.First(facing => facing.Value == vector).Key;
             }
             return null;
         }
@@ -248,7 +352,7 @@ namespace ProgressAdventure.Entity
         /// <param name="angle">The angle to rotate by.</param>
         public static Facing? RotateFacing(Facing facing, double angle)
         {
-            var facingVector = facingToMovementVectorMap[facing];
+            var facingVector = FacingToMovementVectorMap[facing];
 
             var radian = -1 * angle * (Math.PI / 180);
 

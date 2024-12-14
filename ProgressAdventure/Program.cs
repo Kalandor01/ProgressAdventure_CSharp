@@ -26,6 +26,7 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
+            MenuManager.MainMenu();
             //Settings.UpdateLoggingLevel(0);
 
             //SaveManager.CreateSaveData("test", "me");
@@ -70,7 +71,7 @@ namespace ProgressAdventure
             var recipeElements = new List<BaseUI?> { new Toggle() };
 
             var menu = new OptionsUI(recipeElements, "Crafting", scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2));
-            
+
             CalculateCraftables(menu, recipeElements, inventory);
 
             menu.Display();
@@ -98,7 +99,8 @@ namespace ProgressAdventure
                     recipeElements.Add(new TextField(
                         recipeAmount.ToString(),
                         rawText,
-                        textValidatorFunction: (inputValue) => {
+                        textValidatorFunction: (inputValue) =>
+                        {
                             if (!int.TryParse(inputValue, out var amount))
                             {
                                 return (TextFieldValidatorStatus.RETRY, null);
@@ -106,9 +108,10 @@ namespace ProgressAdventure
                             var success = CraftItem(itemRecipe.Key, inventory, recipeElements, recipe, menu, amount);
                             return (success ? TextFieldValidatorStatus.VALID : TextFieldValidatorStatus.INVALID, null);
                         },
-                        keyValidatorFunction: (value, key, pos) => {
+                        keyValidatorFunction: (value, key, pos) =>
+                        {
                             var good = uint.TryParse(PACTools.GetNewValueForKeyValidatorDelegate(value, key, pos), out var amount) && amount > 0;
-                                
+
                             return good;
                         },
                         overrideDefaultKeyValidatorFunction: false
@@ -180,7 +183,7 @@ namespace ProgressAdventure
                 Constants.CONFIG_EXT
             );
 
-            Tools.PreloadResources();
+            Tools.ReloadConfigs();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 

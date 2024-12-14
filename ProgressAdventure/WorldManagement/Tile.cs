@@ -2,6 +2,7 @@
 using PACommon;
 using PACommon.JsonUtils;
 using ProgressAdventure.WorldManagement.Content;
+using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement
@@ -168,12 +169,29 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="tileJson">The json representation of the tile.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="tileObject">The object representation of the json.</param>
-        public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary tileJson, string fileVersion, out Tile? tileObject)
+        public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary? tileJson, string fileVersion, [NotNullWhen(true)] out Tile? tileObject)
         {
+            tileObject = default;
+            if (tileJson is null)
+            {
+                PACTools.LogJsonNullError<Tile>(typeof(Tile).ToString(), isError: true);
+                return false;
+            }
+
             PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(tileJson, VersionCorrecters, fileVersion);
 
-            tileObject = null;
+            return FromJsonWithoutCorrection(chunkRandom, tileJson, fileVersion, ref tileObject);
+        }
 
+        /// <summary>
+        /// Tries to convert the json representation of the tile into a tile object, and returns if it was succesful without any warnings.
+        /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
+        /// <param name="tileJson">The json representation of the tile.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="tileObject">The object representation of the json.</param>
+        private static bool FromJsonWithoutCorrection(SplittableRandom chunkRandom, JsonDictionary tileJson, string fileVersion, ref Tile? tileObject)
+        {
             if (!(
                 PACTools.TryParseJsonValue<Tile, long>(tileJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
                 PACTools.TryParseJsonValue<Tile, long>(tileJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)

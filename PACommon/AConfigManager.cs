@@ -92,7 +92,7 @@ namespace PACommon
                 expectedVersion == configVersionStr
             ))
             {
-                throw new Exception($"Incorrect config file version in \"{safeFilePath}\" ({expectedVersion} => {configVersion?.ToString() ?? "[NULL]"}).");
+                throw new FormatException($"Incorrect config file version in \"{safeFilePath}\" ({expectedVersion} => {configVersion?.ToString() ?? "[NULL]"}).");
             }
             return configData;
         }
@@ -108,12 +108,51 @@ namespace PACommon
         /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
         /// <exception cref="ArgumentNullException">Thrown if the deserialized config object, or it's converted version is null.</exception>
-        public Dictionary<TK, TV> GetConfig<TK, TV>(string configName, string? expectedVersion, Func<string, TK> deserializeDictionaryKeys)
+        public Dictionary<TK, TV> GetConfig<TK, TV>(
+            string configName,
+            string? expectedVersion,
+            Func<string, TK> deserializeDictionaryKeys
+        )
             where TK : notnull
         {
             var tempResult = GetConfig<IDictionary<string, TV>>(configName, expectedVersion);
             return tempResult?.ToDictionary(key => deserializeDictionaryKeys(key.Key), value => value.Value)
                 ?? throw new ArgumentNullException("The deserialized config is null!", nameof(tempResult));
+        }
+
+        /// <summary>
+        /// Gets the value of an object from a config file.<br/>
+        /// For config objects, where the type of the object is a dictionary, where the keys are not deserializable.
+        /// </summary>
+        /// <typeparam name="TK">The type of the keys in the resulting dictionary.</typeparam>
+        /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
+        /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
+        /// <param name="configName">The name of the config file.</param>
+        /// <param name="expectedVersion">The expected version of the config json.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
+        /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
+        /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the deserialized config object, or it's converted version is null.</exception>
+        public Dictionary<TK, TV> GetConfig<TK, TV, TVC>(
+            string configName,
+            string? expectedVersion,
+            Func<TVC, TV> deserializeDictionaryValues,
+            Func<string, TK>? deserializeDictionaryKeys = null
+        )
+            where TK : notnull
+        {
+            if (deserializeDictionaryKeys is null)
+            {
+                var tempResult = GetConfig<IDictionary<TK, TVC>>(configName, expectedVersion)
+                    ?? throw new ArgumentNullException("The deserialized config is null!");
+                return tempResult.ToDictionary(key => key.Key, value => deserializeDictionaryValues(value.Value));
+            }
+            else
+            {
+                var tempResult = GetConfig<IDictionary<string, TVC>>(configName, expectedVersion)
+                    ?? throw new ArgumentNullException("The deserialized config is null!");
+                return tempResult.ToDictionary(key => deserializeDictionaryKeys(key.Key), value => deserializeDictionaryValues(value.Value));
+            }
         }
 
         /// <summary>
@@ -130,12 +169,17 @@ namespace PACommon
             {
                 return GetConfig<T>(configName, expectedVersion);
             }
+            catch (FileNotFoundException)
+            {
+                var relativePath = Path.GetRelativePath(Constants.ROOT_FOLDER, Path.Join(_configsFolderPath, $"{configName}.{_configExtension}"));
+                PACSingletons.Instance.Logger.Log("Config file error", $"File not found: \"{relativePath}\"", LogSeverity.WARN);
+            }
             catch (Exception e)
             {
                 PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
-                SetConfig(configName, expectedVersion, defaultContent);
-                return GetConfig<T>(configName, expectedVersion);
             }
+            SetConfig(configName, expectedVersion, defaultContent);
+            return GetConfig<T>(configName, expectedVersion);
         }
 
         /// <summary>
@@ -163,12 +207,60 @@ namespace PACommon
             {
                 return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
             }
+            catch (FileNotFoundException)
+            {
+                var relativePath = Path.GetRelativePath(Constants.ROOT_FOLDER, Path.Join(_configsFolderPath, $"{configName}.{_configExtension}"));
+                PACSingletons.Instance.Logger.Log("Config file error", $"File not found: \"{relativePath}\"", LogSeverity.WARN);
+            }
             catch (Exception e)
             {
                 PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
-                SetConfig(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
-                return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
             }
+            SetConfig(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
+            return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
+        }
+
+        /// <summary>
+        /// Tries to get the value of a config object, and if it doesn't work, it recreates the config file from the default value, and tries again.<br/>
+        /// For config objects, where the type of the object is a dictionary, where the keys are not deserializable.
+        /// </summary>
+        /// <typeparam name="TK">The type of the keys in the resulting dictionary.</typeparam>
+        /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
+        /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
+        /// <param name="configName">The name of the config file.</param>
+        /// <param name="expectedVersion">The expected version of the config json.<br/>
+        /// If not null, and the version in the file is not the same, it will regenerate the config file.</param>
+        /// <param name="defaultContent">The default config object value.</param>
+        /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
+        /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
+        /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
+        /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
+        public Dictionary<TK, TV> TryGetConfig<TK, TV, TVC>(
+            string configName,
+            string? expectedVersion,
+            IDictionary<TK, TV> defaultContent,
+            Func<TV, TVC> serializeDictionaryValues,
+            Func<TVC, TV> deserializeDictionaryValues,
+            Func<TK, string>? serializeDictionaryKeys = null,
+            Func<string, TK>? deserializeDictionaryKeys = null
+        )
+            where TK : notnull
+        {
+            try
+            {
+                return GetConfig(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys);
+            }
+            catch (FileNotFoundException)
+            {
+                var relativePath = Path.GetRelativePath(Constants.ROOT_FOLDER, Path.Join(_configsFolderPath, $"{configName}.{_configExtension}"));
+                PACSingletons.Instance.Logger.Log("Config file error", $"File not found: \"{relativePath}\"", LogSeverity.WARN);
+            }
+            catch (Exception e)
+            {
+                PACSingletons.Instance.Logger.Log("Config file error", e.ToString(), LogSeverity.WARN);
+            }
+            SetConfig(configName, expectedVersion, defaultContent, serializeDictionaryValues, serializeDictionaryKeys);
+            return GetConfig(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys);
         }
 
         /// <summary>
@@ -213,8 +305,47 @@ namespace PACommon
         )
             where TK : notnull
         {
-            var tempconfigData = configData.ToDictionary(key => serializeDictionaryKeys(key.Key), value => value.Value);
-            SetConfig(configName, configVersion, tempconfigData);
+            var tempConfigData = configData.ToDictionary(key => serializeDictionaryKeys(key.Key), value => value.Value);
+            SetConfig(configName, configVersion, tempConfigData);
+        }
+
+        /// <summary>
+        /// Sets the value of an object in a config file.<br/>
+        /// For config objects, where the type of the object is a dictionary, where the keys are not serializable.
+        /// </summary>
+        /// <typeparam name="TK">The type of the keys in the config data.</typeparam>
+        /// <typeparam name="TV">The type of the values in the config data.</typeparam>
+        /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
+        /// <param name="configName">The name of the config file.</param>
+        /// <param name="configVersion">The version of the config json.</param>
+        /// <param name="configData">The object to put into the config file.</param>
+        /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
+        /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
+        public void SetConfig<TK, TV, TVC>(
+            string configName,
+            string? configVersion,
+            IDictionary<TK, TV> configData,
+            Func<TV, TVC> serializeDictionaryValues,
+            Func<TK, string>? serializeDictionaryKeys = null
+        )
+            where TK : notnull
+        {
+            if (serializeDictionaryKeys is null)
+            {
+                var tempconfigData = configData.ToDictionary(
+                    key => key.Key,
+                    value => serializeDictionaryValues(value.Value)
+                );
+                SetConfig(configName, configVersion, tempconfigData);
+            }
+            else
+            {
+                var tempconfigData = configData.ToDictionary(
+                    key => serializeDictionaryKeys(key.Key),
+                    value => serializeDictionaryValues(value.Value)
+                );
+                SetConfig(configName, configVersion, tempconfigData);
+            }
         }
         #endregion
     }

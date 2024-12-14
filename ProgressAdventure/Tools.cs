@@ -263,27 +263,10 @@ namespace ProgressAdventure
         public static void LoadDefaultConfigs()
         {
             SettingsUtils.LoadDefaultConfigs();
-
-            //_ = EntityUtils.facingToMovementVectorMap;
-            //_ = EntityUtils.entityTypeMap;
-            //_ = EntityUtils.attributeStatChangeMap;
-
+            EntityUtils.LoadDefaultConfigs();
             ItemUtils.LoadDefaultConfigs();
+            WorldUtils.LoadDefaultConfigs();
 
-            //_ = WorldUtils._tileNoiseOffsets;
-            //_ = WorldUtils._terrainContentTypePropertyMap;
-            //_ = WorldUtils._structureContentTypePropertyMap;
-            //_ = WorldUtils._populationContentTypePropertyMap;
-            //_ = WorldUtils._contentTypePropertyMap;
-            //_ = WorldUtils._terrainContentTypeMap;
-            //_ = WorldUtils._structureContentTypeMap;
-            //_ = WorldUtils._populationContentTypeMap;
-            //_ = WorldUtils.contentTypeMap;
-            //_ = WorldUtils.terrainContentTypeIDTextMap;
-            //_ = WorldUtils.structureContentSubtypeIDTextMap;
-            //_ = WorldUtils.populationContentSubtypeIDTextMap;
-            //_ = WorldUtils.contentTypeIDTextMap;
-            //_ = WorldUtils.contentTypeIDSubtypeTextMap;
             PACSingletons.Instance.Logger.Log("Loaded all default configs");
         }
 
@@ -293,27 +276,10 @@ namespace ProgressAdventure
         public static void WriteDefaultConfigs()
         {
             SettingsUtils.WriteDefaultConfigs();
-
-            //_ = EntityUtils.facingToMovementVectorMap;
-            //_ = EntityUtils.entityTypeMap;
-            //_ = EntityUtils.attributeStatChangeMap;
-
+            EntityUtils.WriteDefaultConfigs();
             ItemUtils.WriteDefaultConfigs();
+            WorldUtils.WriteDefaultConfigs();
 
-            //_ = WorldUtils._tileNoiseOffsets;
-            //_ = WorldUtils._terrainContentTypePropertyMap;
-            //_ = WorldUtils._structureContentTypePropertyMap;
-            //_ = WorldUtils._populationContentTypePropertyMap;
-            //_ = WorldUtils._contentTypePropertyMap;
-            //_ = WorldUtils._terrainContentTypeMap;
-            //_ = WorldUtils._structureContentTypeMap;
-            //_ = WorldUtils._populationContentTypeMap;
-            //_ = WorldUtils.contentTypeMap;
-            //_ = WorldUtils.terrainContentTypeIDTextMap;
-            //_ = WorldUtils.structureContentSubtypeIDTextMap;
-            //_ = WorldUtils.populationContentSubtypeIDTextMap;
-            //_ = WorldUtils.contentTypeIDTextMap;
-            //_ = WorldUtils.contentTypeIDSubtypeTextMap;
             PACSingletons.Instance.Logger.Log("Reset all config files");
         }
 
@@ -323,59 +289,11 @@ namespace ProgressAdventure
         public static void ReloadConfigs()
         {
             SettingsUtils.ReloadConfigs();
-
-            //_ = EntityUtils.facingToMovementVectorMap;
-            //_ = EntityUtils.entityTypeMap;
-            //_ = EntityUtils.attributeStatChangeMap;
-
+            EntityUtils.ReloadConfigs();
             ItemUtils.ReloadConfigs();
+            WorldUtils.ReloadConfigs();
 
-            //_ = WorldUtils._tileNoiseOffsets;
-            //_ = WorldUtils._terrainContentTypePropertyMap;
-            //_ = WorldUtils._structureContentTypePropertyMap;
-            //_ = WorldUtils._populationContentTypePropertyMap;
-            //_ = WorldUtils._contentTypePropertyMap;
-            //_ = WorldUtils._terrainContentTypeMap;
-            //_ = WorldUtils._structureContentTypeMap;
-            //_ = WorldUtils._populationContentTypeMap;
-            //_ = WorldUtils.contentTypeMap;
-            //_ = WorldUtils.terrainContentTypeIDTextMap;
-            //_ = WorldUtils.structureContentSubtypeIDTextMap;
-            //_ = WorldUtils.populationContentSubtypeIDTextMap;
-            //_ = WorldUtils.contentTypeIDTextMap;
-            //_ = WorldUtils.contentTypeIDSubtypeTextMap;
             PACSingletons.Instance.Logger.Log("All configs reloaded");
-        }
-
-        /// <summary>
-        /// Loads variables that don't get loaded until they are queried.
-        /// </summary>
-        public static void PreloadResources()
-        {
-            PACSingletons.Instance.Logger.Log("Preloading resources");
-            SettingsUtils.ReloadConfigs();
-
-            _ = EntityUtils.facingToMovementVectorMap;
-            _ = EntityUtils.entityTypeMap;
-            _ = EntityUtils.attributeStatChangeMap;
-
-            ItemUtils.PreloadResources();
-
-            _ = WorldUtils._tileNoiseOffsets;
-            _ = WorldUtils._terrainContentTypePropertyMap;
-            _ = WorldUtils._structureContentTypePropertyMap;
-            _ = WorldUtils._populationContentTypePropertyMap;
-            _ = WorldUtils._contentTypePropertyMap;
-            _ = WorldUtils._terrainContentTypeMap;
-            _ = WorldUtils._structureContentTypeMap;
-            _ = WorldUtils._populationContentTypeMap;
-            _ = WorldUtils.contentTypeMap;
-            _ = WorldUtils.terrainContentTypeIDTextMap;
-            _ = WorldUtils.structureContentSubtypeIDTextMap;
-            _ = WorldUtils.populationContentSubtypeIDTextMap;
-            _ = WorldUtils.contentTypeIDTextMap;
-            _ = WorldUtils.contentTypeIDSubtypeTextMap;
-            PACSingletons.Instance.Logger.Log("Preloading finished");
         }
         #endregion
         #endregion

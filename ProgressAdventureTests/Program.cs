@@ -69,7 +69,7 @@ namespace ProgressAdventureTests
                 );
             }
 
-            PATools.PreloadResources();
+            PATools.ReloadConfigs();
             PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);
         }
 

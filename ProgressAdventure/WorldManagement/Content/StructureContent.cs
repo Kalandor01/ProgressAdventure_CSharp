@@ -14,14 +14,14 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, JsonDictionary?)"/>
         protected StructureContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name = null, JsonDictionary? data = null)
-            : base(chunkRandom, ContentType.StructureContentType, subtype, name, data) { }
+            : base(chunkRandom, ContentType.STRUCTURE, subtype, name, data) { }
         #endregion
 
         #region Public functions
-        /// <inheritdoc cref="BaseContent.LoadContent{T}(SplittableRandom, JsonDictionary?, string, out T)"/>
+        /// <inheritdoc cref="BaseContent.FromJson{T}(SplittableRandom, JsonDictionary?, string, out T)"/>
         public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, out StructureContent? contentObject)
         {
-            return LoadContent(chunkRandom, contentJson, fileVersion, out contentObject);
+            return BaseContent.FromJson(chunkRandom, contentJson, fileVersion, out contentObject);
         }
         #endregion
     }

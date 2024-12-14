@@ -6,7 +6,6 @@ using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
-using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Entity;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
@@ -38,7 +37,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Facing, (int x, int y)>>(typeof(EntityUtils), "facingToMovementVectorMap");
+                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<Facing, (int x, int y)>>(typeof(EntityUtils), "FacingToMovementVectorMap");
             }
             catch (Exception ex)
             {
@@ -96,7 +95,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)>>(typeof(EntityUtils), "attributeStatChangeMap");
+                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)>>(typeof(EntityUtils), "AttributeStatChangeMap");
             }
             catch (Exception ex)
             {
@@ -150,7 +149,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), "entityTypeMap");
+                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), "EntityTypeMap");
             }
             catch (Exception ex)
             {
@@ -512,7 +511,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<TileNoiseType, double>>(typeof(WorldUtils), "_tileNoiseOffsets");
+                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<TileNoiseType, double>>(typeof(WorldUtils), "TileNoiseOffsets");
             }
             catch (Exception ex)
             {
@@ -542,17 +541,16 @@ namespace ProgressAdventureTests
         public static TestResultDTO? WorldUtilsContentTypeMapDictionaryCheck()
         {
             // get all classes that directly implement BaseContent directly
-            var baseContentType = typeof(BaseContent);
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
-            var unfilteredTypes = paAssembly.GetTypes().Where(baseContentType.IsAssignableFrom);
-            var filteredTypes = unfilteredTypes.Where(type => type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType);
 
-            var requiredKeys = filteredTypes.ToList();
-            IDictionary<Type, Dictionary<ContentTypeID, Type>> checkedDictionary;
+            var requiredKeys = WorldUtils.GetAllContentTypes().Where(k => k.Super == ContentType.AllContentType).ToList();
+            IDictionary<ContentTypeID, Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO>> checkedDictionary;
+            IDictionary<ContentTypeID, ContentTypeIDPropertiesDTO> checkedDictionary2;
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Type, Dictionary<ContentTypeID, Type>>>(typeof(WorldUtils), "contentTypeMap");
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<ContentTypeID, Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO>>>(typeof(WorldUtils), "contentTypeSubtypesMap");
+                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<ContentTypeID, ContentTypeIDPropertiesDTO>>(typeof(WorldUtils), "BaseContentTypeMap");
             }
             catch (Exception ex)
             {
@@ -562,36 +560,55 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out Dictionary<ContentTypeID, Type>? value))
+                if (!checkedDictionary2.TryGetValue(key, out var baseProps))
+                {
+                    errorMessages.Add($"The dictionary2 doesn't contain a value for \"{key}\".");
+                    continue;
+                }
+
+                if (baseProps is null)
+                {
+                    errorMessages.Add($"The value of the dictionary2 at \"{key}\" is null.");
+                    continue;
+                }
+
+                if (!checkedDictionary.TryGetValue(key, out var subTypeProps))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
                 }
 
-                if (value is null)
+                if (subTypeProps is null)
                 {
                     errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
                     continue;
                 }
 
-                var unfilteredSubTypes = paAssembly.GetTypes().Where(key.IsAssignableFrom);
+                var unfilteredSubTypes = paAssembly.GetTypes().Where(baseProps.matchingType.IsAssignableFrom);
                 var filteredSubTypes = unfilteredSubTypes.Where(type => !type.IsAbstract && !type.IsInterface);
 
                 var requiredValues = filteredSubTypes.ToList();
+                var requiredSubkeys = WorldUtils.GetAllContentTypes().Where(k => k.Super == key).ToList();
                 var existingSubKeys = new List<ContentTypeID>();
-
+                
                 foreach (var subValue in requiredValues)
                 {
-                    if (!value.ContainsValue(subValue))
+                    if (!subTypeProps.Any(subProp => subProp.Value.matchingType == subValue))
                     {
                         errorMessages.Add($"The sub-dictionary doesn't contain a key for \"{subValue}\".");
                         continue;
                     }
 
-                    var subKey = value.FirstOrDefault(x => x.Value == subValue).Key;
+                    var subKey = subTypeProps.FirstOrDefault(x => x.Value.matchingType == subValue).Key;
                     if (!WorldUtils.TryParseContentType(subKey.mID, out _))
                     {
                         errorMessages.Add($"The sub-dictionary key at value \"{subValue}\" is not a valid ContentTypeID.");
+                        continue;
+                    }
+
+                    if (!requiredSubkeys.Any(rSubKey => rSubKey == subKey))
+                    {
+                        errorMessages.Add($"The sub-dictionary key \"{subKey}\" is not a subKey for the key \"{key}\".");
                         continue;
                     }
 
@@ -628,7 +645,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>>>(typeof(WorldUtils), "_contentTypePropertyMap");
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>>>(typeof(WorldUtils), "contentTypePropertyMap");
             }
             catch (Exception ex)
             {
@@ -666,88 +683,6 @@ namespace ProgressAdventureTests
                     if (subValue is null)
                     {
                         errorMessages.Add($"The value of the sub-dictionary at \"{subKey}\" is null.");
-                        continue;
-                    }
-                }
-            }
-            if (errorMessages.Count != 0)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Checks if the WorldUtils, content type ID (subtype) text map dictionary contains all required keys and correct values.
-        /// </summary>
-        public static TestResultDTO? WorldUtilsContentTypeIDTextMapDictionaryCheck()
-        {
-            // get all classes that directly implement BaseContent directly
-            var subtypes = WorldUtils.GetAllContentTypes();
-            var requiredKeys = new List<ContentTypeID>();
-
-            var subTypeDict = new Dictionary<ContentTypeID, List<ContentTypeID>>();
-
-            foreach (var subType in subtypes)
-            {
-                if (!requiredKeys.Contains(subType.Super))
-                {
-                    requiredKeys.Add(subType.Super);
-                    subTypeDict[subType.Super] = [];
-                }
-                subTypeDict[subType.Super].Add(subType);
-            }
-
-            IDictionary<ContentTypeID, string> checkedBaseTypeMap;
-            IDictionary<ContentTypeID, Dictionary<ContentTypeID, string>> checkedDictionary;
-
-            try
-            {
-                checkedBaseTypeMap = Utils.GetInternalFieldFromStaticClass<IDictionary<ContentTypeID, string>>(typeof(WorldUtils), "contentTypeIDTextMap");
-            }
-            catch (Exception ex)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
-            }
-
-            try
-            {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<ContentTypeID, Dictionary<ContentTypeID, string>>>(typeof(WorldUtils), "contentTypeIDSubtypeTextMap");
-            }
-            catch (Exception ex)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
-            }
-
-            var errorMessages = new List<string>();
-            foreach (var key in requiredKeys)
-            {
-                if (!checkedDictionary.TryGetValue(key, out Dictionary<ContentTypeID, string>? value))
-                {
-                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
-                }
-
-                if (value is null)
-                {
-                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
-                    continue;
-                }
-
-                var requiredSubKeys = subTypeDict[key];
-
-                foreach (var subKey in requiredSubKeys)
-                {
-                    if (!value.TryGetValue(subKey, out string? subValue))
-                    {
-                        errorMessages.Add($"The sub-dictionary doesn't contain a value for \"{subKey}\".");
-                        continue;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(subValue))
-                    {
-                        errorMessages.Add($"The value of the sub-dictionary at \"{subKey}\" is null or whitespace.");
                         continue;
                     }
                 }
@@ -935,6 +870,18 @@ namespace ProgressAdventureTests
         {
             RandomStates.Initialize();
 
+
+            IDictionary<string, Type> entityTypeMap;
+
+            try
+            {
+                entityTypeMap = Utils.GetInternalPropertyFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), "EntityTypeMap");
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+            }
+
             var entityType = typeof(Entity);
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
             var entityTypes = paAssembly.GetTypes().Where(entityType.IsAssignableFrom);
@@ -947,19 +894,6 @@ namespace ProgressAdventureTests
             foreach (var type in filteredEntityTypes)
             {
                 // get entity type name
-                var entityTypeMapName = "entityTypeMap";
-                IDictionary<string, Type> entityTypeMap;
-
-                try
-                {
-                    entityTypeMap = Utils.GetInternalFieldFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), entityTypeMapName);
-                }
-                catch (Exception ex)
-                {
-                    errorMessages.Add($"Exeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
-                    continue;
-                }
-
                 string? typeName = null;
                 foreach (var eType in entityTypeMap)
                 {
