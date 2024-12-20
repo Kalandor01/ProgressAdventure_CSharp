@@ -83,10 +83,7 @@ namespace ProgressAdventure.SettingsManagement
             (oldJson =>
             {
                 // key rename
-                if (oldJson.TryGetValue("keyChar", out var kcRename))
-                {
-                    oldJson["key_char"] = kcRename;
-                }
+                JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "keyChar", "key_char");
             }, "2.2"),
         ];
 

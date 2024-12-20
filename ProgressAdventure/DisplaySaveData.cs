@@ -34,18 +34,12 @@ namespace ProgressAdventure
             // 2.1.1 -> 2.2
             (oldJson => {
                 // snake case rename
-                if (oldJson.TryGetValue("displayName", out var dnRename))
+                JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string>
                 {
-                    oldJson["display_name"] = dnRename;
-                }
-                if (oldJson.TryGetValue("playerName", out var pnRename))
-                {
-                    oldJson["player_name"] = pnRename;
-                }
-                if (oldJson.TryGetValue("lastSave", out var lsRename))
-                {
-                    oldJson["last_save"] = lsRename;
-                }
+                    ["displayName"] = "display_name",
+                    ["playerName"] = "player_name",
+                    ["lastSave"] = "last_save",
+                });
             }, "2.2"),
         ];
 

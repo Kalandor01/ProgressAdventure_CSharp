@@ -214,12 +214,25 @@ namespace PACommon
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
-        /// <returns>If the conversion was succesfull without any warnings.</returns>
         public static T? FromJsonWithoutCorrection<T>(JsonDictionary objectJson, string fileVersion, [NotNullWhen(true)] ref T? convertedObject)
             where T : IJsonConvertable<T>
         {
             T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
             return convertedObject;
+        }
+
+        /// <summary>
+        /// Tries to do FromJson(), but without correcting the json data first.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="convertedObject">The object representation of the json.</param>
+        /// <returns>If the conversion was succesfull without any warnings.</returns>
+        public static bool TryFromJsonWithoutCorrection<T>(JsonDictionary objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
+            where T : IJsonConvertable<T>
+        {
+            convertedObject = default;
+            return T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
         }
         #endregion
 
@@ -227,17 +240,28 @@ namespace PACommon
         /// <summary>
         /// Logs a json parsing error for a custom error.
         /// </summary>
-        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="typeName">The name of the type, where the parsing failed.</param>
         /// <param name="message">The error message.</param>
-        /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
-        public static void LogJsonError<T>(string message, bool isError = false)
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        public static void LogJsonErrorBase(string typeName, string message, bool isError = false)
         {
             var stackTrace = GetFromJsonCallStackString();
             PACSingletons.Instance.Logger.Log(
-                $"{typeof(T)} parse {(isError ? "error" : "warning")}",
+                $"{typeName} parse {(isError ? "error" : "warning")}",
                 message + (stackTrace is null ? "" : $"\n{stackTrace}"),
                 isError ? LogSeverity.ERROR : LogSeverity.WARN
             );
+        }
+
+        /// <summary>
+        /// Logs a json parsing error for a custom error.
+        /// </summary>
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="message">The error message.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        public static void LogJsonError<T>(string message, bool isError = false)
+        {
+            LogJsonErrorBase(typeof(T).ToString(), message, isError);
         }
 
         /// <summary>
@@ -245,11 +269,22 @@ namespace PACommon
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
         /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
-        /// <param name="extraInfo">Some extra information about the error, like a key associated to the value.</param>
-        /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
+        /// <param name="extraInfo">Some extra information about the error.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
         public static void LogJsonParseError<T>(string parameterName, string? extraInfo = null, bool isError = false)
         {
             LogJsonError<T>($"couldn't parse {parameterName}{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+        }
+
+        /// <summary>
+        /// Logs a json parsing error for a type parsing error.
+        /// </summary>
+        /// <typeparam name="T">The type that is being parsed.</typeparam>
+        /// <param name="extraInfo">Some extra information about the error.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        public static void LogJsonTypeParseError<T>(string? extraInfo = null, bool isError = false)
+        {
+            LogJsonErrorBase("Json", $"couldn't parse {typeof(T)} type to json value{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
         }
 
         /// <summary>
@@ -257,21 +292,42 @@ namespace PACommon
         /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
         /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
-        /// <param name="extraInfo">Some extra information about the error, like a key associated to the value.</param>
-        /// <param name="isError">If the error will make it, so the parsing function is halted.</param>
+        /// <param name="extraInfo">Some extra information about the error.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
         public static void LogJsonNullError<T>(string parameterName, string? extraInfo = null, bool isError = false)
         {
             LogJsonError<T>($"{parameterName} json is null{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
         }
 
         /// <summary>
-        /// Returns the call stack of "FromJson()" methods.
+        /// Returns the call stack of "FromJson()" (and json correcter) methods.
         /// </summary>
-        public static List<StackFrame> GetFromJsonCallStack()
+        public static List<StackFrame?> GetFromJsonCallStack()
         {
             var frames = new StackTrace(true).GetFrames();
             var fromJsonMethodName = "FromJsonWithoutCorrection";
-            return frames.Where(frame => frame.GetMethod()?.Name.Contains(fromJsonMethodName) ?? false).ToList();
+            var correcterMethodName = "CorrectJsonDataVersionPrivate";
+
+            return frames.Where(frame =>
+            {
+                var frameName = frame.GetMethod()?.Name ?? "";
+                return frameName == correcterMethodName || frameName.Contains(fromJsonMethodName);
+            })
+            .Select(frame =>
+                {
+                    if ((frame.GetMethod()?.Name ?? "") != correcterMethodName)
+                    {
+                        return frame;
+                    }
+
+                    var frameIndex = frames.ToList().IndexOf(frame) - 2;
+                    if (frameIndex >= 0)
+                    {
+                        return frames[frameIndex];
+                    }
+                    return null;
+            })
+            .ToList();
         }
 
         /// <summary>
@@ -283,7 +339,7 @@ namespace PACommon
             return stackFrames.Count == 0 ? null : string.Join(
                 "\n",
                 stackFrames.Select(frame =>
-                $"\tat {frame.GetMethod()?.DeclaringType?.FullName} in {frame.GetFileName()}:line {frame.GetFileLineNumber()}"
+                frame is null ? "[ERROR]" : $"\tat {frame.GetMethod()?.DeclaringType?.FullName} in {frame.GetFileName()}:line {frame.GetFileLineNumber()}"
             ));
         }
         #endregion
@@ -354,12 +410,7 @@ namespace PACommon
 
             if (logParseWarnings)
             {
-                var stackTrace = GetFromJsonCallStackString();
-                PACSingletons.Instance.Logger.Log(
-                    $"Json parse {(isCritical ? "error" : "warning")}",
-                    $"couldn't parse {typeof(T)} type to json value" + (stackTrace is null ? "" : $"\n{stackTrace}"),
-                    isCritical ? LogSeverity.ERROR : LogSeverity.WARN
-                );
+                LogJsonTypeParseError<T>(isError: isCritical);
             }
             return new JsonValue(value.ToString()!);
         }

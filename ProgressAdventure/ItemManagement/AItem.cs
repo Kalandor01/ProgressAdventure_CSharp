@@ -208,34 +208,37 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // inventory items in dictionary
-                if (
-                    oldJson.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue?.ToString(), out int itemID) &&
-                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName)
-                )
+                JsonDataCorrecterUtils.TransformValue<AItem, int>(oldJson, "type", (itemID) =>
                 {
-                    oldJson["type"] = itemName;
-                }
+                    var success = ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName);
+                    return (itemName, success);
+                });
             }, "2.1"),
             // 2.1.1 -> 2.2
             (oldJson =>
             {
                 // item material
-                if (!oldJson.TryGetValue("type", out var typeValue))
+                if (!PACTools.TryParseJsonValue<AItem, string>(oldJson, "type", out var typeValue, false))
                 {
                     return;
                 }
 
-                if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out var compoundItemFixedJson))
+                if (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue, out var compoundItemFixedJson))
                 {
-                    oldJson["type"] = compoundItemFixedJson.typeName;
-                    oldJson["material"] = "WOOD";
-                    oldJson["parts"] = compoundItemFixedJson.partsJson;
+                    JsonDataCorrecterUtils.SetMultipleValues(oldJson, new Dictionary<string, JsonObject?>
+                    {
+                        ["type"] = compoundItemFixedJson.typeName,
+                        ["material"] = "WOOD",
+                        ["parts"] = compoundItemFixedJson.partsJson,
+                    });
                 }
-                else if (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue?.ToString() ?? "", out string? materialItemFixed))
+                else if (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue, out string? materialItemFixed))
                 {
-                    oldJson["type"] = "misc/material";
-                    oldJson["material"] = materialItemFixed;
+                    JsonDataCorrecterUtils.SetMultipleValues(oldJson, new Dictionary<string, JsonObject?>
+                    {
+                        ["type"] = "misc/material",
+                        ["material"] = materialItemFixed,
+                    });
                 }
             }, "2.2"),
         ];
@@ -266,12 +269,12 @@ namespace ProgressAdventure.ItemManagement
             bool success;
             if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
             {
-                success = PACTools.TryFromJson(itemJson, fileVersion, out MaterialItem? materialObj);
+                success = PACTools.TryFromJsonWithoutCorrection(itemJson, fileVersion, out MaterialItem? materialObj);
                 itemObject = materialObj;
                 return success;
             }
 
-            success = PACTools.TryFromJson(itemJson, fileVersion, out CompoundItem? compoundObj);
+            success = PACTools.TryFromJsonWithoutCorrection(itemJson, fileVersion, out CompoundItem? compoundObj);
             itemObject = compoundObj;
             return success;
         }

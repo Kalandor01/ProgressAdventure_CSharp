@@ -1,5 +1,4 @@
-﻿using PACommon.Enums;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace PACommon.JsonUtils
 {

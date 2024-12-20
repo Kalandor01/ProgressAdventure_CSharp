@@ -139,10 +139,7 @@ namespace ProgressAdventure
             // 2.0.1 -> 2.0.2
             (oldJson => {
                 // saved entity types
-                if (
-                    oldJson.TryGetValue("player", out var playerJson) &&
-                    playerJson is JsonDictionary playerDict
-                )
+                if (PACTools.TryCastJsonAnyValue<SaveData, JsonDictionary>(oldJson, "player", out var playerDict, isStraigthCast: true))
                 {
                     playerDict["type"] = "player";
                 }
@@ -150,18 +147,12 @@ namespace ProgressAdventure
             // 2.1.1 -> 2.2
             (oldJson => {
                 // snake case rename
-                if (oldJson.TryGetValue("displayName", out var dnRename))
+                JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string>
                 {
-                    oldJson["display_name"] = dnRename;
-                }
-                if (oldJson.TryGetValue("lastSave", out var lsRename))
-                {
-                    oldJson["last_save"] = lsRename;
-                }
-                if (oldJson.TryGetValue("randomStates", out var rsRename))
-                {
-                    oldJson["random_states"] = rsRename;
-                }
+                    ["displayName"] = "display_name",
+                    ["lastSave"] = "last_save",
+                    ["randomStates"] = "random_states",
+                });
             }, "2.2"),
         ];
 

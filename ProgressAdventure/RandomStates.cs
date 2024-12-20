@@ -175,26 +175,14 @@ namespace ProgressAdventure
             // 2.1.1 -> 2.2
             (oldJson => {
                 // snake case rename
-                if (oldJson.TryGetValue("mainRandom", out var mrRename))
+                JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string>
                 {
-                    oldJson["main_random"] = mrRename;
-                }
-                if (oldJson.TryGetValue("worldRandom", out var wrRename))
-                {
-                    oldJson["world_random"] = wrRename;
-                }
-                if (oldJson.TryGetValue("miscRandom", out var mr2Rename))
-                {
-                    oldJson["misc_random"] = mr2Rename;
-                }
-                if (oldJson.TryGetValue("tileTypeNoiseSeeds", out var ttnsRename))
-                {
-                    oldJson["tile_type_noise_seeds"] = ttnsRename;
-                }
-                if (oldJson.TryGetValue("chunkSeedModifier", out var csmRename))
-                {
-                    oldJson["chunk_seed_modifier"] = csmRename;
-                }
+                    ["mainRandom"] = "main_random",
+                    ["worldRandom"] = "world_random",
+                    ["miscRandom"] = "misc_random",
+                    ["tileTypeNoiseSeeds"] = "tile_type_noise_seeds",
+                    ["chunkSeedModifier"] = "chunk_seed_modifier",
+                });
             }, "2.2"),
         ];
 

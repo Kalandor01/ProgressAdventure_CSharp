@@ -25,6 +25,7 @@ namespace ProgressAdventureTests
 {
     public static class Tests
     {
+        #region Tests
         #region Dictionary/Enum tests
         #region Entity
         /// <summary>
@@ -1106,6 +1107,7 @@ namespace ProgressAdventureTests
             PATools.ReloadConfigs();
             return null;
         }
+        #endregion
         #endregion
 
         #region Private methods

@@ -154,27 +154,30 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // inventory items in dictionary
-                if (
-                    oldJson.TryGetValue("type", out var typeIDValue) &&
-                    int.TryParse(typeIDValue?.ToString(), out var itemID) &&
-                    ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName))
+                JsonDataCorrecterUtils.TransformValue<CompoundItem, int>(oldJson, "type", (itemID) =>
                 {
-                    oldJson["type"] = itemName;
-                }
+                    var success = ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName);
+                    return (itemName, success);
+                });
             }, "2.1"),
             // 2.1.1 -> 2.2
             (oldJson =>
             {
                 // item material
-                if (
-                    oldJson.TryGetValue("type", out var typeValue) &&
-                    ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue?.ToString() ?? "", out var compoundItemFixedJson)
-                )
-                {
-                    oldJson["type"] = compoundItemFixedJson.typeName;
-                    oldJson["material"] = "WOOD";
-                    oldJson["parts"] = compoundItemFixedJson.partsJson;
-                }
+                JsonDataCorrecterUtils.TransformMultipleValues<CompoundItem, string, (string typeName, JsonArray partsJson)>(
+                    oldJson,
+                    "type",
+                    (typeValue) => (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue ?? "", out var fixedJson), fixedJson),
+                    (fixedJson) =>
+                    {
+                        return new Dictionary<string, JsonObject?>
+                        {
+                            ["type"] = fixedJson.typeName,
+                            ["material"] = "WOOD",
+                            ["parts"] = fixedJson.partsJson,
+                        };
+                    }
+                );
             }, "2.2"),
         ];
 
@@ -211,9 +214,11 @@ namespace ProgressAdventure.ItemManagement
             }
 
             var success = true;
+            // "ItemUtils._legacyCompoundtemMap" has the parts in the 2.2 json format, so I bump the version, so it doesn't try to correct the json twice.
+            var partsFileVersion = Utils.IsUpToDate("2.2", fileVersion) ? fileVersion : "2.2";
             success &= PACTools.TryParseJsonListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
                 partJson => {
-                    success &= PACTools.TryFromJson(partJson as JsonDictionary, fileVersion, out AItem? part);
+                    success &= PACTools.TryFromJson(partJson as JsonDictionary, partsFileVersion, out AItem? part);
                     return (part is not null, part);
                 },
                 out var parts, true);

@@ -138,11 +138,10 @@ namespace ProgressAdventure
         #region Json keys
         public static class JsonKeys
         {
-            public const string OLD_SAVE_VERSION = "saveVersion";
-
             #region SaveData
             public static class SaveData
             {
+                public const string OLD_SAVE_VERSION = "saveVersion";
                 public const string SAVE_VERSION = "save_version";
                 public const string DISPLAY_NAME = "display_name";
                 public const string LAST_SAVE = "last_save";
@@ -233,6 +232,7 @@ namespace ProgressAdventure
             #region Chunk
             public static class Chunk
             {
+                public const string OLD_FILE_VERSION = "fileVersion";
                 public const string POSITION_X = "position_x";
                 public const string POSITION_Y = "position_y";
                 public const string FILE_VERSION = "file_version";

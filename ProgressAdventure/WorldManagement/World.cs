@@ -455,7 +455,12 @@ namespace ProgressAdventure.WorldManagement
                     continue;
                 }
 
-                var fileVersion = SaveManager.GetSaveVersion<Chunk>(chunkJson, Constants.JsonKeys.Chunk.FILE_VERSION, chunkFileName);
+                var fileVersion = SaveManager.GetSaveVersion<Chunk>(
+                    chunkJson,
+                    Constants.JsonKeys.Chunk.OLD_FILE_VERSION,
+                    Constants.JsonKeys.Chunk.FILE_VERSION,
+                    chunkFileName
+                );
                 if (fileVersion is null)
                 {
                     PACTools.LogJsonParseError<Chunk>(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");

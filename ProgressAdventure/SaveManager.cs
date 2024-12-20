@@ -109,7 +109,12 @@ namespace ProgressAdventure
 
             var success = true;
             // save version
-            var fileVersion = GetSaveVersion<SaveData>(data, Constants.JsonKeys.SaveData.SAVE_VERSION, saveName);
+            var fileVersion = GetSaveVersion<SaveData>(
+                data,
+                Constants.JsonKeys.SaveData.OLD_SAVE_VERSION,
+                Constants.JsonKeys.SaveData.SAVE_VERSION,
+                saveName
+            );
             if (fileVersion is null)
             {
                 PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {saveName}", LogSeverity.ERROR);
@@ -168,16 +173,17 @@ namespace ProgressAdventure
         /// </summary>
         /// <typeparam name="T">The type of the object to get the version for.</typeparam>
         /// <param name="dataJson">The json representation of a file json data.</param>
+        /// <param name="oldJsonKey">The pre-2.2 json key for the save version.</param>
         /// <param name="newJsonKey">The new json key for the save version.</param>
         /// <param name="fileName">The name of the currenly loaded save file.</param>
-        public static string? GetSaveVersion<T>(JsonDictionary dataJson, string newJsonKey, string fileName)
+        public static string? GetSaveVersion<T>(JsonDictionary dataJson, string oldJsonKey, string newJsonKey, string fileName)
         {
             if (PACTools.TryParseJsonValue<T, string>(dataJson, newJsonKey, out var fileVersion))
             {
                 return fileVersion;
             }
 
-            if (PACTools.TryParseJsonValue<T, string>(dataJson, Constants.JsonKeys.OLD_SAVE_VERSION, out var fileVersionBackup))
+            if (PACTools.TryParseJsonValue<T, string>(dataJson, oldJsonKey, out var fileVersionBackup))
             {
                 PACSingletons.Instance.Logger.Log($"Old style {typeof(T).Name} version (< 2.2)", $"{typeof(T).Name} name: {fileName}", LogSeverity.INFO);
                 return fileVersionBackup;
@@ -258,7 +264,12 @@ namespace ProgressAdventure
                     throw new ArgumentException("No data in save file.");
                 }
 
-                string? fileVersion = GetSaveVersion<DisplaySaveData>(dataJson, Constants.JsonKeys.SaveData.SAVE_VERSION, folderName);
+                string? fileVersion = GetSaveVersion<DisplaySaveData>(
+                    dataJson,
+                    Constants.JsonKeys.SaveData.OLD_SAVE_VERSION,
+                    Constants.JsonKeys.SaveData.SAVE_VERSION,
+                    folderName
+                );
                 if (fileVersion is null)
                 {
                     PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {folderName}", LogSeverity.ERROR);
