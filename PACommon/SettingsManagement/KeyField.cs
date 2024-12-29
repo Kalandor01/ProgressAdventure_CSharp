@@ -66,12 +66,21 @@ namespace PACommon.SettingsManagement
         /// <inheritdoc cref="KeyField"/>
         /// </summary>
         /// <param name="value"><inheritdoc cref="Value" path="//summary"/></param>
-        /// <param name="actionType"><inheritdoc cref="actionType" path="//summary"/></param>
         /// <param name="validatorFunction"><inheritdoc cref="validatorFunction" path="//summary"/></param>
+        /// <param name="displayValueFunction"><inheritdoc cref="displayValueFunction" path="//summary"/></param>
         /// <param name="keyNum"><inheritdoc cref="keyNum" path="//summary"/></param>
         /// <param name="lengthAsDisplayLength"><inheritdoc cref="lengthAsDisplayLength" path="//summary"/></param>
         /// <inheritdoc cref="BaseUI(int, string, string, bool, string, bool)"/>
-        public KeyField(AActionKey<T> value, string preText = "", string postValue = "", bool multiline = false, ValidatorDelegate? validatorFunction = null, DisplayValueDelegate? displayValueFunction = null, int keyNum = 1, bool lengthAsDisplayLength = true)
+        public KeyField(
+            AActionKey<T> value,
+            string preText = "",
+            string postValue = "",
+            bool multiline = false,
+            ValidatorDelegate? validatorFunction = null,
+            DisplayValueDelegate? displayValueFunction = null,
+            int keyNum = 1,
+            bool lengthAsDisplayLength = true
+        )
             : base(-1, preText, "", false, postValue, multiline)
         {
             Value = value;

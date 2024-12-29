@@ -64,7 +64,7 @@ namespace PACommon.Logging
         /// <param name="details">The details of the message.</param>
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console.</param>
-        /// <param name="newLine">Whether to write a new line before the message. If null, it will use the DefaultWriteOut's value. Will always for ce log.</param>
+        /// <param name="newLine">Whether to write a new line before the message. If null, it will use the DefaultWriteOut's value. Will always force log.</param>
         /// <param name="forceLog">Whether to log this, and the built-up batch of logs right now, or only when the logging interval has expired.</param>
         public void Log(
             string message,

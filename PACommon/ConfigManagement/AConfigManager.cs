@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace PACommon
+namespace PACommon.ConfigManagement
 {
     /// <summary>
     /// Abstract class for reading config files, to loading config dictionaries.
@@ -169,10 +169,14 @@ namespace PACommon
             {
                 return GetConfig<T>(configName, expectedVersion);
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException fnfe)
             {
                 var relativePath = Path.GetRelativePath(Constants.ROOT_FOLDER, Path.Join(_configsFolderPath, $"{configName}.{_configExtension}"));
                 PACSingletons.Instance.Logger.Log("Config file error", $"File not found: \"{relativePath}\"", LogSeverity.WARN);
+            }
+            catch (FormatException fe)
+            {
+                PACSingletons.Instance.Logger.Log("Config file error", fe.Message, LogSeverity.WARN);
             }
             catch (Exception e)
             {

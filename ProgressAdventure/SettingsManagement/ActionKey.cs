@@ -16,15 +16,15 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="ActionKey"/>
         /// </summary>
-        /// <param name="actionType"><inheritdoc cref="actionType" path="//summary"/></param>
-        /// <param name="keys"><inheritdoc cref="Keys" path="//summary"/></param>
+        /// <param name="actionType"><inheritdoc cref="AActionKey{T}.ActionType" path="//summary"/></param>
+        /// <param name="keys"><inheritdoc cref="AActionKey{T}.Keys" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
         public ActionKey(ActionType actionType, IEnumerable<ConsoleKeyInfo> keys)
             : base(
                   actionType,
-                  SettingsUtils.ActionTypeResponseMapping[actionType],
+                  SettingsUtils.ActionTypeAttributes[actionType].response,
                   keys,
-                  SettingsUtils.ActionTypeIgnoreMapping[actionType]
+                  SettingsUtils.ActionTypeAttributes[actionType].ignoreModes
             )
         { }
         #endregion

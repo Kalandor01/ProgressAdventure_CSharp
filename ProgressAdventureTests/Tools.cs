@@ -43,11 +43,9 @@ namespace ProgressAdventureTests
 
             RunTestInternal(Tests.EntityUtilsFacingToMovementVectorDictionaryCheck);
             RunTestInternal(Tests.EntityUtilsAttributeStatsChangeDictionaryCheck);
-            RunTestInternal(Tests.ItemUtilsMaterialPropertiesDictionaryCheck);
             RunTestInternal(Tests.ItemUtilsMaterialItemAttributesDictionaryCheck);
             RunTestInternal(Tests.ItemUtilsCompoundItemAttributesDictionaryCheck);
-            RunTestInternal(Tests.SettingsUtilsActionTypeIgnoreMappingDictionaryCheck);
-            RunTestInternal(Tests.SettingsUtilsActionTypeResponseMappingDictionaryCheck);
+            RunTestInternal(Tests.SettingsUtilsActionTypeAttributesDictionaryCheck);
             RunTestInternal(Tests.SettingsUtilsSpecialKeyNameDictionaryCheck);
             RunTestInternal(Tests.SettingsUtilsSettingValueTypeMapDictionaryCheck);
             RunTestInternal(Tests.SettingsUtilsDefaultSettingsDictionaryCheck);
@@ -110,19 +108,16 @@ namespace ProgressAdventureTests
         /// </summary>
         internal static void PrepareTest()
         {
+            SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
-                    new Globals(),
-                    new Settings()
-                );
+                new Globals(),
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
+            );
             PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
-            ConfigManager.Initialize(null,
-                PAConstants.CONFIGS_FOLDER_PATH,
-                PAConstants.CONFIG_EXT
-            );
-
             PATools.ReloadConfigs();
+            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
         }
 
         /// <summary>

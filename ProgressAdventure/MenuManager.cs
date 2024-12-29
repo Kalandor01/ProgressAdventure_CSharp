@@ -8,7 +8,6 @@ using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using CUIUtils = ConsoleUI.Utils;
 using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
@@ -219,13 +218,14 @@ namespace ProgressAdventure
             tempKeybinds = PASingletons.Instance.Settings.Keybinds.DeepCopy();
 
             var elementList = new List<BaseUI?>();
-            foreach (var actionType in Enum.GetValues<ActionType>())
+            foreach (var actionType in SettingsUtils.ActionTypeAttributes.Keys)
             {
                 var actionKey = tempKeybinds.GetActionKey(actionType);
                 if (actionKey is null)
                 {
-                    PACSingletons.Instance.Logger.Log("Action type doesn't exist in keybind", $"action type: {actionType}", LogSeverity.WARN);
-                    actionKey = new ActionKey(ActionType.ESCAPE, [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]);
+                    PACSingletons.Instance.Logger.Log("Action type doesn't exist in keybind, adding default", $"action type: {actionType}", LogSeverity.WARN);
+                    actionKey = new ActionKey(actionType, SettingsUtils.ActionTypeAttributes[actionType].defaultKeys.DeepCopy());
+                    tempKeybinds.KeybindList = tempKeybinds.KeybindList.Append(actionKey);
                 }
                 elementList.Add(new KeyField<ActionType>(
                     actionKey,

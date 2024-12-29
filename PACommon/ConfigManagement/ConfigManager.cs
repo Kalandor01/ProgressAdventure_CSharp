@@ -1,7 +1,7 @@
-﻿using PACommon;
+﻿using PACommon.ConfigManagement.JsonConverters;
 using System.Text.Json.Serialization;
 
-namespace ProgressAdventure.ConfigManagement
+namespace PACommon.ConfigManagement
 {
     /// <summary>
     /// Class for reading config files, for loading config dictionaries.
@@ -76,9 +76,8 @@ namespace ProgressAdventure.ConfigManagement
             converters ??=
             [
                 new JsonStringEnumConverter(allowIntegerValues: false),
-                new ItemTypeIDConverter(),
-                new MaterialItemAttributesDTOConverter(),
                 new TypeConverter(),
+                new ConsoleKeyInfoConverter(),
             ];
 
             _instance = new ConfigManager(

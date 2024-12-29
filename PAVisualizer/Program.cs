@@ -84,12 +84,15 @@ namespace PAVisualizer
             }
 
             // initializing PA singletons
+            // special loading order to avoid unintended errors because of complicated self references
+            SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings()
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
-            ProgressAdventure.Tools.PreloadResources();
+            ProgressAdventure.Tools.ReloadConfigs();
+            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
         }
 
         /// <summary>

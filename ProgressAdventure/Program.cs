@@ -1,6 +1,8 @@
 ﻿using ConsoleUI;
 using ConsoleUI.UIElements;
 using PACommon;
+using PACommon.ConfigManagement;
+using PACommon.ConfigManagement.JsonConverters;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
@@ -12,6 +14,7 @@ using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using System.Text;
+using System.Text.Json.Serialization;
 using AItem = ProgressAdventure.ItemManagement.AItem;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
@@ -161,7 +164,18 @@ namespace ProgressAdventure
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
-                JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, Constants.ORDER_JSON_CORRECTERS, false)
+                JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, Constants.ORDER_JSON_CORRECTERS, false),
+                ConfigManager.Initialize(
+                    [
+                        new JsonStringEnumConverter(allowIntegerValues: false),
+                        new TypeConverter(),
+                        new ItemTypeIDConverter(),
+                        new MaterialItemAttributesDTOConverter(),
+                        new ConsoleKeyInfoConverter(),
+                    ],
+                    Constants.CONFIGS_FOLDER_PATH,
+                    Constants.CONFIG_EXT
+                )
             );
 
             if (!Utils.TryEnableAnsiCodes())
@@ -170,20 +184,17 @@ namespace ProgressAdventure
             }
 
             // initializing PA singletons
+            // special loading order to avoid unintended errors because of complicated self references
+            SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings()
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
 
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
-            ConfigManager.Initialize(
-                null,
-                Constants.CONFIGS_FOLDER_PATH,
-                Constants.CONFIG_EXT
-            );
-
             Tools.ReloadConfigs();
+            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 

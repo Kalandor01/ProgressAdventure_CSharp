@@ -1,7 +1,6 @@
 ﻿using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
-using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 using ProgressAdventure.WorldManagement.Content.Population;
@@ -300,51 +299,51 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            ConfigManager.Instance.SetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
+            PACSingletons.Instance.ConfigManager.SetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "terrain_content_type_property_map",
                 "v.1",
                 _defaultTerrainContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "structure_content_type_property_map",
                 "v.1",
                 _defaultStructureContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "population_content_type_property_map",
                 "v.1",
                 _defaultPopulationContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "base_content_type_map",
                 "v.1",
                 _baseContentTypeMap,
                 key => key.ToString()!
             );
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "terrain_content_type_map",
                 "v.1",
                 _defaultTerrainContentTypeMap,
                 key => key.ToString()!
             );
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "structure_content_type_map",
                 "v.1",
                 _defaultStructureContentTypeMap,
                 key => key.ToString()!
             );
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "population_content_type_map",
                 "v.1",
                 _defaultPopulationContentTypeMap,
@@ -358,10 +357,10 @@ namespace ProgressAdventure.WorldManagement
         public static void ReloadConfigs()
         {
             TileNoiseOffsets = 
-                ConfigManager.Instance.TryGetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
+                PACSingletons.Instance.ConfigManager.TryGetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
 
             TerrainContentTypePropertyMap = 
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "terrain_content_type_property_map",
                     "v.1",
                     _defaultTerrainContentTypePropertyMap,
@@ -370,7 +369,7 @@ namespace ProgressAdventure.WorldManagement
                 );
 
             StructureContentTypePropertyMap = 
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "structure_content_type_property_map",
                     "v.1",
                     _defaultStructureContentTypePropertyMap,
@@ -379,7 +378,7 @@ namespace ProgressAdventure.WorldManagement
                 );
 
             PopulationContentTypePropertyMap = 
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "population_content_type_property_map",
                     "v.1",
                     _defaultPopulationContentTypePropertyMap,
@@ -388,7 +387,7 @@ namespace ProgressAdventure.WorldManagement
                 );
 
             BaseContentTypeMap =
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "base_content_type_map",
                     "v.1",
                     _baseContentTypeMap,
@@ -397,7 +396,7 @@ namespace ProgressAdventure.WorldManagement
                 );
 
             TerrainContentTypeMap = 
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "terrain_content_type_map",
                     "v.1",
                     _defaultTerrainContentTypeMap,
@@ -406,7 +405,7 @@ namespace ProgressAdventure.WorldManagement
                 );
 
             StructureContentTypeMap = 
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "structure_content_type_map",
                     "v.1",
                     _defaultStructureContentTypeMap,
@@ -415,7 +414,7 @@ namespace ProgressAdventure.WorldManagement
                 );
 
             PopulationContentTypeMap = 
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "population_content_type_map",
                     "v.1",
                     _defaultPopulationContentTypeMap,

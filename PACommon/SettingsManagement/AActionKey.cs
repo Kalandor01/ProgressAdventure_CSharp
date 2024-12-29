@@ -45,7 +45,7 @@ namespace PACommon.SettingsManagement
         /// <summary>
         /// <inheritdoc cref="ActionKey"/>
         /// </summary>
-        /// <param name="actionType"><inheritdoc cref="actionType" path="//summary"/></param>
+        /// <param name="actionType"><inheritdoc cref="ActionType" path="//summary"/></param>
         /// <param name="response"><inheritdoc cref="KeyAction.response" path="//summary"/></param>
         /// <param name="keys"><inheritdoc cref="Keys" path="//summary"/></param>
         /// <param name="ignoreModes"><inheritdoc cref="KeyAction.ignoreModes" path="//summary"/></param>

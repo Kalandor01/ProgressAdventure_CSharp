@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ConfigManagement
 {
-    internal class ItemTypeIDConverter : JsonConverter<ItemTypeID>
+    public class ItemTypeIDConverter : JsonConverter<ItemTypeID>
     {
         public override ItemTypeID Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

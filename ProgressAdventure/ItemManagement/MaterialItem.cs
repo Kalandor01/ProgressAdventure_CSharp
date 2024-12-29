@@ -57,7 +57,7 @@ namespace ProgressAdventure.ItemManagement
 
             // L / M3 (/ amount???)
             var densityMultiplier = Unit == ItemAmountUnit.L ? 0.001 : 1;
-            return ItemUtils.MaterialProperties[Material].density * densityMultiplier;
+            return ItemUtils.MaterialItemAttributes[Material].properties.density * densityMultiplier;
         }
 
         protected override double GetVolumeMultiplier()
@@ -73,7 +73,7 @@ namespace ProgressAdventure.ItemManagement
             }
 
             // KG (/ amount???)
-            return 1 / ItemUtils.MaterialProperties[Material].density;
+            return 1 / ItemUtils.MaterialItemAttributes[Material].properties.density;
         }
         #endregion
 

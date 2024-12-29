@@ -1,7 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
-using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Diagnostics;
 using Attribute = ProgressAdventure.Enums.Attribute;
@@ -100,8 +99,8 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            ConfigManager.Instance.SetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "facing_to_movement_vector_map",
                 "v.1",
                 _defaultFacingToMovementVectorMap,
@@ -111,7 +110,7 @@ namespace ProgressAdventure.Entity
                     [nameof(move.y)] = move.y,
                 }
             );
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "attribute_stat_change_map",
                 "v.1",
                 _defaultAttributeStatChangeMap,
@@ -131,10 +130,10 @@ namespace ProgressAdventure.Entity
         public static void ReloadConfigs()
         {
             EntityTypeMap =
-                ConfigManager.Instance.TryGetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
+                PACSingletons.Instance.ConfigManager.TryGetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
 
             FacingToMovementVectorMap =
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "facing_to_movement_vector_map",
                     "v.1",
                     _defaultFacingToMovementVectorMap,
@@ -147,7 +146,7 @@ namespace ProgressAdventure.Entity
                 );
 
             AttributeStatChangeMap =
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "attribute_stat_change_map",
                     "v.1",
                     _defaultAttributeStatChangeMap,

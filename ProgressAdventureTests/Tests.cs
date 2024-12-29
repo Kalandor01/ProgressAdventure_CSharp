@@ -198,34 +198,6 @@ namespace ProgressAdventureTests
 
         #region Items
         /// <summary>
-        /// Checks if the ItemUtils, material properties dictionary contains all required keys and correct values.
-        /// </summary>
-        public static TestResultDTO? ItemUtilsMaterialPropertiesDictionaryCheck()
-        {
-            var requiredKeys = Enum.GetValues<Material>();
-            var checkedDictionary = ItemUtils.MaterialProperties;
-
-            var errorMessages = new List<string>();
-            foreach (var key in requiredKeys)
-            {
-                if (
-                    !checkedDictionary.TryGetValue(key, out MaterialPropertiesDTO? value) ||
-                    value is null
-                )
-                {
-                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
-                }
-            }
-            if (errorMessages.Count != 0)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Checks if the ItemUtils, material item attributes dictionary contains all required keys and correct values.
         /// </summary>
         public static TestResultDTO? ItemUtilsMaterialItemAttributesDictionaryCheck()
@@ -342,62 +314,37 @@ namespace ProgressAdventureTests
 
         #region Settings
         /// <summary>
-        /// Checks if the SettingsUtils, action type ignore mapping dictionary contains all required keys and correct values.
+        /// Checks if the SettingsUtils, action type attributes dictionary contains all required keys and correct values.
         /// </summary>
-        public static TestResultDTO? SettingsUtilsActionTypeIgnoreMappingDictionaryCheck()
+        public static TestResultDTO? SettingsUtilsActionTypeAttributesDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<ActionType>();
-            var checkedDictionary = SettingsUtils.ActionTypeIgnoreMapping;
+            var checkedDictionary = SettingsUtils.ActionTypeAttributes;
+
+            var existingResponses = new List<string>();
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out List<GetKeyMode>? value))
+                if (!checkedDictionary.TryGetValue(key, out var value))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
                 }
 
-                if (value is null)
-                {
-                    errorMessages.Add($"The ignore map in the dictionary at \"{key}\" is null.");
-                    continue;
-                }
-            }
-            if (errorMessages.Count != 0)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Checks if the SettingsUtils, action type response mapping dictionary contains all required keys and correct values.
-        /// </summary>
-        public static TestResultDTO? SettingsUtilsActionTypeResponseMappingDictionaryCheck()
-        {
-            var requiredKeys = Enum.GetValues<ActionType>();
-            var checkedDictionary = SettingsUtils.ActionTypeResponseMapping;
-
-            var existingValues = new List<string>();
-
-            var errorMessages = new List<string>();
-            foreach (var key in requiredKeys)
-            {
-                if (!checkedDictionary.TryGetValue(key, out string? value))
-                {
-                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
-                }
-
-                if (existingValues.Contains(value))
+                if (existingResponses.Contains(value.response))
                 {
                     errorMessages.Add($"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
                     continue;
                 }
 
-                existingValues.Add(value);
+                existingResponses.Add(value.response);
+
+                if (value.defaultKeys.Count == 0)
+                {
+                    errorMessages.Add($"The action type doesn't have any keys at the key \"{key}\".");
+                    continue;
+                }
             }
             if (errorMessages.Count != 0)
             {

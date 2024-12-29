@@ -147,6 +147,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
         /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
+        /// <param name="dontUpdateSettingsIfValueSet">If this value is true, if a settings value is set in this constructor, it won't update the settings file.</param>
         public Settings(
             bool? autoSave = null,
             LogSeverity? loggingLevel = null,
@@ -154,17 +155,17 @@ namespace ProgressAdventure.SettingsManagement
             bool? askDeleteSave = null,
             bool? askRegenerateSave = null,
             int? defBackupAction = null,
-            bool? enableColoredText = null
+            bool? enableColoredText = null,
+            bool dontUpdateSettingsIfValueSet = false
         )
         {
-            SettingsUtils.LoadDefaultConfigs();
-            AutoSave = autoSave ?? GetAutoSave();
-            LoggingLevel = loggingLevel ?? GetLoggingLevel();
-            Keybinds = keybinds ?? GetKeybins();
-            AskDeleteSave = askDeleteSave ?? GetAskDeleteSave();
-            AskRegenerateSave = askRegenerateSave ?? GetAskRegenerateSave();
-            DefBackupAction = defBackupAction ?? GetDefBackupAction();
-            EnableColoredText = enableColoredText ?? GetEnableColoredText();
+            UpdateOrNotHelper((newValue) => AutoSave = newValue, ref _autoSave, autoSave, GetAutoSave, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => LoggingLevel = newValue, ref _loggingLevel, loggingLevel, GetLoggingLevel, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => Keybinds = newValue, ref _keybinds!, keybinds, GetKeybins, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => AskDeleteSave = newValue, ref _askDeleteSave, askDeleteSave, GetAskDeleteSave, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => AskRegenerateSave = newValue, ref _askRegenerateSave, askRegenerateSave, GetAskRegenerateSave, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => DefBackupAction = newValue, ref _defBackupAction, defBackupAction, GetDefBackupAction, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => EnableColoredText = newValue, ref _enableColoredText, enableColoredText, GetEnableColoredText, dontUpdateSettingsIfValueSet);
         }
         #endregion
 
@@ -245,8 +246,24 @@ namespace ProgressAdventure.SettingsManagement
             return (bool)GetFromSettingAsType(SettingsKey.ENABLE_COLORED_TEXT);
         }
         #endregion
-
+        
         #region Private functions
+        private static void UpdateOrNotHelper<T>(
+            Action<T> setPropertyValue,
+            ref T value,
+            object? newValue,
+            Func<T> getValueFromSettings,
+            bool noUpdateIfNotNull
+        )
+        {
+            if (noUpdateIfNotNull && newValue is not null)
+            {
+                value = (T)newValue;
+                return;
+            }
+            setPropertyValue(getValueFromSettings());
+        }
+
         /// <summary>
         /// Recreates the settings file from the default values, and returns the result.
         /// </summary>
@@ -354,6 +371,10 @@ namespace ProgressAdventure.SettingsManagement
                     {
                         value = ((Keybinds)value).ToJson();
                     }
+                }
+                else
+                {
+                    value = ((Keybinds)value).ToJson();
                 }
             }
 

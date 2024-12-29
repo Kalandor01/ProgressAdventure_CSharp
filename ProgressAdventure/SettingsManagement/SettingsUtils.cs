@@ -1,6 +1,7 @@
 ﻿using ConsoleUI.Keybinds;
+using PACommon;
+using PACommon.Extensions;
 using PACommon.JsonUtils;
-using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.SettingsManagement
@@ -9,33 +10,50 @@ namespace ProgressAdventure.SettingsManagement
     {
         #region Default config dicts
         /// <summary>
-        /// The default value for the config used for the value of <see cref="ActionTypeIgnoreMapping"/>.
+        /// The default value for the config used for the value of <see cref="ActionTypeAttributes"/>.
         /// </summary>
-        private static readonly Dictionary<ActionType, List<GetKeyMode>> _defaultActionTypeIgnoreMapping = new()
+        private static readonly Dictionary<ActionType, ActionTypeAttributesDTO> _defaultActionTypeAttributes = new()
         {
-            [ActionType.ESCAPE] = [GetKeyMode.IGNORE_ESCAPE],
-            [ActionType.UP] = [GetKeyMode.IGNORE_VERTICAL],
-            [ActionType.DOWN] = [GetKeyMode.IGNORE_VERTICAL],
-            [ActionType.LEFT] = [GetKeyMode.IGNORE_HORIZONTAL],
-            [ActionType.RIGHT] = [GetKeyMode.IGNORE_HORIZONTAL],
-            [ActionType.ENTER] = [GetKeyMode.IGNORE_ENTER],
-            [ActionType.STATS] = [],
-            [ActionType.SAVE] = [],
-        };
-
-        /// <summary>
-        /// The default value for the config used for the value of <see cref="ActionTypeResponseMapping"/>.
-        /// </summary>
-        private static readonly Dictionary<ActionType, string> _defaultActionTypeResponseMapping = new()
-        {
-            [ActionType.ESCAPE] = Key.ESCAPE.ToString(),
-            [ActionType.UP] = Key.UP.ToString(),
-            [ActionType.DOWN] = Key.DOWN.ToString(),
-            [ActionType.LEFT] = Key.LEFT.ToString(),
-            [ActionType.RIGHT] = Key.RIGHT.ToString(),
-            [ActionType.ENTER] = Key.ENTER.ToString(),
-            [ActionType.STATS] = "STATS",
-            [ActionType.SAVE] = "SAVE",
+            [ActionType.ESCAPE] = new(
+                Key.ESCAPE.ToString(),
+                [GetKeyMode.IGNORE_ESCAPE],
+                [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]
+            ),
+            [ActionType.UP] = new(
+                Key.UP.ToString(),
+                [GetKeyMode.IGNORE_VERTICAL],
+                [new((char)0, ConsoleKey.UpArrow, false, false, false)]
+            ),
+            [ActionType.DOWN] = new(
+                Key.DOWN.ToString(),
+                [GetKeyMode.IGNORE_VERTICAL],
+                [new((char)0, ConsoleKey.DownArrow, false, false, false)]
+            ),
+            [ActionType.LEFT] = new(
+                Key.LEFT.ToString(),
+                [GetKeyMode.IGNORE_HORIZONTAL],
+                [new((char)0, ConsoleKey.LeftArrow, false, false, false)]
+            ),
+            [ActionType.RIGHT] = new(
+                Key.RIGHT.ToString(),
+                [GetKeyMode.IGNORE_HORIZONTAL],
+                [new((char)0, ConsoleKey.RightArrow, false, false, false)]
+            ),
+            [ActionType.ENTER] = new(
+                Key.ENTER.ToString(),
+                [GetKeyMode.IGNORE_ENTER],
+                [new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false)]
+            ),
+            [ActionType.STATS] = new(
+                "STATS",
+                [],
+                [new('e', ConsoleKey.E, false, false, false)]
+            ),
+            [ActionType.SAVE] = new(
+                "SAVE",
+                [],
+                [new('s', ConsoleKey.S, false, false, false)]
+            ),
         };
 
         /// <summary>
@@ -55,14 +73,9 @@ namespace ProgressAdventure.SettingsManagement
 
         #region Config dictionaries
         /// <summary>
-        /// The dictionary pairing up action types, to their ignore modes.
+        /// The dictionary pairing up action types, to their attributes.
         /// </summary>
-        public static Dictionary<ActionType, List<GetKeyMode>> ActionTypeIgnoreMapping { get; private set; }
-
-        /// <summary>
-        /// The dictionary pairing up action types, to responses.
-        /// </summary>
-        public static Dictionary<ActionType, string> ActionTypeResponseMapping { get; private set; }
+        public static Dictionary<ActionType, ActionTypeAttributesDTO> ActionTypeAttributes { get; private set; }
 
         /// <summary>
         /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
@@ -84,8 +97,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void LoadDefaultConfigs()
         {
-            ActionTypeIgnoreMapping = _defaultActionTypeIgnoreMapping;
-            ActionTypeResponseMapping = _defaultActionTypeResponseMapping;
+            ActionTypeAttributes = _defaultActionTypeAttributes;
             SettingValueTypeMap = _defaultSettingValueTypeMap;
         }
 
@@ -94,9 +106,8 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            ConfigManager.Instance.SetConfig("action_type_ignore_mapping", "v.1", _defaultActionTypeIgnoreMapping);
-            ConfigManager.Instance.SetConfig("action_type_response_mapping", "v.1", _defaultActionTypeResponseMapping);
-            ConfigManager.Instance.SetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
+            PACSingletons.Instance.ConfigManager.SetConfig("action_type_attributes", "v.1", _defaultActionTypeAttributes);
+            PACSingletons.Instance.ConfigManager.SetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
         }
 
         /// <summary>
@@ -104,14 +115,11 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void ReloadConfigs()
         {
-            ActionTypeIgnoreMapping =
-                ConfigManager.Instance.TryGetConfig("action_type_ignore_mapping", "v.1", _defaultActionTypeIgnoreMapping);
-
-            ActionTypeResponseMapping =
-                ConfigManager.Instance.TryGetConfig("action_type_response_mapping", "v.1", _defaultActionTypeResponseMapping);
+            ActionTypeAttributes =
+                PACSingletons.Instance.ConfigManager.TryGetConfig("action_type_attributes", "v.1", _defaultActionTypeAttributes);
 
             SettingValueTypeMap =
-                ConfigManager.Instance.TryGetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
+                PACSingletons.Instance.ConfigManager.TryGetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
         }
         #endregion
 
@@ -120,17 +128,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static List<ActionKey> GetDefaultKeybindList()
         {
-            return
-            [
-                new(ActionType.ESCAPE, [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]),
-                new(ActionType.UP, [new((char)0, ConsoleKey.UpArrow, false, false, false)]),
-                new(ActionType.DOWN, [new((char)0, ConsoleKey.DownArrow, false, false, false)]),
-                new(ActionType.LEFT, [new((char)0, ConsoleKey.LeftArrow, false, false, false)]),
-                new(ActionType.RIGHT, [new((char)0, ConsoleKey.RightArrow, false, false, false)]),
-                new(ActionType.ENTER, [new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false)]),
-                new(ActionType.STATS, [new('e', ConsoleKey.E, false, false, false)]),
-                new(ActionType.SAVE, [new('s', ConsoleKey.S, false, false, false)]),
-            ];
+            return ActionTypeAttributes.Select(action => new ActionKey(action.Key, action.Value.defaultKeys)).ToList().DeepCopy();
         }
 
         /// <summary>

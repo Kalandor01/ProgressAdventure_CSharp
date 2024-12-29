@@ -2,7 +2,6 @@
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
-using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -272,47 +271,23 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private static readonly Dictionary<Material, MaterialItemAttributesDTO> _defaultMaterialItemAttributes = new()
         {
-            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS),
-            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH),
-            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER),
-            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS),
-            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD),
-            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON),
-            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER),
-            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH),
-            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER),
-            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL),
-            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE),
-            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH),
-            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD),
-            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL),
-            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, ItemAmountUnit.L),
-            [Material.FLINT] = new MaterialItemAttributesDTO(Material.FLINT),
-            [Material.SILK] = new MaterialItemAttributesDTO(Material.SILK),
-        };
-
-        /// <summary>
-        /// The default value for the config used for the value of <see cref="MaterialProperties"/>.
-        /// </summary>
-        private static readonly Dictionary<Material, MaterialPropertiesDTO> _defaultMaterialProperties = new()
-        {
-            [Material.BRASS] = new MaterialPropertiesDTO(8730),
-            [Material.CLOTH] = new MaterialPropertiesDTO(1550),
-            [Material.COPPER] = new MaterialPropertiesDTO(8960),
-            [Material.GLASS] = new MaterialPropertiesDTO(2500),
-            [Material.GOLD] = new MaterialPropertiesDTO(19300),
-            [Material.IRON] = new MaterialPropertiesDTO(7875),
-            [Material.LEATHER] = new MaterialPropertiesDTO(800),
-            [Material.ROTTEN_FLESH] = new MaterialPropertiesDTO(1000),
-            [Material.SILVER] = new MaterialPropertiesDTO(10490),
-            [Material.STEEL] = new MaterialPropertiesDTO(7900),
-            [Material.STONE] = new MaterialPropertiesDTO(2650),
-            [Material.TEETH] = new MaterialPropertiesDTO(2900),
-            [Material.WOOD] = new MaterialPropertiesDTO(600),
-            [Material.WOOL] = new MaterialPropertiesDTO(1241),
-            [Material.HEALING_LIQUID] = new MaterialPropertiesDTO(1015),
-            [Material.SILK] = new MaterialPropertiesDTO(1400),
-            [Material.FLINT] = new MaterialPropertiesDTO(2596),
+            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS, new MaterialPropertiesDTO(8730)),
+            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH, new MaterialPropertiesDTO(1550)),
+            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER, new MaterialPropertiesDTO(8960)),
+            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS, new MaterialPropertiesDTO(2500)),
+            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD, new MaterialPropertiesDTO(19300)),
+            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON, new MaterialPropertiesDTO(7875)),
+            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER, new MaterialPropertiesDTO(800)),
+            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH, new MaterialPropertiesDTO(1000)),
+            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER, new MaterialPropertiesDTO(10490)),
+            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL, new MaterialPropertiesDTO(7900)),
+            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE, new MaterialPropertiesDTO(2650)),
+            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH, new MaterialPropertiesDTO(2900)),
+            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD, new MaterialPropertiesDTO(600)),
+            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL, new MaterialPropertiesDTO(1241)),
+            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, new MaterialPropertiesDTO(1015), ItemAmountUnit.L),
+            [Material.FLINT] = new MaterialItemAttributesDTO(Material.FLINT, new MaterialPropertiesDTO(2596)),
+            [Material.SILK] = new MaterialItemAttributesDTO(Material.SILK, new MaterialPropertiesDTO(1400)),
             // TODO: diferent density per state
             // M    : SOLID, LIQUID, GAS
             // WATER: 920, 1000, 3 kg/m^3
@@ -397,11 +372,6 @@ namespace ProgressAdventure.ItemManagement
         public static Dictionary<Material, MaterialItemAttributesDTO> MaterialItemAttributes { get; private set; }
 
         /// <summary>
-        /// The dictionary pairing up material types, to their properties.
-        /// </summary>
-        public static Dictionary<Material, MaterialPropertiesDTO> MaterialProperties { get; private set; }
-
-        /// <summary>
         /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
         /// </summary>
         public static Dictionary<ItemTypeID, List<RecipeDTO>> ItemRecipes { get; private set; }
@@ -428,7 +398,6 @@ namespace ProgressAdventure.ItemManagement
         {
             CompoundItemAttributes = _defaultCompoundItemAttributes;
             MaterialItemAttributes = _defaultMaterialItemAttributes;
-            MaterialProperties = _defaultMaterialProperties;
         }
 
         public static void LoadDefaultConfigs2()
@@ -450,17 +419,16 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "compound_item_attributes",
                 "v.1",
                 _defaultCompoundItemAttributes,
                 key => key.ToString()!
             );
 
-            ConfigManager.Instance.SetConfig("material_item_attributes", "v.1", _defaultMaterialItemAttributes);
-            ConfigManager.Instance.SetConfig("material_properties", "v.1", _defaultMaterialProperties);
+            PACSingletons.Instance.ConfigManager.SetConfig("material_item_attributes", "v.1.1", _defaultMaterialItemAttributes);
 
-            ConfigManager.Instance.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfig(
                 "item_recipes",
                 "v.1",
                 _defaultItemRecipes,
@@ -471,7 +439,7 @@ namespace ProgressAdventure.ItemManagement
         private static void ReloadConfigs1()
         {
             CompoundItemAttributes =
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "compound_item_attributes",
                     "v.1",
                     _defaultCompoundItemAttributes,
@@ -481,16 +449,13 @@ namespace ProgressAdventure.ItemManagement
                 );
 
             MaterialItemAttributes =
-                ConfigManager.Instance.TryGetConfig("material_item_attributes", "v.1", _defaultMaterialItemAttributes);
-
-            MaterialProperties =
-                ConfigManager.Instance.TryGetConfig("material_properties", "v.1", _defaultMaterialProperties);
+                PACSingletons.Instance.ConfigManager.TryGetConfig("material_item_attributes", "v.1.1", _defaultMaterialItemAttributes);
         }
 
         private static void ReloadConfigs2()
         {
             ItemRecipes =
-                ConfigManager.Instance.TryGetConfig(
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
                     "item_recipes",
                     "v.1",
                     _defaultItemRecipes,

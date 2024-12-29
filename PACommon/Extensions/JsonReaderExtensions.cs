@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-namespace ProgressAdventure.ConfigManagement
+namespace PACommon.Extensions
 {
-    internal static class JsonReaderExtensions
+    public static class JsonReaderExtensions
     {
         public delegate T ArrayValueConverterDelegate<T>(ref Utf8JsonReader reader, JsonSerializerOptions options);
         public delegate object? ObjectValueConverterDelegate(ref Utf8JsonReader reader, string key, JsonSerializerOptions options);
@@ -13,7 +13,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="reader">The json reader.</param>
         /// <returns></returns>
         /// <exception cref="JsonException"></exception>
-        internal static Dictionary<string, string?> GetObjectDictionary(this ref Utf8JsonReader reader)
+        public static Dictionary<string, string?> GetObjectDictionary(this ref Utf8JsonReader reader)
         {
             if (reader.TokenType != JsonTokenType.StartObject)
             {
@@ -50,7 +50,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="converterFunction">The value converter to use.</param>
         /// <returns></returns>
         /// <exception cref="JsonException"></exception>
-        internal static Dictionary<string, object?> GetObjectDictionary(
+        public static Dictionary<string, object?> GetObjectDictionary(
             this ref Utf8JsonReader reader,
             ObjectValueConverterDelegate converterFunction,
             JsonSerializerOptions options
@@ -91,7 +91,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="converterFunction">The value converter to use.</param>
         /// <returns></returns>
         /// <exception cref="JsonException"></exception>
-        internal static List<T>GetArray<T>(
+        public static List<T>GetArray<T>(
             this ref Utf8JsonReader reader,
             ArrayValueConverterDelegate<T> converterFunction,
             JsonSerializerOptions options

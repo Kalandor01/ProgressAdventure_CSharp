@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ProgressAdventure.ConfigManagement
+namespace PACommon.ConfigManagement.JsonConverters
 {
-    internal class TypeConverter : JsonConverter<Type>
+    public class TypeConverter : JsonConverter<Type>
     {
         public override Type Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

@@ -42,5 +42,12 @@ namespace ProgressAdventure.ItemManagement
             this.unit = unit;
         }
         #endregion
+
+        #region Overrides
+        public override string? ToString()
+        {
+            return $"{typeName} ({displayName}), {unit}";
+        }
+        #endregion
     }
 }
