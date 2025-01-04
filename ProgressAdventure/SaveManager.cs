@@ -99,7 +99,7 @@ namespace ProgressAdventure
                 throw new FileNotFoundException("Not a valid save folder", saveName);
             }
 
-            var data = Tools.DecodeSaveShort(dataFilePath, 1);
+            var data = Tools.DecodeFileShort(dataFilePath, 1);
 
             if (data is null)
             {
@@ -205,7 +205,7 @@ namespace ProgressAdventure
             var displayData = DisplaySaveData.ToJsonFromSaveData(SaveData.Instance);
             var mainData = SaveData.Instance.ToJson();
             // create new save
-            Tools.EncodeSaveShort([displayData, mainData], Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
+            Tools.EncodeFileShort([displayData, mainData], Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA));
         }
 
         /// <summary>
@@ -345,7 +345,7 @@ namespace ProgressAdventure
                 JsonDictionary? data = null;
                 try
                 {
-                    data = Tools.DecodeSaveShort(Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA), 0);
+                    data = Tools.DecodeFileShort(Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA), 0);
                 }
                 catch (FormatException) { }
                 datas.Add((folder, data));

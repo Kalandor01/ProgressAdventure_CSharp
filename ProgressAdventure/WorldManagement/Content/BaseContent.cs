@@ -178,19 +178,15 @@ namespace ProgressAdventure.WorldManagement.Content
             ((oldJson, chunkRandom) =>
             {
                 // subtype snake case rename, name not null
-                if (
-                    oldJson.TryGetValue("subtype", out var oldSubtype) &&
-                    oldSubtype?.Value is string oldSubtypeValue &&
-                    oldSubtypeValue == "banditCamp"
-                )
+                JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "subtype", (subtype) =>
                 {
-                    oldJson["subtype"] = "bandit_camp";
-                }
+                    return (subtype == "banditCamp", "bandit_camp");
+                });
                 if (
                     oldJson.TryGetValue("name", out var oldName) &&
                     oldName is null &&
                     oldJson.TryGetValue("subtype", out var subtype) &&
-                    subtype?.Value is string
+                    subtype?.Value.ToString() != "none"
                 )
                 {
                     oldJson["name"] = GenerateContentName(chunkRandom);
@@ -200,26 +196,25 @@ namespace ProgressAdventure.WorldManagement.Content
             ((oldJson, chunkRandom) =>
             {
                 // no more "content" content type, content type IDs are like item type IDs
-                if (
-                    oldJson.TryGetValue("type", out var oldType) &&
-                    oldType?.Value is string oldTypeValue
-                )
+                JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "type", (oldTypeValue) =>
                 {
+                    var isStructure = false;
                     if (oldTypeValue == "content")
                     {
-                        oldJson["type"] = "structure";
+                        isStructure = true;
                         oldTypeValue = "structure";
                     }
 
-                    if (
-                        oldJson.TryGetValue("subtype", out var oldSubtype) &&
-                        oldSubtype?.Value is string oldSubtypeValue &&
-                        WorldUtils._legacyContentSubtypeNameMap.TryGetValue((oldTypeValue, oldSubtypeValue), out var newSubtype)
-                    )
+                    JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "subtype", (oldSubtypeValue) =>
                     {
-                        oldJson["subtype"] = newSubtype;
-                    }
-                }
+                        return (
+                            WorldUtils._legacyContentSubtypeNameMap.TryGetValue((oldTypeValue, oldSubtypeValue), out var newSubtype),
+                            newSubtype
+                        );
+                    });
+
+                    return (isStructure, oldTypeValue);
+                });
             }, "2.2.2")
         ];
         #endregion
@@ -283,7 +278,7 @@ namespace ProgressAdventure.WorldManagement.Content
                 return false;
             }
 
-            var success = PACTools.TryParseJsonValue<T, string?>(contentJson, JsonKeys.BaseContent.NAME, out var contentName);
+            var success = PACTools.TryParseJsonValueNullable<T, string?>(contentJson, JsonKeys.BaseContent.NAME, out var contentName);
 
             // get content
             var content = Activator.CreateInstance(contentProperties.matchingType, [chunkRandom, contentName, contentJson]);

@@ -10,7 +10,7 @@ namespace ProgressAdventure.WorldManagement
     /// <summary>
     /// Object, representing a tile in a chunk.
     /// </summary>
-    public class Tile : IJsonReadable
+    public class Tile : IJsonConvertableExtra<Tile, SplittableRandom>
     {
         #region Public fields
         /// <summary>
@@ -131,20 +131,17 @@ namespace ProgressAdventure.WorldManagement
 
         #region JsonConvert
         #region Protected properties
-        protected static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } =
+        static List<(Action<JsonDictionary, SplittableRandom> objectJsonCorrecter, string newFileVersion)> IJsonConvertableExtra<Tile, SplittableRandom>.VersionCorrecters { get; } =
         [
             // 2.1.1 -> 2.2
-            (oldJson =>
+            ((oldJson, random) =>
             {
                 // snake case rename
-                if (oldJson.TryGetValue("xPos", out var xpRename))
+                JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string>
                 {
-                    oldJson["x_position"] = xpRename;
-                }
-                if (oldJson.TryGetValue("yPos", out var ypRename))
-                {
-                    oldJson["y_position"] = ypRename;
-                }
+                    ["xPos"] = "x_position",
+                    ["yPos"] = "y_position",
+                });
             }, "2.2"),
         ];
         #endregion
@@ -162,54 +159,26 @@ namespace ProgressAdventure.WorldManagement
             };
         }
 
-        /// <summary>
-        /// Tries to convert the json representation of the tile into a tile object, and returns if it was succesful without any warnings.
-        /// </summary>
-        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
-        /// <param name="tileJson">The json representation of the tile.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="tileObject">The object representation of the json.</param>
-        public static bool FromJson(SplittableRandom chunkRandom, JsonDictionary? tileJson, string fileVersion, [NotNullWhen(true)] out Tile? tileObject)
-        {
-            tileObject = default;
-            if (tileJson is null)
-            {
-                PACTools.LogJsonNullError<Tile>(typeof(Tile).ToString(), isError: true);
-                return false;
-            }
-
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Tile>(tileJson, VersionCorrecters, fileVersion);
-
-            return FromJsonWithoutCorrection(chunkRandom, tileJson, fileVersion, ref tileObject);
-        }
-
-        /// <summary>
-        /// Tries to convert the json representation of the tile into a tile object, and returns if it was succesful without any warnings.
-        /// </summary>
-        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
-        /// <param name="tileJson">The json representation of the tile.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="tileObject">The object representation of the json.</param>
-        private static bool FromJsonWithoutCorrection(SplittableRandom chunkRandom, JsonDictionary tileJson, string fileVersion, ref Tile? tileObject)
+        static bool IJsonConvertableExtra<Tile, SplittableRandom>.FromJsonWithoutCorrection(JsonDictionary objectJson, SplittableRandom extraData, string fileVersion, [NotNullWhen(true)] ref Tile? convertedObject)
         {
             if (!(
-                PACTools.TryParseJsonValue<Tile, long>(tileJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
-                PACTools.TryParseJsonValue<Tile, long>(tileJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)
+                PACTools.TryParseJsonValue<Tile, long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
+                PACTools.TryParseJsonValue<Tile, long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)
             ))
             {
                 return false;
             }
 
             var success = true;
-            success &= PACTools.TryParseJsonValue<Tile, int?>(tileJson, Constants.JsonKeys.Tile.VISITED, out var visited);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson, isStraigthCast: true);
-            success &= TerrainContent.FromJson(chunkRandom, terrainJson, fileVersion, out var terrain);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson, isStraigthCast: true);
-            success &= StructureContent.FromJson(chunkRandom, structureJson, fileVersion, out var structure);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(tileJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson, isStraigthCast: true);
-            success &= PopulationContent.FromJson(chunkRandom, populationJson, fileVersion, out var population);
+            success &= PACTools.TryParseJsonValue<Tile, int?>(objectJson, Constants.JsonKeys.Tile.VISITED, out var visited);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson, isStraigthCast: true);
+            success &= TerrainContent.FromJson(extraData, terrainJson, fileVersion, out var terrain);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson, isStraigthCast: true);
+            success &= StructureContent.FromJson(extraData, structureJson, fileVersion, out var structure);
+            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson, isStraigthCast: true);
+            success &= PopulationContent.FromJson(extraData, populationJson, fileVersion, out var population);
 
-            tileObject = new Tile(xPos, yPos, chunkRandom, visited, terrain, structure, population);
+            convertedObject = new Tile(xPos, yPos, extraData, visited, terrain, structure, population);
             return success;
         }
         #endregion

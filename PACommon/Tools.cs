@@ -21,7 +21,7 @@ namespace PACommon
         /// <summary>
         /// Same as <see cref="EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>, but for plain json files.
         /// </summary>
-        /// <param name="dataList">The data to write to the file.</param>
+        /// <param name="dataList">The list of data to write to the file, where each element of the list is a line.</param>
         /// <param name="filePath">The path and the name of the file without the extension, that will be created.</param>
         /// <param name="extension">The extension of the file that will be created.</param>
         public static void SaveJsonFile(IEnumerable<JsonDictionary> dataList, string filePath, string extension = "json")
@@ -33,7 +33,7 @@ namespace PACommon
         /// <summary>
         /// Same as <see cref="EncodeFileShort(JsonDictionary, string, long, string)"/>, but for plain json files.
         /// </summary>
-        /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
+        /// <param name="data">The data to write to the file.</param>
         /// <inheritdoc cref="SaveJsonFile(IEnumerable{JsonDictionary}, string, string)"/>
         public static void SaveJsonFile(JsonDictionary data, string filePath, string extension = "json")
         {
@@ -41,9 +41,36 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Zips up a text.
+        /// </summary>
+        /// <param name="text">The text to zip.</param>
+        /// <param name="encoding">The encoding of the original text.</param>
+        public static byte[] Zip(string text, Encoding? encoding = null)
+        {
+            encoding ??= Constants.ENCODING;
+            var bytes = encoding.GetBytes(text);
+            var utfBytes = Encoding.Convert(encoding, Encoding.UTF8, bytes);
+
+            return FileConversion.Zip(utfBytes);
+        }
+
+        /// <summary>
+        /// Unzips bytes into text.
+        /// </summary>
+        /// <param name="zippedBytes">The zipped bytes.</param>
+        /// <param name="encoding">The encoding of the original text.</param>
+        public static string Unzip(byte[] zippedBytes, Encoding? encoding = null)
+        {
+            encoding ??= Constants.ENCODING;
+            var utfBytes = FileConversion.Unzip(zippedBytes);
+            var bytes = Encoding.Convert(Encoding.UTF8, encoding, utfBytes);
+            return encoding.GetString(bytes);
+        }
+
+        /// <summary>
         /// Shorthand for <see cref="FileConversion.EncodeFile(IEnumerable{string}, long, string, string, int, Encoding?)"/> + convert from json to string.
         /// </summary>
-        /// <param name="dataList">The data to write to the file.</param>
+        /// <param name="dataList">The list of data to write to the file, where each element of the list is a line.</param>
         /// <param name="filePath">The path and the name of the file without the extension, that will be created.<br/>
         /// If the path contains a *, it will be replaced with the seed.</param>
         /// <param name="seed">The seed for encoding the file.</param>
@@ -54,15 +81,15 @@ namespace PACommon
             FileConversion.EncodeFile(jsonDataList, seed, filePath, extension, Constants.FILE_ENCODING_VERSION, Constants.ENCODING);
         }
 
-        /// <param name="data">The list of data to write to the file, where each element of the list is a line.</param>
+        /// <param name="data">The data to write to the file.</param>
         /// <inheritdoc cref="EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
         public static void EncodeFileShort(JsonDictionary data, string filePath, long seed, string extension)
         {
-            EncodeFileShort(data, filePath, seed, extension);
+            EncodeFileShort([data], filePath, seed, extension);
         }
 
         /// <summary>
-        /// Same as <see cref="DecodeSaveShort(string, long, string, int, bool)"/>, but for plain json files.
+        /// Same as <see cref="DecodeFileShort(string, long, string, int, bool)"/>, but for plain json files.
         /// </summary>
         /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.<br/>
         /// If the path contains a *, it will be replaced with the seed.</param>
@@ -90,7 +117,7 @@ namespace PACommon
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
         /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
-        public static JsonDictionary? DecodeSaveShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
+        public static JsonDictionary? DecodeFileShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
         {
             return DecodeSaveAny(filePath, seed, extension, lineNum, expected);
         }
@@ -165,7 +192,7 @@ namespace PACommon
         /// </summary>
         /// <param name="randomString">The random generator's string representation.</param>
         /// <param name="random">The random generator, that got deserialised.</param>
-        public static bool TryDeserializeRandom(string? randomString, out SplittableRandom? random)
+        public static bool TryDeserializeRandom(string? randomString, [NotNullWhen(true)] out SplittableRandom? random)
         {
             random = DeserializeRandom(randomString);
             return random is not null;
@@ -228,11 +255,86 @@ namespace PACommon
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="convertedObject">The object representation of the json.</param>
         /// <returns>If the conversion was succesfull without any warnings.</returns>
-        public static bool TryFromJsonWithoutCorrection<T>(JsonDictionary objectJson, string fileVersion, [NotNullWhen(true)] out T? convertedObject)
+        public static bool TryFromJsonWithoutCorrection<T>(
+            JsonDictionary objectJson,
+            string fileVersion,
+            [NotNullWhen(true)] out T? convertedObject
+        )
             where T : IJsonConvertable<T>
         {
             convertedObject = default;
             return T.FromJsonWithoutCorrection(objectJson, fileVersion, ref convertedObject);
+        }
+
+        /// <summary>
+        /// Tries to convert the json representation of the object to an object format.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="extraData">Some extra data to help with the conversion.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="convertedObject">The object representation of the json.</param>
+        /// <returns>If the conversion was succesfull without any warnings.</returns>
+        public static bool TryFromJsonExtra<T, TE>(
+            JsonDictionary? objectJson,
+            TE extraData,
+            string fileVersion,
+            [NotNullWhen(true)] out T? convertedObject
+        )
+            where T : IJsonConvertableExtra<T, TE>
+        {
+            return T.FromJson(objectJson, extraData, fileVersion, out convertedObject);
+        }
+
+        /// <summary>
+        /// Converts the json representation of the object to an object format.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="extraData">Some extra data to help with the conversion.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        public static T? FromJsonExtra<T, TE>(JsonDictionary? objectJson, TE extraData, string fileVersion)
+            where T : IJsonConvertableExtra<T, TE>
+        {
+            T.FromJson(objectJson, extraData, fileVersion, out T? convertedObject);
+            return convertedObject;
+        }
+
+        /// <summary>
+        /// FromJson(), but without correcting the json data first.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="extraData">Some extra data to help with the conversion.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="convertedObject">The object representation of the json.</param>
+        public static T? FromJsonExtraWithoutCorrection<T, TE>(
+            JsonDictionary objectJson,
+            TE extraData,
+            string fileVersion,
+            [NotNullWhen(true)] ref T? convertedObject
+        )
+            where T : IJsonConvertableExtra<T, TE>
+        {
+            T.FromJsonWithoutCorrection(objectJson, extraData, fileVersion, ref convertedObject);
+            return convertedObject;
+        }
+
+        /// <summary>
+        /// Tries to do FromJson(), but without correcting the json data first.
+        /// </summary>
+        /// <param name="objectJson">The json representation of the object.</param>
+        /// <param name="extraData">Some extra data to help with the conversion.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <param name="convertedObject">The object representation of the json.</param>
+        /// <returns>If the conversion was succesfull without any warnings.</returns>
+        public static bool TryFromJsonExtraWithoutCorrection<T, TE>(
+            JsonDictionary objectJson,
+            TE extraData,
+            string fileVersion,
+            [NotNullWhen(true)] out T? convertedObject
+        )
+            where T : IJsonConvertableExtra<T, TE>
+        {
+            convertedObject = default;
+            return T.FromJsonWithoutCorrection(objectJson, extraData, fileVersion, ref convertedObject);
         }
         #endregion
 
@@ -425,18 +527,20 @@ namespace PACommon
         /// <param name="logParseWarnings">Whether to log any parse warnings.</param>
         /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
+        /// <param name="allowNull">Whether to allow null value.</param>
         /// <returns>If the value was sucessfuly parsed.</returns>
         public static bool TryGetJsonObjectValue<T>(
             JsonDictionary objectJson,
             string jsonKey,
-            [NotNullWhen(true)] out JsonObject? value,
+            out JsonObject? value,
             bool logParseWarnings = true,
-            bool isCritical = false
+            bool isCritical = false,
+            bool allowNull = false
         )
         {
             if (
                 objectJson.TryGetValue(jsonKey, out value) &&
-                value is not null
+                (allowNull || value is not null)
             )
             {
                 return true;
@@ -482,19 +586,28 @@ namespace PACommon
         /// </summary>
         /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        /// <param name="overrideNullability">The override of whether to accept a null value as valid.<br/>
+        /// Should only be used for nullable string types or similar.</param>
         public static bool TryCastJsonAnyValue<T, TRes>(
             JsonDictionary objectJson,
             string jsonKey,
             [NotNullWhen(true)] out TRes? value,
             bool isCritical = false,
-            bool isStraigthCast = false
+            bool isStraigthCast = false,
+            bool? overrideNullability = null
         )
         {
             value = default;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical: isCritical))
+            var isAllowNull = isStraigthCast && (overrideNullability ?? Nullable.GetUnderlyingType(typeof(TRes)) is not null);
+            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical: isCritical, allowNull: isAllowNull))
             {
                 return false;
+            }
+
+            if (isAllowNull && result is null)
+            {
+                return true;
             }
 
             return TryCastAnyValueForJsonParsing<T, TRes>(result, out value, jsonKey, isCritical, isStraigthCast);
@@ -547,38 +660,35 @@ namespace PACommon
                 return true;
             }
 
-            var parseSuccess = true;
             if (actualType == typeof(SplittableRandom))
             {
-                parseSuccess = TryDeserializeRandom(valueText, out var parsedRandom);
-                if (parsedRandom is not null)
+                if (TryDeserializeRandom(valueText, out var parsedRandom))
                 {
                     parsedValue = (TRes)(object)parsedRandom;
-                }
-                else if (logParseWarnings)
-                {
-                    LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", parameterExtraInfo, isCritical);
-                }
-                return parseSuccess;
-            }
-
-            var parsedResult = default(TRes?);
-            try
-            {
-                var converter = TypeDescriptor.GetConverter(parseType);
-                parsedResult = (TRes?)converter.ConvertFromString(valueText);
-            }
-            catch
-            {
-                parseSuccess = false;
-            }
-
-            if (parseSuccess && parsedResult is not null)
-            {
-                if (!actualType.IsEnum || Enum.IsDefined(actualType, parsedResult))
-                {
-                    parsedValue = parsedResult;
                     return true;
+                }
+            }
+            else
+            {
+                var parseSuccess = true;
+                var parsedResult = default(TRes?);
+                try
+                {
+                    var converter = TypeDescriptor.GetConverter(parseType);
+                    parsedResult = (TRes?)converter.ConvertFromString(valueText);
+                }
+                catch
+                {
+                    parseSuccess = false;
+                }
+
+                if (parseSuccess && parsedResult is not null)
+                {
+                    if (!actualType.IsEnum || Enum.IsDefined(actualType, parsedResult))
+                    {
+                        parsedValue = parsedResult;
+                        return true;
+                    }
                 }
             }
 
@@ -601,7 +711,7 @@ namespace PACommon
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
         /// <typeparam name="TRes">The type to parse to.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryParseJsonValue<T, TRes>(
             JsonDictionary objectJson,
             string jsonKey,
@@ -620,12 +730,48 @@ namespace PACommon
         }
 
         /// <summary>
+        /// Tries to parse a value from a json dictionary, and logs a warning, if it can't pe parsed.<br/>
+        /// It also accepts null values.
+        /// Usable types:<br/>
+        /// - bool<br/>
+        /// - string<br/>
+        /// - numbers<br/>
+        /// - enums<br/>
+        /// - SplittableRandom<br/>
+        /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
+        /// - nullables (will only make the default value null instead of the default value for the type)
+        /// </summary>
+        /// <typeparam name="TRes">The type to parse to.</typeparam>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        public static bool TryParseJsonValueNullable<T, TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            out TRes? value,
+            bool logParseWarnings = true,
+            bool isCritical = false
+        )
+        {
+            value = default;
+            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, logParseWarnings, isCritical, true))
+            {
+                return false;
+            }
+
+            if (result is null)
+            {
+                return true;
+            }
+
+            return TryParseValueForJsonParsing<T, TRes>(result, out value, jsonKey, logParseWarnings, isCritical: isCritical);
+        }
+
+        /// <summary>
         /// Tries to parse an IJsonConvertable value from a json dictionary, and logs a warning, if it can't pe parsed.
         /// </summary>
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <typeparam name="TJc">The IJsonConvertable class to convert to.</typeparam>
         /// <returns>If the object was parsed without warnings.</returns>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryParseJsonConvertableValue<T, TJc>(
             JsonDictionary objectJson,
             string fileVersion,

@@ -98,7 +98,7 @@ namespace ProgressAdventure.WorldManagement
             chunkJson.Remove(Constants.JsonKeys.Chunk.POSITION_X);
             chunkJson.Remove(Constants.JsonKeys.Chunk.POSITION_Y);
             var chunkFileName = GetChunkFileName(basePosition);
-            Tools.EncodeSaveShort(chunkJson, GetChunkFilePath(chunkFileName, saveFolderName));
+            Tools.EncodeFileShort(chunkJson, GetChunkFilePath(chunkFileName, saveFolderName));
             PACSingletons.Instance.Logger.Log("Saved chunk", $"{chunkFileName}.{Constants.SAVE_EXT}");
         }
 
@@ -127,7 +127,7 @@ namespace ProgressAdventure.WorldManagement
             var chunkFileName = GetChunkFileName(position);
             chunk = null;
 
-            var chunkJson = Tools.DecodeSaveShortExpected<Chunk>(
+            var chunkJson = Tools.DecodeFileShortExpected<Chunk>(
                 GetChunkFilePath(chunkFileName, saveFolderName),
                 expected: expected,
                 extraFileInformation: $"x: {position.x}, y: {position.y}"
@@ -308,7 +308,7 @@ namespace ProgressAdventure.WorldManagement
             }
             (long x, long y) position = (posX, posY);
 
-            success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
+            success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom?>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
             chunkRandom ??= GetChunkRandom(position);
 
             if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
@@ -317,7 +317,7 @@ namespace ProgressAdventure.WorldManagement
                     success = false;
                     return (false, default);
                 }
-                success &= Tile.FromJson(chunkRandom, tileJsonValue, fileVersion, out Tile? tile);
+                success &= PACTools.TryFromJsonExtra(tileJsonValue, chunkRandom, fileVersion, out Tile? tile);
                 return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(GetTileDictName(tile.relativePosition), tile));
             }, out var tilesKvPair, true))
             {

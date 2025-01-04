@@ -444,7 +444,7 @@ namespace ProgressAdventure.WorldManagement
 
 
                 if (
-                    Tools.DecodeSaveShortExpected<Chunk>(
+                    Tools.DecodeFileShortExpected<Chunk>(
                         Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
                         expected: true,
                         extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"
@@ -472,7 +472,7 @@ namespace ProgressAdventure.WorldManagement
                     PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<Chunk>(chunkJson, versionCorrecters, fileVersion);
                 }
 
-                success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
+                success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom?>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
                 chunkRandom ??= Chunk.GetChunkRandom(chunkPosition, newChunkSize);
 
                 if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
@@ -481,7 +481,7 @@ namespace ProgressAdventure.WorldManagement
                         success = false;
                         return (false, default);
                     }
-                    success &= Tile.FromJson(chunkRandom, tileJsonValue, fileVersion, out Tile? tile);
+                    success &= PACTools.TryFromJsonExtra(tileJsonValue, chunkRandom, fileVersion, out Tile? tile);
                     if (tile is null)
                     {
                         return (false, default);

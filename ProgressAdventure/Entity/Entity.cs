@@ -481,7 +481,7 @@ namespace ProgressAdventure.Entity
             }
 
             if (!(
-                PACTools.TryParseJsonValue<Entity, string?>(
+                PACTools.TryParseJsonValue<Entity, string>(
                     entityJson,
                     Constants.JsonKeys.Entity.TYPE,
                     out var entityTypeValue,
@@ -594,7 +594,6 @@ namespace ProgressAdventure.Entity
         ) entityData)
         {
             var success = true;
-
             success &= PACTools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
@@ -605,15 +604,16 @@ namespace ProgressAdventure.Entity
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
             success &= PACTools.TryParseJsonListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 attribute => {
-                    var success = PACTools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, logParseWarnings: false);
-                    return (success, value);
+                    var attributeSuccess = PACTools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, logParseWarnings: false);
+                    success &= attributeSuccess;
+                    return (attributeSuccess, value);
                 },
                 out var attributes);
             success &= PACTools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.DROPS,
                 dropJson => {
-                    var parseSuccess = PACTools.TryFromJson(dropJson as JsonDictionary, fileVersion, out AItem? dropObject);
-                    success &= parseSuccess;
-                    return (parseSuccess, dropObject);
+                    var dropSuccess = PACTools.TryFromJson(dropJson as JsonDictionary, fileVersion, out AItem? dropObject);
+                    success &= dropSuccess;
+                    return (dropSuccess, dropObject);
                 },
                 out var drops);
 

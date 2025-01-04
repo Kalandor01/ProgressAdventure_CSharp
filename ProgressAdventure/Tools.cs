@@ -20,18 +20,18 @@ namespace ProgressAdventure
         #region Public functions
         #region Encode/decode Short
         /// <inheritdoc cref="PACTools.EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
-        public static void EncodeSaveShort(
+        public static void EncodeFileShort(
             JsonDictionary data,
             string filePath,
             long seed = SAVE_SEED,
             string extension = SAVE_EXT
         )
         {
-            EncodeSaveShort([data], filePath, seed, extension);
+            EncodeFileShort([data], filePath, seed, extension);
         }
 
         /// <inheritdoc cref="PACTools.EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
-        public static void EncodeSaveShort(
+        public static void EncodeFileShort(
             IEnumerable<JsonDictionary> dataList,
             string filePath,
             long seed = SAVE_SEED,
@@ -41,8 +41,8 @@ namespace ProgressAdventure
             PACTools.EncodeFileShort(dataList, filePath, seed, extension);
         }
 
-        /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
-        public static JsonDictionary? DecodeSaveShort(
+        /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
+        public static JsonDictionary? DecodeFileShort(
             string filePath,
             int lineNum = 0,
             long seed = SAVE_SEED,
@@ -50,17 +50,17 @@ namespace ProgressAdventure
             bool expected = true
         )
         {
-            return PACTools.DecodeSaveShort(filePath, seed, extension, lineNum, expected);
+            return PACTools.DecodeFileShort(filePath, seed, extension, lineNum, expected);
         }
 
         /// <summary>
-        /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
+        /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
         /// </summary>
-        /// <inheritdoc cref="PACTools.DecodeSaveShort(string, long, string, int, bool)"/>
+        /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
         /// <typeparam name="T"></typeparam>
         /// <param name="fileTypeName">The name of the file that is being loaded.</param>
         /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
-        public static JsonDictionary? DecodeSaveShortExpected<T>(
+        public static JsonDictionary? DecodeFileShortExpected<T>(
             string filePath,
             int lineNum = 0,
             long seed = SAVE_SEED,
@@ -73,7 +73,7 @@ namespace ProgressAdventure
             var objectTypeName = typeof(T).Name;
             try
             {
-                var fileJson = DecodeSaveShort(filePath, lineNum, seed, extension, expected);
+                var fileJson = DecodeFileShort(filePath, lineNum, seed, extension, expected);
                 if (fileJson is null)
                 {
                     PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, true);

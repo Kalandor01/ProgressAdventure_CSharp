@@ -1,5 +1,4 @@
-﻿using ConsoleUI.Keybinds;
-using PACommon;
+﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
@@ -402,7 +401,7 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out var value))
+                if (!checkedDictionary.ContainsKey(key))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
@@ -659,7 +658,6 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var material in Enum.GetValues<Material>())
             {
-                var attributes = ItemUtils.MaterialItemAttributes[material];
                 MaterialItem item;
                 try
                 {
@@ -941,7 +939,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// NOT COMPLETE!!!<br/>
         /// Checks if all reference save files can be loaded without errors or warnings.<br/>
-        /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES NOT!
+        /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES!
         /// </summary>
         public static TestResultDTO? BasicAllMainSaveFileVersionsLoadableTest()
         {
@@ -956,7 +954,9 @@ namespace ProgressAdventureTests
             PATools.DeleteSave(currentSaveName);
 
             // list of reference saves
-            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH).ToList();
+            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => Path.GetExtension(path) == ".zip")
+                .ToList();
             zipPaths.Sort(new VersionStringZipPathComparer());
             PATools.RecreateSavesFolder();
             Console.WriteLine();

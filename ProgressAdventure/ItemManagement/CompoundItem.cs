@@ -156,8 +156,7 @@ namespace ProgressAdventure.ItemManagement
                 // inventory items in dictionary
                 JsonDataCorrecterUtils.TransformValue<CompoundItem, int>(oldJson, "type", (itemID) =>
                 {
-                    var success = ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName);
-                    return (itemName, success);
+                    return (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName);
                 });
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -227,10 +226,11 @@ namespace ProgressAdventure.ItemManagement
                 return false;
             }
 
-            success &= PACTools.TryParseJsonValue<CompoundItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
-            if (itemAmount is null)
+            if (!PACTools.TryParseJsonValue<CompoundItem, double>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount))
             {
-                PACTools.LogJsonError<CompoundItem>("defaulting to 1");
+                PACTools.LogJsonError<CompoundItem>("item amount is null, defaulting to 1");
+                itemAmount = 1;
+                success = false;
             }
 
             if (itemAmount <= 0)
@@ -241,7 +241,7 @@ namespace ProgressAdventure.ItemManagement
 
             try
             {
-                itemObject = new CompoundItem(itemType, parts, itemAmount ?? 1);
+                itemObject = new CompoundItem(itemType, parts, itemAmount);
             }
             catch (Exception ex)
             {

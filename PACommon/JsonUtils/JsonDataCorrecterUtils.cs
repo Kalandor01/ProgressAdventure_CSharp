@@ -89,7 +89,7 @@ namespace PACommon.JsonUtils
         public static void TransformValue<T, TRes>(
             JsonDictionary jsonData,
             string jsonKey,
-            Func<TRes, (JsonObject? result, bool success)>? transformer = null
+            Func<TRes, (bool success, JsonObject? result)>? transformer = null
         )
         {
             if (
@@ -110,7 +110,7 @@ namespace PACommon.JsonUtils
                     return;
                 }
 
-                var (result, success) = transformer(value);
+                var (success, result) = transformer(value);
                 if (success)
                 {
                     jsonData[jsonKey] = result;

@@ -98,8 +98,7 @@ namespace ProgressAdventure.ItemManagement
                 // inventory items in dictionary
                 JsonDataCorrecterUtils.TransformValue<MaterialItem, int>(oldJson, "type", (itemID) =>
                 {
-                    var success = ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName);
-                    return (itemName, success);
+                    return (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName);
                 });
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -124,23 +123,24 @@ namespace ProgressAdventure.ItemManagement
 
         static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref MaterialItem? itemObject)
         {
-            var success = true;
-
-            success &= PACTools.TryParseJsonValue<MaterialItem, Material?>(
-                itemJson,
-                Constants.JsonKeys.AItem.MATERIAL,
-                out var material,
-                isCritical: true
-            );
-            if (material is null)
+            if (
+                !PACTools.TryParseJsonValue<MaterialItem, Material>(
+                    itemJson,
+                    Constants.JsonKeys.AItem.MATERIAL,
+                    out var material,
+                    isCritical: true
+                )
+            )
             {
                 return false;
             }
 
-            success &= PACTools.TryParseJsonValue<MaterialItem, double?>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount);
-            if (itemAmount is null)
+            var success = true;
+            if (!PACTools.TryParseJsonValue<MaterialItem, double>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount))
             {
                 PACTools.LogJsonError<MaterialItem>("defaulting to 1");
+                itemAmount = 1;
+                success = false;
             }
 
             if (itemAmount <= 0)
@@ -151,7 +151,7 @@ namespace ProgressAdventure.ItemManagement
 
             try
             {
-                itemObject = new MaterialItem((Material)material, itemAmount ?? 1);
+                itemObject = new MaterialItem(material, itemAmount);
             }
             catch (Exception ex)
             {

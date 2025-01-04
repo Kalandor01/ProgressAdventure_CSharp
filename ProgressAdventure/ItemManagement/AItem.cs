@@ -210,8 +210,7 @@ namespace ProgressAdventure.ItemManagement
                 // inventory items in dictionary
                 JsonDataCorrecterUtils.TransformValue<AItem, int>(oldJson, "type", (itemID) =>
                 {
-                    var success = ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName);
-                    return (itemName, success);
+                    return (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName);
                 });
             }, "2.1"),
             // 2.1.1 -> 2.2
@@ -258,7 +257,7 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref AItem? itemObject)
         {
             if (!(
-                PACTools.TryParseJsonValue<AItem, string>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, isCritical: true) &&
+                PACTools.TryParseJsonValue<AItem, string?>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, isCritical: true) &&
                 ItemUtils.TryParseItemType(typeName, out var itemType)
             ))
             {
