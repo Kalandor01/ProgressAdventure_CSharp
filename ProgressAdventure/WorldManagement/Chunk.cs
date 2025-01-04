@@ -98,7 +98,7 @@ namespace ProgressAdventure.WorldManagement
             chunkJson.Remove(Constants.JsonKeys.Chunk.POSITION_X);
             chunkJson.Remove(Constants.JsonKeys.Chunk.POSITION_Y);
             var chunkFileName = GetChunkFileName(basePosition);
-            Tools.EncodeFileShort(chunkJson, GetChunkFilePath(chunkFileName, saveFolderName));
+            Tools.SaveCompressedFile(chunkJson, GetChunkFilePath(chunkFileName, saveFolderName));
             PACSingletons.Instance.Logger.Log("Saved chunk", $"{chunkFileName}.{Constants.SAVE_EXT}");
         }
 
@@ -127,7 +127,7 @@ namespace ProgressAdventure.WorldManagement
             var chunkFileName = GetChunkFileName(position);
             chunk = null;
 
-            var chunkJson = Tools.DecodeFileShortExpected<Chunk>(
+            var chunkJson = Tools.LoadCompressedFileExpected<Chunk>(
                 GetChunkFilePath(chunkFileName, saveFolderName),
                 expected: expected,
                 extraFileInformation: $"x: {position.x}, y: {position.y}"

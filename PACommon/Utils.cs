@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using FileManager;
+using System.Collections;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -665,6 +666,33 @@ namespace PACommon
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Zips up a text.
+        /// </summary>
+        /// <param name="text">The text to zip.</param>
+        /// <param name="encoding">The encoding of the original text.</param>
+        public static byte[] Zip(string text, Encoding? encoding = null)
+        {
+            encoding ??= Constants.ENCODING;
+            var bytes = encoding.GetBytes(text);
+            var utfBytes = Encoding.Convert(encoding, Encoding.UTF8, bytes);
+
+            return FileConversion.Zip(utfBytes);
+        }
+
+        /// <summary>
+        /// Unzips bytes into text.
+        /// </summary>
+        /// <param name="zippedBytes">The zipped bytes.</param>
+        /// <param name="encoding">The encoding of the original text.</param>
+        public static string Unzip(byte[] zippedBytes, Encoding? encoding = null)
+        {
+            encoding ??= Constants.ENCODING;
+            var utfBytes = FileConversion.Unzip(zippedBytes);
+            var bytes = Encoding.Convert(Encoding.UTF8, encoding, utfBytes);
+            return encoding.GetString(bytes);
         }
         #endregion
 

@@ -25,7 +25,7 @@ namespace ProgressAdventureTests
         static void MainFunction()
         {
             //Tools.RunAllTests();
-            //Tools.CreateNewTestSaveFromPrevious("2.2.1");
+            //Tools.CreateNewTestSaveFromPrevious("2.2.2");
             TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest, Tools.DisposeTest);
 
             Utils.PressKey("DONE!");

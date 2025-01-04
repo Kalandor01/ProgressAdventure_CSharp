@@ -1072,9 +1072,10 @@ namespace ProgressAdventureTests
             foreach (var chunkFilePath in chunkFilePaths)
             {
                 var chunkFileName = Path.GetFileName(chunkFilePath);
+                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName) : null;
                 if (
                     chunkFileName is not null &&
-                    Path.GetExtension(chunkFileName) == $".{PAConstants.SAVE_EXT}" &&
+                    (chunkExtension == $".{PAConstants.SAVE_EXT}" || chunkExtension == $".{PAConstants.OLD_SAVE_EXT}") &&
                     chunkFileName.StartsWith($"{PAConstants.CHUNK_FILE_NAME}{PAConstants.CHUNK_FILE_NAME_SEP}")
                 )
                 {

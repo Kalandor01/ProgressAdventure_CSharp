@@ -19,38 +19,76 @@ namespace ProgressAdventure
     {
         #region Public functions
         #region Encode/decode Short
-        /// <inheritdoc cref="PACTools.EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
-        public static void EncodeFileShort(
-            JsonDictionary data,
-            string filePath,
-            long seed = SAVE_SEED,
-            string extension = SAVE_EXT
-        )
-        {
-            EncodeFileShort([data], filePath, seed, extension);
-        }
-
-        /// <inheritdoc cref="PACTools.EncodeFileShort(IEnumerable{JsonDictionary}, string, long, string)"/>
-        public static void EncodeFileShort(
+        /// <inheritdoc cref="PACTools.SaveCompressedFile(IEnumerable{JsonDictionary}, string, string)"/>
+        public static void SaveCompressedFile(
             IEnumerable<JsonDictionary> dataList,
             string filePath,
-            long seed = SAVE_SEED,
             string extension = SAVE_EXT
         )
         {
-            PACTools.EncodeFileShort(dataList, filePath, seed, extension);
+            PACTools.SaveCompressedFile(dataList, filePath, extension);
         }
 
-        /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
-        public static JsonDictionary? DecodeFileShort(
+        /// <inheritdoc cref="PACTools.SaveCompressedFile(JsonDictionary, string, string)"/>
+        public static void SaveCompressedFile(
+            JsonDictionary data,
             string filePath,
-            int lineNum = 0,
-            long seed = SAVE_SEED,
-            string extension = SAVE_EXT,
-            bool expected = true
+            string extension = SAVE_EXT
         )
         {
-            return PACTools.DecodeFileShort(filePath, seed, extension, lineNum, expected);
+            SaveCompressedFile([data], filePath, extension);
+        }
+
+        /// <inheritdoc cref="PACTools.LoadCompressedFile(string, string, int, bool)"/>
+        /// <param name="tryOldDecoding">Whether to try to use <see cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>, if the newer decoding doesn't work.</param>
+        public static JsonDictionary? LoadCompressedFile(
+            string filePath,
+            int lineNum = 0,
+            string extension = SAVE_EXT,
+            bool expected = true,
+            bool tryOldDecoding = true
+        )
+        {
+            var safeFilePath = Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, filePath);
+            try
+            {
+                return PACTools.LoadCompressedFile(filePath, extension, lineNum, expected || tryOldDecoding);
+            }
+            catch (FileNotFoundException)
+            {
+                if (tryOldDecoding)
+                {
+                    PACSingletons.Instance.Logger.Log("File not found", $"(but it was expected) file name: {safeFilePath}.{extension}", LogSeverity.INFO);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (FormatException)
+            {
+                if (tryOldDecoding)
+                {
+                    PACSingletons.Instance.Logger.Log("File decoding error", $"(but it was expected) file name: {safeFilePath}.{extension}", LogSeverity.INFO);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (InvalidDataException)
+            {
+                if (tryOldDecoding)
+                {
+                    PACSingletons.Instance.Logger.Log("File decompression error", $"(but it was expected) file name: {safeFilePath}.{extension}", LogSeverity.INFO);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return PACTools.DecodeFileShort(filePath, OLD_SAVE_SEED, OLD_SAVE_EXT, lineNum, expected);
         }
 
         /// <summary>
@@ -60,20 +98,21 @@ namespace ProgressAdventure
         /// <typeparam name="T"></typeparam>
         /// <param name="fileTypeName">The name of the file that is being loaded.</param>
         /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
-        public static JsonDictionary? DecodeFileShortExpected<T>(
+        /// <param name="tryOldDecoding">Whether to try to use <see cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>, if the newer decoding doesn't work.</param>
+        public static JsonDictionary? LoadCompressedFileExpected<T>(
             string filePath,
             int lineNum = 0,
-            long seed = SAVE_SEED,
             string extension = SAVE_EXT,
             bool expected = true,
             string? fileTypeName = null,
-            string? extraFileInformation = null
+            string? extraFileInformation = null,
+            bool tryOldDecoding = true
         )
         {
             var objectTypeName = typeof(T).Name;
             try
             {
-                var fileJson = DecodeFileShort(filePath, lineNum, seed, extension, expected);
+                var fileJson = LoadCompressedFile(filePath, lineNum, extension, expected, tryOldDecoding);
                 if (fileJson is null)
                 {
                     PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, true);

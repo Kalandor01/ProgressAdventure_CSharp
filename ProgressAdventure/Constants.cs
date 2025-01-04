@@ -34,9 +34,13 @@ namespace ProgressAdventure
         /// </summary>
         public static readonly string SAVES_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, SAVES_FOLDER);
         /// <summary>
+        /// The extension used for encoded save files before 2.3.
+        /// </summary>
+        public const string OLD_SAVE_EXT = "savc";
+        /// <summary>
         /// The extension used for encoded save files.
         /// </summary>
-        public const string SAVE_EXT = "savc";
+        public const string SAVE_EXT = "sav";
         #endregion
 
         #region Logs
@@ -105,11 +109,11 @@ namespace ProgressAdventure
         public const string SETTINGS_FILE_NAME = "settings";
         #endregion
 
-        #region Seeds
+        #region Old seeds
         /// <summary>
-        /// The seed used for encoded saves, and most other encoded files.
+        /// The seed that was used for encoded saves, and most other encoded files.
         /// </summary>
-        public const long SAVE_SEED = 87531;
+        public const long OLD_SAVE_SEED = 87531;
         #endregion
 
         #region Cursor types
@@ -358,7 +362,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.2.2";
+        public const string SAVE_VERSION = "2.3";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

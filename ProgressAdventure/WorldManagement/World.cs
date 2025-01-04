@@ -163,8 +163,9 @@ namespace ProgressAdventure.WorldManagement
         /// Gets all chunk files that have the correct syntax from a chunks folder.
         /// </summary>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="checkOldExtension">Whether to check the pre 2.3 file extension.</param>
         /// <returns>The list of chunk positions.</returns>
-        public static List<(long x , long y)> GetChunkFilesFromFolder(string? saveFolderName = null)
+        public static List<(long x , long y)> GetChunkFilesFromFolder(string? saveFolderName = null, bool checkOldExtension = true)
         {
             saveFolderName ??= SaveData.Instance.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
@@ -176,9 +177,10 @@ namespace ProgressAdventure.WorldManagement
             foreach (var chunkFilePath in chunkFilePaths)
             {
                 var chunkFileName = Path.GetFileName(chunkFilePath);
+                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName) : null;
                 if (!(
                     chunkFileName is not null &&
-                    Path.GetExtension(chunkFileName) == $".{Constants.SAVE_EXT}" &&
+                    (chunkExtension == $".{Constants.SAVE_EXT}" || chunkExtension == $".{Constants.OLD_SAVE_EXT}") &&
                     chunkFileName.StartsWith($"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}")
                 ))
                 {
@@ -186,7 +188,6 @@ namespace ProgressAdventure.WorldManagement
                     continue;
                 }
 
-                var h = ChunkFileNameRegex().Match(Path.GetFileNameWithoutExtension(chunkFileName));
                 var chunkPositions = ChunkFileNameRegex().Match(Path.GetFileNameWithoutExtension(chunkFileName)).Groups.Values.Select(group => group.Value);
                 if (!(
                     chunkPositions.Count() == 3 &&
@@ -208,9 +209,10 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
-        public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null)
+        /// <param name="checkOldExtension">Whether to check the pre 2.3 file extension.</param>
+        public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null, bool checkOldExtension = true)
         {
-            var existingChunks = GetChunkFilesFromFolder(saveFolderName);
+            var existingChunks = GetChunkFilesFromFolder(saveFolderName, checkOldExtension);
             // load chunks
             if (showProgressText is not null)
             {
@@ -444,7 +446,7 @@ namespace ProgressAdventure.WorldManagement
 
 
                 if (
-                    Tools.DecodeFileShortExpected<Chunk>(
+                    Tools.LoadCompressedFileExpected<Chunk>(
                         Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
                         expected: true,
                         extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"

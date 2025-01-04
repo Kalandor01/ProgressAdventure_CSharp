@@ -25,7 +25,7 @@ namespace PAExtras
         public static bool DecodeSaveFile(string saveFolderName, string? savesFolderPath = null, long? saveSeed = null, string? saveExtension = null)
         {
             savesFolderPath ??= PAConstants.SAVES_FOLDER_PATH;
-            saveSeed ??= PAConstants.SAVE_SEED;
+            saveSeed ??= PAConstants.OLD_SAVE_SEED;
             saveExtension ??= PAConstants.SAVE_EXT;
 
             List<string> saveData;
@@ -63,7 +63,7 @@ namespace PAExtras
         public static bool EncodeSaveFile(string saveFolderName, string? savesFolderPath = null, long? saveSeed = null, string? saveExtension = null)
         {
             savesFolderPath ??= PAConstants.SAVES_FOLDER_PATH;
-            saveSeed ??= PAConstants.SAVE_SEED;
+            saveSeed ??= PAConstants.OLD_SAVE_SEED;
             saveExtension ??= PAConstants.SAVE_EXT;
 
             List<string> saveData;
@@ -96,7 +96,7 @@ namespace PAExtras
         public static bool RecompileSaveFile(string saveFolderName, string? newSaveFolderName = null, string? savesFolderPath = null, string? newSavesFolderPath = null, long? saveSeed = null, long? newSaveSeed = null, string? saveExtension = null, string? newSaveExtension = null)
         {
             savesFolderPath ??= PAConstants.SAVES_FOLDER_PATH;
-            saveSeed ??= PAConstants.SAVE_SEED;
+            saveSeed ??= PAConstants.OLD_SAVE_SEED;
             saveExtension ??= PAConstants.SAVE_EXT;
 
             newSaveFolderName ??= saveFolderName;

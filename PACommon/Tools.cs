@@ -41,30 +41,31 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Zips up a text.
+        /// Same as <see cref="SaveJsonFile(IEnumerable{JsonDictionary}, string, string)"/>, but zips + base64 encodes the file.
         /// </summary>
-        /// <param name="text">The text to zip.</param>
-        /// <param name="encoding">The encoding of the original text.</param>
-        public static byte[] Zip(string text, Encoding? encoding = null)
+        /// <param name="dataList">The list of data to write to the file, where each element of the list is a line.</param>
+        /// <param name="filePath">The path and the name of the file without the extension, that will be created.</param>
+        /// <param name="extension">The extension of the file that will be created.</param>
+        public static void SaveCompressedFile(IEnumerable<JsonDictionary> dataList, string filePath, string extension)
         {
-            encoding ??= Constants.ENCODING;
-            var bytes = encoding.GetBytes(text);
-            var utfBytes = Encoding.Convert(encoding, Encoding.UTF8, bytes);
+            var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
 
-            return FileConversion.Zip(utfBytes);
+            var encodedLines = new List<string>();
+            foreach (var line in jsonDataList)
+            {
+                encodedLines.Add(Convert.ToBase64String(Utils.Zip(line)));
+            }
+            File.WriteAllLines($"{filePath}.{extension}", encodedLines, Constants.ENCODING);
         }
 
         /// <summary>
-        /// Unzips bytes into text.
+        /// Same as <see cref="SaveJsonFile(JsonDictionary, string, string)"/>, but zips + base64 encodes the file.
         /// </summary>
-        /// <param name="zippedBytes">The zipped bytes.</param>
-        /// <param name="encoding">The encoding of the original text.</param>
-        public static string Unzip(byte[] zippedBytes, Encoding? encoding = null)
+        /// <param name="data">The data to write to the file.</param>
+        /// <inheritdoc cref="SaveCompressedFile(IEnumerable{JsonDictionary}, string, string)"/>
+        public static void SaveCompressedFile(JsonDictionary data, string filePath, string extension)
         {
-            encoding ??= Constants.ENCODING;
-            var utfBytes = FileConversion.Unzip(zippedBytes);
-            var bytes = Encoding.Convert(Encoding.UTF8, encoding, utfBytes);
-            return encoding.GetString(bytes);
+            SaveJsonFile([data], filePath, extension);
         }
 
         /// <summary>
@@ -91,8 +92,7 @@ namespace PACommon
         /// <summary>
         /// Same as <see cref="DecodeFileShort(string, long, string, int, bool)"/>, but for plain json files.
         /// </summary>
-        /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.<br/>
-        /// If the path contains a *, it will be replaced with the seed.</param>
+        /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.</param>
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
         /// <param name="extension">The extension of the file that will be loaded.</param>
         /// <param name="expected">If the file is expected to exist.<br/>
@@ -101,7 +101,22 @@ namespace PACommon
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
         public static JsonDictionary? LoadJsonFile(string filePath, int lineNum = 0, string extension = "json", bool expected = true)
         {
-            return DecodeSaveAny(filePath, null, extension, lineNum, expected);
+            return DecodeSaveAny(0, filePath, null, extension, lineNum, expected);
+        }
+
+        /// <summary>
+        /// Same as <see cref="LoadJsonFile(string, int, string, bool)"/>, but base64 decodes + unzips the file.
+        /// </summary>
+        /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.</param>
+        /// <param name="extension">The extension of the file that will be loaded.</param>
+        /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
+        /// <param name="expected">If the file is expected to exist.<br/>
+        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
+        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
+        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
+        public static JsonDictionary? LoadCompressedFile(string filePath, string extension, int lineNum = 0, bool expected = true)
+        {
+            return DecodeSaveAny(1, filePath, null, extension, lineNum, expected);
         }
 
         /// <summary>
@@ -119,7 +134,7 @@ namespace PACommon
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
         public static JsonDictionary? DecodeFileShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
         {
-            return DecodeSaveAny(filePath, seed, extension, lineNum, expected);
+            return DecodeSaveAny(2, filePath, seed, extension, lineNum, expected);
         }
         #endregion
 
@@ -897,6 +912,10 @@ namespace PACommon
         /// <summary>
         /// Loads a jsn line from a file.
         /// </summary>
+        /// <param name="type">The type of the decoding<br/>
+        /// 0 - plain json<br/>
+        /// 1 - zip + base64<br/>
+        /// 2 - <see cref="FileConversion"/> encoded<br/></param>
         /// <param name="filePath">The path and the name of the file without the extension, that will be decoded.</param>
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
         /// <param name="seed">The seed for decoding the file.</param>
@@ -906,20 +925,32 @@ namespace PACommon
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
         /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
-        public static JsonDictionary? DecodeSaveAny(string filePath, long? seed, string extension, int lineNum = 0, bool expected = true)
+        public static JsonDictionary? DecodeSaveAny(
+            ushort type,
+            string filePath,
+            long? seed,
+            string extension,
+            int lineNum = 0,
+            bool expected = true
+        )
         {
             var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
 
             string loadedLine;
             try
             {
-                if (seed is null)
+                if (type == 0)
                 {
                     loadedLine = File.ReadLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum);
                 }
+                else if (type == 1)
+                {
+                    var compressedLine = File.ReadAllLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum);
+                    loadedLine = Utils.Unzip(Convert.FromBase64String(compressedLine));
+                }
                 else
                 {
-                    loadedLine = FileConversion.DecodeFile((long)seed, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
+                    loadedLine = FileConversion.DecodeFile((long)seed!, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
                 }
             }
             catch (FormatException)
