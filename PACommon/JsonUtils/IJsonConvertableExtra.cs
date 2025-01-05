@@ -5,10 +5,10 @@ namespace PACommon.JsonUtils
     /// <summary>
     /// Interface for classes that can be converted to and from json, with some extra data.
     /// </summary>
-    /// <typeparam name="T">The subclass.</typeparam>
+    /// <typeparam name="TSelf">The type that implements the interface.</typeparam>
     /// <typeparam name="TE">The extra data.</typeparam>
-    public interface IJsonConvertableExtra<T, TE> : IJsonReadable
-        where T : IJsonConvertableExtra<T, TE>
+    public interface IJsonConvertableExtra<TSelf, TE> : IJsonReadable
+        where TSelf : IJsonConvertableExtra<TSelf, TE>
     {
         #region Protected properties
         protected static virtual List<(Action<JsonDictionary, TE> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = [];
@@ -27,19 +27,19 @@ namespace PACommon.JsonUtils
             JsonDictionary? objectJson,
             TE extraData,
             string fileVersion,
-            [NotNullWhen(true)] out T? convertedObject
+            [NotNullWhen(true)] out TSelf? convertedObject
         )
         {
             convertedObject = default;
             if (objectJson is null)
             {
-                Tools.LogJsonNullError<T>(typeof(T).ToString(), isError: true);
+                Tools.LogJsonNullError<TSelf>(typeof(TSelf).ToString(), isError: true);
                 return false;
             }
 
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, TE>(objectJson, extraData, T.VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TSelf, TE>(objectJson, extraData, TSelf.VersionCorrecters, fileVersion);
 
-            return T.FromJsonWithoutCorrection(objectJson, extraData, fileVersion, ref convertedObject);
+            return TSelf.FromJsonWithoutCorrection(objectJson, extraData, fileVersion, ref convertedObject);
         }
         #endregion
 
@@ -56,7 +56,7 @@ namespace PACommon.JsonUtils
             JsonDictionary objectJson,
             TE extraData,
             string fileVersion,
-            [NotNullWhen(true)] ref T? convertedObject
+            [NotNullWhen(true)] ref TSelf? convertedObject
         );
         #endregion
     }

@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.Enums;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
@@ -30,6 +31,7 @@ namespace PACommon.JsonUtils
         public static implicit operator JsonObject(DateTime v) => new JsonValue(v);
         public static implicit operator JsonObject(TimeSpan v) => new JsonValue(v);
         public static implicit operator JsonObject?(Enum? v) => v is null ? null : new JsonValue(v.ToString());
+        public static implicit operator JsonObject?(EnumValueBase? v) => v is null ? null : new JsonValue(v.Name);
         public static implicit operator JsonObject?(SplittableRandom? v) => v is null ? null : new JsonValue(Tools.SerializeRandom(v));
         public static implicit operator JsonObject?(List<JsonObject?>? v) => v is null ? null : new JsonArray(v);
         public static implicit operator JsonObject?(Dictionary<string, JsonObject?>? v) => v is null ? null : new JsonDictionary(v);

@@ -90,12 +90,12 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? EntityUtilsAttributeStatsChangeDictionaryCheck()
         {
-            var requiredKeys = Enum.GetValues<Attribute>();
-            IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)> checkedDictionary;
+            var requiredKeys = Attribute.GetValues();
+            IDictionary<EnumValue<Attribute>, (double maxHp, double attack, double defence, double agility)> checkedDictionary;
 
             try
             {
-                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<Attribute, (double maxHp, double attack, double defence, double agility)>>(typeof(EntityUtils), "AttributeStatChangeMap");
+                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<Attribute>, (double maxHp, double attack, double defence, double agility)>>(typeof(EntityUtils), "AttributeStatChangeMap");
             }
             catch (Exception ex)
             {
@@ -815,7 +815,6 @@ namespace ProgressAdventureTests
         public static TestResultDTO? AllEntitiesLoadable()
         {
             RandomStates.Initialize();
-
 
             IDictionary<string, Type> entityTypeMap;
 

@@ -152,20 +152,7 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Player</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        protected Player((
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData)
+        protected Player(GenericEntityConstructorParametersDTO entityData)
             : base(entityData) { }
         #endregion
 

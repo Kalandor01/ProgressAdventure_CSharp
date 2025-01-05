@@ -1,6 +1,5 @@
 ﻿using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
-using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
 {
@@ -39,11 +38,11 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<AItem> GetDefaultDrops()
         {
-            return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
-                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.15, 0, 1, 3),
-                new LootFactory(ItemType.Misc.COIN, Material.COPPER, 0.35, 0, 4, 3)
-            });
+            return LootFactory.LootManager([
+                new(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
+                new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.15, 0, 1, 3),
+                new(ItemType.Misc.COIN, Material.COPPER, 0.35, 0, 4, 3)
+            ]);
         }
         #endregion
 
@@ -53,20 +52,7 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Caveman</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        protected Caveman((
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData)
+        protected Caveman(GenericEntityConstructorParametersDTO entityData)
             : base(entityData) { }
         #endregion
     }
@@ -106,11 +92,11 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<AItem> GetDefaultDrops()
         {
-            return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.SWORD, Material.STONE, 0.2),
-                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.ROTTEN_FLESH, 0.55, 0, 3),
-                new LootFactory(ItemType.Misc.COIN, Material.COPPER, 0.4, 0, 5, 4)
-            });
+            return LootFactory.LootManager([
+                new(ItemType.Weapon.SWORD, Material.STONE, 0.2),
+                new(ItemUtils.MATERIAL_ITEM_TYPE, Material.ROTTEN_FLESH, 0.55, 0, 3),
+                new(ItemType.Misc.COIN, Material.COPPER, 0.4, 0, 5, 4)
+            ]);
         }
         #endregion
 
@@ -120,20 +106,7 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Ghoul</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        protected Ghoul((
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData)
+        protected Ghoul(GenericEntityConstructorParametersDTO entityData)
             : base(entityData) { }
         #endregion
     }
@@ -173,12 +146,12 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<AItem> GetDefaultDrops()
         {
-            return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
-                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.25, 1, 3, 2),
-                new LootFactory(ItemUtils.MATERIAL_ITEM_TYPE, Material.TEETH, 0.35, 1, 5, 2),
-                new LootFactory(ItemType.Misc.COIN, Material.SILVER, 0.3, 1, 3, 3)
-            });
+            return LootFactory.LootManager([
+                new(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
+                new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.25, 1, 3, 2),
+                new(ItemUtils.MATERIAL_ITEM_TYPE, Material.TEETH, 0.35, 1, 5, 2),
+                new(ItemType.Misc.COIN, Material.SILVER, 0.3, 1, 3, 3)
+            ]);
         }
         #endregion
 
@@ -188,20 +161,7 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Troll</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        protected Troll((
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData)
+        protected Troll(GenericEntityConstructorParametersDTO entityData)
             : base(entityData) { }
         #endregion
     }
@@ -252,13 +212,13 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static List<AItem> GetDefaultDrops()
         {
-            return LootFactory.LootManager(new List<LootFactory> {
-                new LootFactory(ItemType.Misc.COIN, Material.GOLD, 0.8, 1, 10, 10),
-                new LootFactory(ItemType.Misc.COIN, Material.SILVER, 0.9, 5, 15, 8),
-                new LootFactory(ItemType.Misc.COIN, Material.COPPER, 1, 10, 20, 5),
-                new LootFactory(ItemType.Weapon.SWORD, Material.STEEL, 1, 0, 10),
-                new LootFactory(ItemType.Defence.SHIELD, Material.WOOD, 1, 0, 5),
-            });
+            return LootFactory.LootManager([
+                new(ItemType.Misc.COIN, Material.GOLD, 0.8, 1, 10, 10),
+                new(ItemType.Misc.COIN, Material.SILVER, 0.9, 5, 15, 8),
+                new(ItemType.Misc.COIN, Material.COPPER, 1, 10, 20, 5),
+                new(ItemType.Weapon.SWORD, Material.STEEL, 1, 0, 10),
+                new(ItemType.Defence.SHIELD, Material.WOOD, 1, 0, 5),
+            ]);
         }
         #endregion
 
@@ -268,20 +228,7 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Dragon</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        protected Dragon((
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData)
+        protected Dragon(GenericEntityConstructorParametersDTO entityData)
             : base(entityData) { }
         #endregion
     }

@@ -7,6 +7,7 @@ using PACommon.JsonUtils;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
 
 namespace PACommon
@@ -470,7 +471,8 @@ namespace PACommon
         /// - string<br/>
         /// - numbers<br/>
         /// - enums<br/>
-        /// - SplittableRandom<br/>
+        /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="SplittableRandom"/><br/>
         /// - array of JsonObjects
         /// - dictionary of JsonObjects
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
@@ -512,6 +514,8 @@ namespace PACommon
                 case Guid tValue:
                     return tValue;
                 case Enum tValue:
+                    return tValue;
+                case EnumValueBase tValue:
                     return tValue;
                 case SplittableRandom tValue:
                     return tValue;
@@ -574,7 +578,7 @@ namespace PACommon
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
         /// <param name="parameterName">The name of the parameter to try to cast.</param>
         /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryCastAnyValueForJsonParsing<T, TRes>(
             JsonObject? objectValue,
             [NotNullWhen(true)] out TRes? value,
@@ -635,7 +639,8 @@ namespace PACommon
         /// - string<br/>
         /// - numbers<br/>
         /// - enums<br/>
-        /// - SplittableRandom<br/>
+        /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
@@ -683,6 +688,36 @@ namespace PACommon
                     return true;
                 }
             }
+            else if (
+                actualType.BaseType == typeof(EnumValueBase) &&
+                actualType.Assembly == typeof(EnumValue<>).Assembly &&
+                actualType.Name == typeof(EnumValue<>).Name &&
+                actualType.Namespace == typeof(EnumValue<>).Namespace &&
+                actualType.GenericTypeArguments.Length > 0
+            )
+            {
+                var enumType = actualType.GenericTypeArguments[0].BaseType;
+                try
+                {
+                    MethodInfo getValue;
+                    try
+                    {
+                        getValue = enumType!.GetMethod("GetValue", BindingFlags.Static | BindingFlags.Public, [typeof(string)])
+                            ?? throw new ArgumentException("Getting reflection method failed!");
+                    }
+                    catch
+                    {
+                        PACSingletons.Instance.Logger.Log("Reflection method not found", "AdvancedEnum<T>.GetValue() method not found", LogSeverity.ERROR);
+                        throw;
+                    }
+                    parsedValue = (TRes?)getValue.Invoke(null, [valueText]);
+                    if (parsedValue is not null)
+                    {
+                        return true;
+                    }
+                }
+                catch { }
+            }
             else
             {
                 var parseSuccess = true;
@@ -721,7 +756,8 @@ namespace PACommon
         /// - string<br/>
         /// - numbers<br/>
         /// - enums<br/>
-        /// - SplittableRandom<br/>
+        /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
@@ -752,7 +788,8 @@ namespace PACommon
         /// - string<br/>
         /// - numbers<br/>
         /// - enums<br/>
-        /// - SplittableRandom<br/>
+        /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
@@ -819,7 +856,7 @@ namespace PACommon
         /// <param name="listName">The name of the list.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryParseListValueForJsonParsing<T, TIn, TRes>(
             IEnumerable<TIn> listValue,
             string listName,
@@ -851,7 +888,7 @@ namespace PACommon
         /// <param name="listName">The name of the list.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryParseListValueForJsonParsing<T, TRes>(
             JsonArray listValue,
             string listName,
@@ -868,7 +905,7 @@ namespace PACommon
         /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryParseJsonListValue<T, TRes>(
             JsonDictionary objectJson,
             string jsonKey,
@@ -895,7 +932,7 @@ namespace PACommon
         /// <summary>
         /// Gets what the value will be in a KeyValidatorDelegate in a TextField.
         /// </summary>
-        /// <inheritdoc cref="TextField.KeyValidatorDelegate"/>
+        /// <inheritdoc cref="ConsoleUI.UIElements.TextField.KeyValidatorDelegate"/>
         public static string GetNewValueForKeyValidatorDelegate(StringBuilder currentValue, ConsoleKeyInfo? inputKey, int cursorPosition)
         {
             if (inputKey is null)

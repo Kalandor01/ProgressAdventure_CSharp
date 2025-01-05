@@ -43,7 +43,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The default value for the config used for the value of <see cref="AttributeStatChangeMap"/>.
         /// </summary>
-        private static readonly Dictionary<Attribute, (double maxHp, double attack, double defence, double agility)> _defaultAttributeStatChangeMap = new()
+        private static readonly Dictionary<EnumValue<Attribute>, (double maxHp, double attack, double defence, double agility)> _defaultAttributeStatChangeMap = new()
         {
             [Attribute.RARE] = (2, 2, 2, 2),
             [Attribute.CRIPPLED] = (0.5, 0.5, 0.5, 0.5),
@@ -72,7 +72,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The dictionary pairing up attribute types, to stat modifiers.
         /// </summary>
-        internal static Dictionary<Attribute, (double maxHp, double attack, double defence, double agility)> AttributeStatChangeMap { get; private set; }
+        internal static Dictionary<EnumValue<Attribute>, (double maxHp, double attack, double defence, double agility)> AttributeStatChangeMap { get; private set; }
         #endregion
 
         #region Constructors
@@ -157,7 +157,9 @@ namespace ProgressAdventure.Entity
                         [nameof(stats.defence)] = stats.defence,
                         [nameof(stats.agility)] = stats.agility,
                     },
-                    stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"])
+                    stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"]),
+                    (attribute) => attribute.Name,
+                    Attribute.GetValue
                 );
         }
         #endregion
@@ -237,10 +239,10 @@ namespace ProgressAdventure.Entity
             return new EntityManagerStatsDTO(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseAgilityValue, originalTeam, currentTeam, attributes);
         }
 
-        public static List<Attribute> GenerateEntityAttributes(AttributeChancesDTO? attributeChances)
+        public static List<EnumValue<Attribute>> GenerateEntityAttributes(AttributeChancesDTO? attributeChances)
         {
             var attrChances = attributeChances ?? new AttributeChancesDTO();
-            var attributes = new List<Attribute>();
+            var attributes = new List<EnumValue<Attribute>>();
             // all attributes
             RandomStates.Instance.MainRandom.GenerateTriChance(() =>
             {

@@ -50,7 +50,7 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The list of attributes that the <c>Entity</c> has.
         /// </summary>
-        public List<Attribute> attributes;
+        public List<EnumValue<Attribute>> attributes;
         /// <summary>
         /// The list of items that the <c>Entity</c> will drop on death.
         /// </summary>
@@ -137,20 +137,21 @@ namespace ProgressAdventure.Entity
             List<AItem>? drops = null
         )
             : this(
-                (
-                    name,
-                    stats.baseMaxHp,
-                    null,
-                    stats.baseAttack,
-                    stats.baseDefence,
-                    stats.baseAgility,
-                    stats.originalTeam,
-                    stats.currentTeam,
-                    stats.attributes,
-                    drops,
-                    null,
-                    null
-                ),
+                new GenericEntityConstructorParametersDTO()
+                {
+                    name = name,
+                    baseMaxHp = stats.baseMaxHp,
+                    currentHp = null,
+                    baseAttack = stats.baseAttack,
+                    baseDefence = stats.baseDefence,
+                    baseAgility = stats.baseAgility,
+                    originalTeam = stats.originalTeam,
+                    currentTeam = stats.currentTeam,
+                    attributes = stats.attributes,
+                    drops = drops,
+                    position = null,
+                    facing = null
+                },
                 false
             )
         { }
@@ -341,23 +342,7 @@ namespace ProgressAdventure.Entity
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
         /// <param name="invokedFromFromJson">Whether this constructor was called using the invoke method, as a part of loading an entity from json, and so the entity's attributes shouldn't be set yet.</param>
-        protected Entity(
-            (
-                string? name,
-                int? baseMaxHp,
-                int? currentHp,
-                int? baseAttack,
-                int? baseDefence,
-                int? baseAgility,
-                int? originalTeam,
-                int? currentTeam,
-                List<Attribute>? attributes,
-                List<AItem>? drops,
-                (long x, long y)? position,
-                Facing? facing
-            ) entityData,
-            bool invokedFromFromJson
-        )
+        protected Entity(GenericEntityConstructorParametersDTO entityData, bool invokedFromFromJson)
         {
             name = entityData.name ?? GetDefaultName();
             position = entityData.position ?? (0, 0);
@@ -372,14 +357,14 @@ namespace ProgressAdventure.Entity
                 entityData.attributes is null
             )
             {
-                var ems = GetBaseStats();
-                baseMaxHp = entityData.baseMaxHp ?? ems.baseMaxHp;
-                baseAttack = entityData.baseAttack ?? ems.baseAttack;
-                baseDefence = entityData.baseDefence ?? ems.baseDefence;
-                baseAgility = entityData.baseAgility ?? ems.baseAgility;
-                originalTeam = entityData.originalTeam ?? ems.originalTeam;
-                currentTeam = entityData.currentTeam ?? ems.currentTeam;
-                attributes = entityData.attributes ?? ems.attributes;
+                var entityStats = GetBaseStats();
+                baseMaxHp = entityData.baseMaxHp ?? entityStats.baseMaxHp;
+                baseAttack = entityData.baseAttack ?? entityStats.baseAttack;
+                baseDefence = entityData.baseDefence ?? entityStats.baseDefence;
+                baseAgility = entityData.baseAgility ?? entityStats.baseAgility;
+                originalTeam = entityData.originalTeam ?? entityStats.originalTeam;
+                currentTeam = entityData.currentTeam ?? entityStats.currentTeam;
+                attributes = entityData.attributes ?? entityStats.attributes;
             }
             else
             {
@@ -535,20 +520,7 @@ namespace ProgressAdventure.Entity
         /// <returns>If it was succesful without any warnings.</returns>
         private static bool AnyEntityFromJsonPrivate(Type entityType, JsonDictionary entityJson, string fileVersion, out Entity? entityObject)
         {
-            var success = CommonAttributesFromJson(entityJson, fileVersion, out (
-                string? name,
-                int? baseMaxHp,
-                int? currentHp,
-                int? baseAttack,
-                int? baseDefence,
-                int? baseAgility,
-                int? originalTeam,
-                int? currentTeam,
-                List<Attribute>? attributes,
-                List<AItem>? drops,
-                (long x, long y)? position,
-                Facing? facing
-            ) entityData);
+            var success = CommonAttributesFromJson(entityJson, fileVersion, out var entityData);
 
             // get entity
             var constructor = entityType.GetConstructor(
@@ -578,20 +550,11 @@ namespace ProgressAdventure.Entity
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="entityData">The basic data of the entity.</param>
         /// <returns>If it was succesful without any warnings.</returns>
-        private static bool CommonAttributesFromJson(JsonDictionary entityJson, string fileVersion, out (
-            string? name,
-            int? baseMaxHp,
-            int? currentHp,
-            int? baseAttack,
-            int? baseDefence,
-            int? baseAgility,
-            int? originalTeam,
-            int? currentTeam,
-            List<Attribute>? attributes,
-            List<AItem>? drops,
-            (long x, long y)? position,
-            Facing? facing
-        ) entityData)
+        private static bool CommonAttributesFromJson(
+            JsonDictionary entityJson,
+            string fileVersion,
+            out GenericEntityConstructorParametersDTO entityData
+        )
         {
             var success = true;
             success &= PACTools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
@@ -602,9 +565,9 @@ namespace ProgressAdventure.Entity
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
-            success &= PACTools.TryParseJsonListValue<Entity, Attribute>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= PACTools.TryParseJsonListValue<Entity, EnumValue<Attribute>>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 attribute => {
-                    var attributeSuccess = PACTools.TryParseValueForJsonParsing<Entity, Attribute>(attribute, out var value, logParseWarnings: false);
+                    var attributeSuccess = PACTools.TryParseValueForJsonParsing<Entity, EnumValue<Attribute>>(attribute, out var value, logParseWarnings: false);
                     success &= attributeSuccess;
                     return (attributeSuccess, value);
                 },
@@ -629,20 +592,21 @@ namespace ProgressAdventure.Entity
 
             success &= PACTools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
-            entityData = (
-                name,
-                baseMaxHp,
-                currentHp,
-                baseAttack,
-                baseDefence,
-                baseAgility,
-                originalTeam,
-                currentTeam,
-                attributes,
-                drops,
-                position,
-                facing
-            );
+            entityData = new GenericEntityConstructorParametersDTO
+            {
+                name = name,
+                baseMaxHp = baseMaxHp,
+                currentHp = currentHp,
+                baseAttack = baseAttack,
+                baseDefence = baseDefence,
+                baseAgility = baseAgility,
+                originalTeam = originalTeam,
+                currentTeam = currentTeam,
+                attributes = attributes,
+                drops = drops,
+                position = position,
+                facing = facing
+            };
             return success;
         }
         #endregion

@@ -1,6 +1,5 @@
 ﻿using PACommon;
 using PACommon.JsonUtils;
-using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -22,22 +21,8 @@ namespace ProgressAdventure.Entity
         /// Can be used for loading the <c>Entity</c> from json.
         /// </summary>
         /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        public Entity(
-            (
-                string? name,
-                int? baseMaxHp,
-                int? currentHp,
-                int? baseAttack,
-                int? baseDefence,
-                int? baseAgility,
-                int? originalTeam,
-                int? currentTeam,
-                List<Enums.Attribute>? attributes,
-                List<AItem>? drops,
-                (long x, long y)? position,
-                Facing? facing
-            ) entityData
-        ) : base(entityData, true) { }
+        public Entity(GenericEntityConstructorParametersDTO entityData)
+            : base(entityData, true) { }
 
         /// <summary>
         /// <inheritdoc cref="Entity"/><br/>

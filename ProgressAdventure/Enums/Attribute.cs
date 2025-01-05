@@ -1,49 +1,51 @@
-﻿namespace ProgressAdventure.Enums
+﻿using PACommon.Enums;
+
+namespace ProgressAdventure.Enums
 {
     /// <summary>
     /// Posible attributes that modify an entity's stats.
     /// </summary>
-    public enum Attribute
+    public class Attribute : AdvancedEnum<Attribute>
     {
         /// <summary>
         /// Doubles all of the entity's stats.
         /// </summary>
-        RARE,
+        public static readonly EnumValue<Attribute> RARE = AddValue(nameof(RARE));
         /// <summary>
         /// Halfs all of the entity's stats.
         /// </summary>
-        CRIPPLED,
+        public static readonly EnumValue<Attribute> CRIPPLED = AddValue(nameof(CRIPPLED));
         /// <summary>
         /// Doubles the health of the entity.
         /// </summary>
-        HEALTHY,
+        public static readonly EnumValue<Attribute> HEALTHY = AddValue(nameof(HEALTHY));
         /// <summary>
         /// Halfs the health of the entity.
         /// </summary>
-        SICK,
+        public static readonly EnumValue<Attribute> SICK = AddValue(nameof(SICK));
         /// <summary>
         /// Doubles the attack of the entity.
         /// </summary>
-        STRONG,
+        public static readonly EnumValue<Attribute> STRONG = AddValue(nameof(STRONG));
         /// <summary>
         /// Halfs the attack of the entity.
         /// </summary>
-        WEAK,
+        public static readonly EnumValue<Attribute> WEAK = AddValue(nameof(WEAK));
         /// <summary>
         /// Doubles the defence of the entity.
         /// </summary>
-        TOUGH,
+        public static readonly EnumValue<Attribute> TOUGH = AddValue(nameof(TOUGH));
         /// <summary>
         /// Halfs the defence of the entity.
         /// </summary>
-        FRAIL,
+        public static readonly EnumValue<Attribute> FRAIL = AddValue(nameof(FRAIL));
         /// <summary>
         /// Doubles the agility of the entity.
         /// </summary>
-        AGILE,
+        public static readonly EnumValue<Attribute> AGILE = AddValue(nameof(AGILE));
         /// <summary>
         /// Halfs the agility of the entity.
         /// </summary>
-        SLOW,
+        public static readonly EnumValue<Attribute> SLOW = AddValue(nameof(SLOW));
     }
 }

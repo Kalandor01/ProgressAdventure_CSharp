@@ -10,9 +10,9 @@
         {
             var interfaceTypes = givenType.GetInterfaces();
 
-            foreach (var it in interfaceTypes)
+            foreach (var interfaceType in interfaceTypes)
             {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == genericType)
                     return true;
             }
 

@@ -1,4 +1,5 @@
-﻿using Attribute = ProgressAdventure.Enums.Attribute;
+﻿using PACommon.Enums;
+using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
 {
@@ -14,7 +15,7 @@ namespace ProgressAdventure.Entity
         public int baseAgility;
         public int originalTeam;
         public int currentTeam;
-        public List<Attribute> attributes;
+        public List<EnumValue<Attribute>> attributes;
         #endregion
 
         #region Constructors
@@ -35,7 +36,7 @@ namespace ProgressAdventure.Entity
             int baseAgility,
             int originalTeam = 1,
             int? currentTeam = null,
-            List<Attribute>? attributes = null
+            List<EnumValue<Attribute>>? attributes = null
         )
         {
             this.baseMaxHp = baseMaxHp;
@@ -44,7 +45,7 @@ namespace ProgressAdventure.Entity
             this.baseAgility = baseAgility;
             this.originalTeam = originalTeam;
             this.currentTeam = currentTeam ?? originalTeam;
-            this.attributes = attributes ?? new List<Attribute>();
+            this.attributes = attributes ?? [];
         }
         #endregion
     }

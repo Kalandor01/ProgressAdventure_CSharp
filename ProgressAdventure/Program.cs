@@ -16,6 +16,7 @@ using ProgressAdventure.WorldManagement;
 using System.Text;
 using System.Text.Json.Serialization;
 using AItem = ProgressAdventure.ItemManagement.AItem;
+using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
@@ -29,7 +30,7 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            MenuManager.MainMenu();
+            //MenuManager.MainMenu();
             //Settings.UpdateLoggingLevel(0);
 
             //SaveManager.CreateSaveData("test", "me");
@@ -40,6 +41,10 @@ namespace ProgressAdventure
 
             //SaveManager.LoadSave("all items + world");
             //MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
+
+            var succ = PACTools.TryParseValueForJsonParsing<Program, EnumValue<Attribute>>("STRONG", out var enu, "test variable");
+
+
 
             var backpack = new List<AItem>
             {
