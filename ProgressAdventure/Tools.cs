@@ -52,7 +52,7 @@ namespace ProgressAdventure
             var safeFilePath = Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, filePath);
             try
             {
-                return PACTools.LoadCompressedFile(filePath, extension, lineNum, expected || tryOldDecoding);
+                return PACTools.LoadCompressedFile(filePath, extension, lineNum, expected && !tryOldDecoding);
             }
             catch (FileNotFoundException)
             {
