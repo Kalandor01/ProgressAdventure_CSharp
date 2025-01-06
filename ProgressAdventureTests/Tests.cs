@@ -317,7 +317,7 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? SettingsUtilsActionTypeAttributesDictionaryCheck()
         {
-            var requiredKeys = Enum.GetValues<ActionType>();
+            var requiredKeys = ActionType.GetValues();
             var checkedDictionary = SettingsUtils.ActionTypeAttributes;
 
             var existingResponses = new List<string>();

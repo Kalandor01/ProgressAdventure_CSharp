@@ -99,7 +99,7 @@ namespace ProgressAdventure
         }
 
         /// <inheritdoc cref="KeyField.DisplayValueDelegate"/>
-        private static string KeybindValueDisplay(KeyField<ActionType> keyField, string icons, OptionsUI? optionsUI = null)
+        private static string KeybindValueDisplay(KeyField<EnumValue<ActionType>> keyField, string icons, OptionsUI? optionsUI = null)
         {
             return string.Join(", ", KeybindUtils.GetColoredNames(keyField.Value));
         }
@@ -227,11 +227,11 @@ namespace ProgressAdventure
                     actionKey = new ActionKey(actionType, SettingsUtils.ActionTypeAttributes[actionType].defaultKeys.DeepCopy());
                     tempKeybinds.KeybindList = tempKeybinds.KeybindList.Append(actionKey);
                 }
-                elementList.Add(new KeyField<ActionType>(
+                elementList.Add(new KeyField<EnumValue<ActionType>>(
                     actionKey,
-                    actionType.ToString().Capitalize() + ": ",
+                    actionType.Name.Capitalize() + ": ",
                     validatorFunction: KeybindChange,
-                    displayValueFunction: new KeyField<ActionType>.DisplayValueDelegate(KeybindValueDisplay),
+                    displayValueFunction: new KeyField<EnumValue<ActionType>>.DisplayValueDelegate(KeybindValueDisplay),
                     keyNum: 2
                 ));
             }
@@ -506,7 +506,7 @@ namespace ProgressAdventure
         }
 
         /// <inheritdoc cref="KeyField.ValidatorDelegate"/>
-        private static (TextFieldValidatorStatus status, string? message) KeybindChange(ConsoleKeyInfo key, KeyField<ActionType> keyField)
+        private static (TextFieldValidatorStatus status, string? message) KeybindChange(ConsoleKeyInfo key, KeyField<EnumValue<ActionType>> keyField)
         {
             tempKeybinds.UpdateKeybindConflicts();
             return (TextFieldValidatorStatus.VALID, null);

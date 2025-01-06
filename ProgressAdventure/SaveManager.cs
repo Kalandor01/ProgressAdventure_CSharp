@@ -320,10 +320,14 @@ namespace ProgressAdventure
         {
             var folders = new List<string>();
             var folderPaths = Directory.GetDirectories(savesFolderPath ?? Constants.SAVES_FOLDER_PATH);
+            var oldDataFileName = $"{Constants.SAVE_FILE_NAME_DATA}.{Constants.OLD_SAVE_EXT}";
             var dataFileName = $"{Constants.SAVE_FILE_NAME_DATA}.{Constants.SAVE_EXT}";
             foreach (var folderPath in folderPaths)
             {
-                if (File.Exists(Path.Join(folderPath, dataFileName)))
+                if (
+                    File.Exists(Path.Join(folderPath, dataFileName)) ||
+                    File.Exists(Path.Join(folderPath, oldDataFileName))
+                )
                 {
                     folders.Add(Path.GetFileName(folderPath));
                 }

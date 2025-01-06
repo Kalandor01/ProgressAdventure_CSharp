@@ -4,7 +4,7 @@
     /// Class for storing the keybinds list.
     /// </summary>
     public abstract class AKeybinds<T, TA>
-        where T : notnull, Enum
+        where T : notnull
         where TA : AActionKey<T>
     {
         #region Private fields

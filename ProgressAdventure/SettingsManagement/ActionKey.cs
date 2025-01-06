@@ -1,4 +1,5 @@
-﻿using PACommon.JsonUtils;
+﻿using PACommon.Enums;
+using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
@@ -10,7 +11,7 @@ namespace ProgressAdventure.SettingsManagement
     /// <summary>
     /// Class for storing a key for keybinds.
     /// </summary>
-    public class ActionKey : AActionKey<ActionType>, IJsonConvertable<ActionKey>
+    public class ActionKey : AActionKey<EnumValue<ActionType>>, IJsonConvertable<ActionKey>
     {
         #region Constructors
         /// <summary>
@@ -19,7 +20,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="actionType"><inheritdoc cref="AActionKey{T}.ActionType" path="//summary"/></param>
         /// <param name="keys"><inheritdoc cref="AActionKey{T}.Keys" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
-        public ActionKey(ActionType actionType, IEnumerable<ConsoleKeyInfo> keys)
+        public ActionKey(EnumValue<ActionType> actionType, IEnumerable<ConsoleKeyInfo> keys)
             : base(
                   actionType,
                   SettingsUtils.ActionTypeAttributes[actionType].response,
@@ -100,7 +101,7 @@ namespace ProgressAdventure.SettingsManagement
                 };
                 keyListJson.Add(keyJson);
             }
-            return new JsonDictionary { [ActionType.ToString()] = keyListJson };
+            return new JsonDictionary { [ActionType.Name] = keyListJson };
         }
 
         static bool IJsonConvertable<ActionKey>.FromJsonWithoutCorrection(JsonDictionary actionKeyJson, string fileVersion, [NotNullWhen(true)] ref ActionKey? actionKeyObject)
@@ -114,7 +115,7 @@ namespace ProgressAdventure.SettingsManagement
             var actionJson = actionKeyJson.First();
 
             if (!(
-                PACTools.TryParseValueForJsonParsing<ActionKey, ActionType>(
+                PACTools.TryParseValueForJsonParsing<ActionKey, EnumValue<ActionType>>(
                     new JsonValue(actionJson.Key),
                     out var actionType,
                     parameterName: nameof(actionJson),
@@ -130,7 +131,7 @@ namespace ProgressAdventure.SettingsManagement
             }
 
             var success = true;
-            success = PACTools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
+            var allSuccess = PACTools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
                 if (
                     PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonDictionary>(
                         actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue), isStraigthCast: true
@@ -150,7 +151,7 @@ namespace ProgressAdventure.SettingsManagement
             }, out var keys);
 
             actionKeyObject = new ActionKey(actionType, keys);
-            return success;
+            return success && allSuccess;
         }
         #endregion
     }

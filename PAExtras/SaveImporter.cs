@@ -133,7 +133,7 @@ namespace PAExtras
 
             var (correctDataFileLines, chunkSeedMod, tileNoiseSeeds) = CorrectDataFileData(dataFileData);
             var correctDataFilePath = Path.Join(correctedSaveFolderPath, PAConstants.SAVE_FILE_NAME_DATA);
-            PACTools.EncodeFileShort(correctDataFileLines, correctDataFilePath, PAConstants.OLD_SAVE_SEED, PAConstants.SAVE_EXT);
+            PACTools.EncodeFileShort(correctDataFileLines, correctDataFilePath, PAConstants.OLD_SAVE_SEED, PAConstants.OLD_SAVE_EXT);
             return (chunkSeedMod, tileNoiseSeeds);
         }
 
@@ -300,7 +300,7 @@ namespace PAExtras
                 var chunkPosition = (chunkX, chunkY);
 
                 var correctChunkFileLines = CorrectChunkFileData(chunkPosition, chunkSeedMod, tileNoiseGenerators, chunkFileData);
-                PACTools.EncodeFileShort(correctChunkFileLines, correctChunkFilePath, PAConstants.OLD_SAVE_SEED, PAConstants.SAVE_EXT);
+                PACTools.EncodeFileShort(correctChunkFileLines, correctChunkFilePath, PAConstants.OLD_SAVE_SEED, PAConstants.OLD_SAVE_EXT);
                 if (showProggress)
                 {
                     Console.Write($"\r{correctText}{Math.Round((x + 1) * 1.0 / chunkPaths.Length * 100, 3)}%                ");

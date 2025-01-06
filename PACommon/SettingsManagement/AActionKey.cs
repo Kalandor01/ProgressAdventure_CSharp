@@ -8,7 +8,7 @@ namespace PACommon.SettingsManagement
     /// </summary>
     /// <typeparam name="T">The enum to use, for denoting the action type of this object.</typeparam>
     public abstract class AActionKey<T> : KeyAction
-        where T : notnull, Enum
+        where T : notnull
     {
         #region Public properties
         /// <summary>

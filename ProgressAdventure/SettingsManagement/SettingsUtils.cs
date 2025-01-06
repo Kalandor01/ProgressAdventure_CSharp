@@ -1,5 +1,6 @@
 ﻿using ConsoleUI.Keybinds;
 using PACommon;
+using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
@@ -12,7 +13,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// The default value for the config used for the value of <see cref="ActionTypeAttributes"/>.
         /// </summary>
-        private static readonly Dictionary<ActionType, ActionTypeAttributesDTO> _defaultActionTypeAttributes = new()
+        private static readonly Dictionary<EnumValue<ActionType>, ActionTypeAttributesDTO> _defaultActionTypeAttributes = new()
         {
             [ActionType.ESCAPE] = new(
                 Key.ESCAPE.ToString(),
@@ -75,7 +76,7 @@ namespace ProgressAdventure.SettingsManagement
         /// <summary>
         /// The dictionary pairing up action types, to their attributes.
         /// </summary>
-        public static Dictionary<ActionType, ActionTypeAttributesDTO> ActionTypeAttributes { get; private set; }
+        public static Dictionary<EnumValue<ActionType>, ActionTypeAttributesDTO> ActionTypeAttributes { get; private set; }
 
         /// <summary>
         /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
@@ -116,7 +117,13 @@ namespace ProgressAdventure.SettingsManagement
         public static void ReloadConfigs()
         {
             ActionTypeAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfig("action_type_attributes", "v.1", _defaultActionTypeAttributes);
+                PACSingletons.Instance.ConfigManager.TryGetConfig(
+                    "action_type_attributes",
+                    "v.1",
+                    _defaultActionTypeAttributes,
+                    (actionType) => actionType.Name,
+                    ActionType.GetValue
+                );
 
             SettingValueTypeMap =
                 PACSingletons.Instance.ConfigManager.TryGetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);

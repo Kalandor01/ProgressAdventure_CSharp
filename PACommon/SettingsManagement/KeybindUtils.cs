@@ -95,7 +95,7 @@
         /// </summary>
         /// <param name="actionKey">The <c>ActionKey</c> to get the names from.</param>
         public static List<string> GetColoredNames<T>(AActionKey<T> actionKey)
-            where T : notnull, Enum
+            where T : notnull
         {
             var names = new List<string>();
             for (int x = 0; x < actionKey.Keys.Count(); x++)

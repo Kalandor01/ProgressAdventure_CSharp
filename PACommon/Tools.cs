@@ -857,6 +857,7 @@ namespace PACommon
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        /// <returns>If all values where succesfuly parsed.</returns>
         public static bool TryParseListValueForJsonParsing<T, TIn, TRes>(
             IEnumerable<TIn> listValue,
             string listName,
@@ -865,6 +866,7 @@ namespace PACommon
         )
         {
             value = [];
+            var allSuccess = true;
             foreach (var element in listValue)
             {
                 var (success, parsedResult) = parseFunction(element);
@@ -875,9 +877,10 @@ namespace PACommon
                 else
                 {
                     LogJsonParseError<T>($"an element of the {listName} list");
+                    allSuccess = false;
                 }
             }
-            return true;
+            return allSuccess;
         }
 
         /// <summary>
@@ -889,6 +892,7 @@ namespace PACommon
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        /// <returns>If all values where succesfuly parsed.</returns>
         public static bool TryParseListValueForJsonParsing<T, TRes>(
             JsonArray listValue,
             string listName,
@@ -906,6 +910,7 @@ namespace PACommon
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
         /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        /// <returns>If all values where succesfuly parsed.</returns>
         public static bool TryParseJsonListValue<T, TRes>(
             JsonDictionary objectJson,
             string jsonKey,

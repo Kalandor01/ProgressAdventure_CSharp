@@ -11,7 +11,7 @@ namespace ProgressAdventure.SettingsManagement
     /// <summary>
     /// Class for storing the keybinds list.
     /// </summary>
-    public class Keybinds : AKeybinds<ActionType, ActionKey>, IJsonConvertable<Keybinds>
+    public class Keybinds : AKeybinds<EnumValue<ActionType>, ActionKey>, IJsonConvertable<Keybinds>
     {
         #region Constructors
         /// <summary>
@@ -59,7 +59,7 @@ namespace ProgressAdventure.SettingsManagement
             foreach (var keybind in KeybindList)
             {
                 var kbJson = keybind.ToJson().First();
-                keybindsJson.Add(kbJson.Key.ToLower(), kbJson.Value);
+                keybindsJson.Add(kbJson.Key, kbJson.Value);
             }
             return keybindsJson;
         }
@@ -67,7 +67,7 @@ namespace ProgressAdventure.SettingsManagement
         static bool IJsonConvertable<Keybinds>.FromJsonWithoutCorrection(JsonDictionary keybindsJson, string fileVersion, [NotNullWhen(true)] ref Keybinds? keybinds)
         {
             var success = true;
-            success = PACTools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, JsonObject?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
+            var allSuccess = PACTools.TryParseListValueForJsonParsing<Keybinds, KeyValuePair<string, JsonObject?>, ActionKey>(keybindsJson, nameof(keybindsJson), keybind => {
                 success &= PACTools.TryFromJson(
                     new JsonDictionary { [keybind.Key] = keybind.Value },
                     fileVersion,
@@ -75,8 +75,17 @@ namespace ProgressAdventure.SettingsManagement
                 );
                 return (actionKey is not null, actionKey);
             }, out var actions);
+
+            var defKb = SettingsUtils.GetDefaultKeybindList();
+            if (
+                actions.Count < defKb.Count ||
+                !defKb.All(kb => actions.Any(action => action.ActionType == kb.ActionType))
+            )
+            {
+                return false;
+            }
             keybinds = new Keybinds(actions);
-            return success;
+            return success && allSuccess;
         }
         #endregion
     }

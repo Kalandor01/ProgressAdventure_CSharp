@@ -13,7 +13,7 @@ namespace PACommon.SettingsManagement
     /// Structure: [<c>preText</c>][<c>value</c>][<c>postValue</c>]
     /// </summary>
     public class KeyField<T> : BaseUI
-        where T : notnull, Enum
+        where T : notnull
     {
         #region Public fields
         /// <summary>

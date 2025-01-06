@@ -200,18 +200,28 @@ namespace ProgressAdventure.SettingsManagement
         public static Keybinds GetKeybins()
         {
             var keybindsDict = SettingsManager(SettingsKey.KEYBINDS);
-            Keybinds? keybinds;
+            Keybinds? keybinds = null;
+            string? errorMessage = null;
             try
             {
                 PACTools.TryFromJson(keybindsDict as JsonDictionary, Constants.SAVE_VERSION, out keybinds);
             }
             catch (Exception e)
             {
-                PACSingletons.Instance.Logger.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + e.ToString(), LogSeverity.ERROR);
+                errorMessage = e.ToString();
+            }
+            if (keybinds is null)
+            {
+                errorMessage = "The keybinds could not be parsed.";
+            }
+
+            if (errorMessage is not null)
+            {
+                PACSingletons.Instance.Logger.Log("Error while reading keybinds from the settings file", "the keybinds will now be regenerated from the default. Error: " + errorMessage, LogSeverity.ERROR);
                 keybinds = new Keybinds();
                 SettingsManager(SettingsKey.KEYBINDS, keybinds);
             }
-            return keybinds ?? new Keybinds();
+            return keybinds!;
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace ProgressAdventure
         /// </summary>
         static void MainFunction()
         {
-            //MenuManager.MainMenu();
+            MenuManager.MainMenu();
             //Settings.UpdateLoggingLevel(0);
 
             //SaveManager.CreateSaveData("test", "me");
