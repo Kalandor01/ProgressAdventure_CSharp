@@ -107,8 +107,17 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig("action_type_attributes", "v.1", _defaultActionTypeAttributes);
-            PACSingletons.Instance.ConfigManager.SetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
+                null,
+                _defaultActionTypeAttributes
+            );
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
+                null,
+                _defaultSettingValueTypeMap
+            );
         }
 
         /// <summary>
@@ -117,16 +126,20 @@ namespace ProgressAdventure.SettingsManagement
         public static void ReloadConfigs()
         {
             ActionTypeAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "action_type_attributes",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
+                    null,
                     _defaultActionTypeAttributes,
                     (actionType) => actionType.Name,
                     ActionType.GetValue
                 );
 
             SettingValueTypeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfig("setting_value_type_map", "v.1", _defaultSettingValueTypeMap);
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
+                    null,
+                    _defaultSettingValueTypeMap
+                );
         }
         #endregion
 

@@ -27,7 +27,7 @@ namespace PACommon
         /// <param name="extension">The extension of the file that will be created.</param>
         public static void SaveJsonFile(IEnumerable<JsonDictionary> dataList, string filePath, string extension = "json")
         {
-            var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
+            var jsonDataList = dataList.Select(d => JsonSerializer.SerializeJson(d));
             File.WriteAllLines($"{filePath}.{extension}", jsonDataList, Constants.ENCODING);
         }
 
@@ -35,10 +35,19 @@ namespace PACommon
         /// Same as <see cref="EncodeFileShort(JsonDictionary, string, long, string)"/>, but for plain json files.
         /// </summary>
         /// <param name="data">The data to write to the file.</param>
+        /// <param name="format">Whether to format the json string. This will make the text span multiple lines.</param>
         /// <inheritdoc cref="SaveJsonFile(IEnumerable{JsonDictionary}, string, string)"/>
-        public static void SaveJsonFile(JsonDictionary data, string filePath, string extension = "json")
+        public static void SaveJsonFile(JsonDictionary data, string filePath, string extension = "json", bool format = false)
         {
-            SaveJsonFile([data], filePath, extension);
+            if (format)
+            {
+                var jsonData = JsonSerializer.SerializeJson(data, true);
+                File.WriteAllText($"{filePath}.{extension}", jsonData, Constants.ENCODING);
+            }
+            else
+            {
+                SaveJsonFile([data], filePath, extension);
+            }
         }
 
         /// <summary>
@@ -49,7 +58,7 @@ namespace PACommon
         /// <param name="extension">The extension of the file that will be created.</param>
         public static void SaveCompressedFile(IEnumerable<JsonDictionary> dataList, string filePath, string extension)
         {
-            var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
+            var jsonDataList = dataList.Select(d => JsonSerializer.SerializeJson(d));
 
             var encodedLines = new List<string>();
             foreach (var line in jsonDataList)
@@ -79,7 +88,7 @@ namespace PACommon
         /// <param name="extension">The extension of the file that will be created.</param>
         public static void EncodeFileShort(IEnumerable<JsonDictionary> dataList, string filePath, long seed, string extension)
         {
-            var jsonDataList = dataList.Select(JsonSerializer.SerializeJson);
+            var jsonDataList = dataList.Select(d => JsonSerializer.SerializeJson(d));
             FileConversion.EncodeFile(jsonDataList, seed, filePath, extension, Constants.FILE_ENCODING_VERSION, Constants.ENCODING);
         }
 
@@ -94,13 +103,14 @@ namespace PACommon
         /// Same as <see cref="DecodeFileShort(string, long, string, int, bool)"/>, but for plain json files.
         /// </summary>
         /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.</param>
-        /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
+        /// <param name="lineNum">The line, that you want go get back (starting from 0).<br/>
+        /// If it's null, it loads the entire file.</param>
         /// <param name="extension">The extension of the file that will be loaded.</param>
         /// <param name="expected">If the file is expected to exist.<br/>
         /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
         /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
         /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
-        public static JsonDictionary? LoadJsonFile(string filePath, int lineNum = 0, string extension = "json", bool expected = true)
+        public static JsonDictionary? LoadJsonFile(string filePath, int? lineNum = 0, string extension = "json", bool expected = true)
         {
             return DecodeSaveAny(0, filePath, null, extension, lineNum, expected);
         }
@@ -959,7 +969,8 @@ namespace PACommon
         /// 1 - zip + base64<br/>
         /// 2 - <see cref="FileConversion"/> encoded<br/></param>
         /// <param name="filePath">The path and the name of the file without the extension, that will be decoded.</param>
-        /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
+        /// <param name="lineNum">The line, that you want go get back (starting from 0).<br/>
+        /// If type is 0, and this is null, it reads the entire text.</param>
         /// <param name="seed">The seed for decoding the file.</param>
         /// <param name="extension">The extension of the file that will be decoded.</param>
         /// <param name="expected">If the file is expected to exist.<br/>
@@ -972,7 +983,7 @@ namespace PACommon
             string filePath,
             long? seed,
             string extension,
-            int lineNum = 0,
+            int? lineNum = 0,
             bool expected = true
         )
         {
@@ -983,16 +994,19 @@ namespace PACommon
             {
                 if (type == 0)
                 {
-                    loadedLine = File.ReadLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum);
+                    var path = $"{filePath}.{extension}";
+                    loadedLine = lineNum is not null
+                        ? File.ReadLines(path, Constants.ENCODING).ElementAt((int)lineNum)
+                        : File.ReadAllText(path, Constants.ENCODING);
                 }
                 else if (type == 1)
                 {
-                    var compressedLine = File.ReadAllLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum);
+                    var compressedLine = File.ReadAllLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum ?? 0);
                     loadedLine = Utils.Unzip(Convert.FromBase64String(compressedLine));
                 }
                 else
                 {
-                    loadedLine = FileConversion.DecodeFile((long)seed!, filePath, extension, lineNum + 1, Constants.ENCODING).Last();
+                    loadedLine = FileConversion.DecodeFile((long)seed!, filePath, extension, (lineNum ?? 0) + 1, Constants.ENCODING).Last();
                 }
             }
             catch (FormatException)

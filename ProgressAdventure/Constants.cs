@@ -86,6 +86,28 @@ namespace ProgressAdventure
         /// The extension used for config files.
         /// </summary>
         public const string CONFIG_EXT = "json";
+        #region Configs folder structure
+        /// <summary>
+        /// The namespace of the P.A. (vanilla) configs namespace/folder.
+        /// </summary>
+        public static readonly string PA_CONFIGS_NAMESPACE = "pa";
+        /// <summary>
+        /// The configs subfolder name for configs for <see cref="SettingsManagement.SettingsUtils"/>.
+        /// </summary>
+        public static readonly string CONFIGS_SETTINGS_SUBFOLDER_NAME = "settings";
+        /// <summary>
+        /// The configs subfolder name for configs for <see cref="ItemManagement.ItemUtils"/>.
+        /// </summary>
+        public static readonly string CONFIGS_ENTITY_SUBFOLDER_NAME = "entities";
+        /// <summary>
+        /// The configs subfolder name for configs for <see cref="ItemManagement.ItemUtils"/>>.
+        /// </summary>
+        public static readonly string CONFIGS_ITEM_SUBFOLDER_NAME = "items";
+        /// <summary>
+        /// The configs subfolder name for configs for <see cref="WorldManagement.WorldUtils"/>.
+        /// </summary>
+        public static readonly string CONFIGS_WORLD_SUBFOLDER_NAME = "world";
+        #endregion
         #endregion
 
         #region Save folder structure

@@ -99,10 +99,15 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "facing_to_movement_vector_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
+                null,
+                _defaultEntityTypeMap
+            );
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
+                null,
                 _defaultFacingToMovementVectorMap,
                 move => new Dictionary<string, int>
                 {
@@ -111,8 +116,8 @@ namespace ProgressAdventure.Entity
                 }
             );
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "attribute_stat_change_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
+                null,
                 _defaultAttributeStatChangeMap,
                 stats => new Dictionary<string, double>
                 {
@@ -130,12 +135,16 @@ namespace ProgressAdventure.Entity
         public static void ReloadConfigs()
         {
             EntityTypeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfig("entity_type_map", "v.1", _defaultEntityTypeMap);
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
+                    null,
+                    _defaultEntityTypeMap
+                );
 
             FacingToMovementVectorMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "facing_to_movement_vector_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
+                    null,
                     _defaultFacingToMovementVectorMap,
                     move => new Dictionary<string, int>
                     {
@@ -146,9 +155,9 @@ namespace ProgressAdventure.Entity
                 );
 
             AttributeStatChangeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "attribute_stat_change_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
+                    null,
                     _defaultAttributeStatChangeMap,
                     stats => new Dictionary<string, double>
                     {

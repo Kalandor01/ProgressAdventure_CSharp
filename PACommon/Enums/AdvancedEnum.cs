@@ -84,7 +84,9 @@ namespace PACommon.Enums
         /// <param name="name">The name of the value.</param>
         public static EnumValue<TSelf> GetValue(string name)
         {
-            return TryGetValue(name, out var value) ? value : throw new ArgumentException("A value with the given name doesn't exist", nameof(name));
+            return TryGetValue(name, out var value)
+                ? value
+                : throw new ArgumentException($"A value with the given name doesn't exist in the {typeof(TSelf)} enum", nameof(name));
         }
 
         /// <summary>

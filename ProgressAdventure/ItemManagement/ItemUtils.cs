@@ -420,17 +420,21 @@ namespace ProgressAdventure.ItemManagement
         public static void WriteDefaultConfigs()
         {
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "compound_item_attributes",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
+                null,
                 _defaultCompoundItemAttributes,
                 key => key.ToString()!
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig("material_item_attributes", "v.1.1", _defaultMaterialItemAttributes);
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
+                null,
+                _defaultMaterialItemAttributes
+            );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "item_recipes",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
+                null,
                 _defaultItemRecipes,
                 ItemIDToTypeName
             );
@@ -439,9 +443,9 @@ namespace ProgressAdventure.ItemManagement
         private static void ReloadConfigs1()
         {
             CompoundItemAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "compound_item_attributes",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
+                    null,
                     _defaultCompoundItemAttributes,
                     key => key.ToString()!,
                     key => ParseItemTypeFromRealName(key)
@@ -449,15 +453,19 @@ namespace ProgressAdventure.ItemManagement
                 );
 
             MaterialItemAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfig("material_item_attributes", "v.1.1", _defaultMaterialItemAttributes);
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
+                    null,
+                    _defaultMaterialItemAttributes
+                );
         }
 
         private static void ReloadConfigs2()
         {
             ItemRecipes =
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "item_recipes",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
+                    null,
                     _defaultItemRecipes,
                     ItemIDToTypeName,
                     key => ParseItemType(key)

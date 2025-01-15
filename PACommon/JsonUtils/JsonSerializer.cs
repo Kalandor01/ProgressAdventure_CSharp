@@ -18,10 +18,19 @@ namespace PACommon.JsonUtils
                 : null;
         }
 
-        public static string SerializeJson(JsonDictionary? jsonData)
+        /// <summary>
+        /// Serializes the <see cref="JsonDictionary"/> into a string representation.
+        /// </summary>
+        /// <param name="jsonData">The json data.</param>
+        /// <param name="format">Wherther to format the json string. This makes the string span multiple lines.</param>
+        public static string SerializeJson(JsonDictionary? jsonData, bool format = false)
         {
             var convertedData = SerializeJsonDictionary(jsonData);
-            return SysJsonSerializer.Serialize(convertedData);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = format,
+            };
+            return SysJsonSerializer.Serialize(convertedData, options);
         }
 
         /// <summary>

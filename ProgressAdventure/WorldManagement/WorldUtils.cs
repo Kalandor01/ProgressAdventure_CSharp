@@ -299,53 +299,57 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "tile_noise_offsets"),
+                null,
+                _defaultTileNoiseOffsets
+            );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "terrain_content_type_property_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_property_map"),
+                null,
                 _defaultTerrainContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "structure_content_type_property_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_property_map"),
+                null,
                 _defaultStructureContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "population_content_type_property_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map"),
+                null,
                 _defaultPopulationContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "base_content_type_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "base_content_type_map"),
+                null,
                 _baseContentTypeMap,
                 key => key.ToString()!
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "terrain_content_type_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_map"),
+                null,
                 _defaultTerrainContentTypeMap,
                 key => key.ToString()!
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "structure_content_type_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_map"),
+                null,
                 _defaultStructureContentTypeMap,
                 key => key.ToString()!
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                "population_content_type_map",
-                "v.1",
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_map"),
+                null,
                 _defaultPopulationContentTypeMap,
                 key => key.ToString()!
             );
@@ -357,66 +361,70 @@ namespace ProgressAdventure.WorldManagement
         public static void ReloadConfigs()
         {
             TileNoiseOffsets = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig("tile_noise_offsets", "v.1", _defaultTileNoiseOffsets);
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "tile_noise_offsets"),
+                    null,
+                    _defaultTileNoiseOffsets
+                );
 
             TerrainContentTypePropertyMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "terrain_content_type_property_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_property_map"),
+                    null,
                     _defaultTerrainContentTypePropertyMap,
                     key => key.FullName ?? "",
                     key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
                 );
 
             StructureContentTypePropertyMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "structure_content_type_property_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_property_map"),
+                    null,
                     _defaultStructureContentTypePropertyMap,
                     key => key.FullName ?? "",
                     key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
                 );
 
             PopulationContentTypePropertyMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "population_content_type_property_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map"),
+                    null,
                     _defaultPopulationContentTypePropertyMap,
                     key => key.FullName ?? "",
                     key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
                 );
 
             BaseContentTypeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "base_content_type_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "base_content_type_map"),
+                    null,
                     _baseContentTypeMap,
                     key => key.ToString()!,
                     key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
                 );
 
             TerrainContentTypeMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "terrain_content_type_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_map"),
+                    null,
                     _defaultTerrainContentTypeMap,
                     key => key.ToString()!,
                     key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
                 );
 
             StructureContentTypeMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "structure_content_type_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_map"),
+                    null,
                     _defaultStructureContentTypeMap,
                     key => key.ToString()!,
                     key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
                 );
 
             PopulationContentTypeMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfig(
-                    "population_content_type_map",
-                    "v.1",
+                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_map"),
+                    null,
                     _defaultPopulationContentTypeMap,
                     key => key.ToString()!,
                     key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
