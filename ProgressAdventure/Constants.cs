@@ -86,7 +86,17 @@ namespace ProgressAdventure
         /// The extension used for config files.
         /// </summary>
         public const string CONFIG_EXT = "json";
+        #endregion
+
         #region Configs folder structure
+        /// <summary>
+        /// The name of the file, where the order of the enabled config loading is stored.
+        /// </summary>
+        public const string CONFIGS_LOADING_ORDER_FILE_NAME = "loading_order";
+        /// <summary>
+        /// The name of the data file in a config file.
+        /// </summary>
+        public const string CONFIG_FILE_NAME_DATA = "data";
         /// <summary>
         /// The namespace of the P.A. (vanilla) configs namespace/folder.
         /// </summary>
@@ -107,7 +117,6 @@ namespace ProgressAdventure
         /// The configs subfolder name for configs for <see cref="WorldManagement.WorldUtils"/>.
         /// </summary>
         public static readonly string CONFIGS_WORLD_SUBFOLDER_NAME = "world";
-        #endregion
         #endregion
 
         #region Save folder structure
@@ -385,6 +394,10 @@ namespace ProgressAdventure
         /// The current save version.
         /// </summary>
         public const string SAVE_VERSION = "2.3";
+        /// <summary>
+        /// The current config version.
+        /// </summary>
+        public const string CONFIG_VERSION = "v1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

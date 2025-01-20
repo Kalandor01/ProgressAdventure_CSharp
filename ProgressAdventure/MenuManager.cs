@@ -4,6 +4,7 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.SettingsManagement;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
@@ -106,6 +107,39 @@ namespace ProgressAdventure
         #endregion
 
         #region Public functions
+        #region Common
+        /// <summary>
+        /// Returns a back button for OptionsUI-s.
+        /// </summary>
+        /// <param name="text">The text to display in the button.</param>
+        public static PAButton GetBackButton(string text = "Back")
+        {
+            return new PAButton(new UIAction(() => -1), text: text);
+        }
+
+        /// <summary>
+        /// Displays a simple yes or no prompt, and returns the user's answer.
+        /// </summary>
+        /// <param name="question">The question to print.</param>
+        /// <param name="yesFirst">If yes or no shoul be the first answer in the answers list.</param>
+        /// <param name="canEscape">If the player can press escape, to exit the prompt. Exiting will be treated as a no answer.</param>
+        /// <param name="keybinds">The keybinds to use.</param>
+        public static bool AskYesNoUIQuestion(string question, bool yesFirst = true, bool canEscape = true, Keybinds? keybinds = null)
+        {
+            List<string?> answersList = yesFirst ? ["Yes", "No"] : ["No", "Yes"];
+            IEnumerable<ActionKey> keybindList;
+            if (keybinds is null)
+            {
+                keybindList = ActionList;
+            }
+            else
+            {
+                keybindList = keybinds.KeybindList;
+            }
+            return (int)new UIList(answersList, question, Constants.STANDARD_CURSOR_ICONS, canEscape: canEscape).Display(keybindList) == (yesFirst ? 0 : 1);
+        }
+        #endregion
+
         #region Inventory viewer
         /// <summary>
         /// Opens an item viewing menu.
@@ -242,37 +276,76 @@ namespace ProgressAdventure
         }
         #endregion
 
-        /// <summary>
-        /// Returns a back button for OptionsUI-s.
-        /// </summary>
-        /// <param name="text">The text to display in the button.</param>
-        public static PAButton GetBackButton(string text = "Back")
+        #region Configs
+        public static void ConfigSettings()
         {
-            return new PAButton(new UIAction(() => -1), text: text);
-        }
+            var vanillaRecreated = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
+            var configs = ConfigUtils.GetValidConfigDatas(null);
 
+            // menu elements
+            var configsElements = new List<BaseUI?>();
+            foreach (var loadedConfig in loadingOrder)
+            {
+                var config = configs.FirstOrDefault(c => c.configData.Namespace == loadedConfig.Namespace);
+                var enableToggle = new Toggle(
+                    loadedConfig.Enabled,
+                    $"\"{config?.folderName}\" {config?.configData.Version} ({loadedConfig.Namespace}): ",
+                    Tools.StylizedText("Enabled", Constants.Colors.GREEN),
+                    Tools.StylizedText("Disabled", Constants.Colors.RED)
+                );
+                enableToggle.Toggled += (sender, args) => loadedConfig.Enabled = !enableToggle.Value;
+                configsElements.Add(enableToggle);
+            }
+            configsElements.AddRange([null, GenerateSimpleButton()]);
+
+            // response
+            var response = new OptionsUI(configsElements, " EnabledConfigs", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            if (response is not null)
+            {
+                ConfigUtils.SetLoadingOrderData(loadingOrder);
+            }
+        }
+        #endregion
+
+        #region Ask options
         /// <summary>
-        /// Displays a simple yes or no prompt, and returns the user's answer.
+        /// Displays the ask options menu.
         /// </summary>
-        /// <param name="question">The question to print.</param>
-        /// <param name="yesFirst">If yes or no shoul be the first answer in the answers list.</param>
-        /// <param name="canEscape">If the player can press escape, to exit the prompt. Exiting will be treated as a no answer.</param>
-        /// <param name="keybinds">The keybinds to use.</param>
-        public static bool AskYesNoUIQuestion(string question, bool yesFirst = true, bool canEscape = true, Keybinds? keybinds = null)
+        public static void AskOptions()
         {
-            List<string?> answersList = yesFirst ? ["Yes", "No"] : ["No", "Yes"];
-            IEnumerable<ActionKey> keybindList;
-            if (keybinds is null)
-            {
-                keybindList = ActionList;
-            }
-            else
-            {
-                keybindList = keybinds.KeybindList;
-            }
-            return (int)new UIList(answersList, question, Constants.STANDARD_CURSOR_ICONS, canEscape: canEscape).Display(keybindList) == (yesFirst ? 0 : 1);
-        }
+            var askDeleteSaveElement = new Toggle(PASingletons.Instance.Settings.AskDeleteSave, "Confirm save folder delete: ", "yes", "no");
+            var askRegenerateSaveElement = new Toggle(PASingletons.Instance.Settings.AskRegenerateSave, "Confirm save folders regeneration: ", "yes", "no");
 
+            // default backup action
+            var backupActionValues = defBackupActionsList.Select(ac => ac.value);
+            var backupActionNames = defBackupActionsList.Select(ac => ac.name);
+            var backupActionValue = backupActionValues.ElementAt(0);
+            foreach (var action in backupActionValues)
+            {
+                if (action == PASingletons.Instance.Settings.DefBackupAction)
+                {
+                    backupActionValue = action;
+                    break;
+                }
+            }
+
+            var defBackupActionElement = new PAChoice(backupActionNames, backupActionValue, "On save folder backup prompt: ");
+
+            // menu elements
+            var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
+
+            // response
+            var response = new OptionsUI(askSettingsElements, " Question popups", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            if (response is not null)
+            {
+                PASingletons.Instance.Settings.AskDeleteSave = askDeleteSaveElement.Value;
+                PASingletons.Instance.Settings.AskRegenerateSave = askRegenerateSaveElement.Value;
+                PASingletons.Instance.Settings.DefBackupAction = backupActionValues.ElementAt(defBackupActionElement.Value);
+            }
+        }
+        #endregion
+
+        #region other options
         /// <summary>
         /// Displays the other options menu.
         /// </summary>
@@ -316,42 +389,7 @@ namespace ProgressAdventure
                 PASingletons.Instance.Settings.EnableColoredText = newColoredTextValue;
             }
         }
-
-        /// <summary>
-        /// Displays the ask options menu.
-        /// </summary>
-        public static void AskOptions()
-        {
-            var askDeleteSaveElement = new Toggle(PASingletons.Instance.Settings.AskDeleteSave, "Confirm save folder delete: ", "yes", "no");
-            var askRegenerateSaveElement = new Toggle(PASingletons.Instance.Settings.AskRegenerateSave, "Confirm save folders regeneration: ", "yes", "no");
-
-            // default backup action
-            var backupActionValues = defBackupActionsList.Select(ac => ac.value);
-            var backupActionNames = defBackupActionsList.Select(ac => ac.name);
-            var backupActionValue = backupActionValues.ElementAt(0);
-            foreach (var action in backupActionValues)
-            {
-                if (action == PASingletons.Instance.Settings.DefBackupAction)
-                {
-                    backupActionValue = action;
-                    break;
-                }
-            }
-
-            var defBackupActionElement = new PAChoice(backupActionNames, backupActionValue, "On save folder backup prompt: ");
-
-            // menu elements
-            var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
-
-            // response
-            var response = new OptionsUI(askSettingsElements, " Question popups", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
-            if (response is not null)
-            {
-                PASingletons.Instance.Settings.AskDeleteSave = askDeleteSaveElement.Value;
-                PASingletons.Instance.Settings.AskRegenerateSave = askRegenerateSaveElement.Value;
-                PASingletons.Instance.Settings.DefBackupAction = backupActionValues.ElementAt(defBackupActionElement.Value);
-            }
-        }
+        #endregion
 
         /// <summary>
         /// Regenerates the save file.
@@ -640,6 +678,7 @@ namespace ProgressAdventure
             var optionsMenuAnswers = new List<string?>
             {
                 "Keybinds",
+                "Configs",
                 "Question popups",
                 "Other",
                 null,
@@ -649,6 +688,7 @@ namespace ProgressAdventure
             var optionsMenuActions = new List<UIAction>
             {
                 new(KeybindSettings),
+                new(ConfigSettings),
                 new(AskOptions),
                 new(OtherOptions),
             };

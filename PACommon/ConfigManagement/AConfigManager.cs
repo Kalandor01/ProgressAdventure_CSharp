@@ -235,14 +235,17 @@ namespace PACommon.ConfigManagement
         /// Tries to get the value of a config object, and if it doesn't work, it recreates the config file from the default value, and tries again.
         /// </summary>
         /// <param name="defaultContent">The default config object value.</param>
+        /// <param name="justRecreate">If true, it doesn't try to get the config before recreating it.</param>
         /// <inheritdoc cref="TryGetConfig{T}(string, string?, out T)"/>
         public T TryGetConfigOrRecreate<T>(
             string configName,
             string? expectedVersion,
-            T defaultContent
+            T defaultContent,
+            bool justRecreate = false
         )
         {
             if (
+                !justRecreate &&
                 TryGetConfig(
                     configName,
                     expectedVersion,
@@ -264,17 +267,19 @@ namespace PACommon.ConfigManagement
         /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
         /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="TryGetConfigOrRecreate{T}(string, string?, T)"/>
+        /// <inheritdoc cref="TryGetConfigOrRecreate{T}(string, string?, T, bool)"/>
         public Dictionary<TK, TV> TryGetConfigOrRecreate<TK, TV>(
             string configName,
             string? expectedVersion,
             IDictionary<TK, TV> defaultContent,
             Func<TK, string> serializeDictionaryKeys,
-            Func<string, TK> deserializeDictionaryKeys
+            Func<string, TK> deserializeDictionaryKeys,
+            bool justRecreate = false
         )
             where TK : notnull
         {
             if (
+                !justRecreate &&
                 TryGetConfig(
                     configName,
                     expectedVersion,
@@ -292,7 +297,7 @@ namespace PACommon.ConfigManagement
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
         /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK})"/>
+        /// <inheritdoc cref="TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
         public Dictionary<TK, TV> TryGetConfigOrRecreate<TK, TV, TVC>(
             string configName,
             string? expectedVersion,
@@ -300,11 +305,13 @@ namespace PACommon.ConfigManagement
             Func<TV, TVC> serializeDictionaryValues,
             Func<TVC, TV> deserializeDictionaryValues,
             Func<TK, string>? serializeDictionaryKeys = null,
-            Func<string, TK>? deserializeDictionaryKeys = null
+            Func<string, TK>? deserializeDictionaryKeys = null,
+            bool justRecreate = false
         )
             where TK : notnull
         {
             if (
+                !justRecreate &&
                 TryGetConfig(
                     configName,
                     expectedVersion,
