@@ -1,4 +1,5 @@
 ﻿using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
 using System.Text.RegularExpressions;
 
@@ -16,24 +17,26 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <typeparam name="T">The type of the config value.</typeparam>
         /// <param name="configName">The name of the config.</param>
-        /// <param name="namespaces">The name of all namespaces to load from.</param>
+        /// <param name="namespaceFolders">The name of all config folders to load from.</param>
         /// <param name="vanillaDefaultValue">The default value of the config for if the vanilla config needs to be recreated.</param>
         /// <param name="getStartingValueFunction">The (empty) starting value of the config value.</param>
         /// <param name="appendConfigFunction">The function to aggregate two config values.</param>
         /// <param name="vanillaNamespaceInvalid">If true, it will always recreate the config file from the vanilla namespace.</param>
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
         /// <returns>The aggregate of the config file from all given namespaces.</returns>
         public static T ReloadConfigsAggregate<T>(
             string configName,
-            List<string> namespaces,
+            List<string> namespaceFolders,
             T vanillaDefaultValue,
             Func<T> getStartingValueFunction,
             Func<T, T, T> appendConfigFunction,
-            bool vanillaNamespaceInvalid = false
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
         )
         {
             return ReloadConfigsAggregatePrivate(
                 configName,
-                namespaces,
+                namespaceFolders,
                 getStartingValueFunction,
                 appendConfigFunction,
                 (configName) =>
@@ -48,7 +51,8 @@ namespace ProgressAdventure.ConfigManagement
                         configName,
                         null,
                         out var configValue
-                    ), configValue)
+                    ), configValue),
+                showProgressIndentation
             );
         }
 
@@ -57,16 +61,17 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <typeparam name="T">elements in the list.</typeparam>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
-        public static List<T> ReloadConfigsAggregate<T>(
+        public static List<T> ReloadConfigsAggregateList<T>(
             string configName,
-            List<string> namespaces,
+            List<string> namespaceFolders,
             List<T> vanillaDefaultValue,
-            bool vanillaNamespaceInvalid = false
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
         )
         {
             return ReloadConfigsAggregatePrivate(
                 configName,
-                namespaces,
+                namespaceFolders,
                 () => [],
                 (aggList, newList) =>
                 {
@@ -91,7 +96,8 @@ namespace ProgressAdventure.ConfigManagement
                         configName,
                         null,
                         out var configValue
-                    ), configValue)
+                    ), configValue),
+                showProgressIndentation
             );
         }
 
@@ -100,19 +106,63 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
         /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
-        public static Dictionary<TK, TV> ReloadConfigsAggregate<TK, TV>(
+        public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
             string configName,
-            List<string> namespaces,
-            IDictionary<TK, TV> vanillaDefaultValue,
-            Func<TK, string> serializeDictionaryKeys,
-            Func<string, TK> deserializeDictionaryKeys,
-            bool vanillaNamespaceInvalid = false
+            List<string> namespaceFolders,
+            Dictionary<TK, TV> vanillaDefaultValue,
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
         )
             where TK : notnull
         {
             return ReloadConfigsAggregatePrivate(
                 configName,
-                namespaces,
+                namespaceFolders,
+                () => [],
+                (aggDict, newDict) =>
+                {
+                    foreach (var newItem in newDict)
+                    {
+                        aggDict[newItem.Key] = newItem.Value;
+                    }
+                    return aggDict;
+                },
+                (configName) =>
+                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                        configName,
+                        null,
+                        vanillaDefaultValue,
+                        vanillaNamespaceInvalid
+                    ),
+                (configName) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfig<Dictionary<TK, TV>>(
+                        configName,
+                        null,
+                        out var configValue
+                    ), configValue),
+                showProgressIndentation
+            );
+        }
+
+        /// <summary>
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// </summary>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
+            string configName,
+            List<string> namespaceFolders,
+            IDictionary<TK, TV> vanillaDefaultValue,
+            Func<TK, string> serializeDictionaryKeys,
+            Func<string, TK> deserializeDictionaryKeys,
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
+        )
+            where TK : notnull
+        {
+            return ReloadConfigsAggregatePrivate(
+                configName,
+                namespaceFolders,
                 () => [],
                 (aggDict, newDict) =>
                 {
@@ -137,7 +187,8 @@ namespace ProgressAdventure.ConfigManagement
                         null,
                         out var configValue,
                         deserializeDictionaryKeys
-                    ), configValue)
+                    ), configValue),
+                showProgressIndentation
             );
         }
 
@@ -146,21 +197,22 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
         /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
-        public static Dictionary<TK, TV> ReloadConfigsAggregate<TK, TV, TVC>(
+        public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV, TVC>(
             string configName,
-            List<string> namespaces,
+            List<string> namespaceFolders,
             IDictionary<TK, TV> vanillaDefaultValue,
             Func<TV, TVC> serializeDictionaryValues,
             Func<TVC, TV> deserializeDictionaryValues,
             Func<TK, string>? serializeDictionaryKeys = null,
             Func<string, TK>? deserializeDictionaryKeys = null,
-            bool vanillaNamespaceInvalid = false
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
         )
             where TK : notnull
         {
             return ReloadConfigsAggregatePrivate(
                 configName,
-                namespaces,
+                namespaceFolders,
                 () => [],
                 (aggDict, newDict) =>
                 {
@@ -188,7 +240,8 @@ namespace ProgressAdventure.ConfigManagement
                         out var configValue,
                         deserializeDictionaryValues,
                         deserializeDictionaryKeys
-                    ), configValue)
+                    ), configValue),
+                showProgressIndentation
             );
         }
         #endregion
@@ -396,12 +449,44 @@ namespace ProgressAdventure.ConfigManagement
         #endregion
 
         #region Private functions
+        private static void LogConfigLoadingBegin(string configPath, string configFolder, int? showProgressIndentation)
+        {
+            var fullConfigPath = Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, PACSingletons.Instance.ConfigManager.GetConfigFilePath(configPath));
+            PACSingletons.Instance.Logger.Log(
+                "Reloading from config file",
+                $"\"{fullConfigPath}\"",
+                LogSeverity.DEBUG
+            );
+
+            if (showProgressIndentation is not null)
+            {
+                Console.Write(new string(' ', (int)showProgressIndentation * 4) + configFolder);
+            }
+        }
+
+        private static void LogConfigLoadingEnd(bool success, int? showProgressIndentation)
+        {
+            if (!success)
+            {
+                PACSingletons.Instance.Logger.Log(
+                    "Reloading from config file failed",
+                    $"refer to above log",
+                    LogSeverity.DEBUG
+                );
+            }
+
+            if (showProgressIndentation is not null)
+            {
+                Console.WriteLine(success ? "" : ": FALIED!");
+            }
+        }
+
         /// <summary>
         /// Reloads the config value from the aggregate of a config file from all avalible namespaces.
         /// </summary>
         /// <typeparam name="T">The type of the config value.</typeparam>
         /// <param name="configName">The name of the config file.</param>
-        /// <param name="namespaces">The avalible namespaces, including the default one, in the order of loading.</param>
+        /// <param name="namespaceFolders">The avalible config folders, including the default one, in the order of loading.</param>
         /// <param name="getStartingValueFunction">The function to return the staring value of the config value.</param>
         /// <param name="appendConfigFunction">The function to aggregate two config values.</param>
         /// <param name="getConfigVanillaFunction">The GetConfig method to use to get the vanilla config.</param>
@@ -409,25 +494,42 @@ namespace ProgressAdventure.ConfigManagement
         /// <returns>The aggregate of the config file from all avalible namespaces.</returns>
         private static T ReloadConfigsAggregatePrivate<T>(
             string configName,
-            List<string> namespaces,
+            List<string> namespaceFolders,
             Func<T> getStartingValueFunction,
             Func<T, T, T> appendConfigFunction,
             Func<string, T> getConfigVanillaFunction,
-            Func<string, (bool sucess, T? value)> getConfigOtherFunction
+            Func<string, (bool sucess, T? value)> getConfigOtherFunction,
+            int? showProgressIndentation
         )
         {
-            var aggregateValue = getStartingValueFunction();
-            foreach (var nspace in namespaces)
+            var configNameFull = $"{configName}.{Constants.CONFIG_EXT}";
+            PACSingletons.Instance.Logger.Log(
+                "Loading config file",
+                $"\"{configNameFull}\"",
+                LogSeverity.DEBUG
+            );
+
+            if (showProgressIndentation is not null)
             {
-                var configFileSubpath = Path.Join(nspace, configName);
-                if (nspace == Constants.PA_CONFIGS_NAMESPACE)
+                Console.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading file \"{Path.GetFileName(configNameFull)}\" from config:");
+            }
+            showProgressIndentation = showProgressIndentation + 1 ?? null;
+
+            var aggregateValue = getStartingValueFunction();
+            foreach (var folder in namespaceFolders)
+            {
+                var configFileSubpath = Path.Join(folder, configName);
+                if (folder == Constants.PA_CONFIGS_NAMESPACE)
                 {
+                    LogConfigLoadingBegin(configFileSubpath, folder, showProgressIndentation);
                     var vanillaValue = getConfigVanillaFunction(configFileSubpath);
                     aggregateValue = appendConfigFunction(aggregateValue, vanillaValue);
                 }
                 else if (PACSingletons.Instance.ConfigManager.ConfigFileExists(configFileSubpath))
                 {
+                    LogConfigLoadingBegin(configFileSubpath, folder, showProgressIndentation);
                     var (sucess, configValue) = getConfigOtherFunction(configFileSubpath);
+                    LogConfigLoadingEnd(sucess, showProgressIndentation);
                     if (sucess)
                     {
                         aggregateValue = appendConfigFunction(aggregateValue, configValue!);

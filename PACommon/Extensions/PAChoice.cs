@@ -8,9 +8,9 @@ namespace PACommon.Extensions
     public class PAChoice : Choice
     {
         /// <param name="choices">The list of options the user can choose from.</param>
-        /// <inheritdoc cref="Choice(IEnumerable{string}, int, string, string, bool, string, bool)"/>
+        /// <inheritdoc cref="Choice(IList{string}, int, string, string, bool, string, bool)"/>
         public PAChoice(
-            IEnumerable<string> choices,
+            IList<string> choices,
             int value = 0,
             string preText = "",
             string preValue = "",

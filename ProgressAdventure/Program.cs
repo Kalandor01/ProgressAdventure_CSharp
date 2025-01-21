@@ -10,13 +10,13 @@ using PACommon.Logging;
 using PACommon.SettingsManagement;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Exceptions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using System.Text;
 using System.Text.Json.Serialization;
 using AItem = ProgressAdventure.ItemManagement.AItem;
-using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
@@ -176,7 +176,8 @@ namespace ProgressAdventure
                         new ConsoleKeyInfoConverter(),
                     ],
                     Constants.CONFIGS_FOLDER_PATH,
-                    Constants.CONFIG_EXT
+                    Constants.CONFIG_EXT,
+                    false
                 )
             );
 
@@ -195,7 +196,8 @@ namespace ProgressAdventure
 
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
-            Tools.ReloadConfigs();
+            Console.WriteLine("Reloading configs...");
+            Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
@@ -209,8 +211,17 @@ namespace ProgressAdventure
             {
                 Preloading();
             }
+            catch (RestartException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
+                if (e.InnerException is RestartException)
+                {
+                    throw;
+                }
+
                 PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
                 if (Constants.ERROR_HANDLING)
                 {
@@ -239,8 +250,17 @@ namespace ProgressAdventure
                     PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
                     PACSingletons.Instance.Dispose();
                 }
+                catch (RestartException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
+                    if (e.InnerException is RestartException)
+                    {
+                        throw;
+                    }
+
                     PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
                     if (Constants.ERROR_HANDLING)
                     {
@@ -263,8 +283,40 @@ namespace ProgressAdventure
 
         static void Main(string[] args)
         {
-            PreloadingErrorHandler();
-            MainErrorHandler();
+            var g = PACTools.LoadJsonFile("g");
+            bool exitGame;
+            do
+            {
+                RestartException? restartException = null;
+                exitGame = true;
+                try
+                {
+                    PreloadingErrorHandler();
+                    MainErrorHandler();
+                }
+                catch (RestartException re)
+                {
+                    restartException = re;
+                }
+                catch (Exception ie)
+                {
+                    if (ie.InnerException is RestartException re)
+                    {
+                        restartException = re;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                if (restartException is not null)
+                {
+                    PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), LogSeverity.INFO, forceLog: true);
+                    exitGame = false;
+                }
+            }
+            while (!exitGame);
         }
     }
 }

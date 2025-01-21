@@ -3,6 +3,7 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Exceptions;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
@@ -38,6 +39,11 @@ namespace ProgressAdventure.SettingsManagement
             if (!KeybindList.Any())
             {
                 PACSingletons.Instance.Logger.Log("No actions in actions list.", "Recreating key actions from defaults", LogSeverity.ERROR);
+                if (defKebindList.Count == 0)
+                {
+                    PACSingletons.Instance.Logger.Log("No actions in default actions list!", severity: LogSeverity.FATAL);
+                    throw new NotEnoughKeybindsException("No actions in default actions list!");
+                }
                 KeybindList = defKebindList;
                 return;
             }

@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Entity;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
@@ -323,14 +324,42 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Displays the config progress for a config folder, if enabled.
+        /// </summary>
+        /// <param name="configPath">The path to the config file that is being reloaded, without extension</param>
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        public static void ReloadConfigsFolderDisplayProgress(string configPath, int? showProgressIndentation = null)
+        {
+            PACSingletons.Instance.Logger.Log(
+                "Reloading from config folder",
+                $"\"{configPath}\"",
+                LogSeverity.DEBUG
+            );
+
+            if (showProgressIndentation is null)
+            {
+                return;
+            }
+            Console.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading from folder \"{configPath}\":");
+        }
+
+        /// <summary>
         /// Reload all variables that come from configs.
         /// </summary>
-        public static void ReloadConfigs()
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        public static void ReloadConfigs(int? showProgressIndentation = null)
         {
-            SettingsUtils.ReloadConfigs();
-            EntityUtils.ReloadConfigs();
-            ItemUtils.ReloadConfigs();
-            WorldUtils.ReloadConfigs();
+            var vanillaRecreated = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
+            var configDatas = ConfigUtils.GetValidConfigDatas(null);
+            var namespaces = loadingOrder
+                .Where(lo => lo.Enabled)
+                .Select(lo => configDatas.First(cd => cd.configData.Namespace == lo.Namespace).folderName)
+                .ToList();
+
+            SettingsUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
+            EntityUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
+            ItemUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
+            WorldUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
 
             PACSingletons.Instance.Logger.Log("All configs reloaded");
         }

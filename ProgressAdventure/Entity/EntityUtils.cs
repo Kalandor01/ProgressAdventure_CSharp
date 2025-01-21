@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Diagnostics;
 using Attribute = ProgressAdventure.Enums.Attribute;
@@ -132,44 +133,54 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// Reloads all values that come from configs.
         /// </summary>
-        public static void ReloadConfigs()
+        /// <param name="namespaceFolders">The name of the currently active config folders.</param>
+        /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
         {
-            EntityTypeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
-                    null,
-                    _defaultEntityTypeMap
-                );
+            Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, showProgressIndentation);
+            showProgressIndentation = showProgressIndentation + 1 ?? null;
 
-            FacingToMovementVectorMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
-                    null,
-                    _defaultFacingToMovementVectorMap,
-                    move => new Dictionary<string, int>
-                    {
-                        [nameof(move.x)] = move.x,
-                        [nameof(move.y)] = move.y,
-                    },
-                    move => (move["x"], move["y"])
-                );
+            EntityTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
+                namespaceFolders,
+                _defaultEntityTypeMap,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            AttributeStatChangeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
-                    null,
-                    _defaultAttributeStatChangeMap,
-                    stats => new Dictionary<string, double>
-                    {
-                        [nameof(stats.maxHp)] = stats.maxHp,
-                        [nameof(stats.attack)] = stats.attack,
-                        [nameof(stats.defence)] = stats.defence,
-                        [nameof(stats.agility)] = stats.agility,
-                    },
-                    stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"]),
-                    (attribute) => attribute.Name,
-                    Attribute.GetValue
-                );
+            FacingToMovementVectorMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
+                namespaceFolders,
+                _defaultFacingToMovementVectorMap,
+                move => new Dictionary<string, int>
+                {
+                    [nameof(move.x)] = move.x,
+                    [nameof(move.y)] = move.y,
+                },
+                move => (move["x"], move["y"]),
+                null, null,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
+
+            AttributeStatChangeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
+                namespaceFolders,
+                _defaultAttributeStatChangeMap,
+                stats => new Dictionary<string, double>
+                {
+                    [nameof(stats.maxHp)] = stats.maxHp,
+                    [nameof(stats.attack)] = stats.attack,
+                    [nameof(stats.defence)] = stats.defence,
+                    [nameof(stats.agility)] = stats.agility,
+                },
+                stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"]),
+                (attribute) => attribute.Name,
+                Attribute.GetValue,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
         }
         #endregion
 

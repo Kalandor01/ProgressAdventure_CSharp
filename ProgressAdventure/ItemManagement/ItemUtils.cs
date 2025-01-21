@@ -2,6 +2,7 @@
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -440,46 +441,55 @@ namespace ProgressAdventure.ItemManagement
             );
         }
 
-        private static void ReloadConfigs1()
+        private static void ReloadConfigs1(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
         {
-            CompoundItemAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
-                    null,
-                    _defaultCompoundItemAttributes,
-                    key => key.ToString()!,
-                    key => ParseItemTypeFromRealName(key)
-                        ?? throw new ArgumentNullException($"Unknown item type real name in \"compound_item_attributes\" config: \"{key}\"", "item type")
-                );
+            CompoundItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
+                namespaceFolders,
+                _defaultCompoundItemAttributes,
+                key => key.ToString()!,
+                key => ParseItemTypeFromRealName(key)
+                    ?? throw new ArgumentNullException($"Unknown item type real name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            MaterialItemAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
-                    null,
-                    _defaultMaterialItemAttributes
-                );
+            MaterialItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
+                namespaceFolders,
+                _defaultMaterialItemAttributes,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
         }
 
-        private static void ReloadConfigs2()
+        private static void ReloadConfigs2(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
         {
-            ItemRecipes =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
-                    null,
-                    _defaultItemRecipes,
-                    ItemIDToTypeName,
-                    key => ParseItemType(key)
-                        ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type")
-                );
+            ItemRecipes = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
+                namespaceFolders,
+                _defaultItemRecipes,
+                ItemIDToTypeName,
+                key => ParseItemType(key)
+                    ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type"),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
         }
 
         /// <summary>
         /// Reloads all values that come from configs.
         /// </summary>
-        public static void ReloadConfigs()
+        /// <param name="namespaceFolders">The name of the currently active config folders.</param>
+        /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
         {
-            ReloadConfigs1();
-            ReloadConfigs2();
+            Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, showProgressIndentation);
+            showProgressIndentation = showProgressIndentation + 1 ?? null;
+
+            ReloadConfigs1(namespaceFolders, isVanillaInvalid, showProgressIndentation);
+            ReloadConfigs2(namespaceFolders, isVanillaInvalid, showProgressIndentation);
         }
         #endregion
 

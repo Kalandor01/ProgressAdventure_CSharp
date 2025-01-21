@@ -6,6 +6,7 @@ using PACommon.Extensions;
 using PACommon.SettingsManagement;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Exceptions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
@@ -279,30 +280,117 @@ namespace ProgressAdventure
         #region Configs
         public static void ConfigSettings()
         {
+            static MultiButtonElement GetMultiButtonEnabledText(bool enabled)
+            {
+                return new MultiButtonElement(
+                    null,
+                    enabled
+                        ? Tools.StylizedText(" Enabled  ", Constants.Colors.GREEN)
+                        : Tools.StylizedText(" Disabled ", Constants.Colors.RED),
+                    enabled
+                        ? Tools.StylizedText("[Enabled] ", Constants.Colors.GREEN)
+                        : Tools.StylizedText("[Disabled]", Constants.Colors.RED)
+                );
+            }
+
+            static void RefreshConfigMultiChoice(MultiButton multiButton, ConfigLoadingData loadedConfigData)
+            {
+                loadedConfigData.Enabled = !loadedConfigData.Enabled;
+                var newText = GetMultiButtonEnabledText(loadedConfigData.Enabled);
+                var button = multiButton.buttons[0];
+                button.inactiveText = newText.inactiveText;
+                button.activeText = newText.activeText;
+            }
+
+            static bool MoveConfigMultiChoice(MultiButton button, List<ConfigLoadingData> loadingOrder, OptionsUI optionsUI, bool moveDown)
+            {
+                var buttonIndex = optionsUI.elements.IndexOf(button);
+                if (
+                    buttonIndex == -1 ||
+                    (moveDown && buttonIndex >= optionsUI.elements.Count - 3) ||
+                    (!moveDown && buttonIndex == 0)
+                )
+                {
+                    return false;
+                }
+                var otherIndex = buttonIndex + (moveDown ? 1 : -1);
+                optionsUI.selected = otherIndex;
+
+                (optionsUI.elements[otherIndex], optionsUI.elements[buttonIndex]) = (optionsUI.elements[buttonIndex], optionsUI.elements[otherIndex]);
+                (loadingOrder[otherIndex], loadingOrder[buttonIndex]) = (loadingOrder[buttonIndex], loadingOrder[otherIndex]);
+                return true;
+            }
+
+
+
             var vanillaRecreated = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
             var configs = ConfigUtils.GetValidConfigDatas(null);
 
             // menu elements
             var configsElements = new List<BaseUI?>();
+            var configOptionsUI = new OptionsUI([new Toggle()], " EnabledConfigs", Constants.STANDARD_CURSOR_ICONS);
             foreach (var loadedConfig in loadingOrder)
             {
                 var config = configs.FirstOrDefault(c => c.configData.Namespace == loadedConfig.Namespace);
-                var enableToggle = new Toggle(
-                    loadedConfig.Enabled,
-                    $"\"{config?.folderName}\" {config?.configData.Version} ({loadedConfig.Namespace}): ",
-                    Tools.StylizedText("Enabled", Constants.Colors.GREEN),
-                    Tools.StylizedText("Disabled", Constants.Colors.RED)
+                if (config is null)
+                {
+                    continue;
+                }
+
+                var multiButtonEnableText = GetMultiButtonEnabledText(loadedConfig.Enabled);
+                var configManagerUIElement = new MultiButton(
+                    [
+                        new(
+                            new(RefreshConfigMultiChoice, loadedConfig),
+                            multiButtonEnableText.inactiveText,
+                            multiButtonEnableText.activeText
+                        ),
+                        new(
+                            new(MoveConfigMultiChoice, loadingOrder, configOptionsUI, false),
+                            " Move Up ",
+                            "[Move Up]"
+                        ),
+                        new(
+                            new(MoveConfigMultiChoice, loadingOrder, configOptionsUI, true),
+                            " Move Down ",
+                            "[Move Down]"
+                        )
+                    ],
+                    " ",
+                    preValue: $"\"{config.folderName}\" {Tools.StylizedText(
+                            config.configData.Version,
+                            config.configData.Version == Constants.CONFIG_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED
+                        )} ({loadedConfig.Namespace}): ",
+                    modifyList: true
                 );
-                enableToggle.Toggled += (sender, args) => loadedConfig.Enabled = !enableToggle.Value;
-                configsElements.Add(enableToggle);
+                configsElements.Add(configManagerUIElement);
             }
             configsElements.AddRange([null, GenerateSimpleButton()]);
+            configOptionsUI.elements = configsElements;
 
             // response
-            var response = new OptionsUI(configsElements, " EnabledConfigs", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            var response = configOptionsUI.Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
+                var vanillaEnabled = loadingOrder.FirstOrDefault(c => c.Namespace == Constants.PA_CONFIGS_NAMESPACE)!.Enabled;
+                if (!vanillaEnabled &&
+                    !AskYesNoUIQuestion(
+                        "The vanilla configs have been disabled! This will most likely crash the game, when the configs are next reloded.\n" +
+                        $"You can manualy modify enabled configs at \"{Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, Path.Join(Constants.CONFIGS_FOLDER_PATH, $"{Constants.CONFIGS_LOADING_ORDER_FILE_NAME}.{Constants.CONFIG_EXT}"))}\"\n" +
+                        "Are you sure you want to save these settings.",
+                        false
+                    )
+                )
+                {
+                    return;
+                }
+
                 ConfigUtils.SetLoadingOrderData(loadingOrder);
+
+                if (AskYesNoUIQuestion("Do you want to reload the configs now?"))
+                {
+                    throw new RestartException("Reloading configs");
+                }
             }
         }
         #endregion
@@ -318,7 +406,7 @@ namespace ProgressAdventure
 
             // default backup action
             var backupActionValues = defBackupActionsList.Select(ac => ac.value);
-            var backupActionNames = defBackupActionsList.Select(ac => ac.name);
+            var backupActionNames = defBackupActionsList.Select(ac => ac.name).ToList();
             var backupActionValue = backupActionValues.ElementAt(0);
             foreach (var action in backupActionValues)
             {
@@ -356,7 +444,7 @@ namespace ProgressAdventure
 
             // logging
             var loggingSeverities = loggingSeveritiesList.Select(el => el.value);
-            var loggingSeverityNames = loggingSeveritiesList.Select(el => el.name);
+            var loggingSeverityNames = loggingSeveritiesList.Select(el => el.name).ToList();
             var currentLoggingLevel = PASingletons.Instance.Settings.LoggingLevel;
 
             var loggingLevelIndex = loggingSeverities.Count() - 1;

@@ -41,6 +41,8 @@ namespace PACommon.ConfigManagement
             _jsonReaderOptions = new JsonSerializerOptions
             {
                 IncludeFields = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
             };
             _jsonWriterOptions = new JsonSerializerOptions
             {
@@ -59,12 +61,21 @@ namespace PACommon.ConfigManagement
 
         #region Public functions
         /// <summary>
+        /// Gets the full path of a config file.
+        /// </summary>
+        /// <param name="configName">The name of the config file name.</param>
+        public string GetConfigFilePath(string configName)
+        {
+            return Path.Join(_configsFolderPath, $"{configName}.{_configExtension}");
+        }
+
+        /// <summary>
         /// Returns if a config file exists.
         /// </summary>
         /// <param name="configName">The name of the config file.</param>
         public bool ConfigFileExists(string configName)
         {
-            return Path.Exists(GetConfigFilePath(configName));
+            return File.Exists(GetConfigFilePath(configName));
         }
 
         #region Get config
@@ -421,15 +432,6 @@ namespace PACommon.ConfigManagement
         #endregion
 
         #region Private functions
-        /// <summary>
-        /// Gets the full path of a config file.
-        /// </summary>
-        /// <param name="configName">The name of the config file name.</param>
-        private string GetConfigFilePath(string configName)
-        {
-            return Path.Join(_configsFolderPath, $"{configName}.{_configExtension}");
-        }
-
         /// <summary>
         /// Tries to get the value of a config object, and logs any errors if it doesn't work.
         /// </summary>

@@ -5,6 +5,16 @@ namespace PACommon.JsonUtils
 {
     public static class JsonSerializer
     {
+        #region Private fields
+        private static readonly JsonSerializerOptions _readerOptions = new()
+        {
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+        };
+        private static readonly JsonSerializerOptions _unformatedWriterOptions = new();
+        private static readonly JsonSerializerOptions _formatedWriterOptions = new() { WriteIndented = true };
+        #endregion
+
         #region Public functions
         /// <summary>
         /// Turns the json string into a JsonDictionary.
@@ -12,7 +22,11 @@ namespace PACommon.JsonUtils
         /// <param name="jsonString">The json string.</param>
         public static JsonDictionary? DeserializeJson(string jsonString)
         {
-            var rootElement = SysJsonSerializer.Deserialize<JsonElement?>(jsonString);
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                return null;
+            }
+            var rootElement = SysJsonSerializer.Deserialize<JsonElement>(jsonString, _readerOptions);
             return rootElement is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Object
                 ? DeserializeJsonObjectEnumerator(jsonElement.EnumerateObject())
                 : null;
@@ -26,11 +40,7 @@ namespace PACommon.JsonUtils
         public static string SerializeJson(JsonDictionary? jsonData, bool format = false)
         {
             var convertedData = SerializeJsonDictionary(jsonData);
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = format,
-            };
-            return SysJsonSerializer.Serialize(convertedData, options);
+            return SysJsonSerializer.Serialize(convertedData, format ? _formatedWriterOptions : _unformatedWriterOptions);
         }
 
         /// <summary>

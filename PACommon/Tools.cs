@@ -201,7 +201,7 @@ namespace PACommon
             }
             catch (Exception e)
             {
-                if (e is ArgumentNullException || e is FormatException)
+                if (e is ArgumentNullException or FormatException)
                 {
                     PACSingletons.Instance.Logger.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
                     return null;

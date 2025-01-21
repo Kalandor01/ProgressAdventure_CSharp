@@ -3,6 +3,7 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.SettingsManagement
@@ -121,25 +122,33 @@ namespace ProgressAdventure.SettingsManagement
         }
 
         /// <summary>
-        /// Reloads all variables that come from configs.
+        /// Reloads all values that come from configs.
         /// </summary>
-        public static void ReloadConfigs()
+        /// <param name="namespaceFolders">The name of the currently active config folders.</param>
+        /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
         {
-            ActionTypeAttributes =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
-                    null,
-                    _defaultActionTypeAttributes,
-                    (actionType) => actionType.Name,
-                    ActionType.GetValue
-                );
+            Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, showProgressIndentation);
+            showProgressIndentation = showProgressIndentation + 1 ?? null;
 
-            SettingValueTypeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
-                    null,
-                    _defaultSettingValueTypeMap
-                );
+            ActionTypeAttributes = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
+                namespaceFolders,
+                _defaultActionTypeAttributes,
+                (actionType) => actionType.Name,
+                ActionType.GetValue,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
+
+            SettingValueTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
+                namespaceFolders,
+                _defaultSettingValueTypeMap,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
         }
         #endregion
 

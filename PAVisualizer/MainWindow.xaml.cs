@@ -124,6 +124,7 @@ namespace PAVisualizer
                 {
                     return;
                 }
+                throw;
             }
 
             saveName = saveStrings.Value.saveFolderName;

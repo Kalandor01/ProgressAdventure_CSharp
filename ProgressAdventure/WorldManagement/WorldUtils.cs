@@ -1,6 +1,7 @@
 ﻿using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 using ProgressAdventure.WorldManagement.Content.Population;
@@ -358,77 +359,91 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Reloads all values that come from configs.
         /// </summary>
-        public static void ReloadConfigs()
+        /// <param name="namespaceFolders">The name of the currently active config folders.</param>
+        /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
+        /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
         {
-            TileNoiseOffsets = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "tile_noise_offsets"),
-                    null,
-                    _defaultTileNoiseOffsets
-                );
+            Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, showProgressIndentation);
+            showProgressIndentation = showProgressIndentation + 1 ?? null;
 
-            TerrainContentTypePropertyMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_property_map"),
-                    null,
-                    _defaultTerrainContentTypePropertyMap,
-                    key => key.FullName ?? "",
-                    key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
-                );
+            TileNoiseOffsets = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "tile_noise_offsets"),
+                namespaceFolders,
+                _defaultTileNoiseOffsets,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            StructureContentTypePropertyMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_property_map"),
-                    null,
-                    _defaultStructureContentTypePropertyMap,
-                    key => key.FullName ?? "",
-                    key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
-                );
+            TerrainContentTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_property_map"),
+                namespaceFolders,
+                _defaultTerrainContentTypePropertyMap,
+                key => key.FullName ?? "",
+                key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            PopulationContentTypePropertyMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map"),
-                    null,
-                    _defaultPopulationContentTypePropertyMap,
-                    key => key.FullName ?? "",
-                    key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\"")
-                );
+            StructureContentTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_property_map"),
+                namespaceFolders,
+                _defaultStructureContentTypePropertyMap,
+                key => key.FullName ?? "",
+                key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            BaseContentTypeMap =
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "base_content_type_map"),
-                    null,
-                    _baseContentTypeMap,
-                    key => key.ToString()!,
-                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
-                );
+            PopulationContentTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map"),
+                namespaceFolders,
+                _defaultPopulationContentTypePropertyMap,
+                key => key.FullName ?? "",
+                key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            TerrainContentTypeMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_map"),
-                    null,
-                    _defaultTerrainContentTypeMap,
-                    key => key.ToString()!,
-                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
-                );
+            BaseContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "base_content_type_map"),
+                namespaceFolders,
+                _baseContentTypeMap,
+                key => key.ToString()!,
+                key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            StructureContentTypeMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_map"),
-                    null,
-                    _defaultStructureContentTypeMap,
-                    key => key.ToString()!,
-                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
-                );
+            TerrainContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_map"),
+                namespaceFolders,
+                _defaultTerrainContentTypeMap,
+                key => key.ToString()!,
+                key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
-            PopulationContentTypeMap = 
-                PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
-                    Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_map"),
-                    null,
-                    _defaultPopulationContentTypeMap,
-                    key => key.ToString()!,
-                    key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\"")
-                );
+            StructureContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_map"),
+                namespaceFolders,
+                _defaultStructureContentTypeMap,
+                key => key.ToString()!,
+                key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
+
+            PopulationContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+                Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_map"),
+                namespaceFolders,
+                _defaultPopulationContentTypeMap,
+                key => key.ToString()!,
+                key => ParseContentTypeFromRealName(key) ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
             UpdateNonConfigDicts();
         }
