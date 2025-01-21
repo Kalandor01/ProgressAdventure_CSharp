@@ -53,17 +53,10 @@ namespace ProgressAdventure
             var safeFilePath = Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, filePath);
             try
             {
-                return PACTools.LoadCompressedFile(filePath, extension, lineNum, expected && !tryOldDecoding);
-            }
-            catch (FileNotFoundException)
-            {
-                if (tryOldDecoding)
+                var newJsonData = PACTools.LoadCompressedFile(filePath, extension, lineNum, expected && !tryOldDecoding);
+                if (newJsonData is not null)
                 {
-                    PACSingletons.Instance.Logger.Log("File not found", $"(but it was expected) file name: {safeFilePath}.{extension}", LogSeverity.INFO);
-                }
-                else
-                {
-                    throw;
+                    return newJsonData;
                 }
             }
             catch (FormatException)
@@ -97,7 +90,6 @@ namespace ProgressAdventure
         /// </summary>
         /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
         /// <typeparam name="T"></typeparam>
-        /// <param name="fileTypeName">The name of the file that is being loaded.</param>
         /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
         /// <param name="tryOldDecoding">Whether to try to use <see cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>, if the newer decoding doesn't work.</param>
         public static JsonDictionary? LoadCompressedFileExpected<T>(
@@ -105,7 +97,6 @@ namespace ProgressAdventure
             int lineNum = 0,
             string extension = SAVE_EXT,
             bool expected = true,
-            string? fileTypeName = null,
             string? extraFileInformation = null,
             bool tryOldDecoding = true
         )
@@ -121,25 +112,10 @@ namespace ProgressAdventure
                 }
                 return fileJson;
             }
-            catch (Exception e)
+            catch (FormatException)
             {
-                fileTypeName ??= objectTypeName;
-                if (e is FormatException)
-                {
-                    PACTools.LogJsonParseError<T>(objectTypeName, $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
-                    return null;
-                }
-                else if (e is FileNotFoundException)
-                {
-                    PACSingletons.Instance.Logger.Log($"{fileTypeName} file not found", $"{(expected ? "" : "(but it was expected)")} {extraFileInformation}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                    return null;
-                }
-                else if (e is DirectoryNotFoundException)
-                {
-                    PACSingletons.Instance.Logger.Log($"{fileTypeName} folder not found", $"{(expected ? "" : "(but it was expected)")} {extraFileInformation}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                    return null;
-                }
-                throw;
+                PACTools.LogJsonParseError<T>(objectTypeName, $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
+                return null;
             }
         }
         #endregion

@@ -283,7 +283,6 @@ namespace ProgressAdventure
 
         static void Main(string[] args)
         {
-            var g = PACTools.LoadJsonFile("g");
             bool exitGame;
             do
             {

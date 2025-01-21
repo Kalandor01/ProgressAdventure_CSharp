@@ -20,16 +20,17 @@ namespace PACommon.JsonUtils
         /// Turns the json string into a JsonDictionary.
         /// </summary>
         /// <param name="jsonString">The json string.</param>
+        /// <exception cref="FormatException">Thrown if the deserialized json is not an object.</exception>
         public static JsonDictionary? DeserializeJson(string jsonString)
         {
             if (string.IsNullOrWhiteSpace(jsonString))
             {
                 return null;
             }
-            var rootElement = SysJsonSerializer.Deserialize<JsonElement>(jsonString, _readerOptions);
-            return rootElement is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Object
+            var jsonElement = SysJsonSerializer.Deserialize<JsonElement>(jsonString, _readerOptions);
+            return jsonElement.ValueKind == JsonValueKind.Object
                 ? DeserializeJsonObjectEnumerator(jsonElement.EnumerateObject())
-                : null;
+                : throw new FormatException("Deserialized json element is not an object.");
         }
 
         /// <summary>

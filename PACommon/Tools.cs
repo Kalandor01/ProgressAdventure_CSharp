@@ -106,10 +106,7 @@ namespace PACommon
         /// <param name="lineNum">The line, that you want go get back (starting from 0).<br/>
         /// If it's null, it loads the entire file.</param>
         /// <param name="extension">The extension of the file that will be loaded.</param>
-        /// <param name="expected">If the file is expected to exist.<br/>
-        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
-        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
-        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
+        /// <param name="expected">If the file is expected to exist.</param>
         public static JsonDictionary? LoadJsonFile(string filePath, int? lineNum = 0, string extension = "json", bool expected = true)
         {
             return DecodeSaveAny(0, filePath, null, extension, lineNum, expected);
@@ -121,10 +118,7 @@ namespace PACommon
         /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.</param>
         /// <param name="extension">The extension of the file that will be loaded.</param>
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
-        /// <param name="expected">If the file is expected to exist.<br/>
-        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
-        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
-        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
+        /// <param name="expected">If the file is expected to exist.</param>
         public static JsonDictionary? LoadCompressedFile(string filePath, string extension, int lineNum = 0, bool expected = true)
         {
             return DecodeSaveAny(1, filePath, null, extension, lineNum, expected);
@@ -138,11 +132,8 @@ namespace PACommon
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
         /// <param name="seed">The seed for decoding the file.</param>
         /// <param name="extension">The extension of the file that will be decoded.</param>
-        /// <param name="expected">If the file is expected to exist.<br/>
-        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
+        /// <param name="expected">If the file is expected to exist.</param>
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
-        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
-        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
         public static JsonDictionary? DecodeFileShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
         {
             return DecodeSaveAny(2, filePath, seed, extension, lineNum, expected);
@@ -973,11 +964,8 @@ namespace PACommon
         /// If type is 0, and this is null, it reads the entire text.</param>
         /// <param name="seed">The seed for decoding the file.</param>
         /// <param name="extension">The extension of the file that will be decoded.</param>
-        /// <param name="expected">If the file is expected to exist.<br/>
-        /// ONLY ALTERS THE LOGS DISPLAYED, IF THE FILE/FOLDER DOESN'T EXIST.</param>
-        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
-        /// <exception cref="FileNotFoundException">Exeption thrown, if the file couldn't be found.</exception>
-        /// <exception cref="DirectoryNotFoundException">Exeption thrown, if the directory containing the file couldn't be found.</exception>
+        /// <param name="expected">If the file is expected to exist.</param>
+        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
         public static JsonDictionary? DecodeSaveAny(
             ushort type,
             string filePath,
@@ -988,20 +976,32 @@ namespace PACommon
         )
         {
             var safeFilePath = Path.GetRelativePath(Constants.ROOT_FOLDER, filePath);
+            var fullFilePath = $"{filePath}.{extension}";
+            if (!File.Exists(fullFilePath))
+            {
+                if (Directory.Exists(Path.GetDirectoryName(fullFilePath)))
+                {
+                    PACSingletons.Instance.Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                }
+                else
+                {
+                    PACSingletons.Instance.Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
+                }
+                return null;
+            }
 
             string loadedLine;
             try
             {
                 if (type == 0)
                 {
-                    var path = $"{filePath}.{extension}";
                     loadedLine = lineNum is not null
-                        ? File.ReadLines(path, Constants.ENCODING).ElementAt((int)lineNum)
-                        : File.ReadAllText(path, Constants.ENCODING);
+                        ? File.ReadLines(fullFilePath, Constants.ENCODING).ElementAt((int)lineNum)
+                        : File.ReadAllText(fullFilePath, Constants.ENCODING);
                 }
                 else if (type == 1)
                 {
-                    var compressedLine = File.ReadAllLines($"{filePath}.{extension}", Constants.ENCODING).ElementAt(lineNum ?? 0);
+                    var compressedLine = File.ReadAllLines(fullFilePath, Constants.ENCODING).ElementAt(lineNum ?? 0);
                     loadedLine = Utils.Unzip(Convert.FromBase64String(compressedLine));
                 }
                 else
@@ -1012,16 +1012,6 @@ namespace PACommon
             catch (FormatException)
             {
                 PACSingletons.Instance.Logger.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
-                throw;
-            }
-            catch (FileNotFoundException)
-            {
-                PACSingletons.Instance.Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                throw;
-            }
-            catch (DirectoryNotFoundException)
-            {
-                PACSingletons.Instance.Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
                 throw;
             }
 

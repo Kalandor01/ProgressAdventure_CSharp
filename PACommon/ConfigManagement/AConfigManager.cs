@@ -66,6 +66,7 @@ namespace PACommon.ConfigManagement
         /// <param name="configName">The name of the config file name.</param>
         public string GetConfigFilePath(string configName)
         {
+            Tools.RecreateFolder(_configsFolderPath, "configs");
             return Path.Join(_configsFolderPath, $"{configName}.{_configExtension}");
         }
 

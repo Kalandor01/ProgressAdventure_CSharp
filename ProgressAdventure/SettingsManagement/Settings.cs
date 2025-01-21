@@ -305,8 +305,6 @@ namespace ProgressAdventure.SettingsManagement
                 PACSingletons.Instance.Logger.Log("Decode error", "settings", LogSeverity.ERROR);
                 Utils.PressKey("The settings file is corrupted, and will now be recreated!");
             }
-            catch (FileNotFoundException) { }
-            catch (DirectoryNotFoundException) { }
 
             if (settingsJson is not null)
             {

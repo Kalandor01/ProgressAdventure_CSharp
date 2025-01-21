@@ -254,6 +254,7 @@ namespace ProgressAdventure.ConfigManagement
         /// If null, it doesn't care about the versions.</param>
         public static List<ConfigDataFull> GetValidConfigDatas(string? expectedVersion = Constants.CONFIG_VERSION)
         {
+            PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER_PATH, "configs");
             return Directory.GetDirectories(Constants.CONFIGS_FOLDER_PATH)
                 .Select(folder => ConfigDataFull.DeserializeFromFile(Path.GetFileName(folder)))
                 .Where(cd => cd is not null && (expectedVersion is null || expectedVersion == cd.configData.Version))
@@ -278,6 +279,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="namespaceExpectedVersion">The expected version to use, if folder validation is enabled.</param>
         public static List<ConfigLoadingData>? GetLoadingOrderData(bool validateFolders = true, string? namespaceExpectedVersion = null)
         {
+            PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER_PATH, "configs");
             JsonDictionary? loadingOrder;
             try
             {
@@ -321,6 +323,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="loadingData">The loading order data to set.</param>
         public static void SetLoadingOrderData(List<ConfigLoadingData> loadingData)
         {
+            PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER_PATH, "configs");
             var jsonData = new JsonDictionary();
             foreach (var nSpace in loadingData)
             {
