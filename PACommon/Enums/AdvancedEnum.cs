@@ -9,11 +9,19 @@ namespace PACommon.Enums
     public abstract class AdvancedEnum<TSelf>
         where TSelf : AdvancedEnum<TSelf>
     {
+        #region Properties
         /// <summary>
         /// The list of enum values.
         /// </summary>
         protected static HashSet<EnumValue<TSelf>> EnumValues { get; } = [];
 
+        /// <summary>
+        /// If the enum values list can be cleared.
+        /// </summary>
+        public static bool IsClearable { get; private set; } = false;
+        #endregion
+
+        #region Public functions
         /// <summary>
         /// Adds a new enum value to the list.
         /// </summary>
@@ -25,6 +33,18 @@ namespace PACommon.Enums
             var value = new EnumValue<TSelf>(EnumValues.Count, name);
             var success = EnumValues.Add(value);
             return success ? value : throw new ArgumentException("A value already exists with this name in the enum.", nameof(name));
+        }
+
+        public static void Clear()
+        {
+            if (IsClearable)
+            {
+                EnumValues.Clear();
+            }
+            else
+            {
+                throw new ArgumentException("Clearing enum values is disabled for this enum!", nameof(IsClearable));
+            }
         }
 
         /// <summary>
@@ -52,7 +72,7 @@ namespace PACommon.Enums
         }
 
         /// <summary>
-        /// Tries to retun the enum value that has a specified name.<br/>
+        /// Tries to return the enum value that has a specified name.<br/>
         /// </summary>
         /// <param name="name">The name of the value.</param>
         /// <param name="value">The found value, or null.</param>
@@ -62,7 +82,7 @@ namespace PACommon.Enums
         }
 
         /// <summary>
-        /// Tries to retun the enum value at a specified index.<br/>
+        /// Tries to return the enum value at a specified index.<br/>
         /// WARNING: SLOW!
         /// </summary>
         /// <param name="index">The index of the value.</param>
@@ -98,5 +118,14 @@ namespace PACommon.Enums
         {
             return EnumValues.ElementAt(index);
         }
+        #endregion
+
+        #region Priotected functions
+        protected static bool UpdateIsClearable(bool newValue)
+        {
+            IsClearable = newValue;
+            return newValue;
+        }
+        #endregion
     }
 }

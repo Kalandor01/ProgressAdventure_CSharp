@@ -527,6 +527,7 @@ namespace ProgressAdventure.ConfigManagement
                     LogConfigLoadingBegin(configFileSubpath, folder, showProgressIndentation);
                     var vanillaValue = getConfigVanillaFunction(configFileSubpath);
                     aggregateValue = appendConfigFunction(aggregateValue, vanillaValue);
+                    LogConfigLoadingEnd(true, showProgressIndentation);
                 }
                 else if (PACSingletons.Instance.ConfigManager.ConfigFileExists(configFileSubpath))
                 {

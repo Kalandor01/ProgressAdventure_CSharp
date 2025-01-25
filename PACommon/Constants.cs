@@ -79,6 +79,11 @@ namespace PACommon
         /// The version number to use in the file encoding.
         /// </summary>
         public const int FILE_ENCODING_VERSION = 2;
+
+        /// <summary>
+        /// The default layer separator in the names of the values of an <see cref="Enums.AdvancedEnumTree{TSelf}"/>.
+        /// </summary>
+        public const char ENUM_TREE_DEFAULT_LAYER_SEP_CHAR = '/';
         #endregion
     }
 }

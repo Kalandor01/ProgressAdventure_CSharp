@@ -4,6 +4,8 @@ namespace ProgressAdventure.Enums
 {
     public class ActionType : AdvancedEnum<ActionType>
     {
+        protected static readonly bool isClearable = UpdateIsClearable(true);
+
         public static readonly EnumValue<ActionType> ESCAPE = AddValue(nameof(ESCAPE));
         public static readonly EnumValue<ActionType> UP = AddValue(nameof(UP));
         public static readonly EnumValue<ActionType> DOWN = AddValue(nameof(DOWN));
