@@ -1,19 +1,20 @@
 ﻿using PACommon;
-using PACommon.ConfigManagement.JsonConverters;
 using PACommon.ConfigManagement;
+using PACommon.ConfigManagement.JsonConverters;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using PACommon.Logging;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
+using ProgressAdventure.ConfigManagement;
+using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
 using System.Text.Json.Serialization;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
-using ProgressAdventure.ConfigManagement;
 
 namespace ProgressAdventureTests
 {
@@ -43,7 +44,7 @@ namespace ProgressAdventureTests
 
             Console.WriteLine("Loading...");
 
-            //initializing PAC singletons
+            // initializing PAC singletons
             var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
 
             PACSingletons.Initialize(
@@ -53,12 +54,13 @@ namespace ProgressAdventureTests
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
                         new TypeConverter(),
-                        new ItemTypeIDConverter(),
+                        new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new ConsoleKeyInfoConverter(),
                     ],
                     PAConstants.CONFIGS_FOLDER_PATH,
-                    PAConstants.CONFIG_EXT
+                    PAConstants.CONFIG_EXT,
+                    false
                 )
             );
 

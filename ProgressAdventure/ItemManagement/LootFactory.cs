@@ -2,7 +2,6 @@
 using PACommon.Enums;
 using ProgressAdventure.Enums;
 
-
 namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
@@ -14,7 +13,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The type of the item.
         /// </summary>
-        public ItemTypeID itemType;
+        public EnumTreeValue<ItemType> itemType;
         /// <summary>
         /// The material of the item.
         /// </summary>
@@ -48,16 +47,15 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amountMax"><inheritdoc cref="amountMax" path="//summary"/></param>
         /// <param name="rolls"><inheritdoc cref="rolls" path="//summary"/></param>
         /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or the material was required, but wasn't provided.</exception>
-        public LootFactory(ItemTypeID itemType, Material material, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
+        public LootFactory(EnumTreeValue<ItemType> itemType, Material material, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
         {
-            var actualItemType = ItemUtils.ParseItemType(itemType.mID);
-            if (actualItemType is null)
+            if (!ItemUtils.TryParseItemType(itemType.FullName, out _))
             {
-                PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {itemType.mID}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", itemType.ToString(), LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(itemType));
             }
 
-            this.itemType = (ItemTypeID)actualItemType;
+            this.itemType = itemType;
             this.material = material;
             this.chance = chance;
             this.amountMin = amountMin;

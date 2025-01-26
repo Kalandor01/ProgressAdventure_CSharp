@@ -135,7 +135,14 @@ namespace ProgressAdventure
          */
 
 
-        static bool CraftItem(ItemTypeID targetItem, Inventory inventory, List<BaseUI?> recipeElements, RecipeDTO targetRecipe, OptionsUI menu, int amount)
+        static bool CraftItem(
+            EnumTreeValue<ItemType> targetItem,
+            Inventory inventory,
+            List<BaseUI?> recipeElements,
+            RecipeDTO targetRecipe,
+            OptionsUI menu,
+            int amount
+        )
         {
             var item = ItemUtils.CompleteRecipe(targetItem, inventory.items, amount, targetRecipe);
             if (item is null)
@@ -171,7 +178,7 @@ namespace ProgressAdventure
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
                         new TypeConverter(),
-                        new ItemTypeIDConverter(),
+                        new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new ConsoleKeyInfoConverter(),
                     ],

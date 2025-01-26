@@ -57,10 +57,10 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/> for list values.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for list values.
         /// </summary>
-        /// <typeparam name="T">elements in the list.</typeparam>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
+        /// <typeparam name="T">The type of the elements in the list.</typeparam>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         public static List<T> ReloadConfigsAggregateList<T>(
             string configName,
             List<string> namespaceFolders,
@@ -102,9 +102,135 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
         /// </summary>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
+        /// <typeparam name="TEnum">The type of the enum.</typeparam>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
+        public static void ReloadConfigsAggregateAdvancedEnum<TEnum>(
+            string configName,
+            List<string> namespaceFolders,
+            List<EnumValue<TEnum>> vanillaDefaultValue,
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
+        )
+            where TEnum : AdvancedEnum<TEnum>
+        {
+            var vanillaDefaultActualValue = vanillaDefaultValue.Select(v => v.Name).ToList();
+            ReloadConfigsAggregatePrivate(
+                configName,
+                namespaceFolders,
+                () =>
+                {
+                    AdvancedEnum<TEnum>.Clear();
+                    return [];
+                },
+                (aggList, newList) =>
+                {
+                    foreach (var newItem in newList)
+                    {
+                        AdvancedEnum<TEnum>.TryAddValue(newItem, out _);
+                    }
+                    return aggList;
+                },
+                (configName) =>
+                {
+                    var recreated = false;
+                    while (true)
+                    {
+                        var configValues = PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                            configName,
+                            null,
+                            vanillaDefaultActualValue,
+                            vanillaNamespaceInvalid
+                        );
+                        if (configValues.All(cv => !string.IsNullOrWhiteSpace(cv)))
+                        {
+                            return configValues;
+                        }
+                        if (recreated)
+                        {
+                            throw new ArgumentException("Invalid AdvancedEnum values after recreating", nameof(vanillaDefaultValue));
+                        }
+                        recreated = true;
+                    }
+                },
+                (configName) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfig<List<string>>(
+                        configName,
+                        null,
+                        out var configValue
+                    ) && configValue.All(cv => !string.IsNullOrWhiteSpace(cv)), configValue),
+                showProgressIndentation
+            );
+        }
+
+        /// <summary>
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
+        /// </summary>
+        /// <typeparam name="TEnum">The type of the enum.</typeparam>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
+        public static void ReloadConfigsAggregateAdvancedEnumTree<TEnum>(
+            string configName,
+            List<string> namespaceFolders,
+            List<EnumTreeValue<TEnum>> vanillaDefaultValue,
+            bool vanillaNamespaceInvalid = false,
+            int? showProgressIndentation = null
+        )
+            where TEnum : AdvancedEnumTree<TEnum>
+        {
+            var vanillaDefaultActualValue = vanillaDefaultValue.Select(v => v.Name).ToList();
+            ReloadConfigsAggregatePrivate(
+                configName,
+                namespaceFolders,
+                () =>
+                {
+                    AdvancedEnumTree<TEnum>.Clear();
+                    return [];
+                },
+                (aggList, newList) =>
+                {
+                    foreach (var newItem in newList)
+                    {
+                        AdvancedEnumTree<TEnum>.TryAddValue(newItem, out _);
+                    }
+                    return aggList;
+                },
+                (configName) =>
+                {
+                    var recreated = false;
+                    while (true)
+                    {
+                        var configValues = PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                            configName,
+                            null,
+                            vanillaDefaultActualValue,
+                            vanillaNamespaceInvalid
+                        );
+                        if (configValues.All(cv => !string.IsNullOrWhiteSpace(cv)))
+                        {
+                            return configValues;
+                        }
+                        if (recreated)
+                        {
+                            throw new ArgumentException("Invalid AdvancedEnumTree values after recreating", nameof(vanillaDefaultValue));
+                        }
+                        recreated = true;
+                    }
+                },
+                (configName) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfig<List<string>>(
+                        configName,
+                        null,
+                        out var configValue
+                    ) && configValue.All(cv => !string.IsNullOrWhiteSpace(cv)), configValue),
+                showProgressIndentation
+            );
+        }
+
+        /// <summary>
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// </summary>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
             string configName,
@@ -145,9 +271,9 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
         /// </summary>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
             string configName,
@@ -193,9 +319,9 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>.
         /// </summary>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV, TVC>(
             string configName,

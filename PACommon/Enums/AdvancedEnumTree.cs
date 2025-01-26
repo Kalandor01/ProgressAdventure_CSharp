@@ -5,7 +5,7 @@ namespace PACommon.Enums
     /// <summary>
     /// A class that functions similarly to <see cref="AdvancedEnum{TSelf}"/>, but in a tree-like way.
     /// </summary>
-    /// <typeparam name="TSelf">The type that implements the interface.</typeparam>
+    /// <typeparam name="TSelf">The type that implements this class.</typeparam>
     public abstract class AdvancedEnumTree<TSelf>
         where TSelf : AdvancedEnumTree<TSelf>
     {
@@ -53,6 +53,49 @@ namespace PACommon.Enums
                 );
         }
 
+        /// <summary>
+        /// Tries to add a new enum value to the list.
+        /// </summary>
+        /// <param name="fullName">The full name of the value to add.</param>
+        /// <param name="value">The new value, if it was added, or the existing value if not.</param>
+        /// <returns>If the new value was successfuly added.</returns>
+        public static bool TryAddValue(string fullName, [NotNullWhen(true)] out EnumTreeValue<TSelf>? value)
+        {
+            if (
+                TryGetDTOValue(fullName, out var valueDTO) ||
+                string.IsNullOrWhiteSpace(fullName)
+            )
+            {
+                value = valueDTO;
+                return false;
+            }
+
+            value = null;
+            var lastSepIndex = fullName.LastIndexOf(LayerNameSeparator);
+            if (lastSepIndex != -1)
+            {
+                var parrentName = fullName[..lastSepIndex];
+                var newValueName = (lastSepIndex + 1) < fullName.Length ? fullName[lastSepIndex..] : "";
+                if (
+                    !string.IsNullOrWhiteSpace(parrentName) &&
+                    !string.IsNullOrWhiteSpace(newValueName) &&
+                    TryGetDTOValue(parrentName, out var parrent)
+                )
+                {
+                    value = AddValue(parrent, newValueName);
+                    return true;
+                }
+                return false;
+            }
+
+            value = AddValue(null, fullName);
+            return true;
+        }
+
+        /// <summary>
+        /// Removes all values from the enum.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown if <see cref="IsClearable"/> is false.</exception>
         public static void Clear()
         {
             if (IsClearable)
@@ -138,7 +181,7 @@ namespace PACommon.Enums
         /// </summary>
         /// <param name="fullName">The full name of the value.</param>
         /// <param name="value">The found value, or null.</param>
-        public static bool TryGetValue(string fullName, [NotNullWhen(true)] out EnumTreeValue<TSelf>? value)
+        public static bool TryGetValue(string? fullName, [NotNullWhen(true)] out EnumTreeValue<TSelf>? value)
         {
             var success = TryGetDTOValue(fullName, out var valueDTO);
             value = valueDTO;
@@ -195,7 +238,7 @@ namespace PACommon.Enums
             return layerSep;
         }
 
-        protected static bool TryGetDTOValue(string fullName, [NotNullWhen(true)] out EnumTreeValueDTO<TSelf>? value)
+        protected static bool TryGetDTOValue(string? fullName, [NotNullWhen(true)] out EnumTreeValueDTO<TSelf>? value)
         {
             if (string.IsNullOrWhiteSpace(fullName))
             {
@@ -207,7 +250,12 @@ namespace PACommon.Enums
             {
                 return EnumValues.TryGetValue(new EnumTreeValueDTO<TSelf>([], fullName, "test"), out value);
             }
-            return TryGetDTOValue(fullName[..sepIndex], out value);
+            if (!TryGetDTOValue(fullName[..sepIndex], out var parrentValue))
+            {
+                value = null;
+                return false;
+            }
+            return parrentValue.Children.TryGetValue(new EnumTreeValueDTO<TSelf>([], fullName, "test"), out value);
         }
 
         protected static EnumTreeValueDTO<TSelf> GetDTOValue(string fullName)

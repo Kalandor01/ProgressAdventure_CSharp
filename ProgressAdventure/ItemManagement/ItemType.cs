@@ -1,60 +1,52 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using PACommon.Enums;
+
+namespace ProgressAdventure.ItemManagement
 {
-    public static class ItemType
+    public class ItemType : AdvancedEnumTree<ItemType>
     {
-        #region Public properties
-        public static ItemTypeID AllItemType
-        {
-            get => all;
-        }
-        public static ItemTypeID WeaponItemType
-        {
-            get => weapon;
-        }
-        public static ItemTypeID DefenceItemType
-        {
-            get => defence;
-        }
-        public static ItemTypeID MiscItemType
-        {
-            get => misc;
-        }
-        #endregion
+        protected static readonly bool isClearable = UpdateIsClearable(true);
 
-        private static readonly ItemTypeID all = 1;
+        /// <summary>
+        /// Loads the default values of the enum.
+        /// </summary>
+        public static void InitializeDefaultValues()
+        {
+            var w = Weapon.CLUB;
+            var d = Defence.HELMET;
+            var m = Misc.ROD;
+        }
 
-
-        private static readonly ItemTypeID weapon = all[0];
+        public static readonly EnumTreeValue<ItemType> _WEAPON = AddValue(null, $"{Constants.PA_CONFIGS_NAMESPACE}:{nameof(Weapon)}".ToLower());
         public static class Weapon
         {
-            public static readonly ItemTypeID SWORD = weapon[0];
-            public static readonly ItemTypeID BOW = weapon[1];
-            public static readonly ItemTypeID ARROW = weapon[2];
-            public static readonly ItemTypeID CLUB = weapon[3];
-            public static readonly ItemTypeID CLUB_WITH_TEETH = weapon[4];
+            public static readonly EnumTreeValue<ItemType> SWORD = AddValue(_WEAPON, nameof(SWORD).ToLower());
+            public static readonly EnumTreeValue<ItemType> BOW = AddValue(_WEAPON, nameof(BOW).ToLower());
+            public static readonly EnumTreeValue<ItemType> ARROW = AddValue(_WEAPON, nameof(ARROW).ToLower());
+            public static readonly EnumTreeValue<ItemType> CLUB = AddValue(_WEAPON, nameof(CLUB).ToLower());
+            public static readonly EnumTreeValue<ItemType> CLUB_WITH_TEETH = AddValue(_WEAPON, nameof(CLUB_WITH_TEETH).ToLower());
         }
 
-        private static readonly ItemTypeID defence = all[1];
+        public static readonly EnumTreeValue<ItemType> _DEFENCE = AddValue(null, $"{Constants.PA_CONFIGS_NAMESPACE}:{nameof(Defence)}".ToLower());
         public static class Defence
         {
-            public static readonly ItemTypeID SHIELD = defence[0];
-            public static readonly ItemTypeID HELMET = defence[1];
-            public static readonly ItemTypeID CHESTPLATE = defence[2];
-            public static readonly ItemTypeID PANTS = defence[3];
-            public static readonly ItemTypeID BOOTS = defence[4];
+            public static readonly EnumTreeValue<ItemType> SHIELD = AddValue(_DEFENCE, nameof(SHIELD).ToLower());
+            public static readonly EnumTreeValue<ItemType> HELMET = AddValue(_DEFENCE, nameof(HELMET).ToLower());
+            public static readonly EnumTreeValue<ItemType> CHESTPLATE = AddValue(_DEFENCE, nameof(CHESTPLATE).ToLower());
+            public static readonly EnumTreeValue<ItemType> PANTS = AddValue(_DEFENCE, nameof(PANTS).ToLower());
+            public static readonly EnumTreeValue<ItemType> BOOTS = AddValue(_DEFENCE, nameof(BOOTS).ToLower());
         }
 
-        private static readonly ItemTypeID misc = all[2];
+        public static readonly EnumTreeValue<ItemType> _MISC = AddValue(null, $"{Constants.PA_CONFIGS_NAMESPACE}:{nameof(Misc)}".ToLower());
         public static class Misc
         {
-            public static readonly ItemTypeID MATERIAL = misc[0];
-            public static readonly ItemTypeID BOTTLE = misc[1];
-            public static readonly ItemTypeID FILLED_BOTTLE = misc[2];
-            public static readonly ItemTypeID COIN = misc[3];
-            public static readonly ItemTypeID SWORD_HILT = misc[4];
-            public static readonly ItemTypeID SWORD_BLADE = misc[5];
-            public static readonly ItemTypeID ARROW_TIP = misc[6];
-            public static readonly ItemTypeID ROD = misc[7];
+            public static readonly EnumTreeValue<ItemType> MATERIAL = AddValue(_MISC, nameof(MATERIAL).ToLower());
+            public static readonly EnumTreeValue<ItemType> BOTTLE = AddValue(_MISC, nameof(BOTTLE).ToLower());
+            public static readonly EnumTreeValue<ItemType> FILLED_BOTTLE = AddValue(_MISC, nameof(FILLED_BOTTLE).ToLower());
+            public static readonly EnumTreeValue<ItemType> COIN = AddValue(_MISC, nameof(COIN).ToLower());
+            public static readonly EnumTreeValue<ItemType> SWORD_HILT = AddValue(_MISC, nameof(SWORD_HILT).ToLower());
+            public static readonly EnumTreeValue<ItemType> SWORD_BLADE = AddValue(_MISC, nameof(SWORD_BLADE).ToLower());
+            public static readonly EnumTreeValue<ItemType> ARROW_TIP = AddValue(_MISC, nameof(ARROW_TIP).ToLower());
+            public static readonly EnumTreeValue<ItemType> ROD = AddValue(_MISC, nameof(ROD).ToLower());
         }
     }
 }

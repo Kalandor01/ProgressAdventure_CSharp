@@ -15,9 +15,9 @@ namespace ProgressAdventure.ItemManagement
         /// The type of the item.
         /// </summary>
         [JsonPropertyName("item_type")]
-        public readonly ItemTypeID itemType;
+        public readonly EnumTreeValue<ItemType> itemType;
         /// <summary>
-        /// The material of the item, the is required for the recipe.
+        /// The material of the item, that is required for the recipe.
         /// </summary>
         [JsonPropertyName("material")]
         public readonly Material? material;
@@ -41,7 +41,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="itemType"><inheritdoc cref="itemType" path="//summary"/></param>
         /// <param name="amount"><inheritdoc cref="amount" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
-        public IngredientDTO(ItemTypeID itemType, double amount = 1, ItemAmountUnit? unit = null)
+        public IngredientDTO(EnumTreeValue<ItemType> itemType, double amount = 1, ItemAmountUnit? unit = null)
             : this(
                   itemType,
                   null,
@@ -58,8 +58,19 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amount"><inheritdoc cref="amount" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         /// <exception cref="ArgumentException">Thrown, if the unit is amount.</exception>
-        public IngredientDTO(Material? material = null, double amount = 1, ItemAmountUnit? unit = null)
+        public IngredientDTO(Material material, double amount = 1, ItemAmountUnit? unit = null)
             : this(ItemUtils.MATERIAL_ITEM_TYPE, material, amount, unit)
+        { }
+
+        /// <summary>
+        /// <inheritdoc cref="IngredientDTO"/><br/>
+        /// Used for a material ingredient that accepts any material.
+        /// </summary>
+        /// <param name="amount"><inheritdoc cref="amount" path="//summary"/></param>
+        /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
+        /// <exception cref="ArgumentException">Thrown, if the unit is amount.</exception>
+        public IngredientDTO(double amount = 1, ItemAmountUnit? unit = null)
+            : this(ItemUtils.MATERIAL_ITEM_TYPE, null, amount, unit)
         { }
 
         /// <summary>
@@ -72,7 +83,7 @@ namespace ProgressAdventure.ItemManagement
         /// Amount does nothing (the same as null).</param>
         /// <exception cref="ArgumentException">Thrown, if the item type is material, and the unit is amount.</exception>
         [JsonConstructor]
-        public IngredientDTO(ItemTypeID itemType, Material? material = null, double amount = 1, ItemAmountUnit? unit = null)
+        public IngredientDTO(EnumTreeValue<ItemType> itemType, Material? material = null, double amount = 1, ItemAmountUnit? unit = null)
         {
             this.itemType = itemType;
             this.material = material;
@@ -104,7 +115,7 @@ namespace ProgressAdventure.ItemManagement
             return $"{(
                     material is null && itemType == ItemType.Misc.MATERIAL
                         ? "ANY MATERIAL"
-                        : $"{(material is null ? "" : $"{(Material)material} ")}{(itemType == ItemType.Misc.MATERIAL ? "" : ItemUtils.ItemIDToTypeName(itemType))}"
+                        : $"{(material is null ? "" : $"{(Material)material} ")}{(itemType == ItemType.Misc.MATERIAL ? "" : itemType.FullName)}"
                 )} x{amount}{(unit is null || unit == ItemAmountUnit.AMOUNT ? "" : (ItemAmountUnit)unit)}";
         }
     }

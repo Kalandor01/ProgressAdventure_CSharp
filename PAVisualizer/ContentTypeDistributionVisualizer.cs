@@ -164,7 +164,7 @@ namespace PAVisualizer
             noiseTypeElements.Add(null);
 
             var layerTypes = Enum.GetValues<WorldLayer>();
-            var layerSelectionElement = new PAChoice(layerTypes.Select(layer => layer.ToString().Capitalize()), 0, "Layer: ");
+            var layerSelectionElement = new PAChoice(layerTypes.Select(layer => layer.ToString().Capitalize()).ToList(), 0, "Layer: ");
             noiseTypeElements.Add(layerSelectionElement);
             noiseTypeElements.Add(null);
 

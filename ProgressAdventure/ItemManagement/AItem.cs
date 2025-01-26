@@ -1,4 +1,5 @@
-﻿using PACommon.JsonUtils;
+﻿using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
@@ -40,7 +41,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The type of the item.
         /// </summary>
-        public ItemTypeID Type { get; protected set; }
+        public EnumTreeValue<ItemType> Type { get; protected set; }
 
         /// <summary>
         /// The material, the item is (mainly) made out of.
@@ -248,7 +249,7 @@ namespace ProgressAdventure.ItemManagement
             {
                 [Constants.JsonKeys.AItem.TYPE] = Type == ItemUtils.MATERIAL_ITEM_TYPE
                     ? ItemUtils.MATERIAL_TYPE_NAME
-                    : ItemUtils.ItemIDToTypeName(Type),
+                    : Type.FullName,
                 [Constants.JsonKeys.AItem.MATERIAL] = Material.ToString(),
                 [Constants.JsonKeys.AItem.AMOUNT] = Amount,
             };

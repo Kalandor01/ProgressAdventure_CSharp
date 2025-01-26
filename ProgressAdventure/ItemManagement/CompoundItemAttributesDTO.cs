@@ -1,4 +1,5 @@
-﻿using ProgressAdventure.Enums;
+﻿using PACommon.Enums;
+using ProgressAdventure.Enums;
 using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ItemManagement
@@ -14,9 +15,8 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="itemType">The type of the item.</param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
-        public CompoundItemAttributesDTO(ItemTypeID itemType, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
+        public CompoundItemAttributesDTO(EnumTreeValue<ItemType> itemType, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
             : this(
-                  itemType,
                   $"*/0MC/* {ItemUtils.ItemIDToDisplayName(itemType)}",
                   unit
                 )
@@ -25,27 +25,11 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// <inheritdoc cref="CompoundItemAttributesDTO"/>
         /// </summary>
-        /// <param name="itemTypeID">The type of the item.</param>
-        /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
-        /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
-        public CompoundItemAttributesDTO(ItemTypeID itemTypeID, string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
-            : this(
-                  ItemUtils.ItemIDToTypeName(itemTypeID),
-                  displayName,
-                  unit
-                )
-        { }
-
-        /// <summary>
-        /// <inheritdoc cref="CompoundItemAttributesDTO"/>
-        /// </summary>
-        /// <param name="typeName">The type name of the item.</param>
         /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         [JsonConstructor]
-        private CompoundItemAttributesDTO(string typeName, string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
+        public CompoundItemAttributesDTO(string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
             : base(
-                  typeName,
                   displayName,
                   unit
                 )

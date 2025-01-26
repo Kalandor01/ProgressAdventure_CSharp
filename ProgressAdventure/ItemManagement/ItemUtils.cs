@@ -4,6 +4,7 @@ using PACommon.Extensions;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -231,25 +232,25 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The item type for a material.
         /// </summary>
-        internal static readonly ItemTypeID MATERIAL_ITEM_TYPE = ItemType.Misc.MATERIAL;
+        internal static readonly EnumTreeValue<ItemType> MATERIAL_ITEM_TYPE = ItemType.Misc.MATERIAL;
         /// <summary>
         /// The type name of a material item.
         /// </summary>
-        internal static readonly string MATERIAL_TYPE_NAME = ItemIDToTypeName(MATERIAL_ITEM_TYPE);
+        internal static readonly string MATERIAL_TYPE_NAME = MATERIAL_ITEM_TYPE.FullName;
         #endregion
 
         #region Default config dicts
         /// <summary>
         /// The default value for the config used for the value of <see cref="CompoundItemAttributes"/>.
         /// </summary>
-        private static readonly Dictionary<ItemTypeID, CompoundItemAttributesDTO> _defaultCompoundItemAttributes = new()
+        private static readonly Dictionary<EnumTreeValue<ItemType>, CompoundItemAttributesDTO> _defaultCompoundItemAttributes = new()
         {
             //weapons
             [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD),
             [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW),
             [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW),
             [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB_WITH_TEETH, "*/0MC/* club with */1ML/*"),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO("*/0MC/* club with */1ML/*"),
             //defence
             [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD),
             [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET),
@@ -259,7 +260,7 @@ namespace ProgressAdventure.ItemManagement
             //misc
             [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, ItemAmountUnit.KG),
             [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE),
-            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.FILLED_BOTTLE, "*/0MC/* bottle of */1MC/*"),
+            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO("*/0MC/* bottle of */1MC/*"),
             [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN),
             [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE),
             [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT),
@@ -297,7 +298,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The default value for the config used for the value of <see cref="ItemRecipes"/>.
         /// </summary>
-        private static Dictionary<ItemTypeID, List<RecipeDTO>> _defaultItemRecipes;
+        private static Dictionary<EnumTreeValue<ItemType>, List<RecipeDTO>> _defaultItemRecipes;
         private static void LoadDefaultItemRecipes()
         {
             _defaultItemRecipes ??= new()
@@ -317,7 +318,7 @@ namespace ProgressAdventure.ItemManagement
                 ],
                 [ItemType.Weapon.CLUB] =
                 [
-                    new([new(null, 0.5, ItemAmountUnit.M3)]),
+                    new([new(0.5, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Weapon.CLUB_WITH_TEETH] =
                 [
@@ -326,23 +327,23 @@ namespace ProgressAdventure.ItemManagement
                 // defence
                 [ItemType.Defence.SHIELD] =
                 [
-                    new([new(null, 0.6, ItemAmountUnit.M3)]),
+                    new([new(0.6, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.HELMET] =
                 [
-                    new([new(null, 0.5, ItemAmountUnit.M3)]),
+                    new([new(0.5, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.CHESTPLATE] =
                 [
-                    new([new(null, 0.9, ItemAmountUnit.M3)]),
+                    new([new(0.9, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.PANTS] =
                 [
-                    new([new(null, 0.7, ItemAmountUnit.M3)]),
+                    new([new(0.7, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.BOOTS] =
                 [
-                    new([new(null, 0.4, ItemAmountUnit.M3)]),
+                    new([new(0.4, ItemAmountUnit.M3)]),
                 ],
                 // misc
                 [ItemType.Misc.FILLED_BOTTLE] =
@@ -351,11 +352,11 @@ namespace ProgressAdventure.ItemManagement
                 ],
                 [ItemType.Misc.BOTTLE] =
                 [
-                    new([new(null, 6e-4, ItemAmountUnit.M3)]),
+                    new([new(6e-4, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Misc.COIN] =
                 [
-                    new([new(null, 7e-6, ItemAmountUnit.M3)]),
+                    new([new(7e-6, ItemAmountUnit.M3)]),
                 ],
             };
         }
@@ -365,7 +366,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The dictionary pairing up item types, to their attributes.
         /// </summary>
-        public static Dictionary<ItemTypeID, CompoundItemAttributesDTO> CompoundItemAttributes { get; private set; }
+        public static Dictionary<EnumTreeValue<ItemType>, CompoundItemAttributesDTO> CompoundItemAttributes { get; private set; }
 
         /// <summary>
         /// The dictionary pairing up material types, to their item attributes.
@@ -375,7 +376,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
         /// </summary>
-        public static Dictionary<ItemTypeID, List<RecipeDTO>> ItemRecipes { get; private set; }
+        public static Dictionary<EnumTreeValue<ItemType>, List<RecipeDTO>> ItemRecipes { get; private set; }
         #endregion
 
         #region Constructors
@@ -437,19 +438,33 @@ namespace ProgressAdventure.ItemManagement
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
                 null,
                 _defaultItemRecipes,
-                ItemIDToTypeName
+                item => item.FullName
             );
         }
 
         private static void ReloadConfigs1(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
         {
+            ItemType.InitializeDefaultValues();
+
+            //AdvancedEnum(Tree)s from config!!!
+            //ItemTypes = ConfigUtils.ReloadConfigsAggregateAdvancedEnumTree(
+            //    Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
+            //    namespaceFolders,
+            //    _defaultItemTypes,
+            //    key => key.ToString()!,
+            //    key => ParseItemTypeFromRealName(key)
+            //        ?? throw new ArgumentNullException($"Unknown item type real name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
+            //    isVanillaInvalid,
+            //    showProgressIndentation
+            //);
+
             CompoundItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
                 Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
                 namespaceFolders,
                 _defaultCompoundItemAttributes,
-                key => key.ToString()!,
-                key => ParseItemTypeFromRealName(key)
-                    ?? throw new ArgumentNullException($"Unknown item type real name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
+                key => key.FullName,
+                key => (ItemType.TryGetValue(key, out var value) ? value : null)
+                    ?? throw new ArgumentNullException($"Unknown item type name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -469,7 +484,7 @@ namespace ProgressAdventure.ItemManagement
                 Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
                 namespaceFolders,
                 _defaultItemRecipes,
-                ItemIDToTypeName,
+                item => item.FullName,
                 key => ParseItemType(key)
                     ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
@@ -494,128 +509,37 @@ namespace ProgressAdventure.ItemManagement
         #endregion
 
         /// <summary>
-        /// Return all item type IDs.
-        /// </summary>
-        public static List<ItemTypeID> GetAllItemTypes()
-        {
-            return Utils.GetNestedStaticClassFields<ItemTypeID>(typeof(ItemType));
-        }
-
-        /// <summary>
-        /// Returs the item type, if the item type ID is an id for an item type.
-        /// </summary>
-        /// <param name="itemTypeID">The uint representation of the item's ID.</param>
-        public static ItemTypeID? ParseItemType(uint itemTypeID)
-        {
-            var newItemType = (ItemTypeID)(int)itemTypeID;
-            var resultItem = GetAllItemTypes().FirstOrDefault(itemType => newItemType == itemType);
-            return resultItem == default ? null : resultItem;
-        }
-
-        /// <summary>
-        /// Converts the string representation of the item's type to an item ID.
+        /// Converts the string representation of the item's type to an item type.
         /// </summary>
         /// <param name="itemTypeName">The string representation of the item's type.</param>
-        public static ItemTypeID? ParseItemType(string? itemTypeName)
+        public static EnumTreeValue<ItemType>? ParseItemType(string? itemTypeName)
         {
             if (string.IsNullOrWhiteSpace(itemTypeName))
             {
                 return null;
             }
-            var resultItem = CompoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Value.typeName == itemTypeName).Key;
-            return resultItem == default ? null : resultItem;
+            return CompoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Key.FullName == itemTypeName).Key; ;
         }
 
         /// <summary>
-        /// Returs the item type, if the item name is a name for an item type.
-        /// </summary>
-        /// <param name="itemTypeRealName">The real name of the item.</param>
-        public static ItemTypeID? ParseItemTypeFromRealName(string? itemTypeRealName)
-        {
-            if (string.IsNullOrWhiteSpace(itemTypeRealName))
-            {
-                return null;
-            }
-            var resultItem = GetAllItemTypes().FirstOrDefault(itemAttribute => itemAttribute.ToString() == itemTypeRealName);
-            return resultItem == default ? null : resultItem;
-        }
-
-        /// <summary>
-        /// Tries to convert the int representation of the item ID to an item ID, and returns the success.
-        /// </summary>
-        /// <param name="itemTypeID">The uint representation of the item's ID.</param>
-        /// <param name="itemType">The resulting item, or a default item.</param>
-        public static bool TryParseItemType(uint itemTypeID, out ItemTypeID itemType)
-        {
-            var resultItem = ParseItemType(itemTypeID);
-            itemType = resultItem ?? ItemType.Misc.COIN;
-            return resultItem is not null;
-        }
-
-        /// <summary>
-        /// Tries to convert the string representation of the item's type to an item ID, and returns the success.
+        /// Tries to convert the string representation of the item's type to an item type, and returns the success.
         /// </summary>
         /// <param name="itemTypeName">The string representation of the item's type.</param>
         /// <param name="itemType">The resulting item, or a default item.</param>
-        public static bool TryParseItemType(string? itemTypeName, out ItemTypeID itemType)
+        public static bool TryParseItemType(string? itemTypeName, [NotNullWhen(true)] out EnumTreeValue<ItemType>? itemType)
         {
-            var resultItem = ParseItemType(itemTypeName);
-            itemType = resultItem ?? ItemType.Misc.COIN;
-            return resultItem is not null;
+            itemType = ParseItemType(itemTypeName);
+            return itemType is not null;
         }
 
         /// <summary>
-        /// Converts the item type ID, to it's default type name.
+        /// Converts the item type, to it's default display name.
         /// </summary>
-        /// <param name="itemTypeID">The item type ID.</param>
-        public static string ItemIDToTypeName(ItemTypeID itemTypeID)
+        /// <param name="itemType">The item type.</param>
+        public static string ItemIDToDisplayName(EnumTreeValue<ItemType> itemType)
         {
-            var modifiedPath = new StringBuilder();
-            var name = itemTypeID.ToString();
-            if (name is null || !TryParseItemType(itemTypeID.mID, out _))
-            {
-                PACSingletons.Instance.Logger.Log("Unknown item type", $"ID: {itemTypeID.mID}", LogSeverity.ERROR);
-                return "[UNKNOWN ITEM TYPE]";
-            }
-
-            var actualNamePath = name.Split(nameof(ItemType) + ".").Last();
-            var pathParts = actualNamePath.Split('.');
-            for (var x = 0; x < pathParts.Length - 1; x++)
-            {
-                var pathPart = pathParts[x];
-                var modifiedPathPart = new StringBuilder();
-                for (var y = 0; y < pathPart.Length; y++)
-                {
-                    if (y != 0 && char.IsUpper(pathPart[y]))
-                    {
-                        modifiedPathPart.Append('_');
-                    }
-                    modifiedPathPart.Append(pathPart[y]);
-                }
-                modifiedPath.Append(modifiedPathPart + "/");
-            }
-
-            modifiedPath.Append(pathParts.Last());
-            var modifiedPathStr = modifiedPath.ToString().ToLower();
-            return string.IsNullOrWhiteSpace(modifiedPathStr) ? "[UNKNOWN ITEM TYPE]" : modifiedPathStr;
-        }
-
-        /// <summary>
-        /// Converts the item type ID, to it's default display name.
-        /// </summary>
-        /// <param name="itemTypeID">The item type ID.</param>
-        public static string ItemIDToDisplayName(ItemTypeID itemTypeID)
-        {
-            var name = itemTypeID.ToString();
-            if (name is null || !TryParseItemType(itemTypeID.mID, out _))
-            {
-                PACSingletons.Instance.Logger.Log("Unknown item type", $"ID: {itemTypeID.mID}", LogSeverity.ERROR);
-            }
-            else
-            {
-                name = name.Split('.').Last().Replace("_", " ").Capitalize();
-            }
-            return name ?? "[UNKNOWN ITEM]";
+            var displayName = itemType.FullName.Split(ItemType.LayerNameSeparator).Last().Replace("_", " ").Capitalize();
+            return string.IsNullOrWhiteSpace(displayName) ? "[INVALID ITEM NAME]" : displayName;
         }
 
         /// <summary>
@@ -743,7 +667,12 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="inputItems">The pre-prepared list of items</param>
         /// <param name="recipe">The recipe to use.</param>
         /// <param name="amount">The amount of times to complete the recipe.</param>
-        public static CompoundItem CreateItemFromOrderedList(ItemTypeID targetItem, List<AItem> inputItems, RecipeDTO recipe, int amount = 1)
+        public static CompoundItem CreateItemFromOrderedList(
+            EnumTreeValue<ItemType> targetItem,
+            List<AItem> inputItems,
+            RecipeDTO recipe,
+            int amount = 1
+        )
         {
             var parts = new List<AItem>();
             for (int x = 0; x < recipe.ingredients.Count; x++)
@@ -770,7 +699,12 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="recipe">The recipe to use.</param>
         /// <param name="inputItems">The list of items to use.</param>
         /// <param name="amount">The amount of times to complete the recipe.</param>
-        public static CompoundItem CompleteRecipeWithoutChecking(ItemTypeID targetItem, RecipeDTO recipe, List<AItem> inputItems, int amount = 1)
+        public static CompoundItem CompleteRecipeWithoutChecking(
+            EnumTreeValue<ItemType> targetItem,
+            RecipeDTO recipe,
+            List<AItem> inputItems,
+            int amount = 1
+        )
         {
             var requiredItems = new List<AItem>();
             foreach (var ingredient in recipe.ingredients)
@@ -814,7 +748,12 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="targetRecipe">The target recipe to use for that item.<br/>
         /// If null it tries to use all of them in order, until it succedes.</param>
         /// <param name="amount">How many times to complete the recipe.</param>
-        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int amount = 1, RecipeDTO? targetRecipe = null)
+        public static CompoundItem? CompleteRecipe(
+            EnumTreeValue<ItemType> targetItem,
+            List<AItem> inputItems,
+            int amount = 1,
+            RecipeDTO? targetRecipe = null
+        )
         {
             if (!ItemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
@@ -855,8 +794,13 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <param name="targetRecipeIndex">The index of the target recipe to use for that item.</param>
-        /// <inheritdoc cref="CompleteRecipe(ItemTypeID, List{AItem}, int, RecipeDTO?)"/>
-        public static CompoundItem? CompleteRecipe(ItemTypeID targetItem, List<AItem> inputItems, int amount, int targetRecipeIndex)
+        /// <inheritdoc cref="CompleteRecipe(EnumTreeValue{ItemType}, List{AItem}, int, RecipeDTO?)"/>
+        public static CompoundItem? CompleteRecipe(
+            EnumTreeValue<ItemType> targetItem,
+            List<AItem> inputItems,
+            int amount,
+            int targetRecipeIndex
+        )
         {
             if (!ItemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
             {
@@ -882,7 +826,12 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amount">How much of the item to create.</param>
         /// <param name="targetRecipeTree">The recipe tree for target recipe to use for that item.<br/>
         /// If null it tries to use the first recipe that creates the amount of items that were requested.</param>
-        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, List<Material?> materials, double amount = 1, RecipeTreeDTO? targetRecipeTree = null)
+        public static CompoundItem CreateCompoundItem(
+            EnumTreeValue<ItemType> targetItem,
+            List<Material?> materials,
+            double amount = 1,
+            RecipeTreeDTO? targetRecipeTree = null
+        )
         {
             // not craftable
             if (!ItemRecipes.TryGetValue(targetItem, out List<RecipeDTO>? recipes))
@@ -940,7 +889,12 @@ namespace ProgressAdventure.ItemManagement
 
         /// <inheritdoc cref="CreateCompoundItem(ItemTypeID, List{Material?}?, int?, double)"/>
         /// <param name="material">The material to use, for the material of the item, if posible.</param>
-        public static CompoundItem CreateCompoundItem(ItemTypeID targetItem, Material? material = null, double amount = 1, RecipeTreeDTO? targetRecipe = null)
+        public static CompoundItem CreateCompoundItem(
+            EnumTreeValue<ItemType> targetItem,
+            Material? material = null,
+            double amount = 1,
+            RecipeTreeDTO? targetRecipe = null
+        )
         {
             return CreateCompoundItem(targetItem, [material], amount, targetRecipe);
         }

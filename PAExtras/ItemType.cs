@@ -1,8 +1,6 @@
-﻿using ProgressAdventure.ItemManagement;
-
-namespace PAExtras
+﻿namespace PAExtras
 {
-    public static class ItemType
+    internal static class ItemType
     {
         #region Public properties
         public static ItemTypeID AllItemType

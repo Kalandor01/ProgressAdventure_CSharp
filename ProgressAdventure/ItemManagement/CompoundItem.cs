@@ -29,16 +29,15 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="parts"><inheritdoc cref="Parts" path="//summary"/></param>
         /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
         /// <exception cref="ArgumentException">Thrown if the item type is not a compound item type id, or the parts list doesn't have an element.</exception>
-        public CompoundItem(ItemTypeID type, List<AItem> parts, double amount = 1)
+        public CompoundItem(EnumTreeValue<ItemType> type, List<AItem> parts, double amount = 1)
         {
-            var typeValue = ItemUtils.ParseItemType(type.mID);
+            var typeValue = ItemUtils.ParseItemType(type.FullName);
             if (typeValue is null)
             {
-                PACSingletons.Instance.Logger.Log("Unknown item type", $"id: {type.mID}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Unknown item type", type.FullName, LogSeverity.ERROR);
                 throw new ArgumentException("Unknown item type", nameof(type));
             }
 
-            Type = (ItemTypeID)typeValue;
             if (Type == ItemUtils.MATERIAL_ITEM_TYPE)
             {
                 PACSingletons.Instance.Logger.Log("Item type cannot be \"material\" for a compound item", null, LogSeverity.ERROR);
@@ -51,6 +50,7 @@ namespace ProgressAdventure.ItemManagement
                 throw new ArgumentException("Parts list doesn't have an element.", nameof(parts));
             }
 
+            Type = typeValue;
             Parts = [.. parts];
             Material = Parts.First().Material;
             Amount = amount;
@@ -184,18 +184,7 @@ namespace ProgressAdventure.ItemManagement
         {
             var itemJson = base.ToJson();
 
-            string typeName;
-            if (ItemUtils.CompoundItemAttributes.TryGetValue(Type, out CompoundItemAttributesDTO? attributes))
-            {
-                typeName = attributes.typeName;
-            }
-            else
-            {
-                typeName = ItemUtils.ItemIDToTypeName(Type);
-                PACSingletons.Instance.Logger.Log("Item to json", $"item type doesn't have a type name, type:{Type}", LogSeverity.ERROR);
-            }
-
-            itemJson[Constants.JsonKeys.AItem.TYPE] = typeName;
+            itemJson[Constants.JsonKeys.AItem.TYPE] = Type.FullName;
             itemJson[Constants.JsonKeys.CompoundItem.PARTS] = Parts.Select(part => (JsonObject?)part.ToJson()).ToList();
 
             return itemJson;

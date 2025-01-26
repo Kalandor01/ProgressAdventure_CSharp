@@ -5,7 +5,7 @@
     /// </summary>
     public abstract class EnumTreeValueBase
     {
-        public readonly int[] Indexes;
+        public readonly IReadOnlyCollection<int> Indexes;
         public readonly string FullName;
         public readonly string Name;
 
@@ -26,7 +26,7 @@
                 throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
             }
 
-            Indexes = indexes;
+            Indexes = indexes.AsReadOnly();
             FullName = fullName;
             Name = name;
         }

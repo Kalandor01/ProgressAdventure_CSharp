@@ -10,12 +10,6 @@ namespace ProgressAdventure.ItemManagement
     {
         #region Fields
         /// <summary>
-        /// The unique name of the item, used in the json representation of the item.<br/>
-        /// Usualy "item_category/item_type".
-        /// </summary>
-        [JsonPropertyName("type_name")]
-        public readonly string typeName;
-        /// <summary>
         /// The display name of the item.
         /// </summary>
         [JsonPropertyName("display_name")]
@@ -31,13 +25,11 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// <inheritdoc cref="AItemAttributesDTO"/>
         /// </summary>
-        /// <param name="typeName"><inheritdoc cref="typeName" path="//summary"/></param>
         /// <param name="displayName"><inheritdoc cref="displayName" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         [JsonConstructor]
-        protected AItemAttributesDTO(string typeName, string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
+        protected AItemAttributesDTO(string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
         {
-            this.typeName = typeName;
             this.displayName = displayName;
             this.unit = unit;
         }
@@ -46,7 +38,7 @@ namespace ProgressAdventure.ItemManagement
         #region Overrides
         public override string? ToString()
         {
-            return $"{typeName} ({displayName}), {unit}";
+            return $"\"{displayName}\", {unit}";
         }
         #endregion
     }

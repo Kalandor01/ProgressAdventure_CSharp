@@ -40,7 +40,6 @@ namespace ProgressAdventure.ItemManagement
         [JsonConstructor]
         public MaterialItemAttributesDTO(string displayName, MaterialPropertiesDTO properties, ItemAmountUnit unit = ItemAmountUnit.KG)
             : base(
-                  ItemUtils.MATERIAL_TYPE_NAME,
                   displayName,
                   unit != ItemAmountUnit.AMOUNT ? unit : throw new ArgumentException($"Material atributes cannot have {ItemAmountUnit.AMOUNT} as unit", nameof(unit))
                 )

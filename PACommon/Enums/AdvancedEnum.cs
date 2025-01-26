@@ -5,7 +5,7 @@ namespace PACommon.Enums
     /// <summary>
     /// A class that functions similarly to <see cref="Enum"/>, but you can add new values to it at runtime.
     /// </summary>
-    /// <typeparam name="TSelf">The type that implements the interface.</typeparam>
+    /// <typeparam name="TSelf">The type that implements this class.</typeparam>
     public abstract class AdvancedEnum<TSelf>
         where TSelf : AdvancedEnum<TSelf>
     {
@@ -35,6 +35,30 @@ namespace PACommon.Enums
             return success ? value : throw new ArgumentException("A value already exists with this name in the enum.", nameof(name));
         }
 
+        /// <summary>
+        /// Tries to add a new enum value to the list.
+        /// </summary>
+        /// <param name="name">The name of the value.</param>
+        /// <param name="value">The new value, if it was added, or the existing value if not.</param>
+        /// <returns>If the new value was successfuly added.</returns>
+        public static bool TryAddValue(string name, [NotNullWhen(true)] out EnumValue<TSelf>? value)
+        {
+            value = null;
+            if (
+                string.IsNullOrWhiteSpace(name) ||
+                EnumValues.TryGetValue(new EnumValue<TSelf>(0, name), out value)
+            )
+            {
+                return false;
+            }
+            value = AddValue(name);
+            return true;
+        }
+
+        /// <summary>
+        /// Removes all values from the enum.
+        /// </summary>
+        /// <exception cref="ArgumentException">Thrown if <see cref="IsClearable"/> is false.</exception>
         public static void Clear()
         {
             if (IsClearable)

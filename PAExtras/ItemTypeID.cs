@@ -1,12 +1,12 @@
 ﻿using System.Reflection;
 
-namespace ProgressAdventure.ItemManagement
+namespace PAExtras
 {
     /// <summary>
     /// Struct for creating enum-like behaviour, for the item types.<br/>
     /// By yoyo <a href="https://stackoverflow.com/a/24969525">LINK</a>
     /// </summary>
-    public readonly struct ItemTypeID
+    internal readonly struct ItemTypeID
     {
         public static readonly ItemTypeID none;
 

@@ -1,4 +1,5 @@
-﻿using PACommon.JsonUtils;
+﻿using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -23,13 +24,13 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// Tries to find an item in the inventory, based on the input item type and material.
         /// </summary>
-        /// <param name="itemID">The item type to search for.</param>
+        /// <param name="itemType">The item type to search for.</param>
         /// <param name="material">The material to search for.</param>
-        public AItem? FindByType(ItemTypeID itemID, Material? material)
+        public AItem? FindByType(EnumTreeValue<ItemType> itemType, Material? material)
         {
             foreach (var currItem in items)
             {
-                if (currItem.Type == itemID && currItem.Material == material)
+                if (currItem.Type == itemType && currItem.Material == material)
                 {
                     return currItem;
                 }
@@ -85,7 +86,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amount">The amount of the items to add.</param>
         /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
         /// <returns><inheritdoc cref="Add(AItem)"/></returns>
-        public bool Add(ItemTypeID itemType, List<Material?> materials, int amount = 1)
+        public bool Add(EnumTreeValue<ItemType> itemType, List<Material?> materials, int amount = 1)
         {
             if (itemType == ItemUtils.MATERIAL_ITEM_TYPE)
             {
@@ -100,7 +101,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <inheritdoc cref="Add(ItemTypeID, List{Material?}, int)"/>
         /// <param name="material">The material of the item.</param>
-        public bool Add(ItemTypeID itemType, Material material, int amount = 1)
+        public bool Add(EnumTreeValue<ItemType> itemType, Material material, int amount = 1)
         {
             return Add(itemType, [material], amount);
         }
@@ -120,7 +121,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="material">The material of the item.</param>
         /// <param name="amount">The amount of the items to remove. If its null, it removes all items of the type.</param>
         /// <returns>If the item existed in the inventory.</returns>
-        public bool Remove(ItemTypeID itemType, Material material, uint? amount = null)
+        public bool Remove(EnumTreeValue<ItemType> itemType, Material material, uint? amount = null)
         {
             for (var x = 0; x < items.Count; x++)
             {
@@ -177,7 +178,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="itemType">The type of the item to use.</param>
         /// <param name="material">The material of the item to use.</param>
-        public bool Use(ItemTypeID itemType, Material material)
+        public bool Use(EnumTreeValue<ItemType> itemType, Material material)
         {
             for (int x = 0; x < items.Count; x++)
             {

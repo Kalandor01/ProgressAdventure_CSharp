@@ -204,23 +204,17 @@ namespace ProgressAdventureTests
             var requiredKeys = Enum.GetValues<Material>();
             var checkedDictionary = ItemUtils.MaterialItemAttributes;
 
-            var existingValues = new List<string>();
+            var existingValues = new List<Material>();
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out MaterialItemAttributesDTO? value))
+                if (!checkedDictionary.TryGetValue(key, out MaterialItemAttributesDTO? _))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
                 }
-
-                if (value.typeName is null)
-                {
-                    errorMessages.Add($"The type name in the dictionary at \"{key}\" is null.");
-                    continue;
-                }
-                existingValues.Add(value.typeName);
+                existingValues.Add(key);
             }
             if (errorMessages.Count != 0)
             {
@@ -235,7 +229,7 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? ItemUtilsCompoundItemAttributesDictionaryCheck()
         {
-            var requiredKeys = ItemUtils.GetAllItemTypes();
+            var requiredKeys = ItemType.GetAllValues().Where(v => ItemType.GetValues(v).Count == 0).ToList();
             var checkedDictionary = ItemUtils.CompoundItemAttributes;
 
             var existingValues = new List<string>();
@@ -243,24 +237,19 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out CompoundItemAttributesDTO? value))
+                if (!checkedDictionary.TryGetValue(key, out CompoundItemAttributesDTO? _))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
                 }
 
-                if (value.typeName is null)
+                if (existingValues.Contains(key.FullName))
                 {
-                    errorMessages.Add($"The type name in the dictionary at \"{key}\" is null.");
-                    continue;
-                }
-                if (existingValues.Contains(value.typeName))
-                {
-                    errorMessages.Add($"The dictionary already contains the type name \"{value.typeName}\", associated with \"{key}\".");
+                    errorMessages.Add($"The dictionary already contains the type name \"{key.FullName}\".");
                     continue;
                 }
 
-                existingValues.Add(value.typeName);
+                existingValues.Add(key.FullName);
             }
             if (errorMessages.Count != 0)
             {
@@ -735,22 +724,22 @@ namespace ProgressAdventureTests
 
             // all item IDs can turn into items
             var errorMessages = new List<string>();
-            foreach (var itemID in ItemUtils.GetAllItemTypes())
+            foreach (var itemType in ItemType.GetAllValues().Where(v => ItemType.GetValues(v).Count == 0))
             {
-                if (itemID == ItemType.Misc.MATERIAL)
+                if (itemType == ItemType.Misc.MATERIAL)
                 {
                     continue;
                 }
 
-                var attributes = ItemUtils.CompoundItemAttributes[itemID];
+                var attributes = ItemUtils.CompoundItemAttributes[itemType];
                 CompoundItem item;
                 try
                 {
-                    item = ItemUtils.CreateCompoundItem(itemID, amount: itemAmount);
+                    item = ItemUtils.CreateCompoundItem(itemType, amount: itemAmount);
                 }
                 catch (Exception ex)
                 {
-                    errorMessages.Add($"Couldn't create item from type \"{itemID}\": " + ex);
+                    errorMessages.Add($"Couldn't create item from type \"{itemType}\": " + ex);
                     continue;
                 }
 
@@ -1161,6 +1150,8 @@ namespace ProgressAdventureTests
             var success = SaveManager.LoadSave(saveName, false, false);
             if (!success)
             {
+                // TODO: remove
+                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" TODO: add namespace to item names");
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
             }
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
@@ -1169,6 +1160,8 @@ namespace ProgressAdventureTests
                 return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
             }
             PATools.DeleteSave(saveName);
+            // TODO: remove
+            return new TestResultDTO(LogSeverity.PASS, $"\"{saveName}\" TODO --> see above?");
             return null;
         }
         #endregion
