@@ -1,0 +1,18 @@
+{
+  "ProgressAdventure.WorldManagement.Content.ContentType.Terrain.FIELD": {
+    "type_name": "terrain/field",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Terrain.FieldTerrain"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Terrain.MOUNTAIN": {
+    "type_name": "terrain/mountain",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Terrain.MountainTerrain"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Terrain.OCEAN": {
+    "type_name": "terrain/ocean",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Terrain.OceanTerrain"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Terrain.SHORE": {
+    "type_name": "terrain/shore",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Terrain.ShoreTerrain"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "ProgressAdventure.WorldManagement.Content.Population.NoPopulation": {
+    "POPULATION": 0.1
+  },
+  "ProgressAdventure.WorldManagement.Content.Population.HumanPopulation": {
+    "HEIGHT": 0.6,
+    "TEMPERATURE": 0.6,
+    "HUMIDITY": 0.4,
+    "HOSTILITY": 0.3
+  },
+  "ProgressAdventure.WorldManagement.Content.Population.ElfPopulation": {
+    "HEIGHT": 1,
+    "TEMPERATURE": 0.5,
+    "HUMIDITY": 0.75,
+    "HOSTILITY": 0.3
+  },
+  "ProgressAdventure.WorldManagement.Content.Population.DwarfPopulation": {
+    "HEIGHT": 0.1,
+    "TEMPERATURE": 0.6,
+    "HUMIDITY": 0.3,
+    "HOSTILITY": 0.6
+  },
+  "ProgressAdventure.WorldManagement.Content.Population.DemonPopulation": {
+    "HEIGHT": 0.1,
+    "TEMPERATURE": 0.9,
+    "HUMIDITY": 0.1,
+    "HOSTILITY": 0.9
+  }
+}

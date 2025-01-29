@@ -38,7 +38,7 @@ namespace ProgressAdventure.ItemManagement
                 throw new ArgumentException("Unknown item type", nameof(type));
             }
 
-            if (Type == ItemUtils.MATERIAL_ITEM_TYPE)
+            if (typeValue == ItemUtils.MATERIAL_ITEM_TYPE)
             {
                 PACSingletons.Instance.Logger.Log("Item type cannot be \"material\" for a compound item", null, LogSeverity.ERROR);
                 throw new ArgumentException("Item type is not a compound item type", nameof(type));

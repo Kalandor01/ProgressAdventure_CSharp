@@ -1,0 +1,14 @@
+{
+  "ProgressAdventure.WorldManagement.Content.Terrain.MountainTerrain": {
+    "HEIGHT": 1
+  },
+  "ProgressAdventure.WorldManagement.Content.Terrain.FieldTerrain": {
+    "HEIGHT": 0.5
+  },
+  "ProgressAdventure.WorldManagement.Content.Terrain.ShoreTerrain": {
+    "HEIGHT": 0.325
+  },
+  "ProgressAdventure.WorldManagement.Content.Terrain.OceanTerrain": {
+    "HEIGHT": 0.29
+  }
+}

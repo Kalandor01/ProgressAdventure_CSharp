@@ -1,0 +1,9 @@
+{
+  "AUTO_SAVE": "Bool",
+  "LOGGING_LEVEL": "WholeNumber",
+  "KEYBINDS": "Dictionary",
+  "ASK_DELETE_SAVE": "Bool",
+  "ASK_REGENERATE_SAVE": "Bool",
+  "DEF_BACKUP_ACTION": "WholeNumber",
+  "ENABLE_COLORED_TEXT": "Bool"
+}

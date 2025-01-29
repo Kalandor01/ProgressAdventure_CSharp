@@ -106,7 +106,7 @@ namespace ProgressAdventure.Entity
                 _defaultEntityTypeMap
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
                 null,
                 _defaultFacingToMovementVectorMap,
@@ -116,7 +116,8 @@ namespace ProgressAdventure.Entity
                     [nameof(move.y)] = move.y,
                 }
             );
-            PACSingletons.Instance.ConfigManager.SetConfig(
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
                 null,
                 _defaultAttributeStatChangeMap,
@@ -126,7 +127,8 @@ namespace ProgressAdventure.Entity
                     [nameof(stats.attack)] = stats.attack,
                     [nameof(stats.defence)] = stats.defence,
                     [nameof(stats.agility)] = stats.agility,
-                }
+                },
+                (attribute) => attribute.Name
             );
         }
 

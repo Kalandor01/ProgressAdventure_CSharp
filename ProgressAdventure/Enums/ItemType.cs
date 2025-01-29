@@ -1,6 +1,6 @@
 ﻿using PACommon.Enums;
 
-namespace ProgressAdventure.ItemManagement
+namespace ProgressAdventure.Enums
 {
     public class ItemType : AdvancedEnumTree<ItemType>
     {
@@ -9,7 +9,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// Loads the default values of the enum.
         /// </summary>
-        public static void InitializeDefaultValues()
+        static ItemType()
         {
             var w = Weapon.CLUB;
             var d = Defence.HELMET;

@@ -14,6 +14,10 @@
         /// The path to the folder where the compressed saves are stored for the save correction test.
         /// </summary>
         public const string TEST_REFERENCE_SAVES_FOLDER_PATH = ".\\TestSaves";
+        /// <summary>
+        /// The path to the folder where the compressed imported saves are stored for the save correction test.
+        /// </summary>
+        public const string IMPORTED_REFERENCE_SAVES_FOLDER_PATH = ".\\ImportedSaves";
         #endregion
     }
 }

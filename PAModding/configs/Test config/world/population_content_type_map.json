@@ -1,0 +1,22 @@
+{
+  "ProgressAdventure.WorldManagement.Content.ContentType.Population.NONE": {
+    "type_name": "population/none",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Population.NoPopulation"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Population.HUMAN": {
+    "type_name": "population/human",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Population.HumanPopulation"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Population.ELF": {
+    "type_name": "population/elf",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Population.ElfPopulation"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Population.DWARF": {
+    "type_name": "population/dwarf",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Population.DwarfPopulation"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Population.DEMON": {
+    "type_name": "population/demon",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Population.DemonPopulation"
+  }
+}

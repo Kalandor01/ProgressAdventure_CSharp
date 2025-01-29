@@ -1,0 +1,18 @@
+{
+  "ProgressAdventure.WorldManagement.Content.ContentType.Structure.NONE": {
+    "type_name": "structure/none",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Structure.NoStructure"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Structure.BANDIT_CAMP": {
+    "type_name": "structure/bandit_camp",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Structure.BanditCampStructure"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Structure.VILLAGE": {
+    "type_name": "structure/village",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Structure.VillageStructure"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.Structure.KINGDOM": {
+    "type_name": "structure/kingdom",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.Structure.KingdomStructure"
+  }
+}

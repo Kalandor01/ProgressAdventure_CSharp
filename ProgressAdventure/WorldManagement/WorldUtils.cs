@@ -306,49 +306,49 @@ namespace ProgressAdventure.WorldManagement
                 _defaultTileNoiseOffsets
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_property_map"),
                 null,
                 _defaultTerrainContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_property_map"),
                 null,
                 _defaultStructureContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map"),
                 null,
                 _defaultPopulationContentTypePropertyMap,
                 key => key.FullName ?? ""
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "base_content_type_map"),
                 null,
                 _baseContentTypeMap,
                 key => key.ToString()!
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_map"),
                 null,
                 _defaultTerrainContentTypeMap,
                 key => key.ToString()!
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_map"),
                 null,
                 _defaultStructureContentTypeMap,
                 key => key.ToString()!
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_map"),
                 null,
                 _defaultPopulationContentTypeMap,

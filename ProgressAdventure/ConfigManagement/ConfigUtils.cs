@@ -178,7 +178,7 @@ namespace ProgressAdventure.ConfigManagement
         )
             where TEnum : AdvancedEnumTree<TEnum>
         {
-            var vanillaDefaultActualValue = vanillaDefaultValue.Select(v => v.Name).ToList();
+            var vanillaDefaultActualValue = vanillaDefaultValue.Select(v => v.FullName).ToList();
             ReloadConfigsAggregatePrivate(
                 configName,
                 namespaceFolders,
@@ -191,7 +191,7 @@ namespace ProgressAdventure.ConfigManagement
                 {
                     foreach (var newItem in newList)
                     {
-                        AdvancedEnumTree<TEnum>.TryAddValue(newItem, out _);
+                        AdvancedEnumTree<TEnum>.TryAddValue(newItem, out _, true);
                     }
                     return aggList;
                 },

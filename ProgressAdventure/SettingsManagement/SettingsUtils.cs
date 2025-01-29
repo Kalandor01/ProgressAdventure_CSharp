@@ -108,10 +108,11 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
                 null,
-                _defaultActionTypeAttributes
+                _defaultActionTypeAttributes,
+                (actionType) => actionType.Name
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(

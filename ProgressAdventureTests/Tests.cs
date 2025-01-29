@@ -941,6 +941,37 @@ namespace ProgressAdventureTests
             ZipFile.CreateFromDirectory(PATools.GetSaveFolderPath(currentSaveName), testBackupFilePath);
             PATools.DeleteSave(currentSaveName);
 
+            var leftowerImportedFiles = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => path.StartsWith("current_imported-(") && path.EndsWith(").zip"))
+                .ToList();
+            foreach (var leftowerImportedFile in leftowerImportedFiles)
+            {
+                File.Delete(leftowerImportedFile);
+            }
+
+            // list of importable saves
+            var importedZipPaths = Directory.GetFiles(Constants.IMPORTED_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => Path.GetExtension(path) == ".zip")
+                .ToList();
+            importedZipPaths.Sort(new VersionStringZipPathComparer());
+            PATools.RecreateSavesFolder();
+            Console.WriteLine();
+            var importOverallSuccess = true;
+            foreach (var importedZipPath in importedZipPaths)
+            {
+                var result = TestImportSaveFromZip(importedZipPath) ?? new TestResultDTO(LogSeverity.PASS);
+                var saveName = Path.GetFileNameWithoutExtension(importedZipPath);
+
+                var resultString = TestingUtils.GetResultString(result);
+                Console.WriteLine($"\r\tImporting ({saveName})..." + resultString);
+                var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(importedZipPath), result.resultType + messageText, LogSeverity.OTHER);
+                importOverallSuccess &= result.resultType == LogSeverity.PASS;
+            }
+            var overallResult = importOverallSuccess ? new TestResultDTO() : new TestResultDTO(LogSeverity.FAIL, "See above for details");
+            Console.WriteLine($"Overall... {TestingUtils.GetResultString(overallResult)}");
+
+
             // list of reference saves
             var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
                 .Where(path => Path.GetExtension(path) == ".zip")
@@ -960,6 +991,15 @@ namespace ProgressAdventureTests
                 PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(zipPath), result.resultType + messageText, LogSeverity.OTHER);
                 overallSuccess &= result.resultType == LogSeverity.PASS;
             }
+
+            var importedFiles = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => path.StartsWith("current_imported-(") && path.EndsWith(").zip"))
+                .ToList();
+            foreach (var importedFile in importedFiles)
+            {
+                File.Delete(importedFile);
+            }
+
             Console.Write("Overall...");
             return overallSuccess ? null : new TestResultDTO(LogSeverity.FAIL, "See above for details");
         }
@@ -1140,6 +1180,65 @@ namespace ProgressAdventureTests
             World.TryGetChunkAll((126, -96), out _);
             World.TryGetChunkAll((-9, 158), out _);
             World.TryGetChunkAll((1235, 6), out _);
+        }
+
+        private static TestResultDTO? TestImportSaveFromZip(string zipPath)
+        {
+            var saveName = Path.GetFileNameWithoutExtension(zipPath);
+            var saveImportedName = $"current_imported-({saveName})";
+            var saveToImportPath = Path.Join(PAExtras.Constants.EXPORTED_FOLDER_PATH, saveImportedName);
+
+            if (Directory.Exists(saveToImportPath))
+            {
+                Directory.Delete(saveToImportPath, true);
+                PACSingletons.Instance.Logger.Log("Deleted importable save", $"save name: {saveImportedName}");
+            }
+            ZipFile.ExtractToDirectory(zipPath, Path.Join(PAExtras.Constants.EXPORTED_FOLDER_PATH, saveImportedName));
+
+            var saveImportedPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveImportedName);
+            if (Directory.Exists(saveImportedPath))
+            {
+                Directory.Delete(saveImportedPath, true);
+                PACSingletons.Instance.Logger.Log("Deleted imported save", $"save name: {saveImportedName}");
+            }
+
+            try
+            {
+                PAExtras.SaveImporter.ImportSave(saveImportedName);
+            }
+            catch (Exception ex)
+            {
+                if (Directory.Exists(saveToImportPath))
+                {
+                    Directory.Delete(saveToImportPath, true);
+                    PACSingletons.Instance.Logger.Log("Deleted importable save", $"save name: {saveImportedName}");
+                }
+                if (Directory.Exists(saveImportedPath))
+                {
+                    Directory.Delete(saveImportedPath, true);
+                    PACSingletons.Instance.Logger.Log("Deleted imported save", $"save name: {saveImportedName}");
+                }
+                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveImportedName}\" save importing failed.");
+            }
+            if (Directory.Exists(saveToImportPath))
+            {
+                Directory.Delete(saveToImportPath, true);
+                PACSingletons.Instance.Logger.Log("Deleted importable save", $"save name: {saveImportedName}");
+            }
+
+            var saveImportedCompressedPath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, saveImportedName) + ".zip";
+            if (File.Exists(saveImportedCompressedPath))
+            {
+                File.Delete(saveImportedCompressedPath);
+                PACSingletons.Instance.Logger.Log("Deleted compressed imported save", $"save name: {saveImportedName}");
+            }
+            ZipFile.CreateFromDirectory(saveImportedPath, saveImportedCompressedPath);
+            if (Directory.Exists(saveImportedPath))
+            {
+                Directory.Delete(saveImportedPath, true);
+                PACSingletons.Instance.Logger.Log("Deleted imported save", $"save name: {saveImportedName}");
+            }
+            return null;
         }
 
         private static TestResultDTO? TestLoadSaveFromZip(string zipPath)

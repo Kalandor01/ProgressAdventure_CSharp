@@ -58,8 +58,9 @@ namespace PACommon.Enums
         /// </summary>
         /// <param name="fullName">The full name of the value to add.</param>
         /// <param name="value">The new value, if it was added, or the existing value if not.</param>
+        /// <param name="recursive">Whether to add the parrent values if those don't exist either.</param>
         /// <returns>If the new value was successfuly added.</returns>
-        public static bool TryAddValue(string fullName, [NotNullWhen(true)] out EnumTreeValue<TSelf>? value)
+        public static bool TryAddValue(string fullName, [NotNullWhen(true)] out EnumTreeValue<TSelf>? value, bool recursive = true)
         {
             if (
                 TryGetDTOValue(fullName, out var valueDTO) ||
@@ -75,15 +76,21 @@ namespace PACommon.Enums
             if (lastSepIndex != -1)
             {
                 var parrentName = fullName[..lastSepIndex];
-                var newValueName = (lastSepIndex + 1) < fullName.Length ? fullName[lastSepIndex..] : "";
+                var newValueName = (lastSepIndex + 1) < fullName.Length ? fullName[(lastSepIndex + 1)..] : "";
                 if (
                     !string.IsNullOrWhiteSpace(parrentName) &&
-                    !string.IsNullOrWhiteSpace(newValueName) &&
-                    TryGetDTOValue(parrentName, out var parrent)
+                    !string.IsNullOrWhiteSpace(newValueName)
                 )
                 {
-                    value = AddValue(parrent, newValueName);
-                    return true;
+                    if (recursive)
+                    {
+                        TryAddValue(parrentName, out _, true);
+                    }
+                    if (TryGetDTOValue(parrentName, out var parrent))
+                    {
+                        value = AddValue(parrent, newValueName);
+                        return true;
+                    }
                 }
                 return false;
             }

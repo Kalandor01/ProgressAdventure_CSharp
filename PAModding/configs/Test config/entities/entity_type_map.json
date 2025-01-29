@@ -1,0 +1,7 @@
+{
+  "player": "ProgressAdventure.Entity.Player",
+  "caveman": "ProgressAdventure.Entity.Caveman",
+  "ghoul": "ProgressAdventure.Entity.Ghoul",
+  "troll": "ProgressAdventure.Entity.Troll",
+  "dragon": "ProgressAdventure.Entity.Dragon"
+}

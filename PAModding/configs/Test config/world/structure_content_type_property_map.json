@@ -1,0 +1,17 @@
+{
+  "ProgressAdventure.WorldManagement.Content.Structure.NoStructure": {
+    "POPULATION": 0
+  },
+  "ProgressAdventure.WorldManagement.Content.Structure.BanditCampStructure": {
+    "HOSTILITY": 1,
+    "POPULATION": 0.3
+  },
+  "ProgressAdventure.WorldManagement.Content.Structure.VillageStructure": {
+    "HOSTILITY": 0,
+    "POPULATION": 0.6
+  },
+  "ProgressAdventure.WorldManagement.Content.Structure.KingdomStructure": {
+    "HOSTILITY": 0,
+    "POPULATION": 0.8
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "ESCAPE": {
+    "response": "ESCAPE",
+    "ignore_modes": [
+      "IGNORE_ESCAPE"
+    ],
+    "default_keys": [
+      {
+        "key": "Escape",
+        "key_char": "\u001B",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "UP": {
+    "response": "UP",
+    "ignore_modes": [
+      "IGNORE_VERTICAL"
+    ],
+    "default_keys": [
+      {
+        "key": "UpArrow",
+        "key_char": "\u0000",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "DOWN": {
+    "response": "DOWN",
+    "ignore_modes": [
+      "IGNORE_VERTICAL"
+    ],
+    "default_keys": [
+      {
+        "key": "DownArrow",
+        "key_char": "\u0000",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "LEFT": {
+    "response": "LEFT",
+    "ignore_modes": [
+      "IGNORE_HORIZONTAL"
+    ],
+    "default_keys": [
+      {
+        "key": "LeftArrow",
+        "key_char": "\u0000",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "RIGHT": {
+    "response": "RIGHT",
+    "ignore_modes": [
+      "IGNORE_HORIZONTAL"
+    ],
+    "default_keys": [
+      {
+        "key": "RightArrow",
+        "key_char": "\u0000",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "ENTER": {
+    "response": "ENTER",
+    "ignore_modes": [
+      "IGNORE_ENTER"
+    ],
+    "default_keys": [
+      {
+        "key": "Enter",
+        "key_char": "\r",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "STATS": {
+    "response": "STATS",
+    "ignore_modes": [],
+    "default_keys": [
+      {
+        "key": "E",
+        "key_char": "e",
+        "modifiers": "None"
+      }
+    ]
+  },
+  "SAVE": {
+    "response": "SAVE",
+    "ignore_modes": [],
+    "default_keys": [
+      {
+        "key": "S",
+        "key_char": "s",
+        "modifiers": "None"
+      }
+    ]
+  }
+}

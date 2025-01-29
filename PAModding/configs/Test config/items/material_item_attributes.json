@@ -1,0 +1,121 @@
+{
+  "BRASS": {
+    "display_name": "Brass",
+    "unit": "KG",
+    "properties": {
+  "density": 8730
+}
+  },
+  "CLOTH": {
+    "display_name": "Cloth",
+    "unit": "KG",
+    "properties": {
+  "density": 1550
+}
+  },
+  "COPPER": {
+    "display_name": "Copper",
+    "unit": "KG",
+    "properties": {
+  "density": 8960
+}
+  },
+  "GLASS": {
+    "display_name": "Glass",
+    "unit": "KG",
+    "properties": {
+  "density": 2500
+}
+  },
+  "GOLD": {
+    "display_name": "Gold",
+    "unit": "KG",
+    "properties": {
+  "density": 19300
+}
+  },
+  "IRON": {
+    "display_name": "Iron",
+    "unit": "KG",
+    "properties": {
+  "density": 7875
+}
+  },
+  "LEATHER": {
+    "display_name": "Leather",
+    "unit": "KG",
+    "properties": {
+  "density": 800
+}
+  },
+  "ROTTEN_FLESH": {
+    "display_name": "Rotten flesh",
+    "unit": "KG",
+    "properties": {
+  "density": 1000
+}
+  },
+  "SILVER": {
+    "display_name": "Silver",
+    "unit": "KG",
+    "properties": {
+  "density": 10490
+}
+  },
+  "STEEL": {
+    "display_name": "Steel",
+    "unit": "KG",
+    "properties": {
+  "density": 7900
+}
+  },
+  "STONE": {
+    "display_name": "Stone",
+    "unit": "KG",
+    "properties": {
+  "density": 2650
+}
+  },
+  "TEETH": {
+    "display_name": "Teeth",
+    "unit": "KG",
+    "properties": {
+  "density": 2900
+}
+  },
+  "WOOD": {
+    "display_name": "Wood",
+    "unit": "KG",
+    "properties": {
+  "density": 600
+}
+  },
+  "WOOL": {
+    "display_name": "Wool",
+    "unit": "KG",
+    "properties": {
+  "density": 1241
+}
+  },
+  "HEALING_LIQUID": {
+    "display_name": "Healing liquid",
+    "unit": "L",
+    "properties": {
+  "density": 1015
+}
+  },
+  "FLINT": {
+    "display_name": "Flint",
+    "unit": "KG",
+    "properties": {
+  "density": 2596
+}
+  },
+  "SILK": {
+    "display_name": "Silk",
+    "unit": "KG",
+    "properties": {
+  "density": 1400
+}
+  }
+}

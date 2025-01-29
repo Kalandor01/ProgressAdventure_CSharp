@@ -1,0 +1,74 @@
+{
+  "pa:weapon/sword": {
+    "display_name": "*/0MC/* Sword",
+    "unit": "AMOUNT"
+  },
+  "pa:weapon/bow": {
+    "display_name": "*/0MC/* Bow",
+    "unit": "AMOUNT"
+  },
+  "pa:weapon/arrow": {
+    "display_name": "*/0MC/* Arrow",
+    "unit": "AMOUNT"
+  },
+  "pa:weapon/club": {
+    "display_name": "*/0MC/* Club",
+    "unit": "AMOUNT"
+  },
+  "pa:weapon/club_with_teeth": {
+    "display_name": "*/0MC/* club with */1ML/*",
+    "unit": "AMOUNT"
+  },
+  "pa:defence/shield": {
+    "display_name": "*/0MC/* Shield",
+    "unit": "AMOUNT"
+  },
+  "pa:defence/helmet": {
+    "display_name": "*/0MC/* Helmet",
+    "unit": "AMOUNT"
+  },
+  "pa:defence/chestplate": {
+    "display_name": "*/0MC/* Chestplate",
+    "unit": "AMOUNT"
+  },
+  "pa:defence/pants": {
+    "display_name": "*/0MC/* Pants",
+    "unit": "AMOUNT"
+  },
+  "pa:defence/boots": {
+    "display_name": "*/0MC/* Boots",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/material": {
+    "display_name": "*/0MC/* Material",
+    "unit": "KG"
+  },
+  "pa:misc/bottle": {
+    "display_name": "*/0MC/* Bottle",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/filled_bottle": {
+    "display_name": "*/0MC/* bottle of */1MC/*",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/coin": {
+    "display_name": "*/0MC/* Coin",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/sword_blade": {
+    "display_name": "*/0MC/* Sword blade",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/sword_hilt": {
+    "display_name": "*/0MC/* Sword hilt",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/arrow_tip": {
+    "display_name": "*/0MC/* Arrow tip",
+    "unit": "AMOUNT"
+  },
+  "pa:misc/rod": {
+    "display_name": "*/0MC/* Rod",
+    "unit": "AMOUNT"
+  }
+}

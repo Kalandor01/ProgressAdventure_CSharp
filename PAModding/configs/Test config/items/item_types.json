@@ -1,0 +1,20 @@
+[
+  "pa:weapon/sword",
+  "pa:weapon/bow",
+  "pa:weapon/arrow",
+  "pa:weapon/club",
+  "pa:weapon/club_with_teeth",
+  "pa:defence/shield",
+  "pa:defence/helmet",
+  "pa:defence/chestplate",
+  "pa:defence/pants",
+  "pa:defence/boots",
+  "pa:misc/material",
+  "pa:misc/bottle",
+  "pa:misc/filled_bottle",
+  "pa:misc/coin",
+  "pa:misc/sword_blade",
+  "pa:misc/sword_hilt",
+  "pa:misc/arrow_tip",
+  "pa:misc/rod"
+]

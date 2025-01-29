@@ -10,12 +10,12 @@
         internal EnumTreeValue(int[] indexes, string fullName, string name)
             : base(indexes, fullName, name) { }
 
-        public static bool operator ==(EnumTreeValue<TEnum> first, EnumTreeValue<TEnum> second)
+        public static bool operator ==(EnumTreeValue<TEnum> first, EnumTreeValue<TEnum>? second)
         {
             return first.Equals(second);
         }
 
-        public static bool operator !=(EnumTreeValue<TEnum> first, EnumTreeValue<TEnum> second)
+        public static bool operator !=(EnumTreeValue<TEnum> first, EnumTreeValue<TEnum>? second)
         {
             return !first.Equals(second);
         }

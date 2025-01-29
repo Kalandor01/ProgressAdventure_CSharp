@@ -1,0 +1,14 @@
+{
+  "ProgressAdventure.WorldManagement.Content.ContentType.TERRAIN": {
+    "type_name": "terrain",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.TerrainContent"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.STRUCTURE": {
+    "type_name": "structure",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.StructureContent"
+  },
+  "ProgressAdventure.WorldManagement.Content.ContentType.POPULATION": {
+    "type_name": "population",
+    "matching_type": "ProgressAdventure.WorldManagement.Content.PopulationContent"
+  }
+}

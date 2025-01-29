@@ -5,18 +5,17 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using PACommon.Logging;
 using PACommon.SettingsManagement;
-using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Exceptions;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
 using System.Text.Json.Serialization;
-using PACConstants = PACommon.Constants;
-using PAConstants = ProgressAdventure.Constants;
-using PATools = ProgressAdventure.Tools;
+using Constants = ProgressAdventure.Constants;
+using Tools = ProgressAdventure.Tools;
 
-namespace ProgressAdventureTests
+namespace PAModding
 {
     internal class Program
     {
@@ -25,11 +24,9 @@ namespace ProgressAdventureTests
         /// </summary>
         static void MainFunction()
         {
-            //Tools.RunAllTests();
-            //Tools.CreateNewTestSaveFromPrevious("2.2.2");
-            TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest, Tools.DisposeTest);
+            MenuManager.MainMenu();
 
-            Utils.PressKey("DONE!");
+            //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
         }
 
         /// <summary>
@@ -38,18 +35,18 @@ namespace ProgressAdventureTests
         static void Preloading()
         {
             Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "Progress Adventure tests";
+            Console.Title = "Progress Adventure";
 
-            Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
+            Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
             Console.WriteLine("Loading...");
 
             // initializing PAC singletons
-            var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
+            var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
 
             PACSingletons.Initialize(
-                Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
-                JsonDataCorrecter.Initialize(PAConstants.SAVE_VERSION, PAConstants.ORDER_JSON_CORRECTERS, false),
+                Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
+                JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, Constants.ORDER_JSON_CORRECTERS, false),
                 ConfigManager.Initialize(
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
@@ -58,8 +55,8 @@ namespace ProgressAdventureTests
                         new MaterialItemAttributesDTOConverter(),
                         new ConsoleKeyInfoConverter(),
                     ],
-                    PAConstants.CONFIGS_FOLDER_PATH,
-                    PAConstants.CONFIG_EXT,
+                    Constants.CONFIGS_FOLDER_PATH,
+                    Constants.CONFIG_EXT,
                     false
                 )
             );
@@ -71,22 +68,18 @@ namespace ProgressAdventureTests
 
             // initializing PA singletons
             // special loading order to avoid unintended errors because of complicated self references
-            if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
-            {
-                SettingsUtils.LoadDefaultConfigs();
-                PASingletons.Initialize(
-                    new Globals(),
-                    new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
-                );
-                KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
-            }
+            SettingsUtils.LoadDefaultConfigs();
+            PASingletons.Initialize(
+                new Globals(),
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
+            );
 
-            PATools.ReloadConfigs();
-            if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
-            {
-                PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
-            }
-            PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);
+            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
+
+            Console.WriteLine("Reloading configs...");
+            Tools.ReloadConfigs(1);
+            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
+            PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 
         /// <summary>
@@ -98,10 +91,19 @@ namespace ProgressAdventureTests
             {
                 Preloading();
             }
+            catch (RestartException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
+                if (e.InnerException is RestartException)
+                {
+                    throw;
+                }
+
                 PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                if (PAConstants.ERROR_HANDLING)
+                if (Constants.ERROR_HANDLING)
                 {
                     Utils.PressKey("ERROR: " + e.Message);
                 }
@@ -128,10 +130,19 @@ namespace ProgressAdventureTests
                     PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
                     PACSingletons.Instance.Dispose();
                 }
+                catch (RestartException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
+                    if (e.InnerException is RestartException)
+                    {
+                        throw;
+                    }
+
                     PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                    if (PAConstants.ERROR_HANDLING)
+                    if (Constants.ERROR_HANDLING)
                     {
                         Console.WriteLine("ERROR: " + e.Message);
                         var ans = Utils.Input("Restart?(Y/N): ");
@@ -152,8 +163,39 @@ namespace ProgressAdventureTests
 
         static void Main(string[] args)
         {
-            PreloadingErrorHandler();
-            MainErrorHandler();
+            bool exitGame;
+            do
+            {
+                RestartException? restartException = null;
+                exitGame = true;
+                try
+                {
+                    PreloadingErrorHandler();
+                    MainErrorHandler();
+                }
+                catch (RestartException re)
+                {
+                    restartException = re;
+                }
+                catch (Exception ie)
+                {
+                    if (ie.InnerException is RestartException re)
+                    {
+                        restartException = re;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                if (restartException is not null)
+                {
+                    PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), LogSeverity.INFO, forceLog: true);
+                    exitGame = false;
+                }
+            }
+            while (!exitGame);
         }
     }
 }

@@ -302,7 +302,7 @@ namespace PACommon.ConfigManagement
             {
                 return configValue;
             }
-            SetConfig(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
+            SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
             return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
         }
 
@@ -335,7 +335,7 @@ namespace PACommon.ConfigManagement
             {
                 return configValue;
             }
-            SetConfig(configName, expectedVersion, defaultContent, serializeDictionaryValues, serializeDictionaryKeys);
+            SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryValues, serializeDictionaryKeys);
             return GetConfig(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys);
         }
         #endregion
@@ -388,7 +388,7 @@ namespace PACommon.ConfigManagement
         /// <param name="configData">The object to put into the config file.</param>
         /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
         /// <inheritdoc cref="SetConfig{T}(string, string?, T)"/>
-        public void SetConfig<TK, TV>(
+        public void SetConfigDict<TK, TV>(
             string configName,
             string? configVersion,
             IDictionary<TK, TV> configData,
@@ -402,8 +402,8 @@ namespace PACommon.ConfigManagement
 
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
-        /// <inheritdoc cref="SetConfig{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string})"/>
-        public void SetConfig<TK, TV, TVC>(
+        /// <inheritdoc cref="SetConfigDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string})"/>
+        public void SetConfigDict<TK, TV, TVC>(
             string configName,
             string? configVersion,
             IDictionary<TK, TV> configData,

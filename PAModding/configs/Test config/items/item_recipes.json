@@ -1,0 +1,201 @@
+{
+  "pa:weapon/sword": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/sword_blade",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        },
+        {
+          "item_type": "pa:misc/sword_hilt",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:weapon/bow": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/rod",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        },
+        {
+          "item_type": "pa:misc/rod",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:weapon/arrow": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/arrow_tip",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        },
+        {
+          "item_type": "pa:misc/rod",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:weapon/club": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.5,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:weapon/club_with_teeth": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:weapon/club",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        },
+        {
+          "item_type": "pa:misc/material",
+          "material": "TEETH",
+          "amount": 1,
+          "unit": "KG"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:defence/shield": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.6,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:defence/helmet": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.5,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:defence/chestplate": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.9,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:defence/pants": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.7,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:defence/boots": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.4,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:misc/filled_bottle": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/bottle",
+          "material": null,
+          "amount": 1,
+          "unit": null
+        },
+        {
+          "item_type": "pa:misc/material",
+          "material": "HEALING_LIQUID",
+          "amount": 0.5,
+          "unit": "L"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:misc/bottle": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 0.0006,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ],
+  "pa:misc/coin": [
+    {
+      "ingredients": [
+        {
+          "item_type": "pa:misc/material",
+          "material": null,
+          "amount": 7E-06,
+          "unit": "M3"
+        }
+      ],
+      "result_amount": 1
+    }
+  ]
+}

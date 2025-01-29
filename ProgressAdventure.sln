@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAVisualizer", "PAVisualize
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PACommon", "PACommon\PACommon.csproj", "{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAModding", "PAModding\PAModding.csproj", "{401280F5-84DE-43C6-8416-92C73435C358}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BB516DF-7CFC-4322-906F-F7F2FFC989FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401280F5-84DE-43C6-8416-92C73435C358}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401280F5-84DE-43C6-8416-92C73435C358}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401280F5-84DE-43C6-8416-92C73435C358}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401280F5-84DE-43C6-8416-92C73435C358}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

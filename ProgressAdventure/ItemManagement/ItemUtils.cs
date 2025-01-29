@@ -241,6 +241,34 @@ namespace ProgressAdventure.ItemManagement
 
         #region Default config dicts
         /// <summary>
+        /// The default value for the config used for the values of <see cref="ItemType"/>.
+        /// </summary>
+        private static readonly List<EnumTreeValue<ItemType>> _defaultItemTypes =
+        [
+            //weapons
+            ItemType.Weapon.SWORD,
+            ItemType.Weapon.BOW,
+            ItemType.Weapon.ARROW,
+            ItemType.Weapon.CLUB,
+            ItemType.Weapon.CLUB_WITH_TEETH,
+            //defence
+            ItemType.Defence.SHIELD,
+            ItemType.Defence.HELMET,
+            ItemType.Defence.CHESTPLATE,
+            ItemType.Defence.PANTS,
+            ItemType.Defence.BOOTS,
+            //misc
+            MATERIAL_ITEM_TYPE,
+            ItemType.Misc.BOTTLE,
+            ItemType.Misc.FILLED_BOTTLE,
+            ItemType.Misc.COIN,
+            ItemType.Misc.SWORD_BLADE,
+            ItemType.Misc.SWORD_HILT,
+            ItemType.Misc.ARROW_TIP,
+            ItemType.Misc.ROD,
+        ];
+
+        /// <summary>
         /// The default value for the config used for the value of <see cref="CompoundItemAttributes"/>.
         /// </summary>
         private static readonly Dictionary<EnumTreeValue<ItemType>, CompoundItemAttributesDTO> _defaultCompoundItemAttributes = new()
@@ -398,6 +426,12 @@ namespace ProgressAdventure.ItemManagement
         #region Configs
         public static void LoadDefaultConfigs1()
         {
+            ItemType.Clear();
+            foreach (var defaultItemType in _defaultItemTypes)
+            {
+                ItemType.TryAddValue(defaultItemType.FullName, out _);
+            }
+
             CompoundItemAttributes = _defaultCompoundItemAttributes;
             MaterialItemAttributes = _defaultMaterialItemAttributes;
         }
@@ -422,10 +456,16 @@ namespace ProgressAdventure.ItemManagement
         public static void WriteDefaultConfigs()
         {
             PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
+                null,
+                _defaultItemTypes
+            );
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
                 null,
                 _defaultCompoundItemAttributes,
-                key => key.ToString()!
+                key => key.FullName!
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
@@ -434,7 +474,7 @@ namespace ProgressAdventure.ItemManagement
                 _defaultMaterialItemAttributes
             );
 
-            PACSingletons.Instance.ConfigManager.SetConfig(
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
                 null,
                 _defaultItemRecipes,
@@ -444,19 +484,13 @@ namespace ProgressAdventure.ItemManagement
 
         private static void ReloadConfigs1(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
         {
-            ItemType.InitializeDefaultValues();
-
-            //AdvancedEnum(Tree)s from config!!!
-            //ItemTypes = ConfigUtils.ReloadConfigsAggregateAdvancedEnumTree(
-            //    Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
-            //    namespaceFolders,
-            //    _defaultItemTypes,
-            //    key => key.ToString()!,
-            //    key => ParseItemTypeFromRealName(key)
-            //        ?? throw new ArgumentNullException($"Unknown item type real name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
-            //    isVanillaInvalid,
-            //    showProgressIndentation
-            //);
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnumTree(
+                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
+                namespaceFolders,
+                _defaultItemTypes,
+                isVanillaInvalid,
+                showProgressIndentation
+            );
 
             CompoundItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
                 Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),

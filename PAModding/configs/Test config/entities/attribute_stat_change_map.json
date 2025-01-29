@@ -1,0 +1,62 @@
+{
+  "RARE": {
+    "maxHp": 2,
+    "attack": 2,
+    "defence": 2,
+    "agility": 2
+  },
+  "CRIPPLED": {
+    "maxHp": 0.5,
+    "attack": 0.5,
+    "defence": 0.5,
+    "agility": 0.5
+  },
+  "HEALTHY": {
+    "maxHp": 2,
+    "attack": 1,
+    "defence": 1,
+    "agility": 1
+  },
+  "SICK": {
+    "maxHp": 0.5,
+    "attack": 1,
+    "defence": 1,
+    "agility": 1
+  },
+  "STRONG": {
+    "maxHp": 1,
+    "attack": 2,
+    "defence": 1,
+    "agility": 1
+  },
+  "WEAK": {
+    "maxHp": 1,
+    "attack": 0.5,
+    "defence": 1,
+    "agility": 1
+  },
+  "TOUGH": {
+    "maxHp": 1,
+    "attack": 1,
+    "defence": 2,
+    "agility": 1
+  },
+  "FRAIL": {
+    "maxHp": 1,
+    "attack": 1,
+    "defence": 0.5,
+    "agility": 1
+  },
+  "AGILE": {
+    "maxHp": 1,
+    "attack": 1,
+    "defence": 1,
+    "agility": 2
+  },
+  "SLOW": {
+    "maxHp": 1,
+    "attack": 1,
+    "defence": 1,
+    "agility": 0.5
+  }
+}
