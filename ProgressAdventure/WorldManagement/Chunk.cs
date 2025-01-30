@@ -312,7 +312,7 @@ namespace ProgressAdventure.WorldManagement
             chunkRandom ??= GetChunkRandom(position);
 
             if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
-                if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, nameof(tileJson), isStraigthCast: true))
+                if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, isStraigthCast: true))
                 {
                     success = false;
                     return (false, default);

@@ -100,7 +100,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The namespace of the P.A. (vanilla) configs namespace/folder.
         /// </summary>
-        public const string PA_CONFIGS_NAMESPACE = "pa";
+        public const string VANILLA_CONFIGS_NAMESPACE = "pa";
         /// <summary>
         /// The configs subfolder name for configs for <see cref="SettingsManagement.SettingsUtils"/>.
         /// </summary>
@@ -373,6 +373,21 @@ namespace ProgressAdventure
         public const string CHUNK_FILE_NAME_SEP = "_";
         #endregion
 
+        #region Configs
+        /// <summary>
+        /// Whether the default namespace, when loading namespaces strings is the currently loading namespace, or the vanilla namespace.
+        /// </summary>
+        public const bool DEFAULT_NAMESPACE_IS_CURRENT_NAMESPACE = true;
+        /// <summary>
+        /// The character to separate the namespace with the rest of the namespaced string.
+        /// </summary>
+        public const char NAMESPACE_SEPARATOR_CHAR = ':';
+        /// <summary>
+        /// The current config version.
+        /// </summary>
+        public const string CONFIG_VERSION = "v1";
+        #endregion
+
         #region Other
         /// <summary>
         /// If there should be a final exeption cacher, that catces all errors.
@@ -394,10 +409,6 @@ namespace ProgressAdventure
         /// The current save version.
         /// </summary>
         public const string SAVE_VERSION = "2.3";
-        /// <summary>
-        /// The current config version.
-        /// </summary>
-        public const string CONFIG_VERSION = "v1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

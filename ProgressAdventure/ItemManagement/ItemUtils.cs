@@ -456,26 +456,26 @@ namespace ProgressAdventure.ItemManagement
         public static void WriteDefaultConfigs()
         {
             PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
                 null,
                 _defaultItemTypes
             );
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
                 null,
                 _defaultCompoundItemAttributes,
                 key => key.FullName!
             );
 
             PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
                 null,
                 _defaultMaterialItemAttributes
             );
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
                 null,
                 _defaultItemRecipes,
                 item => item.FullName
@@ -489,7 +489,8 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultItemTypes,
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                true
             );
 
             CompoundItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
@@ -497,7 +498,7 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultCompoundItemAttributes,
                 key => key.FullName,
-                key => (ItemType.TryGetValue(key, out var value) ? value : null)
+                key => (ItemType.TryGetValue(ConfigUtils.GetNamepsacedString(key), out var value) ? value : null)
                     ?? throw new ArgumentNullException($"Unknown item type name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation

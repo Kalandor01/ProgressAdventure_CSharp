@@ -118,12 +118,11 @@ namespace ProgressAdventure.SettingsManagement
                 PACTools.TryParseValueForJsonParsing<ActionKey, EnumValue<ActionType>>(
                     new JsonValue(actionJson.Key),
                     out var actionType,
-                    parameterName: nameof(actionJson),
                     parameterExtraInfo: $"action type: {actionJson.Key}",
                     isCritical: true
                 ) &&
                 PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonArray>(
-                    actionJson.Value, out var actionKeyList, nameof(actionJson) + " value", true, true
+                    actionJson.Value, out var actionKeyList, isCritical: true, isStraigthCast: true
                 )
             ))
             {
@@ -134,7 +133,7 @@ namespace ProgressAdventure.SettingsManagement
             var allSuccess = PACTools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
                 if (
                     PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonDictionary>(
-                        actionKeyJsonValue, out var actionKeyJson, nameof(actionKeyJsonValue), isStraigthCast: true
+                        actionKeyJsonValue, out var actionKeyJson, isStraigthCast: true
                     ) &&
                     PACTools.TryParseJsonValue<ActionKey, ConsoleKey>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY, out var keyEnum) &&
                     PACTools.TryParseJsonValue<ActionKey, char>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY_CHAR, out var keyChar) &&

@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace PACommon
@@ -583,7 +584,7 @@ namespace PACommon
         public static bool TryCastAnyValueForJsonParsing<T, TRes>(
             JsonObject? objectValue,
             [NotNullWhen(true)] out TRes? value,
-            string? parameterName = null,
+            [CallerArgumentExpression(nameof(objectValue))] string? parameterName = null,
             bool isCritical = false,
             bool isStraigthCast = false
         )
@@ -658,7 +659,7 @@ namespace PACommon
         public static bool TryParseValueForJsonParsing<T, TRes>(
             JsonObject? value,
             [NotNullWhen(true)] out TRes? parsedValue,
-            string? parameterName = null,
+            [CallerArgumentExpression(nameof(value))] string? parameterName = null,
             bool logParseWarnings = true,
             string? parameterExtraInfo = null,
             bool isCritical = false

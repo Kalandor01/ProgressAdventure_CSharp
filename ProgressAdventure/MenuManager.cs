@@ -372,7 +372,7 @@ namespace ProgressAdventure
             var response = configOptionsUI.Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
-                var vanillaEnabled = loadingOrder.FirstOrDefault(c => c.Namespace == Constants.PA_CONFIGS_NAMESPACE)!.Enabled;
+                var vanillaEnabled = loadingOrder.FirstOrDefault(c => c.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE)!.Enabled;
                 if (!vanillaEnabled &&
                     !AskYesNoUIQuestion(
                         "The vanilla configs have been disabled! This will most likely crash the game, when the configs are next reloded.\n" +

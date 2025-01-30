@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 
 namespace ProgressAdventure.ConfigManagement
@@ -10,6 +11,13 @@ namespace ProgressAdventure.ConfigManagement
     /// </summary>
     public static partial class ConfigUtils
     {
+        private static List<string>? _loadingNamespaces;
+        public static ReadOnlyCollection<string>? LoadingNamespaces
+        {
+            get => _loadingNamespaces?.AsReadOnly();
+        }
+        public static string? CurrentlyLoadingNamespace { get; private set; }
+
         #region Public functions
         #region Reload config functions
         /// <summary>
@@ -105,13 +113,15 @@ namespace ProgressAdventure.ConfigManagement
         /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
         /// </summary>
         /// <typeparam name="TEnum">The type of the enum.</typeparam>
+        /// <param name="isNamespacedValues">Whether the enum values should be namespaced.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         public static void ReloadConfigsAggregateAdvancedEnum<TEnum>(
             string configName,
             List<string> namespaceFolders,
             List<EnumValue<TEnum>> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            bool isNamespacedValues = false
         )
             where TEnum : AdvancedEnum<TEnum>
         {
@@ -126,7 +136,7 @@ namespace ProgressAdventure.ConfigManagement
                 },
                 (aggList, newList) =>
                 {
-                    foreach (var newItem in newList)
+                    foreach (var newItem in newList ?? [])
                     {
                         AdvancedEnum<TEnum>.TryAddValue(newItem, out _);
                     }
@@ -143,9 +153,10 @@ namespace ProgressAdventure.ConfigManagement
                             vanillaDefaultActualValue,
                             vanillaNamespaceInvalid
                         );
-                        if (configValues.All(cv => !string.IsNullOrWhiteSpace(cv)))
+                        var result = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues);
+                        if (result.success)
                         {
-                            return configValues;
+                            return result.configValues;
                         }
                         if (recreated)
                         {
@@ -155,11 +166,20 @@ namespace ProgressAdventure.ConfigManagement
                     }
                 },
                 (configName) =>
-                    (PACSingletons.Instance.ConfigManager.TryGetConfig<List<string>>(
-                        configName,
-                        null,
-                        out var configValue
-                    ) && configValue.All(cv => !string.IsNullOrWhiteSpace(cv)), configValue),
+                {
+                    if (
+                        !PACSingletons.Instance.ConfigManager.TryGetConfig<List<string>>(
+                            configName,
+                            null,
+                            out var configValue
+                        )
+                    )
+                    {
+                        return (false, null);
+                    }
+
+                    return CheckEnumConfigNamespacedValues(configValue, configName, isNamespacedValues);
+                },
                 showProgressIndentation
             );
         }
@@ -168,13 +188,15 @@ namespace ProgressAdventure.ConfigManagement
         /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
         /// </summary>
         /// <typeparam name="TEnum">The type of the enum.</typeparam>
+        /// <param name="isNamespacedValues">Whether the enum values should be namespaced.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         public static void ReloadConfigsAggregateAdvancedEnumTree<TEnum>(
             string configName,
             List<string> namespaceFolders,
             List<EnumTreeValue<TEnum>> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            bool isNamespacedValues = false
         )
             where TEnum : AdvancedEnumTree<TEnum>
         {
@@ -189,7 +211,7 @@ namespace ProgressAdventure.ConfigManagement
                 },
                 (aggList, newList) =>
                 {
-                    foreach (var newItem in newList)
+                    foreach (var newItem in newList ?? [])
                     {
                         AdvancedEnumTree<TEnum>.TryAddValue(newItem, out _, true);
                     }
@@ -206,9 +228,10 @@ namespace ProgressAdventure.ConfigManagement
                             vanillaDefaultActualValue,
                             vanillaNamespaceInvalid
                         );
-                        if (configValues.All(cv => !string.IsNullOrWhiteSpace(cv)))
+                        var result = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues);
+                        if (result.success)
                         {
-                            return configValues;
+                            return result.configValues;
                         }
                         if (recreated)
                         {
@@ -218,11 +241,20 @@ namespace ProgressAdventure.ConfigManagement
                     }
                 },
                 (configName) =>
-                    (PACSingletons.Instance.ConfigManager.TryGetConfig<List<string>>(
-                        configName,
-                        null,
-                        out var configValue
-                    ) && configValue.All(cv => !string.IsNullOrWhiteSpace(cv)), configValue),
+                {
+                    if (
+                        !PACSingletons.Instance.ConfigManager.TryGetConfig<List<string>>(
+                            configName,
+                            null,
+                            out var configValue
+                        )
+                    )
+                    {
+                        return (false, null);
+                    }
+
+                    return CheckEnumConfigNamespacedValues(configValue, configName, isNamespacedValues);
+                },
                 showProgressIndentation
             );
         }
@@ -507,9 +539,9 @@ namespace ProgressAdventure.ConfigManagement
             var configDatas = GetValidConfigDatas(null);
 
             var vanillaDataRecreated = false;
-            if (!configDatas.Any(cd => cd.configData.Namespace == Constants.PA_CONFIGS_NAMESPACE))
+            if (!configDatas.Any(cd => cd.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE))
             {
-                var paNspace = Constants.PA_CONFIGS_NAMESPACE;
+                var paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
                 vanillaDataRecreated = true;
                 new ConfigData(paNspace, Constants.CONFIG_VERSION).SerializeToFile(paNspace);
                 configDatas.Add(new ConfigDataFull(paNspace, new ConfigData(paNspace, "")));
@@ -519,11 +551,11 @@ namespace ProgressAdventure.ConfigManagement
             if (loadingOrder is null)
             {
                 var nspaces = configDatas
-                    .Where(ns => ns.configData.Namespace != Constants.PA_CONFIGS_NAMESPACE)
+                    .Where(ns => ns.configData.Namespace != Constants.VANILLA_CONFIGS_NAMESPACE)
                     .Select(ns => new ConfigLoadingData(ns.configData.Namespace, defaultEnabled))
                     .ToList();
                 var vanillaConfig = new ConfigLoadingData(
-                    configDatas.First(ns => ns.configData.Namespace == Constants.PA_CONFIGS_NAMESPACE).folderName,
+                    configDatas.First(ns => ns.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE).folderName,
                     defaultEnabledIncludesVanilla ? defaultEnabled : !defaultEnabled
                 );
                 nspaces.Insert(0, vanillaConfig);
@@ -557,7 +589,7 @@ namespace ProgressAdventure.ConfigManagement
                     loadingOrder.Add(
                         new ConfigLoadingData(
                             configData.configData.Namespace,
-                            configData.configData.Namespace == Constants.PA_CONFIGS_NAMESPACE
+                            configData.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE
                                 ? (defaultEnabledIncludesVanilla ? defaultEnabled : !defaultEnabled)
                                 : defaultEnabled
                         )
@@ -575,9 +607,124 @@ namespace ProgressAdventure.ConfigManagement
             return vanillaDataRecreated;
         }
         #endregion
+
+        /// <summary>
+        /// Tries to correct a string to be namespaced using the currently loaded namespace(s).
+        /// </summary>
+        /// <param name="str">The maybe namespaced string.</param>
+        /// <param name="namespacedString">The namespaced string, or the same if the string was null or whitespace.</param>
+        /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
+        /// <returns>If the string was able to be correctly namespaced.</returns>
+        public static bool TryGetNamepsacedString(string str, out string namespacedString, bool logChange = true)
+        {
+            namespacedString = str;
+            if (
+                LoadingNamespaces is null ||
+                CurrentlyLoadingNamespace is null ||
+                string.IsNullOrWhiteSpace(str)
+            )
+            {
+                return false;
+            }
+
+            var nsSepIndex = str.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
+            var defaultNamepsace = Constants.DEFAULT_NAMESPACE_IS_CURRENT_NAMESPACE
+                ? CurrentlyLoadingNamespace
+                : Constants.VANILLA_CONFIGS_NAMESPACE;
+            if (nsSepIndex == -1)
+            {
+                namespacedString = $"{defaultNamepsace}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
+                if (logChange)
+                {
+                    PACSingletons.Instance.Logger.Log(
+                        "Namespaced string created",
+                        $"while loading from: {CurrentlyLoadingNamespace}, \"{str}\" -> \"{namespacedString}\"",
+                        LogSeverity.DEBUG
+                    );
+                }
+                return true;
+            }
+            else if (
+                nsSepIndex >= str.Length - 1 ||
+                string.IsNullOrWhiteSpace(str[(nsSepIndex + 1)..])
+            )
+            {
+                return false;
+            }
+
+            var nspace = str[..nsSepIndex];
+            if (
+                string.IsNullOrWhiteSpace(nspace) ||
+                !NamespaceRegex().IsMatch(nspace) ||
+                !LoadingNamespaces.Contains(nspace)
+            )
+            {
+                namespacedString = defaultNamepsace + str[nsSepIndex..];
+                if (logChange)
+                {
+                    PACSingletons.Instance.Logger.Log(
+                        "Namespaced string changed",
+                        $"while loading from: {CurrentlyLoadingNamespace}, \"{str}\" -> \"{namespacedString}\"",
+                        LogSeverity.WARN
+                    );
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to correct a string to be namespaced using the currently loaded namespace(s).
+        /// </summary>
+        /// <param name="str">The maybe namespaced string.</param>
+        /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
+        /// <returns>The namespaced string, or the same string if namespacing failed.</returns>
+        public static string GetNamepsacedString(string str, bool logChange = true)
+        {
+            TryGetNamepsacedString(str, out var nsString, logChange);
+            return nsString;
+        }
+
+        /// <summary>
+        /// Adds a namespace to a string.
+        /// </summary>
+        /// <param name="str">The original string.</param>
+        /// <param name="nspace">The namespace to add.</param>
+        /// <returns>The namespaced string.</returns>
+        public static string MakeNamespacedString(string str, string nspace = Constants.VANILLA_CONFIGS_NAMESPACE)
+        {
+            return $"{nspace}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
+        }
         #endregion
 
         #region Private functions
+
+        private static (bool success, List<string>? configValues) CheckEnumConfigNamespacedValues(
+            List<string> configValues,
+            string configName,
+            bool isNamespaceEnum
+        )
+        {
+            if (!isNamespaceEnum)
+            {
+                return (configValues.All(cv => !string.IsNullOrWhiteSpace(cv)), configValues);
+            }
+
+            var namespacedValues = new List<string>();
+            foreach (var value in configValues)
+            {
+                if (!TryGetNamepsacedString(value, out var namespacedValue))
+                {
+                    PACSingletons.Instance.Logger.Log(
+                        "Invalid namespaced enum value in config",
+                        $"while loading \"{configName}\" from: \"{CurrentlyLoadingNamespace}\", value: \"{value}\""
+                    );
+                    return (false, null);
+                }
+                namespacedValues.Add(namespacedValue);
+            }
+            return (true, namespacedValues);
+        }
+
         private static void LogConfigLoadingBegin(string configPath, string configFolder, int? showProgressIndentation)
         {
             var fullConfigPath = Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, PACSingletons.Instance.ConfigManager.GetConfigFilePath(configPath));
@@ -644,11 +791,14 @@ namespace ProgressAdventure.ConfigManagement
             }
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
+            _loadingNamespaces = [];
             var aggregateValue = getStartingValueFunction();
             foreach (var folder in namespaceFolders)
             {
+                _loadingNamespaces.Add(folder);
+                CurrentlyLoadingNamespace = folder;
                 var configFileSubpath = Path.Join(folder, configName);
-                if (folder == Constants.PA_CONFIGS_NAMESPACE)
+                if (folder == Constants.VANILLA_CONFIGS_NAMESPACE)
                 {
                     LogConfigLoadingBegin(configFileSubpath, folder, showProgressIndentation);
                     var vanillaValue = getConfigVanillaFunction(configFileSubpath);
@@ -665,7 +815,9 @@ namespace ProgressAdventure.ConfigManagement
                         aggregateValue = appendConfigFunction(aggregateValue, configValue!);
                     }
                 }
+                CurrentlyLoadingNamespace = null;
             }
+            _loadingNamespaces = null;
 
             return aggregateValue;
         }

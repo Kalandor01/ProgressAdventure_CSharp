@@ -1,4 +1,5 @@
 ﻿using PACommon.Enums;
+using ProgressAdventure.ConfigManagement;
 
 namespace ProgressAdventure.Enums
 {
@@ -16,7 +17,7 @@ namespace ProgressAdventure.Enums
             var m = Misc.ROD;
         }
 
-        public static readonly EnumTreeValue<ItemType> _WEAPON = AddValue(null, $"{Constants.PA_CONFIGS_NAMESPACE}:{nameof(Weapon)}".ToLower());
+        public static readonly EnumTreeValue<ItemType> _WEAPON = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Weapon).ToLower()));
         public static class Weapon
         {
             public static readonly EnumTreeValue<ItemType> SWORD = AddValue(_WEAPON, nameof(SWORD).ToLower());
@@ -26,7 +27,7 @@ namespace ProgressAdventure.Enums
             public static readonly EnumTreeValue<ItemType> CLUB_WITH_TEETH = AddValue(_WEAPON, nameof(CLUB_WITH_TEETH).ToLower());
         }
 
-        public static readonly EnumTreeValue<ItemType> _DEFENCE = AddValue(null, $"{Constants.PA_CONFIGS_NAMESPACE}:{nameof(Defence)}".ToLower());
+        public static readonly EnumTreeValue<ItemType> _DEFENCE = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Defence).ToLower()));
         public static class Defence
         {
             public static readonly EnumTreeValue<ItemType> SHIELD = AddValue(_DEFENCE, nameof(SHIELD).ToLower());
@@ -36,7 +37,7 @@ namespace ProgressAdventure.Enums
             public static readonly EnumTreeValue<ItemType> BOOTS = AddValue(_DEFENCE, nameof(BOOTS).ToLower());
         }
 
-        public static readonly EnumTreeValue<ItemType> _MISC = AddValue(null, $"{Constants.PA_CONFIGS_NAMESPACE}:{nameof(Misc)}".ToLower());
+        public static readonly EnumTreeValue<ItemType> _MISC = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Misc).ToLower()));
         public static class Misc
         {
             public static readonly EnumTreeValue<ItemType> MATERIAL = AddValue(_MISC, nameof(MATERIAL).ToLower());

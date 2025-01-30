@@ -101,13 +101,13 @@ namespace ProgressAdventure.Entity
         public static void WriteDefaultConfigs()
         {
             PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
                 null,
                 _defaultEntityTypeMap
             );
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
                 null,
                 _defaultFacingToMovementVectorMap,
                 move => new Dictionary<string, int>
@@ -118,7 +118,7 @@ namespace ProgressAdventure.Entity
             );
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.PA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
                 null,
                 _defaultAttributeStatChangeMap,
                 stats => new Dictionary<string, double>
