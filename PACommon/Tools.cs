@@ -642,6 +642,7 @@ namespace PACommon
         /// - numbers<br/>
         /// - enums<br/>
         /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="EnumTreeValue{TEnum}"/><br/>
         /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
@@ -720,6 +721,36 @@ namespace PACommon
                 }
                 catch { }
             }
+            else if (
+                actualType.BaseType == typeof(EnumTreeValueBase) &&
+                actualType.Assembly == typeof(EnumTreeValue<>).Assembly &&
+                actualType.Name == typeof(EnumTreeValue<>).Name &&
+                actualType.Namespace == typeof(EnumTreeValue<>).Namespace &&
+                actualType.GenericTypeArguments.Length > 0
+            )
+            {
+                var enumType = actualType.GenericTypeArguments[0].BaseType;
+                try
+                {
+                    MethodInfo getValue;
+                    try
+                    {
+                        getValue = enumType!.GetMethod("GetValue", BindingFlags.Static | BindingFlags.Public, [typeof(string)])
+                            ?? throw new ArgumentException("Getting reflection method failed!");
+                    }
+                    catch
+                    {
+                        PACSingletons.Instance.Logger.Log("Reflection method not found", "AdvancedEnumTree<T>.GetValue() method not found", LogSeverity.ERROR);
+                        throw;
+                    }
+                    parsedValue = (TRes?)getValue.Invoke(null, [valueText]);
+                    if (parsedValue is not null)
+                    {
+                        return true;
+                    }
+                }
+                catch { }
+            }
             else
             {
                 var parseSuccess = true;
@@ -759,6 +790,7 @@ namespace PACommon
         /// - numbers<br/>
         /// - enums<br/>
         /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="EnumTreeValue{TEnum}"/><br/>
         /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
@@ -791,6 +823,7 @@ namespace PACommon
         /// - numbers<br/>
         /// - enums<br/>
         /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="EnumTreeValue{TEnum}"/><br/>
         /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)

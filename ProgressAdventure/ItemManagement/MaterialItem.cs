@@ -1,4 +1,5 @@
-﻿using PACommon.JsonUtils;
+﻿using PACommon.Enums;
+using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
@@ -16,7 +17,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="material">The material.</param>
         /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
-        public MaterialItem(Material material, double amount = 1)
+        public MaterialItem(EnumValue<Material> material, double amount = 1)
         {
             Type = ItemUtils.MATERIAL_ITEM_TYPE;
             Material = material;
@@ -124,7 +125,7 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref MaterialItem? itemObject)
         {
             if (
-                !PACTools.TryParseJsonValue<MaterialItem, Material>(
+                !PACTools.TryParseJsonValue<MaterialItem, EnumValue<Material>>(
                     itemJson,
                     Constants.JsonKeys.AItem.MATERIAL,
                     out var material,

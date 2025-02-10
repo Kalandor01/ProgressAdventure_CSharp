@@ -17,7 +17,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         public CompoundItemAttributesDTO(EnumTreeValue<ItemType> itemType, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
             : this(
-                  $"*/0MC/* {ItemUtils.ItemIDToDisplayName(itemType)}",
+                  $"*/0MC/* {ItemUtils.ItemTypeToDisplayName(itemType)}",
                   unit
                 )
         { }

@@ -385,14 +385,18 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v1";
+        public const string CONFIG_VERSION = "v2";
         #endregion
 
         #region Other
         /// <summary>
         /// If there should be a final exeption cacher, that catces all errors.
         /// </summary>
+#if DEBUG
         public const bool ERROR_HANDLING = false;
+#else
+        public const bool ERROR_HANDLING = true;
+#endif
         /// <summary>
         /// The interval at which the auto saver tries to save in milliseconds.
         /// </summary>

@@ -274,6 +274,36 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Clears the values form an <see cref="AdvancedEnum{TSelf}"/>, and sets the default values.
+        /// </summary>
+        /// <typeparam name="TEnum">The type of the <see cref="AdvancedEnum{TSelf}"/>.</typeparam>
+        /// <param name="defaultValues">The default values for that <see cref="AdvancedEnum{TSelf}"/>.</param>
+        public static void LoadDefultAdvancedEnum<TEnum>(List<EnumValue<TEnum>> defaultValues)
+            where TEnum : AdvancedEnum<TEnum>
+        {
+            AdvancedEnum<TEnum>.Clear();
+            foreach (var defaultvalue in defaultValues)
+            {
+                AdvancedEnum<TEnum>.TryAddValue(defaultvalue.Name, out _);
+            }
+        }
+
+        /// <summary>
+        /// Clears the values form an <see cref="AdvancedEnumTree{TSelf}{TSelf}"/>, and sets the default values.
+        /// </summary>
+        /// <typeparam name="TEnum">The type of the <see cref="AdvancedEnumTree{TSelf}{TSelf}"/>.</typeparam>
+        /// <param name="defaultValues">The default values for that <see cref="AdvancedEnumTree{TSelf}{TSelf}"/>.</param>
+        public static void LoadDefultAdvancedEnumTree<TEnum>(List<EnumTreeValue<TEnum>> defaultValues)
+            where TEnum : AdvancedEnumTree<TEnum>
+        {
+            AdvancedEnumTree<TEnum>.Clear();
+            foreach (var defaultvalue in defaultValues)
+            {
+                AdvancedEnumTree<TEnum>.TryAddValue(defaultvalue.FullName, out _);
+            }
+        }
+
+        /// <summary>
         /// Loads the default vlues for all variables that come from configs;
         /// </summary>
         public static void LoadDefaultConfigs()
@@ -325,17 +355,18 @@ namespace ProgressAdventure
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
         public static void ReloadConfigs(int? showProgressIndentation = null)
         {
-            var vanillaRecreated = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
+            var vanillaInvalid = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
             var configDatas = ConfigUtils.GetValidConfigDatas(null);
             var namespaces = loadingOrder
                 .Where(lo => lo.Enabled)
                 .Select(lo => configDatas.First(cd => cd.configData.Namespace == lo.Namespace).folderName)
                 .ToList();
 
-            SettingsUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
-            EntityUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
-            ItemUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
-            WorldUtils.ReloadConfigs(namespaces, vanillaRecreated, showProgressIndentation);
+            // TODO: configs for more enums, namespaces for more (keys?) + in correcters
+            SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
+            EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
+            ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
+            WorldUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
 
             PACSingletons.Instance.Logger.Log("All configs reloaded");
         }

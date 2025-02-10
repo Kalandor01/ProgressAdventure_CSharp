@@ -130,7 +130,7 @@ namespace PACommon.Enums
         {
             return TryGetValue(name, out var value)
                 ? value
-                : throw new ArgumentException($"A value with the given name doesn't exist in the {typeof(TSelf)} enum", nameof(name));
+                : throw new ArgumentException($"A value with the name \"{name}\" doesn't exist in the {typeof(TSelf)} enum", nameof(name));
         }
 
         /// <summary>

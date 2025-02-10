@@ -13,7 +13,24 @@ namespace ProgressAdventure.Entity
     /// </summary>
     public static class EntityUtils
     {
-        #region Default config dicts
+        #region Default config values
+        /// <summary>
+        /// The default value for the config used for the values of <see cref="Attribute"/>.
+        /// </summary>
+        private static readonly List<EnumValue<Attribute>> _defaultAttributes =
+        [
+            Attribute.RARE,
+            Attribute.CRIPPLED,
+            Attribute.HEALTHY,
+            Attribute.SICK,
+            Attribute.STRONG,
+            Attribute.WEAK,
+            Attribute.TOUGH,
+            Attribute.FRAIL,
+            Attribute.AGILE,
+            Attribute.SLOW,
+        ];
+
         /// <summary>
         /// The default value for the config used for the value of <see cref="EntityTypeMap"/>.
         /// </summary>
@@ -92,6 +109,7 @@ namespace ProgressAdventure.Entity
         {
             EntityTypeMap = _defaultEntityTypeMap;
             FacingToMovementVectorMap = _defaultFacingToMovementVectorMap;
+            Tools.LoadDefultAdvancedEnum(_defaultAttributes);
             AttributeStatChangeMap = _defaultAttributeStatChangeMap;
         }
 
@@ -115,6 +133,12 @@ namespace ProgressAdventure.Entity
                     [nameof(move.x)] = move.x,
                     [nameof(move.y)] = move.y,
                 }
+            );
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes"),
+                null,
+                _defaultAttributes
             );
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
@@ -164,6 +188,15 @@ namespace ProgressAdventure.Entity
                 null, null,
                 isVanillaInvalid,
                 showProgressIndentation
+            );
+
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes"),
+                namespaceFolders,
+                _defaultAttributes,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true
             );
 
             AttributeStatChangeMap = ConfigUtils.ReloadConfigsAggregateDict(

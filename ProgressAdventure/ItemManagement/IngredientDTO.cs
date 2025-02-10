@@ -20,7 +20,7 @@ namespace ProgressAdventure.ItemManagement
         /// The material of the item, that is required for the recipe.
         /// </summary>
         [JsonPropertyName("material")]
-        public readonly Material? material;
+        public readonly EnumValue<Material>? material;
         /// <summary>
         /// The amount of the item, that the recipe requires.
         /// </summary>
@@ -58,7 +58,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amount"><inheritdoc cref="amount" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         /// <exception cref="ArgumentException">Thrown, if the unit is amount.</exception>
-        public IngredientDTO(Material material, double amount = 1, ItemAmountUnit? unit = null)
+        public IngredientDTO(EnumValue<Material> material, double amount = 1, ItemAmountUnit? unit = null)
             : this(ItemUtils.MATERIAL_ITEM_TYPE, material, amount, unit)
         { }
 
@@ -83,7 +83,7 @@ namespace ProgressAdventure.ItemManagement
         /// Amount does nothing (the same as null).</param>
         /// <exception cref="ArgumentException">Thrown, if the item type is material, and the unit is amount.</exception>
         [JsonConstructor]
-        public IngredientDTO(EnumTreeValue<ItemType> itemType, Material? material = null, double amount = 1, ItemAmountUnit? unit = null)
+        public IngredientDTO(EnumTreeValue<ItemType> itemType, EnumValue<Material>? material = null, double amount = 1, ItemAmountUnit? unit = null)
         {
             this.itemType = itemType;
             this.material = material;
@@ -115,7 +115,7 @@ namespace ProgressAdventure.ItemManagement
             return $"{(
                     material is null && itemType == ItemType.Misc.MATERIAL
                         ? "ANY MATERIAL"
-                        : $"{(material is null ? "" : $"{(Material)material} ")}{(itemType == ItemType.Misc.MATERIAL ? "" : itemType.FullName)}"
+                        : $"{(material is null ? "" : $"{material} ")}{(itemType == ItemType.Misc.MATERIAL ? "" : itemType.FullName)}"
                 )} x{amount}{(unit is null || unit == ItemAmountUnit.AMOUNT ? "" : (ItemAmountUnit)unit)}";
         }
     }

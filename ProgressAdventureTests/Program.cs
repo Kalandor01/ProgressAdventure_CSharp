@@ -12,6 +12,7 @@ using ProgressAdventure.Enums;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
 using System.Text.Json.Serialization;
+using Attribute = ProgressAdventure.Enums.Attribute;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = ProgressAdventure.Tools;
@@ -54,6 +55,8 @@ namespace ProgressAdventureTests
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
                         new TypeConverter(),
+                        new AdvancedEnumConverter<Attribute>(),
+                        new AdvancedEnumConverter<Material>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new ConsoleKeyInfoConverter(),

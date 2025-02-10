@@ -118,8 +118,7 @@ namespace PACommon.Logging
 
         public void LogFinalLoggingException(Exception exception)
         {
-            Console.WriteLine($"\n\n\n\n\n\n\n\n\n\nLogger exception level 2:\n{exception}\n\n\n");
-            Console.ReadKey();
+            Console.WriteLine($"\nLogger exception level 2: {exception.Message}");
         }
 
         /// <summary>

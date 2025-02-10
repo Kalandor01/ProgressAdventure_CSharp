@@ -201,10 +201,10 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? ItemUtilsMaterialItemAttributesDictionaryCheck()
         {
-            var requiredKeys = Enum.GetValues<Material>();
+            var requiredKeys = Material.GetValues();
             var checkedDictionary = ItemUtils.MaterialItemAttributes;
 
-            var existingValues = new List<Material>();
+            var existingValues = new List<EnumValue<Material>>();
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
@@ -645,7 +645,7 @@ namespace ProgressAdventureTests
 
             // all item IDs can turn into items
             var errorMessages = new List<string>();
-            foreach (var material in Enum.GetValues<Material>())
+            foreach (var material in Material.GetValues())
             {
                 MaterialItem item;
                 try
@@ -1005,8 +1005,7 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
-        /// NOT WORKING!!!<br/>
-        /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.<br/>
+        /// Checks if all objects that implement IJsonConvertable can be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
         /// </summary>
         public static TestResultDTO? BasicJsonConvertTest()
@@ -1063,10 +1062,92 @@ namespace ProgressAdventureTests
             foreach (var testObject in testObjects)
             {
                 var objJson = testObject.ToJson();
-                //PACTools.FromJson<T>(objJson, PAConstants.SAVE_VERSION);
+                var genericConvertableTypes = testObject.GetType().GetInterfaces();
+                var genericConvertableType = genericConvertableTypes.First(t => t.Name == jsonConvertableType.Name);
+                var method = genericConvertableType?.GetMethod("FromJson", BindingFlags.Static | BindingFlags.Public);
+                var parameters = new object?[] { objJson, PAConstants.SAVE_VERSION, null };
+                var succObj = method?.Invoke(null, parameters);
+
+                if (succObj is not bool success || !success)
+                {
+                    return new TestResultDTO(LogSeverity.FAIL, $"Couldn't convert the json representation of {testObject.GetType()} back without errors/warnings.");
+                }
             }
 
-            return new TestResultDTO(LogSeverity.PASS, "Not realy implemented!");
+            return new TestResultDTO(LogSeverity.PASS, "Not fully implemented!");
+        }
+
+        /// <summary>
+        /// Checks if all objects that implement IJsonConvertableExtra can be converted to and from json.<br/>
+        /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
+        /// </summary>
+        public static TestResultDTO? BasicJsonConvertExtraTest()
+        {
+            // list of classes that implement "IJsonConvertableExra<T, TExtra>"!
+            //var testObjects = new List<IJsonReadable>
+            //{
+            //    new Caveman(),
+            //    new Ghoul(),
+            //    new Troll(),
+            //    new Dragon(),
+            //    new Player(),
+            //    new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
+            //    new Inventory(),
+            //    new MaterialItem(Material.FLINT),
+            //    new ActionKey(ActionType.ESCAPE, [new()]),
+            //    new Keybinds(),
+            //    new Chunk((1, 1)),
+            //    RandomStates.Initialize(),
+            //    SaveData.Initialize("test", initialiseRandomGenerators: false),
+            //    PACTools.FromJson<DisplaySaveData>(DisplaySaveData.ToJsonFromSaveData(SaveData.Instance), PAConstants.SAVE_VERSION) ?? throw new ArgumentNullException(nameof(DisplaySaveData), $"{nameof(DisplaySaveData)} from json should not be null."),
+            //};
+
+            //RandomStates.Initialize();
+
+            //// get all classes that implement IJsonConvertable<T>
+            //var jsonConvertableType = typeof(IJsonConvertableExtra<>);
+            //var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            //var unfilteredTypes = paAssembly.GetTypes().Where(jsonConvertableType.IsGenericAssignableFromType);
+            //var filteredTypes = unfilteredTypes.Where(type => !type.IsAbstract && !type.IsInterface);
+
+            ////check if all mocked classes are correct and present
+            //if (filteredTypes.Count() != testObjects.Count)
+            //{
+            //    var diff = testObjects.Count - filteredTypes.Count();
+            //    return new TestResultDTO(LogSeverity.FAIL, $"\n\tThere are {Math.Abs(diff)} {(diff > 0 ? "more" : "less")} test objects in the test objects list than there should be.");
+            //}
+
+            //var errorMessages = new List<string>();
+            //foreach (var testObject in testObjects)
+            //{
+            //    if (!filteredTypes.Any(type => type == testObject.GetType()))
+            //    {
+            //        errorMessages.Add($"The {testObject.GetType()} type object should not be in the test objects list.");
+            //        continue;
+            //    }
+            //}
+            //if (errorMessages.Count != 0)
+            //{
+            //    return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            //}
+
+            ////to/from json
+            //foreach (var testObject in testObjects)
+            //{
+            //    var objJson = testObject.ToJson();
+            //    var genericConvertableTypes = testObject.GetType().GetInterfaces();
+            //    var genericConvertableType = genericConvertableTypes.First(t => t.Name == jsonConvertableType.Name);
+            //    var method = genericConvertableType?.GetMethod("FromJson", BindingFlags.Static | BindingFlags.Public);
+            //    var parameters = new object?[] { objJson, PAConstants.SAVE_VERSION, null };
+            //    var succObj = method?.Invoke(null, parameters);
+
+            //    if (succObj is not bool success || !success)
+            //    {
+            //        return new TestResultDTO(LogSeverity.FAIL, $"Couldn't convert the json representation of {testObject.GetType()} back without errors/warnings.");
+            //    }
+            //}
+
+            return new TestResultDTO(LogSeverity.PASS, "Not implemented!");
         }
 
         /// <summary>
@@ -1250,7 +1331,7 @@ namespace ProgressAdventureTests
             if (!success)
             {
                 // TODO: remove
-                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" TODO: add namespace to item names");
+                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" TODO: add namespace to item/material/attribute names");
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
             }
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");

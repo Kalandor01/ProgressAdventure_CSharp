@@ -239,7 +239,31 @@ namespace ProgressAdventure.ItemManagement
         internal static readonly string MATERIAL_TYPE_NAME = MATERIAL_ITEM_TYPE.FullName;
         #endregion
 
-        #region Default config dicts
+        #region Default config values
+        /// <summary>
+        /// The default value for the config used for the values of <see cref="Material"/>.
+        /// </summary>
+        private static readonly List<EnumValue<Material>> _defaultMaterials =
+        [
+            Material.WOOD,
+            Material.STONE,
+            Material.COPPER,
+            Material.BRASS,
+            Material.IRON,
+            Material.STEEL,
+            Material.GLASS,
+            Material.LEATHER,
+            Material.TEETH,
+            Material.WOOL,
+            Material.CLOTH,
+            Material.SILVER,
+            Material.GOLD,
+            Material.ROTTEN_FLESH,
+            Material.HEALING_LIQUID,
+            Material.FLINT,
+            Material.SILK,
+        ];
+
         /// <summary>
         /// The default value for the config used for the values of <see cref="ItemType"/>.
         /// </summary>
@@ -299,7 +323,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The default value for the config used for the value of <see cref="MaterialItemAttributes"/>.
         /// </summary>
-        private static readonly Dictionary<Material, MaterialItemAttributesDTO> _defaultMaterialItemAttributes = new()
+        private static readonly Dictionary<EnumValue<Material>, MaterialItemAttributesDTO> _defaultMaterialItemAttributes = new()
         {
             [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS, new MaterialPropertiesDTO(8730)),
             [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH, new MaterialPropertiesDTO(1550)),
@@ -399,7 +423,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The dictionary pairing up material types, to their item attributes.
         /// </summary>
-        public static Dictionary<Material, MaterialItemAttributesDTO> MaterialItemAttributes { get; private set; }
+        public static Dictionary<EnumValue<Material>, MaterialItemAttributesDTO> MaterialItemAttributes { get; private set; }
 
         /// <summary>
         /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
@@ -424,14 +448,102 @@ namespace ProgressAdventure.ItemManagement
 
         #region Public fuctions
         #region Configs
+        #region Write default config or get reload common data
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataMaterials(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "materials");
+            if (isWriteConfig)
+            {
+                PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultMaterials
+                );
+                return default;
+            }
+            return (basePath, false);
+        }
+
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataItemTypes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types");
+            if (isWriteConfig)
+            {
+                PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultItemTypes
+                );
+                return default;
+            }
+            return (basePath, false);
+        }
+
+        private static (
+            string configName,
+            Func<EnumTreeValue<ItemType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataCompoundItemAttributes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes");
+            static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
+            if (isWriteConfig)
+            {
+                PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultCompoundItemAttributes,
+                    KeySerializer
+                );
+                return default;
+            }
+            return (basePath, KeySerializer);
+        }
+
+        private static (
+            string configName,
+            Func<EnumValue<Material>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataMaterialItemAttributes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes");
+            static string KeySerializer(EnumValue<Material> key) => key.Name!;
+            if (isWriteConfig)
+            {
+                PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultMaterialItemAttributes,
+                    KeySerializer
+                );
+                return default;
+            }
+            return (basePath, KeySerializer);
+        }
+
+        private static (
+            string configName,
+            Func<EnumTreeValue<ItemType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataItemRecipes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes");
+            static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
+            if (isWriteConfig)
+            {
+                PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultItemRecipes,
+                    KeySerializer
+                );
+                return default;
+            }
+            return (basePath, KeySerializer);
+        }
+        #endregion
+
         public static void LoadDefaultConfigs1()
         {
-            ItemType.Clear();
-            foreach (var defaultItemType in _defaultItemTypes)
-            {
-                ItemType.TryAddValue(defaultItemType.FullName, out _);
-            }
-
+            Tools.LoadDefultAdvancedEnum(_defaultMaterials);
+            Tools.LoadDefultAdvancedEnumTree(_defaultItemTypes);
             CompoundItemAttributes = _defaultCompoundItemAttributes;
             MaterialItemAttributes = _defaultMaterialItemAttributes;
         }
@@ -455,37 +567,26 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
-                null,
-                _defaultItemTypes
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
-                null,
-                _defaultCompoundItemAttributes,
-                key => key.FullName!
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
-                null,
-                _defaultMaterialItemAttributes
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
-                null,
-                _defaultItemRecipes,
-                item => item.FullName
-            );
+            WriteDefaultConfigOrGetReloadDataMaterials(true);
+            WriteDefaultConfigOrGetReloadDataItemTypes(true);
+            WriteDefaultConfigOrGetReloadDataCompoundItemAttributes(true);
+            WriteDefaultConfigOrGetReloadDataMaterialItemAttributes(true);
+            WriteDefaultConfigOrGetReloadDataItemRecipes(true);
         }
 
         private static void ReloadConfigs1(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
         {
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                WriteDefaultConfigOrGetReloadDataMaterials(false).configName,
+                namespaceFolders,
+                _defaultMaterials,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true
+            );
+
             ConfigUtils.ReloadConfigsAggregateAdvancedEnumTree(
-                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types"),
+                WriteDefaultConfigOrGetReloadDataItemTypes(false).configName,
                 namespaceFolders,
                 _defaultItemTypes,
                 isVanillaInvalid,
@@ -493,21 +594,25 @@ namespace ProgressAdventure.ItemManagement
                 true
             );
 
+            var compoundAttributesData = WriteDefaultConfigOrGetReloadDataCompoundItemAttributes(false);
             CompoundItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes"),
+                compoundAttributesData.configName,
                 namespaceFolders,
                 _defaultCompoundItemAttributes,
-                key => key.FullName,
+                compoundAttributesData.serializeKeys,
                 key => (ItemType.TryGetValue(ConfigUtils.GetNamepsacedString(key), out var value) ? value : null)
                     ?? throw new ArgumentNullException($"Unknown item type name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
+            var materialAttributesData = WriteDefaultConfigOrGetReloadDataMaterialItemAttributes(false);
             MaterialItemAttributes = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes"),
+                materialAttributesData.configName,
                 namespaceFolders,
                 _defaultMaterialItemAttributes,
+                materialAttributesData.serializeKeys,
+                Material.GetValue,
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -515,11 +620,12 @@ namespace ProgressAdventure.ItemManagement
 
         private static void ReloadConfigs2(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
         {
+            var itemRecipesData = WriteDefaultConfigOrGetReloadDataItemRecipes(false);
             ItemRecipes = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes"),
+                itemRecipesData.configName,
                 namespaceFolders,
                 _defaultItemRecipes,
-                item => item.FullName,
+                itemRecipesData.serializeKeys,
                 key => ParseItemType(key)
                     ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
@@ -571,9 +677,13 @@ namespace ProgressAdventure.ItemManagement
         /// Converts the item type, to it's default display name.
         /// </summary>
         /// <param name="itemType">The item type.</param>
-        public static string ItemIDToDisplayName(EnumTreeValue<ItemType> itemType)
+        public static string ItemTypeToDisplayName(EnumTreeValue<ItemType> itemType)
         {
-            var displayName = itemType.FullName.Split(ItemType.LayerNameSeparator).Last().Replace("_", " ").Capitalize();
+            var displayName = ConfigUtils.RemoveNamespace(itemType.FullName)
+                .Split(ItemType.LayerNameSeparator)
+                .Last()
+                .Replace("_", " ")
+                .Capitalize();
             return string.IsNullOrWhiteSpace(displayName) ? "[INVALID ITEM NAME]" : displayName;
         }
 
@@ -603,11 +713,11 @@ namespace ProgressAdventure.ItemManagement
 
                     if (propertyType == "T")
                     {
-                        extraText = ItemIDToDisplayName(parts[materialIndex].Type).ToString()?.Replace("_", " ") ?? "";
+                        extraText = ItemTypeToDisplayName(parts[materialIndex].Type) ?? "";
                     }
                     else if (propertyType == "M")
                     {
-                        extraText = parts[materialIndex].Material.ToString().Replace("_", " ");
+                        extraText = ConfigUtils.RemoveNamespace(parts[materialIndex].Material.Name).Replace("_", " ");
                     }
                     else
                     {
@@ -863,7 +973,7 @@ namespace ProgressAdventure.ItemManagement
         /// If null it tries to use the first recipe that creates the amount of items that were requested.</param>
         public static CompoundItem CreateCompoundItem(
             EnumTreeValue<ItemType> targetItem,
-            List<Material?> materials,
+            List<EnumValue<Material>?> materials,
             double amount = 1,
             RecipeTreeDTO? targetRecipeTree = null
         )
@@ -926,7 +1036,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="material">The material to use, for the material of the item, if posible.</param>
         public static CompoundItem CreateCompoundItem(
             EnumTreeValue<ItemType> targetItem,
-            Material? material = null,
+            EnumValue<Material>? material = null,
             double amount = 1,
             RecipeTreeDTO? targetRecipe = null
         )

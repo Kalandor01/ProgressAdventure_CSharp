@@ -528,7 +528,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="loadingDatas">The returned config loading datas.</param>
         /// <param name="defaultEnabled">Whether newly added configs should be enabled by default.</param>
         /// <param name="defaultEnabledIncludesVanilla">Wether defaultEnabled works the same for the vanilla config, or inverted.</param>
-        /// <returns>Whether the vanilla config data file needed to be recreated.</returns>
+        /// <returns>If the vanilla config is valid/needed to be recreated.</returns>
         /// <exception cref="ArgumentNullException">Thrown if after recreating the loading order, it still can't get it.</exception>
         public static bool TryGetLoadingOrderAndCorrect(
             out List<ConfigLoadingData> loadingDatas,
@@ -538,13 +538,17 @@ namespace ProgressAdventure.ConfigManagement
         {
             var configDatas = GetValidConfigDatas(null);
 
-            var vanillaDataRecreated = false;
-            if (!configDatas.Any(cd => cd.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE))
+            var vanillaIsInvalid = false;
+            var vanillaConfigData = configDatas.FirstOrDefault(cd => cd.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE);
+            if (vanillaConfigData?.configData.Version != Constants.CONFIG_VERSION)
             {
                 var paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
-                vanillaDataRecreated = true;
+                vanillaIsInvalid = true;
                 new ConfigData(paNspace, Constants.CONFIG_VERSION).SerializeToFile(paNspace);
-                configDatas.Add(new ConfigDataFull(paNspace, new ConfigData(paNspace, "")));
+                if (vanillaConfigData is null)
+                {
+                    configDatas.Add(new ConfigDataFull(paNspace, new ConfigData(paNspace, "")));
+                }
             }
 
             var loadingOrder = GetLoadingOrderData();
@@ -561,7 +565,7 @@ namespace ProgressAdventure.ConfigManagement
                 nspaces.Insert(0, vanillaConfig);
                 SetLoadingOrderData(nspaces);
                 loadingDatas = GetLoadingOrderData() ?? throw new ArgumentNullException("Could not get loading order!");
-                return vanillaDataRecreated;
+                return vanillaIsInvalid;
             }
 
             var changed = false;
@@ -604,7 +608,7 @@ namespace ProgressAdventure.ConfigManagement
             }
 
             loadingDatas = loadingOrder;
-            return vanillaDataRecreated;
+            return vanillaIsInvalid;
         }
         #endregion
 
@@ -693,6 +697,17 @@ namespace ProgressAdventure.ConfigManagement
         public static string MakeNamespacedString(string str, string nspace = Constants.VANILLA_CONFIGS_NAMESPACE)
         {
             return $"{nspace}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
+        }
+
+        /// <summary>
+        /// Removes the namespace from a namespaced string.
+        /// </summary>
+        /// <param name="namespacedString">The namespaced string.</param>
+        /// <returns>The namespaced string or the original string if it wasn't namespaced.</returns>
+        public static string RemoveNamespace(string namespacedString)
+        {
+            var sepIndex = namespacedString.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
+            return sepIndex != -1 ? namespacedString[(sepIndex + 1)..] : namespacedString;
         }
         #endregion
 

@@ -17,6 +17,7 @@ using ProgressAdventure.WorldManagement;
 using System.Text;
 using System.Text.Json.Serialization;
 using AItem = ProgressAdventure.ItemManagement.AItem;
+using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
@@ -99,7 +100,7 @@ namespace ProgressAdventure
                     sValueIndex++;
                     var craftable = ItemUtils.GetRequiredItemsForRecipe(recipe, inventory.items, recipeAmount) is not null;
                     (byte r, byte g, byte b)? color = craftable ? null : Constants.Colors.RED;
-                    var rawText = Tools.StylizedText(ItemUtils.ItemIDToDisplayName(itemRecipe.Key) + " x", color);
+                    var rawText = Tools.StylizedText(ItemUtils.ItemTypeToDisplayName(itemRecipe.Key) + " x", color);
 
                     recipeElements.Add(new TextField(
                         recipeAmount.ToString(),
@@ -178,6 +179,8 @@ namespace ProgressAdventure
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
                         new TypeConverter(),
+                        new AdvancedEnumConverter<Attribute>(),
+                        new AdvancedEnumConverter<Material>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new ConsoleKeyInfoConverter(),
@@ -214,28 +217,24 @@ namespace ProgressAdventure
         /// </summary>
         static void PreloadingErrorHandler()
         {
-            try
+            bool exitPreloading;
+            do
             {
-                Preloading();
-            }
-            catch (RestartException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                if (e.InnerException is RestartException)
+                exitPreloading = true;
+                try
                 {
-                    throw;
+                    Preloading();
                 }
-
-                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                if (Constants.ERROR_HANDLING)
+                catch (Exception e)
                 {
-                    Utils.PressKey("ERROR: " + e.Message);
+                    if (MenuManager.HandleErrorMenu(e, true))
+                    {
+                        throw;
+                    }
+                    exitPreloading = false;
                 }
-                throw;
             }
+            while (!exitPreloading);
         }
 
         /// <summary>
@@ -243,8 +242,6 @@ namespace ProgressAdventure
         /// </summary>
         static void MainErrorHandler()
         {
-            // general crash handler (release only)
-
             bool exitGame;
             do
             {
@@ -257,32 +254,13 @@ namespace ProgressAdventure
                     PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
                     PACSingletons.Instance.Dispose();
                 }
-                catch (RestartException)
-                {
-                    throw;
-                }
                 catch (Exception e)
                 {
-                    if (e.InnerException is RestartException)
+                    if (MenuManager.HandleErrorMenu(e, false))
                     {
                         throw;
                     }
-
-                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                    if (Constants.ERROR_HANDLING)
-                    {
-                        Console.WriteLine("ERROR: " + e.Message);
-                        var ans = Utils.Input("Restart?(Y/N): ");
-                        if (ans is not null && ans.ToUpper() == "Y")
-                        {
-                            PACSingletons.Instance.Logger.Log("Restarting instance", forceLog: true);
-                            exitGame = false;
-                        }
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    exitGame = false;
                 }
             }
             while (!exitGame);

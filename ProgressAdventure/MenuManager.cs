@@ -139,6 +139,82 @@ namespace ProgressAdventure
             }
             return (int)new UIList(answersList, question, Constants.STANDARD_CURSOR_ICONS, canEscape: canEscape).Display(keybindList) == (yesFirst ? 0 : 1);
         }
+
+        /// <summary>
+        /// Hadles exceptions in a main context and displays a menu for reloading.
+        /// </summary>
+        /// <param name="exception">The exception thwt was thrown.</param>
+        /// <param name="isPreloading">If the current context is preloading.</param>
+        /// <returns>Whether to rethrow.</returns>
+        public static bool HandleErrorMenu(Exception exception, bool isPreloading)
+        {
+            if (
+                exception is RestartException ||
+                exception.InnerException is RestartException
+            )
+            {
+                return true;
+            }
+
+            var contextName = isPreloading ? "preloading" : "instance";
+            PACSingletons.Instance.Logger.Log(
+                $"{contextName.Capitalize()} crashed",
+                exception.ToString(),
+                LogSeverity.FATAL,
+                forceLog: true
+            );
+
+            if (!Constants.ERROR_HANDLING)
+            {
+                return true;
+            }
+
+            try
+            {
+                var restartAnwers = new List<string?>
+                {
+                    "Restart",
+                    "Restart in safe mode (only vanilla config enabled)",
+                    "Exit"
+                };
+                var response = (int)new UIList(restartAnwers, "ERROR: " + exception.Message).Display();
+                
+                if (response == 1)
+                {
+                    ConfigUtils.SetLoadingOrderData([new ConfigLoadingData(Constants.VANILLA_CONFIGS_NAMESPACE, true)]);
+                    throw new RestartException($"Restarting {contextName} in safe mode");
+                }
+                else if (response == 0)
+                {
+                    PACSingletons.Instance.Logger.Log($"Restarting {contextName}", forceLog: true);
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch (Exception inException)
+            {
+                if (
+                    inException is RestartException ||
+                    inException.InnerException is RestartException
+                )
+                {
+                    throw;
+                }
+
+                Console.WriteLine("ERROR: " + inException.Message);
+                Console.WriteLine("WHILE TRYING TO DISPLAY THE ORIGINAL ERROR: " + exception.Message);
+                var ans = Utils.Input("Restart?(Y/N): ");
+                var restart = ans is not null && ans.ToUpper() == "Y";
+                if (restart)
+                {
+                    PACSingletons.Instance.Logger.Log($"Restarting {contextName}", forceLog: true);
+                }
+                return !restart;
+            }
+        }
         #endregion
 
         #region Inventory viewer
@@ -323,7 +399,7 @@ namespace ProgressAdventure
 
 
 
-            var vanillaRecreated = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
+            var vanillaInvalid = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
             var configs = ConfigUtils.GetValidConfigDatas(null);
 
             // menu elements

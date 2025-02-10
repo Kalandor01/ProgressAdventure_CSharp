@@ -46,7 +46,7 @@ namespace ProgressAdventure.ItemManagement
         /// <summary>
         /// The material, the item is (mainly) made out of.
         /// </summary>
-        public Material Material { get; protected set; }
+        public EnumValue<Material> Material { get; protected set; }
 
         /// <summary>
         /// <inheritdoc cref="_amount"/>

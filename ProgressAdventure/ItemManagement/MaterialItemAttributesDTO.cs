@@ -1,4 +1,6 @@
-﻿using PACommon.Extensions;
+﻿using PACommon.Enums;
+using PACommon.Extensions;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Text.Json.Serialization;
 
@@ -23,9 +25,9 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="material">The material.</param>
         /// <param name="unit"><inheritdoc cref="AItemAttributesDTO.unit" path="//summary"/></param>
-        public MaterialItemAttributesDTO(Material material, MaterialPropertiesDTO properties, ItemAmountUnit unit = ItemAmountUnit.KG)
+        public MaterialItemAttributesDTO(EnumValue<Material> material, MaterialPropertiesDTO properties, ItemAmountUnit unit = ItemAmountUnit.KG)
             : this(
-                  material.ToString().Replace("_", " ").Capitalize(),
+                  ConfigUtils.RemoveNamespace(material.Name).Replace("_", " ").Capitalize(),
                   properties,
                   unit
                 )
