@@ -410,13 +410,13 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <param name="expectedVersion">The expected version of the config namespaces.<br/>
         /// If null, it doesn't care about the versions.</param>
-        public static List<ConfigDataFull> GetValidConfigDatas(string? expectedVersion = Constants.CONFIG_VERSION)
+        public static List<ConfigData> GetValidConfigDatas(string? expectedVersion = Constants.CONFIG_VERSION)
         {
             PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER_PATH, "configs");
             return Directory.GetDirectories(Constants.CONFIGS_FOLDER_PATH)
-                .Select(folder => ConfigDataFull.DeserializeFromFile(Path.GetFileName(folder)))
-                .Where(cd => cd is not null && (expectedVersion is null || expectedVersion == cd.configData.Version))
-                .Cast<ConfigDataFull>()
+                .Select(folder => ConfigData.DeserializeFromFile(Path.GetFileName(folder)))
+                .Where(cd => cd is not null && (expectedVersion is null || expectedVersion == cd.Version))
+                .Cast<ConfigData>()
                 .ToList();
         }
 
@@ -427,7 +427,7 @@ namespace ProgressAdventure.ConfigManagement
         /// If null, it doesn't care about the versions.</param>
         public static List<string> GetValidNamespaceFolders(string? expectedVersion = Constants.CONFIG_VERSION)
         {
-            return GetValidConfigDatas(expectedVersion).Select(cd => cd.folderName).ToList();
+            return GetValidConfigDatas(expectedVersion).Select(cd => cd.FolderName).ToList();
         }
 
         /// <summary>
@@ -465,7 +465,7 @@ namespace ProgressAdventure.ConfigManagement
                 var configLoadingData = ConfigLoadingData.FromJson(configLoadingDataJson);
                 if (
                     configLoadingData is not null &&
-                    (configData is null || configData.Any(cd => cd.configData.Namespace == configLoadingData.Namespace))
+                    (configData is null || configData.Any(cd => cd.Namespace == configLoadingData.Namespace))
                 )
                 {
                     configLoadingDatas.Add(configLoadingData);
@@ -539,15 +539,15 @@ namespace ProgressAdventure.ConfigManagement
             var configDatas = GetValidConfigDatas(null);
 
             var vanillaIsInvalid = false;
-            var vanillaConfigData = configDatas.FirstOrDefault(cd => cd.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE);
-            if (vanillaConfigData?.configData.Version != Constants.CONFIG_VERSION)
+            var vanillaConfigData = configDatas.FirstOrDefault(cd => cd.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE);
+            if (vanillaConfigData?.Version != Constants.CONFIG_VERSION)
             {
                 var paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
                 vanillaIsInvalid = true;
-                new ConfigData(paNspace, Constants.CONFIG_VERSION).SerializeToFile(paNspace);
+                new ConfigData(paNspace, paNspace, Constants.CONFIG_VERSION).SerializeToFile();
                 if (vanillaConfigData is null)
                 {
-                    configDatas.Add(new ConfigDataFull(paNspace, new ConfigData(paNspace, "")));
+                    configDatas.Add(new ConfigData(paNspace, paNspace, ""));
                 }
             }
 
@@ -555,11 +555,11 @@ namespace ProgressAdventure.ConfigManagement
             if (loadingOrder is null)
             {
                 var nspaces = configDatas
-                    .Where(ns => ns.configData.Namespace != Constants.VANILLA_CONFIGS_NAMESPACE)
-                    .Select(ns => new ConfigLoadingData(ns.configData.Namespace, defaultEnabled))
+                    .Where(ns => ns.Namespace != Constants.VANILLA_CONFIGS_NAMESPACE)
+                    .Select(ns => new ConfigLoadingData(ns.Namespace, defaultEnabled))
                     .ToList();
                 var vanillaConfig = new ConfigLoadingData(
-                    configDatas.First(ns => ns.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE).folderName,
+                    configDatas.First(ns => ns.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE).FolderName,
                     defaultEnabledIncludesVanilla ? defaultEnabled : !defaultEnabled
                 );
                 nspaces.Insert(0, vanillaConfig);
@@ -574,7 +574,7 @@ namespace ProgressAdventure.ConfigManagement
             foreach (var loadingConfig in loadingOrder)
             {
                 if (
-                    configDatas.Any(cd => cd.configData.Namespace == loadingConfig.Namespace) &&
+                    configDatas.Any(cd => cd.Namespace == loadingConfig.Namespace) &&
                     !loadingOrder2.Any(lo2 => lo2.Namespace == loadingConfig.Namespace)
                 )
                 {
@@ -588,12 +588,12 @@ namespace ProgressAdventure.ConfigManagement
             // add missing namespaces
             foreach (var configData in configDatas)
             {
-                if (!loadingOrder.Any(ld => ld.Namespace == configData.configData.Namespace))
+                if (!loadingOrder.Any(ld => ld.Namespace == configData.Namespace))
                 {
                     loadingOrder.Add(
                         new ConfigLoadingData(
-                            configData.configData.Namespace,
-                            configData.configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE
+                            configData.Namespace,
+                            configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE
                                 ? (defaultEnabledIncludesVanilla ? defaultEnabled : !defaultEnabled)
                                 : defaultEnabled
                         )
@@ -609,6 +609,64 @@ namespace ProgressAdventure.ConfigManagement
 
             loadingDatas = loadingOrder;
             return vanillaIsInvalid;
+        }
+
+        /// <summary>
+        /// Gets all dependency errors with the currently enabled configs.
+        /// </summary>
+        /// <param name="loadingOrder">The current loading order.</param>
+        /// <param name="configDatas">The config datas.</param>
+        /// <returns>A dictionary, where the keys are the incorrect config namespace names and the value signals the problem:<br/>
+        /// - If the list is null, it means that there is no config data associated with this config.<br/>
+        /// - Otherwise, each element of the list is an invalid depedency. The tape depends of the invalidType:<br/>
+        ///     - -1: missing namespace<br/>
+        ///     - 0: disabled namespace<br/>
+        ///     - 1: dependency loaded before dependant</returns>
+        public static Dictionary<string, List<(string dependency, int invalidType)>?> ValidateConfigDependencies(
+            List<ConfigLoadingData> loadingOrder,
+            List<ConfigData> configDatas
+        )
+        {
+            var invalids = new Dictionary<string, List<(string dependency, int invalidType)>?>();
+            for (var x = 0; x < loadingOrder.Count; x++)
+            {
+                var loadedConfig = loadingOrder[x];
+                var configData = configDatas.FirstOrDefault(c => c.Namespace == loadedConfig.Namespace);
+                if (configData is null)
+                {
+                    invalids.Add(loadedConfig.Namespace, null);
+                    continue;
+                }
+                if (
+                    !loadedConfig.Enabled ||
+                    configData.Dependencies.Count == 0
+                )
+                {
+                    continue;
+                }
+
+                var badDepends = new List<(string dependency, int invalidType)>();
+                foreach (var dependency in configData.Dependencies)
+                {
+                    if (loadingOrder.FirstOrDefault(lo => lo.Namespace == dependency) is not ConfigLoadingData dependencyLoading)
+                    {
+                        badDepends.Add((dependency, -1));
+                    }
+                    else if (!dependencyLoading.Enabled)
+                    {
+                        badDepends.Add((dependency, 0));
+                    }
+                    else if (loadingOrder.IndexOf(loadedConfig) < loadingOrder.IndexOf(dependencyLoading))
+                    {
+                        badDepends.Add((dependency, 1));
+                    }
+                }
+                if (badDepends.Count > 0)
+                {
+                    invalids.Add(configData.Namespace, badDepends);
+                }
+            }
+            return invalids;
         }
         #endregion
 

@@ -944,8 +944,8 @@ namespace PACommon
         /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         /// <returns>If all values where succesfuly parsed.</returns>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         public static bool TryParseJsonListValue<T, TRes>(
             JsonDictionary objectJson,
             string jsonKey,
@@ -1000,7 +1000,7 @@ namespace PACommon
         /// <param name="extension">The extension of the file that will be decoded.</param>
         /// <param name="expected">If the file is expected to exist.</param>
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
-        public static JsonDictionary? DecodeSaveAny(
+        private static JsonDictionary? DecodeSaveAny(
             ushort type,
             string filePath,
             long? seed,

@@ -19,9 +19,13 @@ namespace PACommon.JsonUtils
         private static JsonDataCorrecter? _instance = null;
 
         /// <summary>
-        /// The current save version.
+        /// The default current save version.
         /// </summary>
-        private readonly string saveVersion;
+        private readonly string defaultSaveVersion;
+        /// <summary>
+        /// The dictionary containig the object type names that don't use the default current save version paired with their current save version.
+        /// </summary>
+        private readonly Dictionary<string, string> saveVersionExceptions;
         /// <summary>
         /// Whether to order the json correcters by version number, before correcting, if the value passed into a correction method is null.
         /// </summary>
@@ -52,17 +56,28 @@ namespace PACommon.JsonUtils
         /// <summary>
         /// <inheritdoc cref="JsonDataCorrecter" path="//summary"/>
         /// </summary>
-        /// <param name="saveVersion"><inheritdoc cref="saveVersion" path="//summary"/></param>
+        /// <param name="defaultSaveVersion"><inheritdoc cref="defaultSaveVersion" path="//summary"/></param>
         /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
+        /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object type names that use that save version as their current save version.</param>
         /// <exception cref="ArgumentException"></exception>
-        private JsonDataCorrecter(string saveVersion, bool orderCorrecters)
+        private JsonDataCorrecter(
+            string defaultSaveVersion,
+            bool orderCorrecters,
+            IDictionary<string, IList<Type>>? specialObjectsBySaveVersion
+        )
         {
-            if (string.IsNullOrWhiteSpace(saveVersion))
+            if (string.IsNullOrWhiteSpace(defaultSaveVersion))
             {
-                throw new ArgumentException($"'{nameof(saveVersion)}' cannot be null or whitespace.", nameof(saveVersion));
+                throw new ArgumentException($"'{nameof(defaultSaveVersion)}' cannot be null or whitespace.", nameof(defaultSaveVersion));
             }
-            this.saveVersion = saveVersion;
+            this.defaultSaveVersion = defaultSaveVersion;
             this.orderCorrecters = orderCorrecters;
+            saveVersionExceptions = specialObjectsBySaveVersion is null
+                ? []
+                : specialObjectsBySaveVersion.SelectMany(
+                    versionEx => versionEx.Value.Select(type => (type, versionEx.Key))
+                )
+                .ToDictionary(item => item.type.FullName!, item => item.Key);
         }
         #endregion
 
@@ -70,12 +85,17 @@ namespace PACommon.JsonUtils
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
-        /// <param name="saveVersion"><inheritdoc cref="saveVersion" path="//summary"/></param>
+        /// <param name="defaultSaveVersion"><inheritdoc cref="defaultSaveVersion" path="//summary"/></param>
         /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
-        /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
-        public static JsonDataCorrecter Initialize(string saveVersion, bool orderCorrecters = false, bool logInitialization = true)
+        /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object type names that use that save version as their current save version.</param>
+        public static JsonDataCorrecter Initialize(
+            string defaultSaveVersion,
+            bool orderCorrecters = false,
+            IDictionary<string, IList<Type>>? specialObjectsBySaveVersion = null,
+            bool logInitialization = true
+        )
         {
-            _instance = new JsonDataCorrecter(saveVersion, orderCorrecters);
+            _instance = new JsonDataCorrecter(defaultSaveVersion, orderCorrecters, specialObjectsBySaveVersion);
             if (logInitialization)
             {
                 PACSingletons.Instance.Logger.Log($"{nameof(JsonDataCorrecter)} initialized");
@@ -139,7 +159,7 @@ namespace PACommon.JsonUtils
             bool? orderCorrecters = null
         )
         {
-            CorrectJsonData(typeof(T).ToString(), objectJson, correcters, fileVersion, orderCorrecters);
+            CorrectJsonData(typeof(T).FullName ?? typeof(T).Name, objectJson, correcters, fileVersion, orderCorrecters);
         }
 
         public void CorrectJsonData<TE>(
@@ -162,7 +182,7 @@ namespace PACommon.JsonUtils
             bool? orderCorrecters = null
         )
         {
-            CorrectJsonData(typeof(T).ToString(), objectJson, extraData, correcters, fileVersion, orderCorrecters);
+            CorrectJsonData(typeof(T).FullName ?? typeof(T).Name, objectJson, extraData, correcters, fileVersion, orderCorrecters);
         }
         #endregion
 
@@ -193,7 +213,10 @@ namespace PACommon.JsonUtils
             bool? orderCorrecters = null
         )
         {
-            if (correcters.Count == 0 || Utils.IsUpToDate(saveVersion, fileVersion))
+            var currentSaveVersion = saveVersionExceptions.TryGetValue(objectName, out var alternateSaveVersion)
+                ? alternateSaveVersion
+                : defaultSaveVersion;
+            if (correcters.Count == 0 || Utils.IsUpToDate(currentSaveVersion, fileVersion))
             {
                 return;
             }

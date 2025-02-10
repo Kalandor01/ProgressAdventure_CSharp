@@ -359,7 +359,7 @@ namespace ProgressAdventure
             var configDatas = ConfigUtils.GetValidConfigDatas(null);
             var namespaces = loadingOrder
                 .Where(lo => lo.Enabled)
-                .Select(lo => configDatas.First(cd => cd.configData.Namespace == lo.Namespace).folderName)
+                .Select(lo => configDatas.First(cd => cd.Namespace == lo.Namespace).FolderName)
                 .ToList();
 
             // TODO: configs for more enums, namespaces for more (keys?) + in correcters

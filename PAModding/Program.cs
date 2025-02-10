@@ -46,7 +46,15 @@ namespace PAModding
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
-                JsonDataCorrecter.Initialize(Constants.SAVE_VERSION, Constants.ORDER_JSON_CORRECTERS, false),
+                JsonDataCorrecter.Initialize(
+                    Constants.SAVE_VERSION,
+                    Constants.ORDER_JSON_CORRECTERS,
+                    new Dictionary<string, IList<Type>>
+                    {
+                        [Constants.CONFIG_VERSION] = [typeof(ConfigData)],
+                    },
+                    false
+                ),
                 ConfigManager.Initialize(
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
@@ -87,28 +95,24 @@ namespace PAModding
         /// </summary>
         static void PreloadingErrorHandler()
         {
-            try
+            bool exitPreloading;
+            do
             {
-                Preloading();
-            }
-            catch (RestartException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                if (e.InnerException is RestartException)
+                exitPreloading = true;
+                try
                 {
-                    throw;
+                    Preloading();
                 }
-
-                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                if (Constants.ERROR_HANDLING)
+                catch (Exception e)
                 {
-                    Utils.PressKey("ERROR: " + e.Message);
+                    if (MenuManager.HandleErrorMenu(e, true))
+                    {
+                        throw;
+                    }
+                    exitPreloading = false;
                 }
-                throw;
             }
+            while (!exitPreloading);
         }
 
         /// <summary>
@@ -116,8 +120,6 @@ namespace PAModding
         /// </summary>
         static void MainErrorHandler()
         {
-            // general crash handler (release only)
-
             bool exitGame;
             do
             {
@@ -130,32 +132,13 @@ namespace PAModding
                     PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
                     PACSingletons.Instance.Dispose();
                 }
-                catch (RestartException)
-                {
-                    throw;
-                }
                 catch (Exception e)
                 {
-                    if (e.InnerException is RestartException)
+                    if (MenuManager.HandleErrorMenu(e, false))
                     {
                         throw;
                     }
-
-                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                    if (Constants.ERROR_HANDLING)
-                    {
-                        Console.WriteLine("ERROR: " + e.Message);
-                        var ans = Utils.Input("Restart?(Y/N): ");
-                        if (ans is not null && ans.ToUpper() == "Y")
-                        {
-                            PACSingletons.Instance.Logger.Log("Restarting instance", forceLog: true);
-                            exitGame = false;
-                        }
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    exitGame = false;
                 }
             }
             while (!exitGame);

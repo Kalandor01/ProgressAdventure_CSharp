@@ -167,12 +167,22 @@ namespace ProgressAdventure
             public static readonly (byte r, byte g, byte b) RED = (255, 0, 0);
             public static readonly (byte r, byte g, byte b) GREEN = (0, 255, 0);
             public static readonly (byte r, byte g, byte b) BLUE = (0, 0, 255);
+            public static readonly (byte r, byte g, byte b) WARNING = (255, 200, 0);
         }
         #endregion
 
         #region Json keys
         public static class JsonKeys
         {
+            #region ConfigData
+            public static class ConfigData
+            {
+                public const string NAMESPACE = "namespace";
+                public const string VERSION = "version";
+                public const string DEPENDENCIES = "dependencies";
+            }
+            #endregion
+
             #region SaveData
             public static class SaveData
             {
@@ -383,9 +393,13 @@ namespace ProgressAdventure
         /// </summary>
         public const char NAMESPACE_SEPARATOR_CHAR = ':';
         /// <summary>
+        /// The oldest recognised config version.
+        /// </summary>
+        public const string OLDEST_CONFIG_VERSION = "v1";
+        /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v2";
+        public const string CONFIG_VERSION = "v3";
         #endregion
 
         #region Other
@@ -406,7 +420,7 @@ namespace ProgressAdventure
         /// </summary>
         public const int AUTO_SAVE_DELAY = 5000;
         /// <summary>
-        /// The ooldest recognised save version.
+        /// The oldest recognised save version.
         /// </summary>
         public const string OLDEST_SAVE_VERSION = "2.0";
         /// <summary>

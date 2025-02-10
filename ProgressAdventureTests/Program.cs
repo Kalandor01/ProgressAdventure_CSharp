@@ -50,7 +50,15 @@ namespace ProgressAdventureTests
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
-                JsonDataCorrecter.Initialize(PAConstants.SAVE_VERSION, PAConstants.ORDER_JSON_CORRECTERS, false),
+                JsonDataCorrecter.Initialize(
+                    PAConstants.SAVE_VERSION,
+                    PAConstants.ORDER_JSON_CORRECTERS,
+                    new Dictionary<string, IList<Type>>
+                    {
+                        [PAConstants.CONFIG_VERSION] = [typeof(ConfigData)],
+                    },
+                    false
+                ),
                 ConfigManager.Initialize(
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
