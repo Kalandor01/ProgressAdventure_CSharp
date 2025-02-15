@@ -21,6 +21,11 @@ namespace PACommon.Enums
         public static bool IsClearable { get; private set; } = false;
 
         /// <summary>
+        /// If values from the enum values list can be removed.
+        /// </summary>
+        public static bool IsRemovable { get; private set; } = false;
+
+        /// <summary>
         /// The layer separator in the names of the values of the enum.
         /// </summary>
         public static char LayerNameSeparator { get; private set; } = Constants.ENUM_TREE_DEFAULT_LAYER_SEP_CHAR;
@@ -97,6 +102,70 @@ namespace PACommon.Enums
 
             value = AddValue(null, fullName);
             return true;
+        }
+
+        /// <summary>
+        /// Removes an existing enum value from the list.
+        /// </summary>
+        /// <param name="parrent">The parrent enum value to remove this value from.</param>
+        /// <param name="name">The name of the value.</param>
+        /// <exception cref="ArgumentException">Thrown if the value doesn't exists, or <see cref="IsRemovable"/> is false.</exception>
+        public static void RemoveValue(EnumTreeValue<TSelf>? parrent, string name)
+        {
+            if (!IsClearable)
+            {
+                throw new ArgumentException("Removing enum values is disabled for this enum!", nameof(IsRemovable));
+            }
+
+            var trueParrentChildren = parrent is not null ? GetDTOValue(parrent.FullName).Children : EnumValues;
+            var fullName = parrent is not null ? parrent.FullName + LayerNameSeparator + name : name;
+
+            var value = new EnumTreeValueDTO<TSelf>([0], fullName, "test");
+            var success = trueParrentChildren.Remove(value);
+
+            if (!success)
+            {
+                throw new ArgumentException(
+                    $"A value already exists with this name in the {typeof(TSelf)} enum{(parrent is not null ? $" subvalue \"{parrent.FullName}\"" : "")}.",
+                    nameof(name)
+                );
+            }
+        }
+
+        /// <summary>
+        /// Tries to remove an existing enum value from the list.
+        /// </summary>
+        /// <param name="name">The name of the value.</param>
+        /// <returns>If the new value was successfuly removed.</returns>
+        /// <exception cref="ArgumentException">Thrown if <see cref="IsRemovable"/> is false.</exception>
+        public static bool TryRemoveValue(string fullName, bool recursive = true)
+        {
+            if (!IsClearable)
+            {
+                throw new ArgumentException("Removing enum values is disabled for this enum!", nameof(IsRemovable));
+            }
+
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return false;
+            }
+
+            var lastSepIndex = fullName.LastIndexOf(LayerNameSeparator);
+            if (lastSepIndex == -1)
+            {
+                var value = new EnumTreeValueDTO<TSelf>([0], fullName, "test");
+                return EnumValues.Remove(value);
+            }
+            else
+            {
+                var parrentName = fullName[..lastSepIndex];
+                if (!TryGetDTOValue(parrentName, out var parrent))
+                {
+                    return false;
+                }
+                var value = new EnumTreeValueDTO<TSelf>([0], fullName, "test");
+                return parrent.Children.Remove(value);
+            }
         }
 
         /// <summary>
@@ -232,10 +301,16 @@ namespace PACommon.Enums
         }
         #endregion
 
-        #region Priotected functions
+        #region Protected functions
         protected static bool UpdateIsClearable(bool newValue)
         {
             IsClearable = newValue;
+            return newValue;
+        }
+
+        protected static bool UpdateIsRemovable(bool newValue)
+        {
+            IsRemovable = newValue;
             return newValue;
         }
 
@@ -255,14 +330,14 @@ namespace PACommon.Enums
             var sepIndex = fullName.LastIndexOf(LayerNameSeparator);
             if (sepIndex == -1)
             {
-                return EnumValues.TryGetValue(new EnumTreeValueDTO<TSelf>([], fullName, "test"), out value);
+                return EnumValues.TryGetValue(new EnumTreeValueDTO<TSelf>([0], fullName, "test"), out value);
             }
             if (!TryGetDTOValue(fullName[..sepIndex], out var parrentValue))
             {
                 value = null;
                 return false;
             }
-            return parrentValue.Children.TryGetValue(new EnumTreeValueDTO<TSelf>([], fullName, "test"), out value);
+            return parrentValue.Children.TryGetValue(new EnumTreeValueDTO<TSelf>([0], fullName, "test"), out value);
         }
 
         protected static EnumTreeValueDTO<TSelf> GetDTOValue(string fullName)

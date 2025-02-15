@@ -9,7 +9,8 @@ namespace ProgressAdventure.Enums
     public class Attribute : AdvancedEnum<Attribute>
     {
         protected static readonly bool isClearable = UpdateIsClearable(true);
-        
+        protected static readonly bool isRemovable = UpdateIsRemovable(true);
+
         /// <summary>
         /// Doubles all of the entity's stats.
         /// </summary>

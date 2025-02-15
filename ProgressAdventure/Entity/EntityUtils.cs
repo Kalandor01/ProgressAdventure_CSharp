@@ -162,7 +162,11 @@ namespace ProgressAdventure.Entity
         /// <param name="namespaceFolders">The name of the currently active config folders.</param>
         /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
-        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
+        public static void ReloadConfigs(
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            bool isVanillaInvalid,
+            int? showProgressIndentation = null
+        )
         {
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
@@ -185,7 +189,8 @@ namespace ProgressAdventure.Entity
                     [nameof(move.y)] = move.y,
                 },
                 move => (move["x"], move["y"]),
-                null, null,
+                key => key.ToString(),
+                Enum.Parse<Facing>,
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -212,7 +217,7 @@ namespace ProgressAdventure.Entity
                 },
                 stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"]),
                 (attribute) => attribute.Name,
-                Attribute.GetValue,
+                key => Attribute.GetValue(ConfigUtils.GetNamepsacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );

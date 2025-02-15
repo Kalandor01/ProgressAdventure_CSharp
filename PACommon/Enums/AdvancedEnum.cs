@@ -19,6 +19,11 @@ namespace PACommon.Enums
         /// If the enum values list can be cleared.
         /// </summary>
         public static bool IsClearable { get; private set; } = false;
+
+        /// <summary>
+        /// If values from the enum values list can be removed.
+        /// </summary>
+        public static bool IsRemovable { get; private set; } = false;
         #endregion
 
         #region Public functions
@@ -53,6 +58,43 @@ namespace PACommon.Enums
             }
             value = AddValue(name);
             return true;
+        }
+
+        /// <summary>
+        /// Removes an existing enum value from the list.
+        /// </summary>
+        /// <param name="name">The name of the value.</param>
+        /// <exception cref="ArgumentException">Thrown if the value doesn't exists, or <see cref="IsRemovable"/> is false.</exception>
+        public static void RemoveValue(string name)
+        {
+            if (!IsClearable)
+            {
+                throw new ArgumentException("Removing enum values is disabled for this enum!", nameof(IsRemovable));
+            }
+
+            var value = new EnumValue<TSelf>(0, name);
+            var success = EnumValues.Remove(value);
+            if (!success)
+            {
+                throw new ArgumentException("A value doesn't exist with this name in the enum.", nameof(name));
+            }
+        }
+
+        /// <summary>
+        /// Tries to remove an existing enum value from the list.
+        /// </summary>
+        /// <param name="name">The name of the value.</param>
+        /// <returns>If the new value was successfuly removed.</returns>
+        /// <exception cref="ArgumentException">Thrown if <see cref="IsRemovable"/> is false.</exception>
+        public static bool TryRemoveValue(string name)
+        {
+            if (!IsClearable)
+            {
+                throw new ArgumentException("Removing enum values is disabled for this enum!", nameof(IsRemovable));
+            }
+
+            var value = new EnumValue<TSelf>(0, name);
+            return EnumValues.Remove(value);
         }
 
         /// <summary>
@@ -148,6 +190,12 @@ namespace PACommon.Enums
         protected static bool UpdateIsClearable(bool newValue)
         {
             IsClearable = newValue;
+            return newValue;
+        }
+
+        protected static bool UpdateIsRemovable(bool newValue)
+        {
+            IsRemovable = newValue;
             return newValue;
         }
         #endregion

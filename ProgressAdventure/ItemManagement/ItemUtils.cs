@@ -574,7 +574,11 @@ namespace ProgressAdventure.ItemManagement
             WriteDefaultConfigOrGetReloadDataItemRecipes(true);
         }
 
-        private static void ReloadConfigs1(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
+        private static void ReloadConfigs1(
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            bool isVanillaInvalid,
+            int? showProgressIndentation
+        )
         {
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
                 WriteDefaultConfigOrGetReloadDataMaterials(false).configName,
@@ -612,13 +616,17 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultMaterialItemAttributes,
                 materialAttributesData.serializeKeys,
-                Material.GetValue,
+                key => Material.GetValue(ConfigUtils.GetNamepsacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
         }
 
-        private static void ReloadConfigs2(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation)
+        private static void ReloadConfigs2(
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            bool isVanillaInvalid,
+            int? showProgressIndentation
+        )
         {
             var itemRecipesData = WriteDefaultConfigOrGetReloadDataItemRecipes(false);
             ItemRecipes = ConfigUtils.ReloadConfigsAggregateDict(
@@ -639,7 +647,11 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="namespaceFolders">The name of the currently active config folders.</param>
         /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
-        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
+        public static void ReloadConfigs(
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            bool isVanillaInvalid,
+            int? showProgressIndentation = null
+        )
         {
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;

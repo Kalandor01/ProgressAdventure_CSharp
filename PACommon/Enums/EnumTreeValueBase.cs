@@ -11,6 +11,11 @@
 
         internal EnumTreeValueBase(int[] indexes, string fullName, string name)
         {
+            if (indexes.Length == 0)
+            {
+                throw new ArgumentException("Indexes list cannot be empty.");
+            }
+
             if (indexes.Any(i => i < 0))
             {
                 throw new ArgumentException("Index value cannot be negative.");

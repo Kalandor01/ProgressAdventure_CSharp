@@ -141,7 +141,7 @@ namespace PACommon.ConfigManagement
         /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
         /// <inheritdoc cref="GetConfig{T}(string, string?)"/>
-        public Dictionary<TK, TV> GetConfig<TK, TV>(
+        public Dictionary<TK, TV> GetConfigDict<TK, TV>(
             string configName,
             string? expectedVersion,
             Func<string, TK> deserializeDictionaryKeys
@@ -155,8 +155,8 @@ namespace PACommon.ConfigManagement
 
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="GetConfig{TK, TV}(string, string?, Func{string, TK})"/>
-        public Dictionary<TK, TV> GetConfig<TK, TV, TVC>(
+        /// <inheritdoc cref="GetConfigDict{TK, TV}(string, string?, Func{string, TK})"/>
+        public Dictionary<TK, TV> GetConfigDict<TK, TV, TVC>(
             string configName,
             string? expectedVersion,
             Func<TVC, TV> deserializeDictionaryValues,
@@ -164,18 +164,17 @@ namespace PACommon.ConfigManagement
         )
             where TK : notnull
         {
-            if (deserializeDictionaryKeys is null)
+            if (deserializeDictionaryKeys is null && typeof(TK) != typeof(string))
             {
-                var tempResult = GetConfig<IDictionary<TK, TVC>>(configName, expectedVersion)
-                    ?? throw new ArgumentNullException("The deserialized config is null!");
-                return tempResult.ToDictionary(key => key.Key, value => deserializeDictionaryValues(value.Value));
+                throw new ArgumentException("The type of the key must be string if no key deserializer is porvided!", nameof(deserializeDictionaryKeys));
             }
-            else
-            {
-                var tempResult = GetConfig<IDictionary<string, TVC>>(configName, expectedVersion)
-                    ?? throw new ArgumentNullException("The deserialized config is null!");
-                return tempResult.ToDictionary(key => deserializeDictionaryKeys(key.Key), value => deserializeDictionaryValues(value.Value));
-            }
+
+            var tempResult = GetConfig<IDictionary<string, TVC>>(configName, expectedVersion)
+                ?? throw new ArgumentNullException("The deserialized config is null!");
+            return tempResult.ToDictionary(
+                key => deserializeDictionaryKeys is null ? (TK)(object)key.Key : deserializeDictionaryKeys(key.Key),
+                value => deserializeDictionaryValues(value.Value)
+            );
         }
         #endregion
 
@@ -207,7 +206,7 @@ namespace PACommon.ConfigManagement
         /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
         /// <inheritdoc cref="TryGetConfig{T}(string, string?, out T)"/>
-        public bool TryGetConfig<TK, TV>(
+        public bool TryGetConfigDict<TK, TV>(
             string configName,
             string? expectedVersion,
             [NotNullWhen(true)] out Dictionary<TK, TV>? configValue,
@@ -217,15 +216,15 @@ namespace PACommon.ConfigManagement
         {
             return TryGetConfigPrivate(
                 configName,
-                () => GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys),
+                () => GetConfigDict<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys),
                 out configValue
             );
         }
 
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>
-        public bool TryGetConfig<TK, TV, TVC>(
+        /// <inheritdoc cref="TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>
+        public bool TryGetConfigDict<TK, TV, TVC>(
             string configName,
             string? expectedVersion,
             [NotNullWhen(true)] out Dictionary<TK, TV>? configValue,
@@ -236,7 +235,7 @@ namespace PACommon.ConfigManagement
         {
             return TryGetConfigPrivate(
                 configName,
-                () => GetConfig(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys),
+                () => GetConfigDict(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys),
                 out configValue
             );
         }
@@ -280,7 +279,7 @@ namespace PACommon.ConfigManagement
         /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
         /// <inheritdoc cref="TryGetConfigOrRecreate{T}(string, string?, T, bool)"/>
-        public Dictionary<TK, TV> TryGetConfigOrRecreate<TK, TV>(
+        public Dictionary<TK, TV> TryGetConfigOrRecreateDict<TK, TV>(
             string configName,
             string? expectedVersion,
             IDictionary<TK, TV> defaultContent,
@@ -292,7 +291,7 @@ namespace PACommon.ConfigManagement
         {
             if (
                 !justRecreate &&
-                TryGetConfig(
+                TryGetConfigDict(
                     configName,
                     expectedVersion,
                     out Dictionary<TK, TV>? configValue,
@@ -303,14 +302,14 @@ namespace PACommon.ConfigManagement
                 return configValue;
             }
             SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
-            return GetConfig<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
+            return GetConfigDict<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
         }
 
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
         /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
-        public Dictionary<TK, TV> TryGetConfigOrRecreate<TK, TV, TVC>(
+        /// <inheritdoc cref="TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        public Dictionary<TK, TV> TryGetConfigOrRecreateDict<TK, TV, TVC>(
             string configName,
             string? expectedVersion,
             IDictionary<TK, TV> defaultContent,
@@ -324,7 +323,7 @@ namespace PACommon.ConfigManagement
         {
             if (
                 !justRecreate &&
-                TryGetConfig(
+                TryGetConfigDict(
                     configName,
                     expectedVersion,
                     out Dictionary<TK, TV>? configValue,
@@ -336,7 +335,7 @@ namespace PACommon.ConfigManagement
                 return configValue;
             }
             SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryValues, serializeDictionaryKeys);
-            return GetConfig(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys);
+            return GetConfigDict(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys);
         }
         #endregion
 

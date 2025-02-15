@@ -34,7 +34,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <returns>The aggregate of the config file from all given namespaces.</returns>
         public static T ReloadConfigsAggregate<T>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             T vanillaDefaultValue,
             Func<T> getStartingValueFunction,
             Func<T, T, T> appendConfigFunction,
@@ -46,20 +46,20 @@ namespace ProgressAdventure.ConfigManagement
                 configName,
                 namespaceFolders,
                 getStartingValueFunction,
-                appendConfigFunction,
+                (aggregate, newValue, removeValue) => appendConfigFunction(aggregate, newValue),
                 (configName) =>
-                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    (PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
                         configName,
                         null,
                         vanillaDefaultValue,
                         vanillaNamespaceInvalid
-                    ),
+                    ), default!),
                 (configName) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfig<T>(
                         configName,
                         null,
                         out var configValue
-                    ), configValue),
+                    ), configValue, default),
                 showProgressIndentation
             );
         }
@@ -71,7 +71,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         public static List<T> ReloadConfigsAggregateList<T>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             List<T> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null
@@ -81,7 +81,7 @@ namespace ProgressAdventure.ConfigManagement
                 configName,
                 namespaceFolders,
                 () => [],
-                (aggList, newList) =>
+                (aggList, newList, removeList) =>
                 {
                     foreach (var newItem in newList)
                     {
@@ -93,18 +93,18 @@ namespace ProgressAdventure.ConfigManagement
                     return aggList;
                 },
                 (configName) =>
-                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                    (PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
                         configName,
                         null,
                         vanillaDefaultValue,
                         vanillaNamespaceInvalid
-                    ),
+                    ), new List<T>()),
                 (configName) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfig<List<T>>(
                         configName,
                         null,
                         out var configValue
-                    ), configValue),
+                    ), configValue, new List<T>()),
                 showProgressIndentation
             );
         }
@@ -114,14 +114,16 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <typeparam name="TEnum">The type of the enum.</typeparam>
         /// <param name="isNamespacedValues">Whether the enum values should be namespaced.</param>
+        /// <param name="removeValueBeggining">The string that should be at the beggining of a value, to signify that that value should be removed.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         public static void ReloadConfigsAggregateAdvancedEnum<TEnum>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             List<EnumValue<TEnum>> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
-            bool isNamespacedValues = false
+            bool isNamespacedValues = false,
+            string removeValueBeggining = Constants.CONFIG_REMOVE_BEGGINING
         )
             where TEnum : AdvancedEnum<TEnum>
         {
@@ -134,11 +136,15 @@ namespace ProgressAdventure.ConfigManagement
                     AdvancedEnum<TEnum>.Clear();
                     return [];
                 },
-                (aggList, newList) =>
+                (aggList, newList, removeList) =>
                 {
-                    foreach (var newItem in newList ?? [])
+                    foreach (var newItem in newList)
                     {
                         AdvancedEnum<TEnum>.TryAddValue(newItem, out _);
+                    }
+                    foreach (var removeItem in removeList)
+                    {
+                        AdvancedEnum<TEnum>.TryRemoveValue(removeItem);
                     }
                     return aggList;
                 },
@@ -153,10 +159,10 @@ namespace ProgressAdventure.ConfigManagement
                             vanillaDefaultActualValue,
                             vanillaNamespaceInvalid
                         );
-                        var result = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues);
-                        if (result.success)
+                        var (success, addedValues, removedValues) = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues, removeValueBeggining);
+                        if (success)
                         {
-                            return result.configValues;
+                            return (addedValues!, removedValues!);
                         }
                         if (recreated)
                         {
@@ -175,10 +181,10 @@ namespace ProgressAdventure.ConfigManagement
                         )
                     )
                     {
-                        return (false, null);
+                        return (false, null, null);
                     }
 
-                    return CheckEnumConfigNamespacedValues(configValue, configName, isNamespacedValues);
+                    return CheckEnumConfigNamespacedValues(configValue, configName, isNamespacedValues, removeValueBeggining);
                 },
                 showProgressIndentation
             );
@@ -189,14 +195,16 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <typeparam name="TEnum">The type of the enum.</typeparam>
         /// <param name="isNamespacedValues">Whether the enum values should be namespaced.</param>
+        /// <param name="removeValueBeggining">The string that should be at the beggining of a value, to signify that that value should be removed.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
         public static void ReloadConfigsAggregateAdvancedEnumTree<TEnum>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             List<EnumTreeValue<TEnum>> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
-            bool isNamespacedValues = false
+            bool isNamespacedValues = false,
+            string removeValueBeggining = Constants.CONFIG_REMOVE_BEGGINING
         )
             where TEnum : AdvancedEnumTree<TEnum>
         {
@@ -209,11 +217,15 @@ namespace ProgressAdventure.ConfigManagement
                     AdvancedEnumTree<TEnum>.Clear();
                     return [];
                 },
-                (aggList, newList) =>
+                (aggList, newList, removeList) =>
                 {
-                    foreach (var newItem in newList ?? [])
+                    foreach (var newItem in newList)
                     {
                         AdvancedEnumTree<TEnum>.TryAddValue(newItem, out _, true);
+                    }
+                    foreach (var removeItem in removeList)
+                    {
+                        AdvancedEnumTree<TEnum>.TryRemoveValue(removeItem);
                     }
                     return aggList;
                 },
@@ -228,10 +240,10 @@ namespace ProgressAdventure.ConfigManagement
                             vanillaDefaultActualValue,
                             vanillaNamespaceInvalid
                         );
-                        var result = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues);
-                        if (result.success)
+                        var (success, addedValues, removedValues) = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues, removeValueBeggining);
+                        if (success)
                         {
-                            return result.configValues;
+                            return (addedValues!, removedValues!);
                         }
                         if (recreated)
                         {
@@ -250,88 +262,76 @@ namespace ProgressAdventure.ConfigManagement
                         )
                     )
                     {
-                        return (false, null);
+                        return (false, null, null);
                     }
 
-                    return CheckEnumConfigNamespacedValues(configValue, configName, isNamespacedValues);
+                    return CheckEnumConfigNamespacedValues(configValue, configName, isNamespacedValues, removeValueBeggining);
                 },
                 showProgressIndentation
             );
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
         /// </summary>
+        /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
-        public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        public static Dictionary<string, TV> ReloadConfigsAggregateDict<TV>(
             string configName,
-            List<string> namespaceFolders,
-            Dictionary<TK, TV> vanillaDefaultValue,
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            Dictionary<string, TV> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
         )
-            where TK : notnull
         {
-            return ReloadConfigsAggregatePrivate(
+            return ReloadConfigsAggregateDictPrivate(
                 configName,
                 namespaceFolders,
-                () => [],
-                (aggDict, newDict) =>
-                {
-                    foreach (var newItem in newDict)
-                    {
-                        aggDict[newItem.Key] = newItem.Value;
-                    }
-                    return aggDict;
-                },
-                (configName) =>
+                configName =>
                     PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
                         configName,
                         null,
                         vanillaDefaultValue,
                         vanillaNamespaceInvalid
                     ),
-                (configName) =>
-                    (PACSingletons.Instance.ConfigManager.TryGetConfig<Dictionary<TK, TV>>(
+                (configName, deserializeKeysFunction) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfigDict<string, TV>(
                         configName,
                         null,
-                        out var configValue
+                        out var configValue,
+                        deserializeKeysFunction
                     ), configValue),
-                showProgressIndentation
+                null,
+                showProgressIndentation,
+                removeKeyBeggining
             );
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfig{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
         /// </summary>
+        /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             IDictionary<TK, TV> vanillaDefaultValue,
             Func<TK, string> serializeDictionaryKeys,
             Func<string, TK> deserializeDictionaryKeys,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
         )
             where TK : notnull
         {
-            return ReloadConfigsAggregatePrivate(
+            return ReloadConfigsAggregateDictPrivate(
                 configName,
                 namespaceFolders,
-                () => [],
-                (aggDict, newDict) =>
-                {
-                    foreach (var newItem in newDict)
-                    {
-                        aggDict[newItem.Key] = newItem.Value;
-                    }
-                    return aggDict;
-                },
-                (configName) =>
-                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                configName =>
+                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreateDict(
                         configName,
                         null,
                         vanillaDefaultValue,
@@ -339,49 +339,44 @@ namespace ProgressAdventure.ConfigManagement
                         deserializeDictionaryKeys,
                         vanillaNamespaceInvalid
                     ),
-                (configName) =>
-                    (PACSingletons.Instance.ConfigManager.TryGetConfig<TK, TV>(
+                (configName, deserializeKeysFunction) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfigDict<TK, TV>(
                         configName,
                         null,
                         out var configValue,
-                        deserializeDictionaryKeys
+                        deserializeKeysFunction
                     ), configValue),
-                showProgressIndentation
+                deserializeDictionaryKeys,
+                showProgressIndentation,
+                removeKeyBeggining
             );
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>.
         /// </summary>
+        /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
         /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreate{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV, TVC>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             IDictionary<TK, TV> vanillaDefaultValue,
             Func<TV, TVC> serializeDictionaryValues,
             Func<TVC, TV> deserializeDictionaryValues,
             Func<TK, string>? serializeDictionaryKeys = null,
             Func<string, TK>? deserializeDictionaryKeys = null,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
         )
             where TK : notnull
         {
-            return ReloadConfigsAggregatePrivate(
+            return ReloadConfigsAggregateDictPrivate(
                 configName,
                 namespaceFolders,
-                () => [],
-                (aggDict, newDict) =>
-                {
-                    foreach (var newItem in newDict)
-                    {
-                        aggDict[newItem.Key] = newItem.Value;
-                    }
-                    return aggDict;
-                },
-                (configName) =>
-                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreate(
+                configName =>
+                    PACSingletons.Instance.ConfigManager.TryGetConfigOrRecreateDict(
                         configName,
                         null,
                         vanillaDefaultValue,
@@ -391,15 +386,17 @@ namespace ProgressAdventure.ConfigManagement
                         deserializeDictionaryKeys,
                         vanillaNamespaceInvalid
                     ),
-                (configName) =>
-                    (PACSingletons.Instance.ConfigManager.TryGetConfig(
+                (configName, deserializeKeysFunction) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfigDict(
                         configName,
                         null,
                         out var configValue,
                         deserializeDictionaryValues,
-                        deserializeDictionaryKeys
+                        deserializeKeysFunction
                     ), configValue),
-                showProgressIndentation
+                deserializeDictionaryKeys,
+                showProgressIndentation,
+                removeKeyBeggining
             );
         }
         #endregion
@@ -670,6 +667,7 @@ namespace ProgressAdventure.ConfigManagement
         }
         #endregion
 
+        #region Namespacing functions
         /// <summary>
         /// Tries to correct a string to be namespaced using the currently loaded namespace(s).
         /// </summary>
@@ -768,34 +766,62 @@ namespace ProgressAdventure.ConfigManagement
             return sepIndex != -1 ? namespacedString[(sepIndex + 1)..] : namespacedString;
         }
         #endregion
+        #endregion
 
         #region Private functions
 
-        private static (bool success, List<string>? configValues) CheckEnumConfigNamespacedValues(
+        private static (bool success, List<string>? addedValues, List<string>? removedValues) CheckEnumConfigNamespacedValues(
             List<string> configValues,
             string configName,
-            bool isNamespaceEnum
+            bool isNamespaceEnum,
+            string removeValueBeggining
         )
         {
+            var addedValues = new List<string>();
+            var removedValues = new List<string>();
             if (!isNamespaceEnum)
             {
-                return (configValues.All(cv => !string.IsNullOrWhiteSpace(cv)), configValues);
+                var isNoneEmpty = true;
+                foreach (var value in configValues)
+                {
+                    if (value.StartsWith(removeValueBeggining))
+                    {
+                        var rawValue = value[removeValueBeggining.Length..];
+                        isNoneEmpty &= !string.IsNullOrWhiteSpace(rawValue);
+                        removedValues.Add(rawValue);
+                    }
+                    else
+                    {
+                        isNoneEmpty &= !string.IsNullOrWhiteSpace(value);
+                        addedValues.Add(value);
+                    }
+                }
+                return (isNoneEmpty, addedValues, removedValues);
             }
 
-            var namespacedValues = new List<string>();
             foreach (var value in configValues)
             {
-                if (!TryGetNamepsacedString(value, out var namespacedValue))
+                var isRemoveValue = value.StartsWith(removeValueBeggining);
+                var rawValue = isRemoveValue ? value[removeValueBeggining.Length..] : value;
+                if (!TryGetNamepsacedString(rawValue, out var namespacedValue))
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Invalid namespaced enum value in config",
                         $"while loading \"{configName}\" from: \"{CurrentlyLoadingNamespace}\", value: \"{value}\""
                     );
-                    return (false, null);
+                    return (false, null, null);
                 }
-                namespacedValues.Add(namespacedValue);
+
+                if (isRemoveValue)
+                {
+                    removedValues.Add(namespacedValue);
+                }
+                else
+                {
+                    addedValues.Add(namespacedValue);
+                }
             }
-            return (true, namespacedValues);
+            return (true, addedValues, removedValues);
         }
 
         private static void LogConfigLoadingBegin(string configPath, string configFolder, int? showProgressIndentation)
@@ -837,17 +863,17 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="configName">The name of the config file.</param>
         /// <param name="namespaceFolders">The avalible config folders, including the default one, in the order of loading.</param>
         /// <param name="getStartingValueFunction">The function to return the staring value of the config value.</param>
-        /// <param name="appendConfigFunction">The function to aggregate two config values.</param>
+        /// <param name="changeConfigFunction">The function to aggregate two config values, and remove the third from the result.</param>
         /// <param name="getConfigVanillaFunction">The GetConfig method to use to get the vanilla config.</param>
         /// <param name="getConfigOtherFunction">The GetConfig method to use to get any non-vanilla config.</param>
         /// <returns>The aggregate of the config file from all avalible namespaces.</returns>
         private static T ReloadConfigsAggregatePrivate<T>(
             string configName,
-            List<string> namespaceFolders,
+            List<(string folderName, string namespaceName)> namespaceFolders,
             Func<T> getStartingValueFunction,
-            Func<T, T, T> appendConfigFunction,
-            Func<string, T> getConfigVanillaFunction,
-            Func<string, (bool sucess, T? value)> getConfigOtherFunction,
+            Func<T, T, T, T> changeConfigFunction,
+            Func<string, (T add, T remove)> getConfigVanillaFunction,
+            Func<string, (bool sucess, T? addValue, T? removeValue)> getConfigOtherFunction,
             int? showProgressIndentation
         )
         {
@@ -866,26 +892,26 @@ namespace ProgressAdventure.ConfigManagement
 
             _loadingNamespaces = [];
             var aggregateValue = getStartingValueFunction();
-            foreach (var folder in namespaceFolders)
+            foreach (var (folderName, namespaceName) in namespaceFolders)
             {
-                _loadingNamespaces.Add(folder);
-                CurrentlyLoadingNamespace = folder;
-                var configFileSubpath = Path.Join(folder, configName);
-                if (folder == Constants.VANILLA_CONFIGS_NAMESPACE)
+                _loadingNamespaces.Add(namespaceName);
+                CurrentlyLoadingNamespace = namespaceName;
+                var configFileSubpath = Path.Join(folderName, configName);
+                if (namespaceName == Constants.VANILLA_CONFIGS_NAMESPACE)
                 {
-                    LogConfigLoadingBegin(configFileSubpath, folder, showProgressIndentation);
-                    var vanillaValue = getConfigVanillaFunction(configFileSubpath);
-                    aggregateValue = appendConfigFunction(aggregateValue, vanillaValue);
+                    LogConfigLoadingBegin(configFileSubpath, folderName, showProgressIndentation);
+                    var (add, remove) = getConfigVanillaFunction(configFileSubpath);
+                    aggregateValue = changeConfigFunction(aggregateValue, add, remove);
                     LogConfigLoadingEnd(true, showProgressIndentation);
                 }
                 else if (PACSingletons.Instance.ConfigManager.ConfigFileExists(configFileSubpath))
                 {
-                    LogConfigLoadingBegin(configFileSubpath, folder, showProgressIndentation);
-                    var (sucess, configValue) = getConfigOtherFunction(configFileSubpath);
+                    LogConfigLoadingBegin(configFileSubpath, folderName, showProgressIndentation);
+                    var (sucess, addValue, removeValue) = getConfigOtherFunction(configFileSubpath);
                     LogConfigLoadingEnd(sucess, showProgressIndentation);
                     if (sucess)
                     {
-                        aggregateValue = appendConfigFunction(aggregateValue, configValue!);
+                        aggregateValue = changeConfigFunction(aggregateValue, addValue!, removeValue!);
                     }
                 }
                 CurrentlyLoadingNamespace = null;
@@ -893,6 +919,67 @@ namespace ProgressAdventure.ConfigManagement
             _loadingNamespaces = null;
 
             return aggregateValue;
+        }
+
+        /// <summary>
+        /// Reloads the config value from the aggregate of a config file from all avalible namespaces.
+        /// </summary>
+        /// <param name="getConfigOtherFunction">The GetConfig method to use to get any non-vanilla config.<br/>
+        /// The second argument is the modified deserialize keys function.</param>
+        /// <returns>The aggregate of the config file from all avalible namespaces.</returns>
+        /// /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
+        private static Dictionary<TK, TV> ReloadConfigsAggregateDictPrivate<TK, TV>(
+            string configName,
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            Func<string, Dictionary<TK, TV>> getConfigVanillaFunction,
+            Func<string, Func<string, TK>, (bool success, Dictionary<TK, TV>? result)> getConfigOtherFunction,
+            Func<string, TK>? deserializeDictionaryKeys,
+            int? showProgressIndentation,
+            string removeKeyBeggining
+        )
+            where TK : notnull
+        {
+            return ReloadConfigsAggregatePrivate(
+                configName,
+                namespaceFolders,
+                () => [],
+                (aggDict, newDict, removeDict) =>
+                {
+                    foreach (var newItem in newDict)
+                    {
+                        aggDict[newItem.Key] = newItem.Value;
+                    }
+                    foreach (var removeItem in removeDict)
+                    {
+                        aggDict.Remove(removeItem.Key);
+                    }
+                    return aggDict;
+                },
+                (configName) =>
+                    (getConfigVanillaFunction(configName), new Dictionary<TK, TV>()),
+                (configName) =>
+                {
+                    var removeValues = new Dictionary<TK, TV>();
+                    var (success, result) = getConfigOtherFunction(configName, key =>
+                    {
+                        var isRemoveKey = key.StartsWith(removeKeyBeggining);
+                        if (isRemoveKey)
+                        {
+                            key = key[removeKeyBeggining.Length..];
+                        }
+                        var desKey = deserializeDictionaryKeys is null ? (TK)(object)key : deserializeDictionaryKeys(key);
+                        if (isRemoveKey)
+                        {
+                            removeValues[desKey] = default;
+                        }
+                        return desKey;
+                    });
+                    return (success, result, removeValues);
+                },
+                showProgressIndentation
+            );
         }
 
         [GeneratedRegex("^[a-z0-9_]*$")]

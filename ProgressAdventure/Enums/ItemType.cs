@@ -6,6 +6,7 @@ namespace ProgressAdventure.Enums
     public class ItemType : AdvancedEnumTree<ItemType>
     {
         protected static readonly bool isClearable = UpdateIsClearable(true);
+        protected static readonly bool isRemovale = UpdateIsRemovable(true);
 
         /// <summary>
         /// Loads the default values of the enum.

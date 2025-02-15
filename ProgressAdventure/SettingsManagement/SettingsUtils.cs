@@ -10,7 +10,23 @@ namespace ProgressAdventure.SettingsManagement
 {
     public static class SettingsUtils
     {
-        #region Default config dicts
+        #region Default config values
+
+        /// <summary>
+        /// The default value for the config used for the values of <see cref="ActionType"/>.
+        /// </summary>
+        private static readonly List<EnumValue<ActionType>> _defaultActionTypes =
+        [
+            ActionType.ESCAPE,
+            ActionType.UP,
+            ActionType.DOWN,
+            ActionType.LEFT,
+            ActionType.RIGHT,
+            ActionType.ENTER,
+            ActionType.STATS,
+            ActionType.SAVE,
+        ];
+
         /// <summary>
         /// The default value for the config used for the value of <see cref="ActionTypeAttributes"/>.
         /// </summary>
@@ -99,6 +115,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void LoadDefaultConfigs()
         {
+            Tools.LoadDefultAdvancedEnum(_defaultActionTypes);
             ActionTypeAttributes = _defaultActionTypeAttributes;
             SettingValueTypeMap = _defaultSettingValueTypeMap;
         }
@@ -108,6 +125,12 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_types"),
+                null,
+                _defaultActionTypes
+            );
+
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                 Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
                 null,
@@ -128,17 +151,30 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="namespaceFolders">The name of the currently active config folders.</param>
         /// <param name="isVanillaInvalid">If the vanilla config is valid.</param>
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
-        public static void ReloadConfigs(List<string> namespaceFolders, bool isVanillaInvalid, int? showProgressIndentation = null)
+        public static void ReloadConfigs(
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            bool isVanillaInvalid,
+            int? showProgressIndentation = null
+        )
         {
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
+
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_types"),
+                namespaceFolders,
+                _defaultActionTypes,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true
+            );
 
             ActionTypeAttributes = ConfigUtils.ReloadConfigsAggregateDict(
                 Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
                 namespaceFolders,
                 _defaultActionTypeAttributes,
                 (actionType) => actionType.Name,
-                ActionType.GetValue,
+                key => ActionType.GetValue(ConfigUtils.GetNamepsacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -147,6 +183,8 @@ namespace ProgressAdventure.SettingsManagement
                 Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
                 namespaceFolders,
                 _defaultSettingValueTypeMap,
+                key => key.ToString(),
+                Enum.Parse<SettingsKey>,
                 isVanillaInvalid,
                 showProgressIndentation
             );

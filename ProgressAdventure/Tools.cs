@@ -359,10 +359,12 @@ namespace ProgressAdventure
             var configDatas = ConfigUtils.GetValidConfigDatas(null);
             var namespaces = loadingOrder
                 .Where(lo => lo.Enabled)
-                .Select(lo => configDatas.First(cd => cd.Namespace == lo.Namespace).FolderName)
+                .Select(lo => configDatas.First(cd => cd.Namespace == lo.Namespace))
+                .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
 
             // TODO: configs for more enums, namespaces for more (keys?) + in correcters
+            // TODO: WriteDefaultConfigOrGetReloadDataX() methods
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);

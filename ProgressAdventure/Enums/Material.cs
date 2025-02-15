@@ -9,6 +9,7 @@ namespace ProgressAdventure.Enums
     public class Material : AdvancedEnum<Material>
     {
         protected static readonly bool isClearable = UpdateIsClearable(true);
+        protected static readonly bool isRemovable = UpdateIsRemovable(true);
 
         public static readonly EnumValue<Material> WOOD = AddValue(ConfigUtils.MakeNamespacedString(nameof(WOOD).ToLower()));
         public static readonly EnumValue<Material> STONE = AddValue(ConfigUtils.MakeNamespacedString(nameof(STONE).ToLower()));

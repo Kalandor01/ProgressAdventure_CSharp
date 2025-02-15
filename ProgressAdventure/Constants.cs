@@ -399,7 +399,11 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v3";
+        public const string CONFIG_VERSION = "v4";
+        /// <summary>
+        /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
+        /// </summary>
+        public const string CONFIG_REMOVE_BEGGINING = "-";
         #endregion
 
         #region Other
