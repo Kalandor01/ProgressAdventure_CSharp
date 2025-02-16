@@ -91,31 +91,28 @@ namespace ProgressAdventure
         ];
         #endregion
 
-        #region Delegate functions
-        /// <summary>
-        /// A function for a <c>UIAction</c> object, that exits the <c>OptionsUI</c> function.
-        /// </summary>
-        private static object UIExitFunction()
-        {
-            return -1;
-        }
-
-        /// <inheritdoc cref="KeyField.DisplayValueDelegate"/>
-        private static string KeybindValueDisplay(KeyField<EnumValue<ActionType>> keyField, string icons, OptionsUI? optionsUI = null)
-        {
-            return string.Join(", ", KeybindUtils.GetColoredNames(keyField.Value));
-        }
-        #endregion
-
         #region Public functions
         #region Common
+        /// <summary>
+        /// Returns a minimum value for <see cref="OptionsUI.elements"/> that won't throw an exception.
+        /// </summary>
+        private static List<BaseUI?> GetDefaultUIElements()
+        {
+            return [new Toggle()];
+        }
+
         /// <summary>
         /// Returns a back button for OptionsUI-s.
         /// </summary>
         /// <param name="text">The text to display in the button.</param>
         public static PAButton GetBackButton(string text = "Back")
         {
-            return new PAButton(new UIAction(() => -1), text: text);
+            static object UIExitFunction()
+            {
+                return -1;
+            }
+
+            return new PAButton(new UIAction(UIExitFunction), text: text);
         }
 
         /// <summary>
@@ -207,7 +204,7 @@ namespace ProgressAdventure
                 Console.WriteLine("ERROR: " + inException.Message);
                 Console.WriteLine("WHILE TRYING TO DISPLAY THE ORIGINAL ERROR: " + exception.Message);
                 var ans = Utils.Input("Restart?(Y/N): ");
-                var restart = ans is not null && ans.ToUpper() == "Y";
+                var restart = ans is not null && ans.Equals("Y", StringComparison.CurrentCultureIgnoreCase);
                 if (restart)
                 {
                     PACSingletons.Instance.Logger.Log($"Restarting {contextName}", forceLog: true);
@@ -253,7 +250,7 @@ namespace ProgressAdventure
         /// <param name="inventory">The inventory to view.</param>
         public static void InventoryViewer(Inventory inventory)
         {
-            var elementsList = new List<BaseUI>();
+            var elementsList = new List<BaseUI?>();
             foreach (var item in inventory.items)
             {
                 elementsList.Add(new PAButton(new UIAction(ItemViever, item), text: item.ToString() ?? ""));
@@ -308,7 +305,7 @@ namespace ProgressAdventure
         /// <returns>If the game loop should exit.</returns>
         public static bool PauseMenu()
         {
-            var elementsList = new List<BaseUI>
+            var elementsList = new List<BaseUI?>
             {
                 new PAButton(new UIAction(() => -1), text: "Resume"),
                 new PAButton(new UIAction(ExitWithoutSavingAction), text: "Exit without saving"),
@@ -326,25 +323,64 @@ namespace ProgressAdventure
         /// </summary>
         public static void KeybindSettings()
         {
+            static string KeybindValueDisplay(KeyField<EnumValue<ActionType>> keyField, string icons, OptionsUI? optionsUI = null)
+            {
+                return string.Join(", ", KeybindUtils.GetColoredNames(keyField.Value));
+            }
+
+
+
+            var configDatas = ConfigUtils.GetValidConfigDatas(null);
+            var namespaceToNamespaceName = new Dictionary<string, string>();
+            foreach (var configData in configDatas)
+            {
+                namespaceToNamespaceName[configData.Namespace] = configData.FolderName == Constants.VANILLA_CONFIGS_NAMESPACE
+                    ? "Vanilla"
+                    : configData.FolderName;
+            }
+
+            var namespacedActionTypeLists = new Dictionary<string, List<(EnumValue<ActionType> actionType, string displayName)>>();
+            foreach (var actionType in SettingsUtils.ActionTypeAttributes)
+            {
+                var namespaceName = actionType.Key.Name.Split(Constants.NAMESPACE_SEPARATOR_CHAR)[0];
+                var newValue = (actionType.Key, actionType.Value.displayName);
+                if (namespacedActionTypeLists.TryGetValue(namespaceName, out var namespaceActions))
+                {
+                    namespaceActions.Add(newValue);
+                }
+                else
+                {
+                    namespacedActionTypeLists[namespaceName] = [newValue];
+                }
+            }
+
             tempKeybinds = PASingletons.Instance.Settings.Keybinds.DeepCopy();
 
             var elementList = new List<BaseUI?>();
-            foreach (var actionType in SettingsUtils.ActionTypeAttributes.Keys)
+            foreach (var namespacedActionTypeList in namespacedActionTypeLists)
             {
-                var actionKey = tempKeybinds.GetActionKey(actionType);
-                if (actionKey is null)
+                var namespaceDisplayName = (namespaceToNamespaceName.TryGetValue(namespacedActionTypeList.Key, out var displayName)
+                    ? displayName
+                    : namespacedActionTypeList.Key)
+                    + ":";
+                elementList.Add(new Label(namespaceDisplayName));
+                foreach (var actionType in namespacedActionTypeList.Value)
                 {
-                    PACSingletons.Instance.Logger.Log("Action type doesn't exist in keybind, adding default", $"action type: {actionType}", LogSeverity.WARN);
-                    actionKey = new ActionKey(actionType, SettingsUtils.ActionTypeAttributes[actionType].defaultKeys.DeepCopy());
-                    tempKeybinds.KeybindList = tempKeybinds.KeybindList.Append(actionKey);
+                    var actionKey = tempKeybinds.GetActionKey(actionType.actionType);
+                    if (actionKey is null)
+                    {
+                        PACSingletons.Instance.Logger.Log("Action type doesn't exist in keybind, adding default", $"action type: {actionType.actionType}", LogSeverity.WARN);
+                        actionKey = new ActionKey(actionType.actionType, SettingsUtils.ActionTypeAttributes[actionType.actionType].defaultKeys.DeepCopy());
+                        tempKeybinds.KeybindList = tempKeybinds.KeybindList.Append(actionKey);
+                    }
+                    elementList.Add(new KeyField<EnumValue<ActionType>>(
+                        actionKey,
+                        "    " + actionType.displayName + ": ",
+                        validatorFunction: KeybindChange,
+                        displayValueFunction: KeybindValueDisplay,
+                        keyNum: 2
+                    ));
                 }
-                elementList.Add(new KeyField<EnumValue<ActionType>>(
-                    actionKey,
-                    actionType.Name.Capitalize() + ": ",
-                    validatorFunction: KeybindChange,
-                    displayValueFunction: new KeyField<EnumValue<ActionType>>.DisplayValueDelegate(KeybindValueDisplay),
-                    keyNum: 2
-                ));
             }
             elementList.Add(null);
             elementList.Add(new PAButton(new UIAction(SaveKeybinds), text: "Save"));
@@ -356,10 +392,9 @@ namespace ProgressAdventure
         #region Configs
         public static void ConfigSettings()
         {
-            static MultiButtonElement GetMultiButtonEnabledText(bool enabled)
+            static (string inactiveText, string activeText) GetMultiButtonEnabledText(bool enabled)
             {
-                return new MultiButtonElement(
-                    null,
+                return (
                     enabled
                         ? Tools.StylizedText(" Enabled  ", Constants.Colors.GREEN)
                         : Tools.StylizedText(" Disabled ", Constants.Colors.RED),
@@ -376,10 +411,10 @@ namespace ProgressAdventure
             )
             {
                 loadedConfigData.Enabled = !loadedConfigData.Enabled;
-                var newText = GetMultiButtonEnabledText(loadedConfigData.Enabled);
+                var (inactiveText, activeText) = GetMultiButtonEnabledText(loadedConfigData.Enabled);
                 var button = mButton.buttons[0];
-                button.inactiveText = newText.inactiveText;
-                button.activeText = newText.activeText;
+                button.inactiveText = inactiveText;
+                button.activeText = activeText;
                 refreshFunction();
             }
 
@@ -458,7 +493,7 @@ namespace ProgressAdventure
 
             // menu elements
             var configOptionsUI = new OptionsUI(
-                [new Toggle()],
+                GetDefaultUIElements(),
                 " Config management",
                 Constants.STANDARD_CURSOR_ICONS,
                 scrollSettings: new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3));
@@ -470,21 +505,21 @@ namespace ProgressAdventure
                     continue;
                 }
 
-                var multiButtonEnableText = GetMultiButtonEnabledText(loadedConfig.Enabled);
+                var (inactiveText, activeText) = GetMultiButtonEnabledText(loadedConfig.Enabled);
                 var configManagerUIElement = new OpenMultiButton(
                     [
                         new(
-                            new(ToggleEnableConfigMultiChoice, loadedConfig, UpdateMessages),
-                            multiButtonEnableText.inactiveText,
-                            multiButtonEnableText.activeText
+                            new(ToggleEnableConfigMultiChoice, loadedConfig, () => { UpdateMessages(); }),
+                            inactiveText,
+                            activeText
                         ),
                         new(
-                            new(MoveConfigMultiChoice, loadingOrder, UpdateMessages, configOptionsUI, false),
+                            new(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, false),
                             " Move Up ",
                             "[Move Up]"
                         ),
                         new(
-                            new(MoveConfigMultiChoice, loadingOrder, UpdateMessages, configOptionsUI, true),
+                            new(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, true),
                             " Move Down ",
                             "[Move Down]"
                         )
@@ -498,7 +533,7 @@ namespace ProgressAdventure
                 );
                 configsElements.Add(configManagerUIElement);
             }
-            configsElements.AddRange([null, GenerateSimpleButton()]);
+            configsElements.AddRange([null, GetBackButton("Save")]);
             configOptionsUI.elements = configsElements;
             UpdateMessages();
 
@@ -556,7 +591,7 @@ namespace ProgressAdventure
             var defBackupActionElement = new PAChoice(backupActionNames, backupActionValue, "On save folder backup prompt: ");
 
             // menu elements
-            var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GenerateSimpleButton() };
+            var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GetBackButton("Save") };
 
             // response
             var response = new OptionsUI(askSettingsElements, " Question popups", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
@@ -569,7 +604,7 @@ namespace ProgressAdventure
         }
         #endregion
 
-        #region other options
+        #region Other options
         /// <summary>
         /// Displays the other options menu.
         /// </summary>
@@ -598,7 +633,7 @@ namespace ProgressAdventure
             var coloredTextElement = new Toggle(PASingletons.Instance.Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
 
             // menu elements
-            var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GenerateSimpleButton() };
+            var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GetBackButton("Save") };
 
             // response
             var response = new OptionsUI(menuElements, " Other options", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
@@ -688,50 +723,88 @@ namespace ProgressAdventure
         /// <summary>
         /// Action, called when a load save button is pressed.
         /// </summary>
-        /// <param name="loadSaveUI">The load save menu <c>UIList</c>.</param>
+        /// <param name="loadSaveUI">The saves menu <see cref="OptionsUI"/>.</param>
         /// <param name="selectedSaveName">The name of the save to load.</param>
-        private static object? LoadSaveAction(UIList loadSaveUI, string selectedSaveName)
+        private static object? LoadSaveAction(OptionsUI loadSaveUI, string selectedSaveName)
         {
             Utils.PressKey($"\nLoading save: {selectedSaveName}!");
             GameManager.LoadSave(selectedSaveName);
 
-            var (answers, actions) = GetSavesMenuLists();
-            loadSaveUI.answers = answers;
-            loadSaveUI.actions = actions;
+            UpdateSavesMenuLists(loadSaveUI);
+            return SavesData.Count != 0 ? null : -1;
+        }
+        
+        /// <summary>
+        /// Action, called when a delete save button is pressed.
+        /// </summary>
+        /// <param name="savesMenuUI">The saves menu <see cref="OptionsUI"/>.</param>
+        /// <param name="selectedSaveName">The name of the save to delete.</param>
+        private static object? RenameSaveAction(OptionsUI savesMenuUI, string selectedSaveName)
+        {
+
+            var backupSave = PASingletons.Instance.Settings.DefBackupAction == -1
+                ? AskYesNoUIQuestion(" Renaming requires loading the save data.\nDo you want to backup your save file before renaming it?")
+                : PASingletons.Instance.Settings.DefBackupAction == 1;
+
+            Console.Write("\nNew name: ");
+            var newName = Console.ReadLine();
+            if (newName is null)
+            {
+                return SavesData.Count != 0 ? null : -1;
+            }
+
+            SaveManager.LoadSave(selectedSaveName, false, backupSave);
+            SaveData.Instance.displaySaveName = newName;
+            SaveManager.MakeSave();
+            Utils.PressKey($"Renamed \"{selectedSaveName}\" save file to \"{newName}\"!");
+
+            UpdateSavesMenuLists(savesMenuUI);
+            return SavesData.Count != 0 ? null : -1;
+        }
+
+        /// <summary>
+        /// Action, called when a backup save button is pressed.
+        /// </summary>
+        /// <param name="selectedSaveName">The name of the save to backup.</param>
+        private static object? BackupSaveAction(string selectedSaveName)
+        {
+            Tools.CreateBackup(selectedSaveName);
+            Utils.PressKey($"Backed up \"{selectedSaveName}\" save file!");
 
             return SavesData.Count != 0 ? null : -1;
         }
 
         /// <summary>
-        /// Action, called when the delete saves button is pressed.
+        /// Action, called when a regenerate save button is pressed.
         /// </summary>
-        /// <param name="loadSaveUI">The load save menu <c>UIList</c>.</param>
-        private static object? DeleteSavesAction(UIList loadSaveUI)
+        /// <param name="loadSaveUI">The saves menu <see cref="OptionsUI"/>.</param>
+        /// <param name="selectedSaveName">The name of the save to regenerate.</param>
+        private static object? RegenerateSaveAction(OptionsUI loadSaveUI, string selectedSaveName)
         {
-            GetDeleteSavesMenu().Display(ActionList);
+            var backupSave = PASingletons.Instance.Settings.DefBackupAction == -1
+                ? AskYesNoUIQuestion(" Do you want to backup your save file before regenerating it?")
+                : PASingletons.Instance.Settings.DefBackupAction == 1;
+            RegenerateSaveFile(selectedSaveName, backupSave);
 
-            var (answers, actions) = GetSavesMenuLists();
-            loadSaveUI.answers = answers;
-            loadSaveUI.actions = actions;
-
+            UpdateSavesMenuLists(loadSaveUI);
             return SavesData.Count != 0 ? null : -1;
         }
 
         /// <summary>
         /// Action, called when a delete save button is pressed.
         /// </summary>
-        /// <param name="deleteSavesUI">The delete saves menu <c>UIList</c>.</param>
+        /// <param name="savesMenuUI">The saves menu <see cref="OptionsUI"/>.</param>
         /// <param name="selectedSaveName">The name of the save to delete.</param>
-        private static object? DeleteSaveAction(UIList deleteSavesUI, string selectedSaveName)
+        private static object? DeleteSaveAction(OptionsUI savesMenuUI, string selectedSaveName)
         {
-            if (!PASingletons.Instance.Settings.AskDeleteSave || AskYesNoUIQuestion($" Are you sure you want to remove Save file {selectedSaveName}?", false))
+            if (
+                !PASingletons.Instance.Settings.AskDeleteSave ||
+                AskYesNoUIQuestion($" Are you sure you want to remove save file \"{selectedSaveName}\"?", false)
+            )
             {
                 Tools.DeleteSave(selectedSaveName);
+                UpdateSavesMenuLists(savesMenuUI);
             }
-
-            var (answers, actions) = GetDeleteSavesMenuLists();
-            deleteSavesUI.answers = answers;
-            deleteSavesUI.actions = actions;
 
             return SavesData.Count != 0 ? null : -1;
         }
@@ -740,31 +813,27 @@ namespace ProgressAdventure
         /// Action, called when the regenerate saves button is pressed.
         /// </summary>
         /// <param name="loadSaveUI">The load saves menu <c>UIList</c>.</param>
-        private static void RegenerateSavesAction(UIList loadSaveUI)
+        private static void RegenerateSavesAction(OptionsUI loadSaveUI)
         {
-            if (!PASingletons.Instance.Settings.AskRegenerateSave || AskYesNoUIQuestion(" Are you sure you want to regenerate ALL save files? This will load, delete then resave EVERY save file!", false))
+            if (
+                PASingletons.Instance.Settings.AskRegenerateSave &&
+                !AskYesNoUIQuestion(" Are you sure you want to regenerate ALL save files? This will load, delete then resave EVERY save file!", false)
+            )
             {
-                bool backupSaves;
-                if (PASingletons.Instance.Settings.DefBackupAction == -1)
-                {
-                    backupSaves = AskYesNoUIQuestion(" Do you want to backup your save files before regenerating them?");
-                }
-                else
-                {
-                    backupSaves = PASingletons.Instance.Settings.DefBackupAction == 1;
-                }
-                Console.WriteLine("Regenerating save files...\n");
-                foreach (var (saveName, _) in SavesData)
-                {
-                    RegenerateSaveFile(saveName, backupSaves);
-                }
-                UpdateSavesData();
-                Console.WriteLine("\nDONE!");
-
-                var (answers, actions) = GetSavesMenuLists();
-                loadSaveUI.answers = answers;
-                loadSaveUI.actions = actions;
+                return;
             }
+
+            var backupSaves = PASingletons.Instance.Settings.DefBackupAction == -1
+                ? AskYesNoUIQuestion(" Do you want to backup your save files before regenerating them?")
+                : PASingletons.Instance.Settings.DefBackupAction == 1;
+            Console.WriteLine("Regenerating save files...\n");
+            foreach (var (saveName, _) in SavesData)
+            {
+                RegenerateSaveFile(saveName, backupSaves);
+            }
+            Console.WriteLine("\nDONE!");
+
+            UpdateSavesMenuLists(loadSaveUI);
         }
 
         /// <inheritdoc cref="KeyField.ValidatorDelegate"/>
@@ -791,14 +860,6 @@ namespace ProgressAdventure
         #endregion
 
         #region Private function
-        /// <summary>
-        /// Returns a button for the <c>OptionsUI</c>, that exits the function.
-        /// </summary>
-        private static PAButton GenerateSimpleButton(string text = "Save")
-        {
-            return new PAButton(new UIAction(UIExitFunction), text: text);
-        }
-
         /// <summary>
         /// Updates the saves data, used for answers and actions in <c>UIList</c>s.
         /// </summary>
@@ -851,47 +912,44 @@ namespace ProgressAdventure
         /// <summary>
         /// Returns the answers and actions lists, used in the load saves menu.
         /// </summary>
-        private static (List<string?> answers, List<UIAction?> actions) GetSavesMenuLists()
+        private static void UpdateSavesMenuLists(OptionsUI savesMenuUI)
         {
             UpdateSavesData();
 
-            var answers = new List<string?>();
-            var actions = new List<UIAction?>();
-
+            var elements = new List<BaseUI?>();
             foreach (var (saveName, displayText) in SavesData)
             {
-                answers.Add(displayText);
-                answers.Add(null);
-
-                actions.Add(new UIAction(LoadSaveAction, saveName));
+                elements.Add(new MultiButton([
+                    new(new UIAction(LoadSaveAction, savesMenuUI, saveName), " Load ", "[Load]"),
+                    new(new UIAction(RenameSaveAction, savesMenuUI, saveName), " Rename ", "[Rename]"),
+                    new(new UIAction(BackupSaveAction, saveName), " Backup ", "[Backup]"),
+                    new(new UIAction(RegenerateSaveAction, savesMenuUI, saveName), " Regenerate ", "[Regenerate]"),
+                    new(new UIAction(DeleteSaveAction, savesMenuUI, saveName), " Delete ", "[Delete]"),
+                    ], " ", preValue: displayText + "\n", multiline: true));
+                elements.Add(null);
             }
 
-            answers.Add("Regenerate all save files");
-            answers.Add("Delete file");
-            answers.Add("Back");
+            elements.Add(new Button(new UIAction(RegenerateSavesAction, savesMenuUI), false, "[Regenerate all save files]"));
+            elements.Add(GetBackButton());
 
-            actions.Add(new UIAction(RegenerateSavesAction));
-            actions.Add(new UIAction(DeleteSavesAction));
-
-            return (answers, actions);
+            savesMenuUI.elements = elements;
         }
 
         /// <summary>
         /// Returns the load saves menu.
         /// </summary>
-        private static UIList GetSavesMenu()
+        private static OptionsUI GetSavesMenu()
         {
-            var (answers, actions) = GetSavesMenuLists();
-            return new UIList(
-                answers,
+            var savesUI = new OptionsUI(
+                GetDefaultUIElements(),
                 " Level select",
                 Constants.STANDARD_CURSOR_ICONS,
                 true,
                 true,
-                actions,
-                true,
-                true
+                new ScrollSettings(10, new ScrollIcon("...", "..."), 3, 3)
             );
+            UpdateSavesMenuLists(savesUI);
+            return savesUI;
         }
 
         /// <summary>
@@ -909,7 +967,7 @@ namespace ProgressAdventure
                 "Back"
             };
 
-            var optionsMenuActions = new List<UIAction>
+            var optionsMenuActions = new List<UIAction?>
             {
                 new(KeybindSettings),
                 new(ConfigSettings),

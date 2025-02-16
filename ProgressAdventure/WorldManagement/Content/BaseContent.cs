@@ -1,5 +1,6 @@
 ﻿using NPrng.Generators;
 using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
 using System.Diagnostics.CodeAnalysis;
 using static ProgressAdventure.Constants;
@@ -16,11 +17,11 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <summary>
         /// The type of the content, specifying the layer in the tile.
         /// </summary>
-        public readonly ContentTypeID type;
+        public readonly EnumTreeValue<ContentType> type;
         /// <summary>
         /// The subtype of the content, specifying the actual type of the of the content.
         /// </summary>
-        public readonly ContentTypeID subtype;
+        public readonly EnumTreeValue<ContentType> subtype;
         /// <summary>
         /// The name of the content layer.
         /// </summary>
@@ -46,16 +47,19 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <exception cref="ArgumentException">Thrown, if the type is not a base type, and the subtype is not the child of that type.</exception>
         protected BaseContent(
             SplittableRandom chunkRandom,
-            ContentTypeID type,
-            ContentTypeID subtype,
+            EnumTreeValue<ContentType> type,
+            EnumTreeValue<ContentType> subtype,
             string? name = null,
             JsonDictionary? data = null
         )
         {
             if (
-                subtype.Super != type ||
-                type.Super != ContentType.AllContentType ||
-                subtype.Super == ContentType.AllContentType
+                type.Indexes.Count != 1 ||
+                subtype.Indexes.Count == 0 ||
+                type.Indexes.Count + 1 != subtype.Indexes.Count ||
+                !ContentType.TryGetChildValue(type, subtype.Name, out var _) ||
+                !ContentType.TryGetChildValue(null, type.Name, out var _) ||
+                ContentType.TryGetChildValue(null, subtype.Name, out var _)
             )
             {
                 throw new ArgumentException("Content types are missmached.");
@@ -264,11 +268,11 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <returns>If the content was parsed without warnings.</returns>
         private static bool FromJsonWithoutCorrection<T>(SplittableRandom chunkRandom, JsonDictionary contentJson, string fileVersion, ref T? contentObject)
         {
-            var contentTypeID = WorldUtils.BaseContentTypeMap.First(props => props.Value.matchingType == typeof(T)).Key;
+            var contentType = WorldUtils.BaseContentTypeMap.First(props => props.Value.matchingType == typeof(T)).Key;
 
             if (!(
                 PACTools.TryCastJsonAnyValue<T, string>(contentJson, JsonKeys.BaseContent.SUBTYPE, out var contentSubtypeString, true) &&
-                WorldUtils.TryParseContentType(contentTypeID, contentSubtypeString, out var contentProperties)
+                WorldUtils.TryParseContentType(contentType, contentSubtypeString, out var contentProperties)
             ))
             {
                 if (contentSubtypeString is not null)

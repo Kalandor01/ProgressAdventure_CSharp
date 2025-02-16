@@ -313,7 +313,7 @@ namespace ProgressAdventure
             ItemUtils.LoadDefaultConfigs();
             WorldUtils.LoadDefaultConfigs();
 
-            PACSingletons.Instance.Logger.Log("Loaded all default configs");
+            PACSingletons.Instance.Logger.Log("Loaded all default vanilla configs");
         }
 
         /// <summary>
@@ -326,7 +326,7 @@ namespace ProgressAdventure
             ItemUtils.WriteDefaultConfigs();
             WorldUtils.WriteDefaultConfigs();
 
-            PACSingletons.Instance.Logger.Log("Reset all config files");
+            PACSingletons.Instance.Logger.Log("Reset all vanilla config files");
         }
 
         /// <summary>
@@ -363,8 +363,7 @@ namespace ProgressAdventure
                 .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
 
-            // TODO: configs for more enums, namespaces for more (keys?) + in correcters
-            // TODO: WriteDefaultConfigOrGetReloadDataX() methods
+            // TODO: configs for more enums, namespaces for more (keys?) + in correcters???
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);

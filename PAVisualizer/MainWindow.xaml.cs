@@ -1,4 +1,5 @@
 ﻿using PACommon;
+using PACommon.Enums;
 using ProgressAdventure;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
@@ -28,7 +29,7 @@ namespace PAVisualizer
 
         private string saveName;
         private DateTime lastWorldChange;
-        private Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> worldTileTypeCounts;
+        private Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>> worldTileTypeCounts;
         private string worldInfoString;
 
         private (double x, double y) center;
@@ -317,7 +318,7 @@ namespace PAVisualizer
         private void AppendTileCounts(Tile tile)
         {
             if (
-                worldTileTypeCounts.TryGetValue(WorldLayer.Terrain, out Dictionary<ContentTypeID, long>? tCounts) &&
+                worldTileTypeCounts.TryGetValue(WorldLayer.Terrain, out Dictionary<EnumTreeValue<ContentType>, long>? tCounts) &&
                 tCounts is not null &&
                 tCounts.ContainsKey(tile.terrain.subtype)
             )
@@ -330,7 +331,7 @@ namespace PAVisualizer
             }
 
             if (
-                worldTileTypeCounts.TryGetValue(WorldLayer.Structure, out Dictionary<ContentTypeID, long>? sCounts) &&
+                worldTileTypeCounts.TryGetValue(WorldLayer.Structure, out Dictionary<EnumTreeValue<ContentType>, long>? sCounts) &&
                 sCounts is not null &&
                 sCounts.ContainsKey(tile.structure.subtype)
             )
@@ -343,7 +344,7 @@ namespace PAVisualizer
             }
 
             if (
-                worldTileTypeCounts.TryGetValue(WorldLayer.Population, out Dictionary<ContentTypeID, long>? pCounts) &&
+                worldTileTypeCounts.TryGetValue(WorldLayer.Population, out Dictionary<EnumTreeValue<ContentType>, long>? pCounts) &&
                 pCounts is not null &&
                 pCounts.ContainsKey(tile.population.subtype)
             )
@@ -360,7 +361,7 @@ namespace PAVisualizer
         {
             if (TileCountsNeedToBeRefreshed)
             {
-                worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>
+                worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>>
                 {
                     [WorldLayer.Terrain] = [],
                     [WorldLayer.Structure] = [],

@@ -34,41 +34,49 @@ namespace ProgressAdventure.SettingsManagement
         {
             [ActionType.ESCAPE] = new(
                 Key.ESCAPE.ToString(),
+                Key.ESCAPE.ToString().Capitalize(),
                 [GetKeyMode.IGNORE_ESCAPE],
                 [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]
             ),
             [ActionType.UP] = new(
                 Key.UP.ToString(),
+                Key.UP.ToString().Capitalize(),
                 [GetKeyMode.IGNORE_VERTICAL],
                 [new((char)0, ConsoleKey.UpArrow, false, false, false)]
             ),
             [ActionType.DOWN] = new(
                 Key.DOWN.ToString(),
+                Key.DOWN.ToString().Capitalize(),
                 [GetKeyMode.IGNORE_VERTICAL],
                 [new((char)0, ConsoleKey.DownArrow, false, false, false)]
             ),
             [ActionType.LEFT] = new(
                 Key.LEFT.ToString(),
+                Key.LEFT.ToString().Capitalize(),
                 [GetKeyMode.IGNORE_HORIZONTAL],
                 [new((char)0, ConsoleKey.LeftArrow, false, false, false)]
             ),
             [ActionType.RIGHT] = new(
                 Key.RIGHT.ToString(),
+                Key.RIGHT.ToString().Capitalize(),
                 [GetKeyMode.IGNORE_HORIZONTAL],
                 [new((char)0, ConsoleKey.RightArrow, false, false, false)]
             ),
             [ActionType.ENTER] = new(
                 Key.ENTER.ToString(),
+                Key.ENTER.ToString().Capitalize(),
                 [GetKeyMode.IGNORE_ENTER],
                 [new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false)]
             ),
             [ActionType.STATS] = new(
                 "STATS",
+                "Stats",
                 [],
                 [new('e', ConsoleKey.E, false, false, false)]
             ),
             [ActionType.SAVE] = new(
                 "SAVE",
+                "Save",
                 [],
                 [new('s', ConsoleKey.S, false, false, false)]
             ),
@@ -110,6 +118,66 @@ namespace ProgressAdventure.SettingsManagement
 
         #region Public functions
         #region Configs
+        #region Write default config or get reload common data
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataActionTypes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_types");
+            if (!isWriteConfig)
+            {
+                return (basePath, false);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultActionTypes
+                );
+            return default;
+        }
+
+        private static (
+            string configName,
+            Func<EnumValue<ActionType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataActionTypeAttributes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes");
+            static string KeySerializer(EnumValue<ActionType> key) => key.Name;
+            if (!isWriteConfig)
+            {
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultActionTypeAttributes,
+                    KeySerializer
+                );
+            return default;
+        }
+
+        private static (
+            string configName,
+            Func<SettingsKey, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataSettingValueTypeMap(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map");
+            static string KeySerializer(SettingsKey key) => key.ToString();
+            if (!isWriteConfig)
+            {
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultSettingValueTypeMap,
+                    KeySerializer
+                );
+            return default;
+        }
+        #endregion
+
         /// <summary>
         /// Resets all variables that come from configs.
         /// </summary>
@@ -125,24 +193,9 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_types"),
-                null,
-                _defaultActionTypes
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
-                null,
-                _defaultActionTypeAttributes,
-                (actionType) => actionType.Name
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
-                null,
-                _defaultSettingValueTypeMap
-            );
+            WriteDefaultConfigOrGetReloadDataActionTypes(true);
+            WriteDefaultConfigOrGetReloadDataActionTypeAttributes(true);
+            WriteDefaultConfigOrGetReloadDataSettingValueTypeMap(true);
         }
 
         /// <summary>
@@ -161,7 +214,7 @@ namespace ProgressAdventure.SettingsManagement
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_types"),
+                WriteDefaultConfigOrGetReloadDataActionTypes(false).configName,
                 namespaceFolders,
                 _defaultActionTypes,
                 isVanillaInvalid,
@@ -169,21 +222,23 @@ namespace ProgressAdventure.SettingsManagement
                 true
             );
 
+            var actionTypeAttributesData = WriteDefaultConfigOrGetReloadDataActionTypeAttributes(false);
             ActionTypeAttributes = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes"),
+                actionTypeAttributesData.configName,
                 namespaceFolders,
                 _defaultActionTypeAttributes,
-                (actionType) => actionType.Name,
+                actionTypeAttributesData.serializeKeys,
                 key => ActionType.GetValue(ConfigUtils.GetNamepsacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
+            var settingValueTypeMapData = WriteDefaultConfigOrGetReloadDataSettingValueTypeMap(false);
             SettingValueTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map"),
+                settingValueTypeMapData.configName,
                 namespaceFolders,
                 _defaultSettingValueTypeMap,
-                key => key.ToString(),
+                settingValueTypeMapData.serializeKeys,
                 Enum.Parse<SettingsKey>,
                 isVanillaInvalid,
                 showProgressIndentation

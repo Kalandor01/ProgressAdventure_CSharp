@@ -15,6 +15,11 @@ namespace ProgressAdventure.SettingsManagement
         [JsonPropertyName("response")]
         public readonly string response;
         /// <summary>
+        /// The display name of this action type.
+        /// </summary>
+        [JsonPropertyName("display_name")]
+        public readonly string displayName;
+        /// <summary>
         /// The ignore modes that will disable checking for this action type.
         /// </summary>
         [JsonPropertyName("ignore_modes")]
@@ -31,12 +36,14 @@ namespace ProgressAdventure.SettingsManagement
         /// <inheritdoc cref="ActionTypeAttributesDTO"/>
         /// </summary>
         /// <param name="response"><inheritdoc cref="response" path="//summary"/></param>
+        /// <param name="displayName"><inheritdoc cref="response" path="//summary"/></param>
         /// <param name="ignoreModes"><inheritdoc cref="ignoreModes" path="//summary"/></param>
         /// <param name="defaultKeys"><inheritdoc cref="defaultKeys" path="//summary"/></param>
         [JsonConstructor]
-        public ActionTypeAttributesDTO(string response, List<GetKeyMode> ignoreModes, List<ConsoleKeyInfo> defaultKeys)
+        public ActionTypeAttributesDTO(string response, string displayName, List<GetKeyMode> ignoreModes, List<ConsoleKeyInfo> defaultKeys)
         {
             this.response = response;
+            this.displayName = displayName;
             this.ignoreModes = ignoreModes;
             this.defaultKeys = defaultKeys;
         }
@@ -45,7 +52,7 @@ namespace ProgressAdventure.SettingsManagement
         #region Overrides
         public override string? ToString()
         {
-            return $"{response}{(ignoreModes.Count == 0 ? "" : $" ({string.Join(", ", ignoreModes)})")}, {string.Join(", ", defaultKeys.Select(k => k.Key))}";
+            return $"\"{displayName}\" ({response}){(ignoreModes.Count == 0 ? "" : $" ({string.Join(", ", ignoreModes)})")}, {string.Join(", ", defaultKeys.Select(k => k.Key))}";
         }
         #endregion
     }

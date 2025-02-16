@@ -102,6 +102,97 @@ namespace ProgressAdventure.Entity
 
         #region Public fuctions
         #region Configs
+        #region Write default config or get reload common data
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataEntityTypeMap(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map");
+            if (!isWriteConfig)
+            {
+                return (basePath, false);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultEntityTypeMap
+                );
+            return default;
+        }
+
+        private static (
+            string configName,
+            Func<Facing, string> serializeKeys,
+            Func<(int x, int y), Dictionary<string, int>> serializeValues
+        ) WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map");
+            static string KeySerializer(Facing key) => key.ToString();
+            static Dictionary<string, int> ValueSerializer((int x, int y) key) => new()
+            {
+                [nameof(key.x)] = key.x,
+                [nameof(key.y)] = key.y,
+            };
+            if (!isWriteConfig)
+            {
+                return (basePath, KeySerializer, ValueSerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultFacingToMovementVectorMap,
+                    ValueSerializer
+                );
+            return default;
+        }
+
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataAttributes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes");
+            if (!isWriteConfig)
+            {
+                return (basePath, false);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultAttributes
+                );
+            return default;
+        }
+
+        private static (
+            string configName,
+            Func<EnumValue<Attribute>, string> serializeKeys,
+            Func<(double maxHp, double attack, double defence, double agility), Dictionary<string, double>> serializeValues
+        ) WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map");
+            static string KeySerializer(EnumValue<Attribute> key) => key.Name;
+            static Dictionary<string, double> ValueSerializer((double maxHp, double attack, double defence, double agility) key) => new()
+            {
+                [nameof(key.maxHp)] = key.maxHp,
+                [nameof(key.attack)] = key.attack,
+                [nameof(key.defence)] = key.defence,
+                [nameof(key.agility)] = key.agility,
+            };
+            if (!isWriteConfig)
+            {
+                return (basePath, KeySerializer, ValueSerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultAttributeStatChangeMap,
+                    ValueSerializer,
+                    KeySerializer
+                );
+            return default;
+        }
+        #endregion
+
         /// <summary>
         /// Resets all variables that come from configs.
         /// </summary>
@@ -118,42 +209,10 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
-                null,
-                _defaultEntityTypeMap
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
-                null,
-                _defaultFacingToMovementVectorMap,
-                move => new Dictionary<string, int>
-                {
-                    [nameof(move.x)] = move.x,
-                    [nameof(move.y)] = move.y,
-                }
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes"),
-                null,
-                _defaultAttributes
-            );
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
-                null,
-                _defaultAttributeStatChangeMap,
-                stats => new Dictionary<string, double>
-                {
-                    [nameof(stats.maxHp)] = stats.maxHp,
-                    [nameof(stats.attack)] = stats.attack,
-                    [nameof(stats.defence)] = stats.defence,
-                    [nameof(stats.agility)] = stats.agility,
-                },
-                (attribute) => attribute.Name
-            );
+            WriteDefaultConfigOrGetReloadDataEntityTypeMap(true);
+            WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(true);
+            WriteDefaultConfigOrGetReloadDataAttributes(true);
+            WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(true);
         }
 
         /// <summary>
@@ -172,31 +231,28 @@ namespace ProgressAdventure.Entity
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
             EntityTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map"),
+                WriteDefaultConfigOrGetReloadDataEntityTypeMap(false).configName,
                 namespaceFolders,
                 _defaultEntityTypeMap,
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
+            var facingToMovementVectorMapData = WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(false);
             FacingToMovementVectorMap = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map"),
+                facingToMovementVectorMapData.configName,
                 namespaceFolders,
                 _defaultFacingToMovementVectorMap,
-                move => new Dictionary<string, int>
-                {
-                    [nameof(move.x)] = move.x,
-                    [nameof(move.y)] = move.y,
-                },
+                facingToMovementVectorMapData.serializeValues,
                 move => (move["x"], move["y"]),
-                key => key.ToString(),
+                facingToMovementVectorMapData.serializeKeys,
                 Enum.Parse<Facing>,
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes"),
+                WriteDefaultConfigOrGetReloadDataAttributes(false).configName,
                 namespaceFolders,
                 _defaultAttributes,
                 isVanillaInvalid,
@@ -204,19 +260,14 @@ namespace ProgressAdventure.Entity
                 true
             );
 
+            var attributeStatChangeMapData = WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(false);
             AttributeStatChangeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map"),
+                attributeStatChangeMapData.configName,
                 namespaceFolders,
                 _defaultAttributeStatChangeMap,
-                stats => new Dictionary<string, double>
-                {
-                    [nameof(stats.maxHp)] = stats.maxHp,
-                    [nameof(stats.attack)] = stats.attack,
-                    [nameof(stats.defence)] = stats.defence,
-                    [nameof(stats.agility)] = stats.agility,
-                },
+                attributeStatChangeMapData.serializeValues,
                 stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"]),
-                (attribute) => attribute.Name,
+                attributeStatChangeMapData.serializeKeys,
                 key => Attribute.GetValue(ConfigUtils.GetNamepsacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation

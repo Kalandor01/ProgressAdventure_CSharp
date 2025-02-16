@@ -1,5 +1,6 @@
 ﻿using ConsoleUI;
 using ConsoleUI.UIElements;
+using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.WorldManagement;
@@ -25,12 +26,12 @@ namespace PAVisualizer
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
-        public static Dictionary<ContentTypeID, long> CreateWorldLayerImage(WorldLayer layer, out Bitmap image, double opacityMultiplier = 1)
+        public static Dictionary<EnumTreeValue<ContentType>, long> CreateWorldLayerImage(WorldLayer layer, out Bitmap image, double opacityMultiplier = 1)
         {
             (int x, int y) tileSize = (1, 1);
 
 
-            var tileTypeCounts = new Dictionary<ContentTypeID, long>();
+            var tileTypeCounts = new Dictionary<EnumTreeValue<ContentType>, long>();
 
             var worldCorners = World.GetCorners();
 
@@ -87,11 +88,11 @@ namespace PAVisualizer
         /// <param name="layers">The layers to show.</param>
         /// <param name="image">The created image</param>
         /// <returns>The tile count for all tile types, for each layer.</returns>
-        public static Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
+        public static Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
         {
             image = null;
 
-            var layerCounts = new Dictionary<WorldLayer, Dictionary<ContentTypeID, long>>();
+            var layerCounts = new Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>>();
 
             foreach (var layer in Enum.GetValues<WorldLayer>())
             {

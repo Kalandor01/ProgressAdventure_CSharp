@@ -414,7 +414,7 @@ namespace ProgressAdventure.ItemManagement
         }
         #endregion
 
-        #region Public dicts
+        #region Config values
         /// <summary>
         /// The dictionary pairing up item types, to their attributes.
         /// </summary>
@@ -486,17 +486,18 @@ namespace ProgressAdventure.ItemManagement
         {
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes");
             static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfigDict(
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultCompoundItemAttributes,
                     KeySerializer
                 );
-                return default;
-            }
-            return (basePath, KeySerializer);
+            return default;
         }
 
         private static (
@@ -506,17 +507,18 @@ namespace ProgressAdventure.ItemManagement
         {
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes");
             static string KeySerializer(EnumValue<Material> key) => key.Name!;
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfigDict(
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultMaterialItemAttributes,
                     KeySerializer
                 );
-                return default;
-            }
-            return (basePath, KeySerializer);
+            return default;
         }
 
         private static (
@@ -526,17 +528,18 @@ namespace ProgressAdventure.ItemManagement
         {
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes");
             static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfigDict(
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultItemRecipes,
                     KeySerializer
                 );
-                return default;
-            }
-            return (basePath, KeySerializer);
+            return default;
         }
         #endregion
 
@@ -605,7 +608,7 @@ namespace ProgressAdventure.ItemManagement
                 _defaultCompoundItemAttributes,
                 compoundAttributesData.serializeKeys,
                 key => (ItemType.TryGetValue(ConfigUtils.GetNamepsacedString(key), out var value) ? value : null)
-                    ?? throw new ArgumentNullException($"Unknown item type name in \"compound_item_attributes\" config: \"{key}\"", "item type"),
+                    ?? throw new ArgumentNullException($"Unknown item type name in \"{compoundAttributesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -634,8 +637,8 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultItemRecipes,
                 itemRecipesData.serializeKeys,
-                key => ParseItemType(key)
-                    ?? throw new ArgumentNullException($"Unknown item type name in \"item_recipes\" config: \"{key}\"", "item type"),
+                key => ParseItemType(ConfigUtils.GetNamepsacedString(key))
+                    ?? throw new ArgumentNullException($"Unknown item type name in \"{itemRecipesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation
             );

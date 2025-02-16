@@ -1,40 +1,49 @@
-﻿namespace ProgressAdventure.WorldManagement.Content
+﻿using PACommon.Enums;
+using ProgressAdventure.ConfigManagement;
+
+namespace ProgressAdventure.WorldManagement.Content
 {
-    public static class ContentType
+    public class ContentType : AdvancedEnumTree<ContentType>
     {
-        public static ContentTypeID AllContentType
+        protected static readonly bool isClearable = UpdateIsClearable(true);
+        protected static readonly bool isRemovale = UpdateIsRemovable(true);
+
+        /// <summary>
+        /// Loads the default values of the enum.
+        /// </summary>
+        static ContentType()
         {
-            get => all;
+            var t = Terrain.FIELD;
+            var s = Structure.NONE;
+            var p = Population.NONE;
         }
 
-        private static readonly ContentTypeID all = 1;
-
-        public static readonly ContentTypeID TERRAIN = all[0];
+        public static readonly EnumTreeValue<ContentType> _TERRAIN = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Terrain).ToLower()));
         public static class Terrain
         {
-            public static readonly ContentTypeID FIELD = TERRAIN[0];
-            public static readonly ContentTypeID MOUNTAIN = TERRAIN[1];
-            public static readonly ContentTypeID OCEAN = TERRAIN[2];
-            public static readonly ContentTypeID SHORE = TERRAIN[3];
+            public static readonly EnumTreeValue<ContentType> FIELD = AddValue(_TERRAIN, nameof(FIELD).ToLower());
+            public static readonly EnumTreeValue<ContentType> MOUNTAIN = AddValue(_TERRAIN, nameof(MOUNTAIN).ToLower());
+            public static readonly EnumTreeValue<ContentType> OCEAN = AddValue(_TERRAIN, nameof(OCEAN).ToLower());
+            public static readonly EnumTreeValue<ContentType> SHORE = AddValue(_TERRAIN, nameof(SHORE).ToLower());
         }
 
-        public static readonly ContentTypeID STRUCTURE = all[1];
+        public static readonly EnumTreeValue<ContentType> _STRUCTURE = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Structure).ToLower()));
         public static class Structure
         {
-            public static readonly ContentTypeID NONE = STRUCTURE[0];
-            public static readonly ContentTypeID VILLAGE = STRUCTURE[1];
-            public static readonly ContentTypeID KINGDOM = STRUCTURE[2];
-            public static readonly ContentTypeID BANDIT_CAMP = STRUCTURE[3];
+            public static readonly EnumTreeValue<ContentType> NONE = AddValue(_STRUCTURE, nameof(NONE).ToLower());
+            public static readonly EnumTreeValue<ContentType> VILLAGE = AddValue(_STRUCTURE, nameof(VILLAGE).ToLower());
+            public static readonly EnumTreeValue<ContentType> KINGDOM = AddValue(_STRUCTURE, nameof(KINGDOM).ToLower());
+            public static readonly EnumTreeValue<ContentType> BANDIT_CAMP = AddValue(_STRUCTURE, nameof(BANDIT_CAMP).ToLower());
         }
-
-        public static readonly ContentTypeID POPULATION = all[2];
+        
+        public static readonly EnumTreeValue<ContentType> _POPULATION = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Population).ToLower()));
         public static class Population
         {
-            public static readonly ContentTypeID NONE = POPULATION[0];
-            public static readonly ContentTypeID HUMAN = POPULATION[1];
-            public static readonly ContentTypeID DWARF = POPULATION[2];
-            public static readonly ContentTypeID ELF = POPULATION[3];
-            public static readonly ContentTypeID DEMON = POPULATION[4];
+            public static readonly EnumTreeValue<ContentType> NONE = AddValue(_POPULATION, nameof(NONE).ToLower());
+            public static readonly EnumTreeValue<ContentType> HUMAN = AddValue(_POPULATION, nameof(HUMAN).ToLower());
+            public static readonly EnumTreeValue<ContentType> DWARF = AddValue(_POPULATION, nameof(DWARF).ToLower());
+            public static readonly EnumTreeValue<ContentType> ELF = AddValue(_POPULATION, nameof(ELF).ToLower());
+            public static readonly EnumTreeValue<ContentType> DEMON = AddValue(_POPULATION, nameof(DEMON).ToLower());
         }
     }
 }

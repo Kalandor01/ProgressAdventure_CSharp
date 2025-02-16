@@ -227,7 +227,17 @@ namespace PACommon.Enums
         /// <param name="parrent">The parrent value to return the subvalues from, or the root values if null.</param>
         public static List<EnumTreeValue<TSelf>> GetValues(EnumTreeValue<TSelf>? parrent)
         {
-            return (parrent is not null ? GetDTOValue(parrent.FullName).Children : EnumValues).Cast<EnumTreeValue<TSelf>>().ToList();
+            return (
+                parrent is null
+                    ? EnumValues
+                    : (
+                        parrent is EnumTreeValueDTO<TSelf> parrentDTO
+                            ? parrentDTO
+                            : GetDTOValue(parrent.FullName)
+                        ).Children
+                    )
+                    .Cast<EnumTreeValue<TSelf>>()
+                    .ToList();
         }
 
         /// <summary>
@@ -250,6 +260,43 @@ namespace PACommon.Enums
         public static int Count(EnumTreeValue<TSelf>? parrent)
         {
             return (parrent is not null ? GetDTOValue(parrent.FullName).Children : EnumValues).Count;
+        }
+
+        /// <summary>
+        /// Tries to return the enum value with the given name that is the child of the specified parrent.<br/>
+        /// </summary>
+        /// <param name="parrent">The parrent value.</param>
+        /// <param name="childName">The name of the child value.</param>
+        /// <param name="value">The found value, or null.</param>
+        public static bool TryGetChildValue(EnumTreeValue<TSelf>? parrent, string childName, [NotNullWhen(true)] out EnumTreeValue<TSelf>? value)
+        {
+            HashSet<EnumTreeValueDTO<TSelf>> parrentChildren;
+            if (parrent is null)
+            {
+                parrentChildren = EnumValues;
+            }
+            else if (parrent is EnumTreeValueDTO<TSelf> parrentDTO)
+            {
+                parrentChildren = parrentDTO.Children;
+            }
+            else if (TryGetDTOValue(parrent.FullName, out var parrentDTO2))
+            {
+                parrentChildren = parrentDTO2.Children;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
+
+            var testValue = new EnumTreeValueDTO<TSelf>(
+                [0],
+                $"{(parrent is null ? "" : parrent.FullName + LayerNameSeparator)}{childName}",
+                "test"
+            );
+            var success = parrentChildren.TryGetValue(testValue, out var valueDTO);
+            value = valueDTO;
+            return success;
         }
 
         /// <summary>

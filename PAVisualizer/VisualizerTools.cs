@@ -1,5 +1,6 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using PACommon;
+using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.WorldManagement;
@@ -23,9 +24,8 @@ namespace PAVisualizer
         /// <summary>
         /// Dictionary pairing up content types with their colors.
         /// </summary>
-        public static readonly Dictionary<ContentTypeID, ColorData> contentSubtypeColorMap = new()
+        public static readonly Dictionary<EnumTreeValue<ContentType>, ColorData> contentSubtypeColorMap = new()
         {
-
             [ContentType.Terrain.FIELD] = Constants.Colors.DARK_GREEN,
             [ContentType.Terrain.OCEAN] = Constants.Colors.LIGHT_BLUE,
             [ContentType.Terrain.SHORE] = Constants.Colors.LIGHTER_BLUE,
@@ -167,7 +167,7 @@ namespace PAVisualizer
         /// Returns a string, displaying the tile types, and their counts.
         /// </summary>
         /// <param name="tileTypeCounts">The dictionary containing the tile subtype counts for each layer.</param>
-        public static string GetDisplayTileCountsData(Dictionary<WorldLayer, Dictionary<ContentTypeID, long>> tileTypeCounts)
+        public static string GetDisplayTileCountsData(Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>> tileTypeCounts)
         {
             var txt = new StringBuilder();
             foreach (var layer in tileTypeCounts)
@@ -235,7 +235,7 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="tile">The selected tile.</param>
         /// <param name="layer">The selected layer.</param>
-        public static ContentTypeID GetLayerSubtype(Tile tile, WorldLayer layer)
+        public static EnumTreeValue<ContentType> GetLayerSubtype(Tile tile, WorldLayer layer)
         {
             if (layer == WorldLayer.Structure)
             {
@@ -253,7 +253,7 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="subtype">The subtype.</param>
         /// <param name="opacityMultiplier">The number to multiply the opacity of the color by.</param>
-        public static ColorData GetTileColor(ContentTypeID subtype, double opacityMultiplier = 1)
+        public static ColorData GetTileColor(EnumTreeValue<ContentType> subtype, double opacityMultiplier = 1)
         {
             ColorData rawColor = contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
             return new ColorData(rawColor.R, rawColor.G, rawColor.B, (byte)Math.Clamp(rawColor.A * opacityMultiplier, 0, 255));

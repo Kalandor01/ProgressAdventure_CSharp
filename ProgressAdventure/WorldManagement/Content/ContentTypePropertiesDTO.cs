@@ -1,12 +1,13 @@
-﻿using System.Text.Json.Serialization;
+﻿using PACommon.Enums;
+using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.WorldManagement.Content
 {
-    public class ContentTypeIDPropertiesDTO
+    public class ContentTypePropertiesDTO
     {
         /// <summary>
         /// The unique name of the content, used in the json representation of the content.<br/>
-        /// Usualy "content_category/content_type".
+        /// Usualy "namespace:content_category/content_type".
         /// </summary>
         [JsonPropertyName("type_name")]
         public readonly string typeName;
@@ -17,14 +18,14 @@ namespace ProgressAdventure.WorldManagement.Content
         public readonly Type matchingType;
 
         [JsonConstructor]
-        public ContentTypeIDPropertiesDTO(string typeName, Type matchingType)
+        public ContentTypePropertiesDTO(string typeName, Type matchingType)
         {
             this.typeName = typeName;
             this.matchingType = matchingType;
         }
 
-        public ContentTypeIDPropertiesDTO(ContentTypeID contentType, Type machingType)
-            : this(WorldUtils.ContentIDToTypeName(contentType), machingType)
+        public ContentTypePropertiesDTO(EnumTreeValue<ContentType> contentType, Type machingType)
+            : this(contentType.FullName, machingType)
         { }
     }
 }

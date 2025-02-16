@@ -597,7 +597,7 @@ namespace PACommon
 
         /// <summary>
         /// Searches for all public static fields in a (static) class, and all of its nested (public static) classes, and returns their values.<br/>
-        /// (Normaly used for getting all types of a nested enum type. (ItemTypeID, ContentTypeID))
+        /// (Normaly used for getting all types of a nested enum type. (old)(replaced with AdvancedEnumTree))
         /// </summary>
         /// <typeparam name="T">The type of values to search for.</typeparam>
         /// <param name="classType">The type of the static class to search in.</param>

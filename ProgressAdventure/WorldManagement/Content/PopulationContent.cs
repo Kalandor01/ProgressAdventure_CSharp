@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
 
@@ -18,8 +19,8 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <inheritdoc cref="PopulationContent"/>
         /// </summary>
         /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, JsonDictionary?)"/>
-        protected PopulationContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name, JsonDictionary? data = null)
-            : base(chunkRandom, ContentType.POPULATION, subtype, name, data)
+        protected PopulationContent(SplittableRandom chunkRandom, EnumTreeValue<ContentType> subtype, string? name, JsonDictionary? data = null)
+            : base(chunkRandom, ContentType._POPULATION, subtype, name, data)
         {
             amount = GetLongValueFromData<PopulationContent>(this.chunkRandom, Constants.JsonKeys.PopulationContent.AMOUNT, data, (1, 1000));
         }

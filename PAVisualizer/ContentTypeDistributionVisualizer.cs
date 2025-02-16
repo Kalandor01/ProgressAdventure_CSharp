@@ -1,5 +1,6 @@
 ﻿using ConsoleUI;
 using ConsoleUI.UIElements;
+using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
@@ -53,7 +54,7 @@ namespace PAVisualizer
                     var startX = x * tileSize.x;
                     var startY = resolution - y * tileSize.y - 1;
                     // find type
-                    var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<Type, Dictionary<ContentTypeID, Type>>>(typeof(WorldUtils), "contentTypeMap");
+                    var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<Type, Dictionary<EnumTreeValue<ContentType>, Type>>>(typeof(WorldUtils), "contentTypeMap");
                     var contentSubtypeMap = contentTypeMap[typeof(T)];
                     var subtype = contentSubtypeMap.First().Key;
                     foreach (var contentSubtype in contentSubtypeMap)

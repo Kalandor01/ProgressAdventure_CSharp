@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon.Enums;
 using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content
@@ -13,8 +14,8 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <inheritdoc cref="StructureContent"/>
         /// </summary>
         /// <inheritdoc cref="BaseContent(SplittableRandom, ContentTypeID, ContentTypeID, string?, JsonDictionary?)"/>
-        protected StructureContent(SplittableRandom chunkRandom, ContentTypeID subtype, string? name = null, JsonDictionary? data = null)
-            : base(chunkRandom, ContentType.STRUCTURE, subtype, name, data) { }
+        protected StructureContent(SplittableRandom chunkRandom, EnumTreeValue<ContentType> subtype, string? name = null, JsonDictionary? data = null)
+            : base(chunkRandom, ContentType._STRUCTURE, subtype, name, data) { }
         #endregion
 
         #region Public functions

@@ -479,14 +479,14 @@ namespace ProgressAdventureTests
             // get all classes that directly implement BaseContent directly
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
 
-            var requiredKeys = WorldUtils.GetAllContentTypes().Where(k => k.Super == ContentType.AllContentType).ToList();
-            IDictionary<ContentTypeID, Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO>> checkedDictionary;
-            IDictionary<ContentTypeID, ContentTypeIDPropertiesDTO> checkedDictionary2;
+            var requiredKeys = ContentType.GetValues(null);
+            IDictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>> checkedDictionary;
+            IDictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> checkedDictionary2;
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<ContentTypeID, Dictionary<ContentTypeID, ContentTypeIDPropertiesDTO>>>(typeof(WorldUtils), "contentTypeSubtypesMap");
-                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<ContentTypeID, ContentTypeIDPropertiesDTO>>(typeof(WorldUtils), "BaseContentTypeMap");
+                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>>>(typeof(WorldUtils), "contentTypeSubtypesMap");
+                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "BaseContentTypeMap");
             }
             catch (Exception ex)
             {
@@ -524,8 +524,8 @@ namespace ProgressAdventureTests
                 var filteredSubTypes = unfilteredSubTypes.Where(type => !type.IsAbstract && !type.IsInterface);
 
                 var requiredValues = filteredSubTypes.ToList();
-                var requiredSubkeys = WorldUtils.GetAllContentTypes().Where(k => k.Super == key).ToList();
-                var existingSubKeys = new List<ContentTypeID>();
+                var requiredSubkeys = ContentType.GetValues(key);
+                var existingSubKeys = new List<EnumTreeValue<ContentType>>();
                 
                 foreach (var subValue in requiredValues)
                 {
@@ -536,9 +536,9 @@ namespace ProgressAdventureTests
                     }
 
                     var subKey = subTypeProps.FirstOrDefault(x => x.Value.matchingType == subValue).Key;
-                    if (!WorldUtils.TryParseContentType(subKey.mID, out _))
+                    if (!ContentType.TryGetValue(subKey.FullName, out _))
                     {
-                        errorMessages.Add($"The sub-dictionary key at value \"{subValue}\" is not a valid ContentTypeID.");
+                        errorMessages.Add($"The sub-dictionary key at value \"{subValue}\" is not a valid ContentType.");
                         continue;
                     }
 
@@ -1331,7 +1331,7 @@ namespace ProgressAdventureTests
             if (!success)
             {
                 // TODO: remove
-                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" TODO: add namespace to item/material/attribute names");
+                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" TODO: add namespace to item/material/attribute/........ names");
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
             }
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
