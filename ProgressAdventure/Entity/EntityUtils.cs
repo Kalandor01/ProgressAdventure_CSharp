@@ -268,7 +268,7 @@ namespace ProgressAdventure.Entity
                 attributeStatChangeMapData.serializeValues,
                 stats => (stats["maxHp"], stats["attack"], stats["defence"], stats["agility"]),
                 attributeStatChangeMapData.serializeKeys,
-                key => Attribute.GetValue(ConfigUtils.GetNamepsacedString(key)),
+                key => Attribute.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );

@@ -2,6 +2,7 @@
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using System.Diagnostics.CodeAnalysis;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
@@ -219,7 +220,25 @@ namespace ProgressAdventure.WorldManagement.Content
 
                     return (isStructure, oldTypeValue);
                 });
-            }, "2.2.2")
+            }, "2.2.2"),
+            // 2.3 -> 2.4
+            ((oldJson, chunkRandom) =>
+            {
+                // namespaced type/subtype
+                if (
+                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "type", out var typeValue, false) &&
+                    !string.IsNullOrWhiteSpace(typeValue) &&
+                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "subtype", out var materialValue, false) &&
+                    !string.IsNullOrWhiteSpace(materialValue)
+                )
+                {
+                    JsonDataCorrecterUtils.SetMultipleValues(oldJson, new Dictionary<string, JsonObject?>
+                    {
+                        ["type"] = ConfigUtils.GetSpecificNamespacedString(typeValue),
+                        ["subtype"] = ConfigUtils.GetSpecificNamespacedString(materialValue),
+                    });
+                }
+            }, "2.4"),
         ];
         #endregion
 

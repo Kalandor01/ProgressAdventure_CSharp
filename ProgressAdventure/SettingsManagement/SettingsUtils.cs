@@ -228,7 +228,7 @@ namespace ProgressAdventure.SettingsManagement
                 namespaceFolders,
                 _defaultActionTypeAttributes,
                 actionTypeAttributesData.serializeKeys,
-                key => ActionType.GetValue(ConfigUtils.GetNamepsacedString(key)),
+                key => ActionType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );

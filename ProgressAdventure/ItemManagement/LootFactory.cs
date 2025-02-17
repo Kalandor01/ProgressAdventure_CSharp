@@ -46,7 +46,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="amountMin"><inheritdoc cref="amountMin" path="//summary"/></param>
         /// <param name="amountMax"><inheritdoc cref="amountMax" path="//summary"/></param>
         /// <param name="rolls"><inheritdoc cref="rolls" path="//summary"/></param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id, or the material was required, but wasn't provided.</exception>
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type, or the material was required, but wasn't provided.</exception>
         public LootFactory(EnumTreeValue<ItemType> itemType, EnumValue<Material> material, double chance = 1, int amountMin = 1, int? amountMax = null, int rolls = 1)
         {
             if (!ItemUtils.TryParseItemType(itemType.FullName, out _))

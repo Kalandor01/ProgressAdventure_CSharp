@@ -84,7 +84,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="itemType">The type of the item to add.</param>
         /// <param name="materials">The list of materials, for parts of the item.</param>
         /// <param name="amount">The amount of the items to add.</param>
-        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type id.</exception>
+        /// <exception cref="ArgumentException">Thrown if the item type is an unknown item type.</exception>
         /// <returns><inheritdoc cref="Add(AItem)"/></returns>
         public bool Add(EnumTreeValue<ItemType> itemType, List<EnumValue<Material>?> materials, int amount = 1)
         {

@@ -2,6 +2,7 @@
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -178,6 +179,24 @@ namespace ProgressAdventure.ItemManagement
                     }
                 );
             }, "2.2"),
+            // 2.3 -> 2.4
+            (oldJson =>
+            {
+                // namespaced type/material
+                if (
+                    PACTools.TryParseJsonValue<AItem, string>(oldJson, "type", out var typeValue, false) &&
+                    !string.IsNullOrWhiteSpace(typeValue) &&
+                    PACTools.TryParseJsonValue<AItem, string>(oldJson, "material", out var materialValue, false) &&
+                    !string.IsNullOrWhiteSpace(materialValue)
+                )
+                {
+                    JsonDataCorrecterUtils.SetMultipleValues(oldJson, new Dictionary<string, JsonObject?>
+                    {
+                        ["type"] = ConfigUtils.GetSpecificNamespacedString(typeValue),
+                        ["material"] = ConfigUtils.GetSpecificNamespacedString(materialValue.ToLower()),
+                    });
+                }
+            }, "2.4"),
         ];
 
         public override JsonDictionary ToJson()

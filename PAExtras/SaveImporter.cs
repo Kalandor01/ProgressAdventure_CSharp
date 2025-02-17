@@ -191,14 +191,14 @@ namespace PAExtras
 
             dataLine["player"] = new JsonDictionary
             {
-                ["name"] = PACTools.ParseToJsonValue(playerName),
+                ["name"] = playerName.Value.ToString(),
                 ["baseMaxHp"] = playerData["base_hp"],
                 ["currentHp"] = playerData["base_hp"],
                 ["baseAttack"] = playerData["base_attack"],
                 ["baseDefence"] = playerData["base_defence"],
                 ["baseSpeed"] = playerData["base_speed"],
                 ["currentTeam"] = playerData["team"],
-                ["originalTeam"] = (bool)playerData["switched"].Value ? PACTools.ParseToJsonValue(1) : playerData["team"],
+                ["originalTeam"] = (bool)playerData["switched"].Value ? 1 : playerData["team"],
                 ["attributes"] = playerData["attributes"],
                 ["drops"] = playerData["drops"],
                 ["xPos"] = playerData["x_pos"],

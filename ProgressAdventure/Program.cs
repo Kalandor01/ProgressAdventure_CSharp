@@ -215,6 +215,7 @@ namespace ProgressAdventure
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
             Console.WriteLine("Reloading configs...");
+            // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
             Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
             PACSingletons.Instance.Logger.Log("Finished initialization");

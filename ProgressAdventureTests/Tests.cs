@@ -978,7 +978,6 @@ namespace ProgressAdventureTests
                 .ToList();
             zipPaths.Sort(new VersionStringZipPathComparer());
             PATools.RecreateSavesFolder();
-            Console.WriteLine();
             var overallSuccess = true;
             foreach (var zipPath in zipPaths)
             {
@@ -1256,11 +1255,11 @@ namespace ProgressAdventureTests
                     (15, -6))
             );
             World.Initialize();
-            World.TryGetChunkAll((0, 0), out _);
-            World.TryGetChunkAll((-48, -458), out _);
-            World.TryGetChunkAll((126, -96), out _);
-            World.TryGetChunkAll((-9, 158), out _);
-            World.TryGetChunkAll((1235, 6), out _);
+            World.GenerateChunk((0, 0));
+            World.GenerateChunk((-48, -458));
+            World.GenerateChunk((126, -96));
+            World.GenerateChunk((-9, 158));
+            World.GenerateChunk((1235, 6));
         }
 
         private static TestResultDTO? TestImportSaveFromZip(string zipPath)
@@ -1330,8 +1329,6 @@ namespace ProgressAdventureTests
             var success = SaveManager.LoadSave(saveName, false, false);
             if (!success)
             {
-                // TODO: remove
-                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" TODO: add namespace to item/material/attribute/........ names");
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
             }
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
@@ -1340,8 +1337,6 @@ namespace ProgressAdventureTests
                 return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
             }
             PATools.DeleteSave(saveName);
-            // TODO: remove
-            return new TestResultDTO(LogSeverity.PASS, $"\"{saveName}\" TODO --> see above?");
             return null;
         }
         #endregion

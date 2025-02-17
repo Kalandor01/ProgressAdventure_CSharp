@@ -363,7 +363,6 @@ namespace ProgressAdventure
                 .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
 
-            // TODO: configs for more enums, namespaces for more (keys?) + in correcters???
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);

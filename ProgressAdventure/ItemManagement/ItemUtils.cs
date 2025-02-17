@@ -607,7 +607,7 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultCompoundItemAttributes,
                 compoundAttributesData.serializeKeys,
-                key => (ItemType.TryGetValue(ConfigUtils.GetNamepsacedString(key), out var value) ? value : null)
+                key => (ItemType.TryGetValue(ConfigUtils.GetNameapacedString(key), out var value) ? value : null)
                     ?? throw new ArgumentNullException($"Unknown item type name in \"{compoundAttributesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation
@@ -619,7 +619,7 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultMaterialItemAttributes,
                 materialAttributesData.serializeKeys,
-                key => Material.GetValue(ConfigUtils.GetNamepsacedString(key)),
+                key => Material.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -637,7 +637,7 @@ namespace ProgressAdventure.ItemManagement
                 namespaceFolders,
                 _defaultItemRecipes,
                 itemRecipesData.serializeKeys,
-                key => ParseItemType(ConfigUtils.GetNamepsacedString(key))
+                key => ParseItemType(ConfigUtils.GetNameapacedString(key))
                     ?? throw new ArgumentNullException($"Unknown item type name in \"{itemRecipesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
                 showProgressIndentation

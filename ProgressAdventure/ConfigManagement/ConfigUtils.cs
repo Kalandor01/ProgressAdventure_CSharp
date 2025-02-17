@@ -675,7 +675,11 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="namespacedString">The namespaced string, or the same if the string was null or whitespace.</param>
         /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
         /// <returns>If the string was able to be correctly namespaced.</returns>
-        public static bool TryGetNamepsacedString(string str, out string namespacedString, bool logChange = true)
+        public static bool TryGetNamespacedString(
+            string str,
+            out string namespacedString,
+            bool logChange = true
+        )
         {
             namespacedString = str;
             if (
@@ -738,9 +742,91 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="str">The maybe namespaced string.</param>
         /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
         /// <returns>The namespaced string, or the same string if namespacing failed.</returns>
-        public static string GetNamepsacedString(string str, bool logChange = true)
+        public static string GetNameapacedString(string str, bool logChange = true)
         {
-            TryGetNamepsacedString(str, out var nsString, logChange);
+            TryGetNamespacedString(str, out var nsString, logChange);
+            return nsString;
+        }
+
+        /// <summary>
+        /// Tries to correct a string to be namespaced using the given namespace.
+        /// </summary>
+        /// <param name="str">The maybe namespaced string.</param>
+        /// <param name="namespaceName">The namespace to write if there is no namespace.</param>
+        /// <param name="namespacedString">The namespaced string, or the same if the string was null or whitespace.</param>
+        /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
+        /// <returns>If the string was able to be correctly namespaced.</returns>
+        public static bool TryGetNamespacedString(
+            string str,
+            string namespaceName,
+            out string namespacedString,
+            bool logChange = true
+        )
+        {
+            namespacedString = str;
+            if (
+                string.IsNullOrWhiteSpace(namespaceName) ||
+                string.IsNullOrWhiteSpace(str)
+            )
+            {
+                return false;
+            }
+
+            var nsSepIndex = str.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
+            if (nsSepIndex == -1)
+            {
+                namespacedString = $"{namespaceName}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
+                if (logChange)
+                {
+                    PACSingletons.Instance.Logger.Log(
+                        "Namespaced string created",
+                        $"\"{str}\" -> \"{namespacedString}\"",
+                        LogSeverity.DEBUG
+                    );
+                }
+                return true;
+            }
+            else if (
+                nsSepIndex >= str.Length - 1 ||
+                string.IsNullOrWhiteSpace(str[(nsSepIndex + 1)..])
+            )
+            {
+                return false;
+            }
+
+            var nspace = str[..nsSepIndex];
+            if (
+                string.IsNullOrWhiteSpace(nspace) ||
+                !NamespaceRegex().IsMatch(nspace)
+            )
+            {
+                namespacedString = namespaceName + str[nsSepIndex..];
+                if (logChange)
+                {
+                    PACSingletons.Instance.Logger.Log(
+                        "Namespaced string changed",
+                        $"\"{str}\" -> \"{namespacedString}\"",
+                        LogSeverity.WARN
+                    );
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to correct a string to be namespaced using the given namespace.
+        /// </summary>
+        /// <param name="str">The maybe namespaced string.</param>
+        /// <param name="namespaceName">The namespace to write if there is no namespace.</param>
+        /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
+        /// <returns>The namespaced string, or the same string if namespacing failed.</returns>
+        public static string GetSpecificNamespacedString(
+            string str,
+            string namespaceName = Constants.VANILLA_CONFIGS_NAMESPACE,
+            bool logChange = true
+        )
+        {
+            TryGetNamespacedString(str, namespaceName, out var nsString, logChange);
             return nsString;
         }
 
@@ -803,7 +889,7 @@ namespace ProgressAdventure.ConfigManagement
             {
                 var isRemoveValue = value.StartsWith(removeValueBeggining);
                 var rawValue = isRemoveValue ? value[removeValueBeggining.Length..] : value;
-                if (!TryGetNamepsacedString(rawValue, out var namespacedValue))
+                if (!TryGetNamespacedString(rawValue, out var namespacedValue))
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Invalid namespaced enum value in config",
