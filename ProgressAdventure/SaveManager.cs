@@ -3,7 +3,6 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.Entity;
 using ProgressAdventure.WorldManagement;
-using System.Collections;
 using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
 using PACTools = PACommon.Tools;
@@ -22,6 +21,10 @@ namespace ProgressAdventure
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         public static void MakeSave(bool clearChunks = true, string? showProgressText = null)
         {
+            if (showProgressText is not null)
+            {
+                Console.Write("|" + showProgressText + "\r");
+            }
             // make backup
             var backupStatus = Tools.CreateBackup(SaveData.Instance.saveName, true);
             // DATA FILE

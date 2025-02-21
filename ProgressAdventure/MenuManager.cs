@@ -667,7 +667,6 @@ namespace ProgressAdventure
             Console.Write("\tDeleting...");
             Tools.DeleteSave(saveName);
             Console.WriteLine("DONE!");
-            Console.Write("\tSaving...\r");
             SaveManager.MakeSave(showProgressText: "\tSaving...");
             PACSingletons.Instance.Logger.Log("Save file regenerated", $"save name: {saveName}");
         }
@@ -946,7 +945,7 @@ namespace ProgressAdventure
                 Constants.STANDARD_CURSOR_ICONS,
                 true,
                 true,
-                new ScrollSettings(10, new ScrollIcon("...", "..."), 3, 3)
+                new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3)
             );
             UpdateSavesMenuLists(savesUI);
             return savesUI;

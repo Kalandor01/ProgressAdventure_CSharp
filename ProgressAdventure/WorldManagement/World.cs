@@ -84,14 +84,16 @@ namespace ProgressAdventure.WorldManagement
                 chunkData = [];
                 if (showProgressText is not null)
                 {
-                    Console.Write($"{showProgressText}-COPYING...          ");
+                    var loadingText = PACTools.GetStandardLoadingText(showProgressText + "-COPYING...");
+                    loadingText.Display();
+                    var chunkCount = (double)Chunks.Count;
                     for (var x = 0; x < Chunks.Count; x++)
                     {
                         var chunk = Chunks.ElementAt(x).DeepCopy();
                         chunkData.Add(chunk.Key, chunk.Value);
-                        Console.Write($"\r{showProgressText}{Math.Round((double)(x + 1) / Chunks.Count * 100, 1)}%              ");
+                        loadingText.Value = (x + 1) / chunkCount;
                     }
-                    Console.WriteLine($"\r{showProgressText}-COPYING...DONE!                         \r");
+                    loadingText.StopLoadingStandard();
                 }
                 else
                 {
@@ -112,14 +114,16 @@ namespace ProgressAdventure.WorldManagement
             // saving chunks
             if (showProgressText is not null)
             {
-                double chunkNum = chunkData.Count;
-                Console.Write(showProgressText + "                  ");
+                var chunkNum = (double)chunkData.Count;
+                var loadingText = PACTools.GetStandardLoadingText(showProgressText);
+                loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
                     chunkData.ElementAt(x).Value.SaveToFile(saveFolderName);
-                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%");
+                    loadingText.Value = (x + 1) / chunkNum;
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                         ");
+                loadingText.StopLoadingStandard();
+                Console.WriteLine();
             }
             else
             {
@@ -216,14 +220,15 @@ namespace ProgressAdventure.WorldManagement
             // load chunks
             if (showProgressText is not null)
             {
+                var loadingText = PACTools.GetStandardLoadingText(showProgressText);
+                loadingText.Display();
                 double chunkNum = existingChunks.Count;
-                Console.Write(showProgressText + "              ");
                 for (var x = 0; x < chunkNum; x++)
                 {
                     FindChunkInFolder(existingChunks[x], saveFolderName);
-                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%              ");
+                    loadingText.Value = (x + 1) / chunkNum;
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                       ");
+                loadingText.StopLoadingStandard();
             }
             else
             {
@@ -312,13 +317,14 @@ namespace ProgressAdventure.WorldManagement
             if (showProgressText is not null)
             {
                 double chunkNum = Chunks.Count;
-                Console.Write(showProgressText + "              ");
+                var loadingText = PACTools.GetStandardLoadingText(showProgressText);
+                loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
                     Chunks.ElementAt(x).Value.FillChunk();
-                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%     ");
+                    loadingText.Value = (x + 1) / chunkNum;
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                 ");
+                loadingText.StopLoadingStandard();
             }
             else
             {
@@ -387,16 +393,17 @@ namespace ProgressAdventure.WorldManagement
             {
                 var chunkNum = (maxX - minX) / (double)Constants.CHUNK_SIZE * ((maxY - minY) / (double)Constants.CHUNK_SIZE);
                 var columnNum = (maxY - minY) / (double)Constants.CHUNK_SIZE;
-                Console.Write(showProgressText + "              ");
+                var loadingText = PACTools.GetStandardLoadingText(showProgressText);
+                loadingText.Display();
                 for (var x = minX; x <= maxX; x += Constants.CHUNK_SIZE)
                 {
                     for (long y = minY; y <= maxY; y += Constants.CHUNK_SIZE)
                     {
                         TryGetChunkAll((x, y), out _, saveFolderName);
-                        Console.Write($"\r{showProgressText}{Math.Round(((x - minX) / (double)Constants.CHUNK_SIZE * columnNum + (y - minY) / (double)Constants.CHUNK_SIZE) / chunkNum * 100, 1)}%      ");
+                        loadingText.Value = ((x - minX) / (double)Constants.CHUNK_SIZE * columnNum + (y - minY) / (double)Constants.CHUNK_SIZE) / chunkNum;
                     }
                 }
-                Console.WriteLine($"\r{showProgressText}DONE!                ");
+                loadingText.StopLoadingStandard();
             }
             else
             {

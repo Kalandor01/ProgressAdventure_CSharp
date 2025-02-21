@@ -2,7 +2,6 @@
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
-using Attribute = ProgressAdventure.Enums.Attribute;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.Entity

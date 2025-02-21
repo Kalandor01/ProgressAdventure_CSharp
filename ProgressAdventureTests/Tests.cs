@@ -1206,8 +1206,9 @@ namespace ProgressAdventureTests
             // load chunks
             if (showProgressText is not null)
             {
-                double chunkNum = existingChunks.Count;
-                Console.Write(showProgressText + "              ");
+                var chunkNum = (double)existingChunks.Count;
+                var loadingText = PACTools.GetStandardLoadingText(showProgressText);
+                loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
                     success &= Chunk.FromFile(existingChunks[x], out var _, saveFolderName, true);
@@ -1215,9 +1216,9 @@ namespace ProgressAdventureTests
                     {
                         return existingChunks[x];
                     }
-                    Console.Write($"\r{showProgressText}{Math.Round((x + 1) / chunkNum * 100, 1)}%              ");
+                    loadingText.Value = (x + 1) / chunkNum;
                 }
-                Console.Write($"\r{showProgressText}DONE!                       ");
+                loadingText.StopLoading("DONE!");
             }
             else
             {

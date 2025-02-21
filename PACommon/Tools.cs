@@ -982,12 +982,45 @@ namespace PACommon
             }
             return currentValue.ToString().Insert(cursorPosition, inputKey?.KeyChar.ToString() ?? "");
         }
+
+        /// <summary>
+        /// Returns a standard loading text with a spinner. Update the <see cref="LoadingText.Value"/>.
+        /// </summary>
+        /// <param name="postSpinner"><inheritdoc cref="LoadingText.PostSpinner" path="//summary"/></param>
+        /// <param name="preSpinner"><inheritdoc cref="LoadingText.PreSpinner" path="//summary"/></param>
+        /// <param name="postValue"><inheritdoc cref="LoadingText.PostValue" path="//summary"/></param>
+        /// <param name="precision">The number of digits after the decimal.</param>
+        public static LoadingText GetStandardLoadingText(
+            string postSpinner,
+            string preSpinner = "",
+            string postValue = "",
+            int precision = 1
+        )
+        {
+            return new LoadingText(
+                preSpinner,
+                postSpinner,
+                postValue + "\u001b[0K", 0,
+                valueFormat: $"0.{new string('0', precision)}%"
+            );
+        }
+
+        /// <summary>
+        /// Stops the loading for the standard loading text.
+        /// </summary>
+        /// <param name="loadingText">The (standard) loading text</param>
+        /// <param name="finalValue">The value to display after loading has finished.</param>
+        public static void StopLoadingStandard(this LoadingText loadingText, string finalValue = "DONE!")
+        {
+            loadingText.StopLoading(finalValue);
+            Console.WriteLine();
+        }
         #endregion
         #endregion
 
         #region Private functions
         /// <summary>
-        /// Loads a jsn line from a file.
+        /// Loads a json line from a file.
         /// </summary>
         /// <param name="type">The type of the decoding<br/>
         /// 0 - plain json<br/>
