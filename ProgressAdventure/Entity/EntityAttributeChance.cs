@@ -40,7 +40,7 @@ namespace ProgressAdventure.Entity
             negativeAttribute = attribute;
             positiveAttribute = attribute;
             negativeAttributeChance = attributeChance;
-            positiveAttributeChance = attributeChance;
+            positiveAttributeChance = 0;
         }
 
         public override string? ToString()
