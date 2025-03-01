@@ -123,11 +123,19 @@ namespace ProgressAdventure
         /// <param name="nameCount">The number of names in the sequence.</param>
         /// <param name="letterCount">The number of letters in a name. By default: 2-8.</param>
         /// <param name="randomGenerator">The generator to use to generate the names.</param>
-        public static string GenerateNameSequence((int min, int max) nameCount, (int min, int max)? letterCount = null, SplittableRandom? randomGenerator = null)
+        public static string GenerateNameSequence(
+            (int min, int max) nameCount,
+            (int min, int max)? letterCount = null,
+            SplittableRandom? randomGenerator = null
+        )
         {
             randomGenerator ??= RandomStates.Instance.MiscRandom;
             letterCount ??= (2, 8);
-            return GenerateSequence(nameCount, (generator) => GenerateRandomName(letterCount.Value.min, letterCount.Value.max, generator), randomGenerator);
+            return GenerateSequence(
+                nameCount,
+                (generator) => GenerateRandomName(letterCount.Value.min, letterCount.Value.max, generator),
+                randomGenerator
+            );
         }
         #endregion
 
@@ -138,7 +146,11 @@ namespace ProgressAdventure
         /// <param name="count">The number of word in the sequence.</param>
         /// <param name="wordGenerator">The function to generate the words.</param>
         /// <param name="randomGenerator">The generator to use to generate the words.</param>
-        public static string GenerateSequence((int min, int max) count, Func<SplittableRandom, string> wordGenerator, SplittableRandom? randomGenerator = null)
+        public static string GenerateSequence(
+            (int min, int max) count,
+            Func<SplittableRandom, string> wordGenerator,
+            SplittableRandom? randomGenerator = null
+        )
         {
             randomGenerator ??= RandomStates.Instance.MiscRandom;
             var wordCountNum = randomGenerator.GenerateInRange(count.min, count.max);

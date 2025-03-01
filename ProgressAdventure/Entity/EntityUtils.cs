@@ -57,6 +57,7 @@ namespace ProgressAdventure.Entity
                 [],
                 0, 0,
                 [],
+                true,
                 true
             ),
             [EntityType.CAVEMAN] = new EntityPropertiesDTO(
@@ -559,14 +560,7 @@ namespace ProgressAdventure.Entity
         {
             if (startingPosition is not null)
             {
-                if (updateWorld is not null)
-                {
-                    entity.SetPosition(((long x, long y))startingPosition, (bool)updateWorld);
-                }
-                else
-                {
-                    entity.SetPosition(((long x, long y))startingPosition);
-                }
+                entity.SetPosition(((long x, long y))startingPosition, updateWorld);
             }
             (long x, long y) endPosition = (entity.position.x + relativeMovementVector.x, entity.position.y + relativeMovementVector.y);
             while (entity.position != endPosition)
@@ -582,14 +576,8 @@ namespace ProgressAdventure.Entity
                 {
                     newPos.y += yPosDif > 0 ? -1 : 1;
                 }
-                if (updateWorld is not null)
-                {
-                    entity.SetPosition(newPos, (bool)updateWorld);
-                }
-                else
-                {
-                    entity.SetPosition(newPos);
-                }
+
+                entity.SetPosition(newPos, updateWorld);
             }
         }
 
@@ -603,23 +591,26 @@ namespace ProgressAdventure.Entity
             var noTeamNumber = 0;
             foreach (var entity in entities)
             {
-                if (entity.CurrentHp > 0)
+                if (entity.CurrentHp <= 0)
                 {
-                    // -1 = no team, 0 = player team
-                    var teamName = entity.currentTeam == 0 ? "Player" : entity.currentTeam.ToString();
-                    if (entity.currentTeam == -1)
-                    {
-                        teamName = entity.FullName + noTeamNumber;
-                        noTeamNumber++;
-                    }
-                    if (entity.currentTeam != -1 && teams.TryGetValue(teamName, out List<Entity>? value))
-                    {
-                        value.Add(entity);
-                    }
-                    else
-                    {
-                        teams[teamName] = [entity];
-                    }
+                    continue;
+                }
+
+                // -1 = no team, 0 = player team
+                var teamName = entity.currentTeam == 0 ? "Player" : entity.currentTeam.ToString();
+                if (entity.currentTeam == -1)
+                {
+                    teamName = entity.FullName + noTeamNumber;
+                    noTeamNumber++;
+                }
+
+                if (entity.currentTeam != -1 && teams.TryGetValue(teamName, out List<Entity>? value))
+                {
+                    value.Add(entity);
+                }
+                else
+                {
+                    teams[teamName] = [entity];
                 }
             }
             return teams;
@@ -668,7 +659,24 @@ namespace ProgressAdventure.Entity
             PACSingletons.Instance.Logger.Log("Fight log", "fight ended");
         }
 
-        public static void RandomFight(int entityNumber = 1, int totalCost = 1, int minPower = 1, int maxPower = -1, bool roundUp = false, bool includePlayer = true)
+        /// <summary>
+        /// Initiates a random fight between entities, based on a cost.<br/>
+        /// THIS IS A PLACEHOLDER FUNCTION!
+        /// </summary>
+        /// <param name="entityNumber">The number of entities to create.</param>
+        /// <param name="totalCost">The total cost of all created entities.</param>
+        /// <param name="minCost">The minimum cost to spend on creating an entity.</param>
+        /// <param name="maxCost">The maximum cost to spend on creating an entity.</param>
+        /// <param name="roundUp">Whether to always round up the cost that will be spent to create the next entity.</param>
+        /// <param name="includePlayer">Wehther to include the player in the fight.</param>
+        public static void RandomFight(
+            int entityNumber = 1,
+            int totalCost = 1,
+            int minCost = 1,
+            int maxCost = -1,
+            bool roundUp = false,
+            bool includePlayer = true
+        )
         {
             var entities = new List<Entity>();
 
@@ -676,24 +684,26 @@ namespace ProgressAdventure.Entity
             for (var _ = 0; _ < entityNumber; _++)
             {
                 // max cost calculation
-                double nonRoundedCost = totalCost * 1.0 / remainingEntityNumber;
-                int maxCost = (int)(roundUp ? Math.Ceiling(nonRoundedCost) : Math.Round(nonRoundedCost));
-                if (maxCost < minPower)
+                var nonRoundedCost = totalCost * 1.0 / remainingEntityNumber;
+                var currentMaxCost = (int)(roundUp ? Math.Ceiling(nonRoundedCost) : Math.Round(nonRoundedCost));
+                if (currentMaxCost < minCost)
                 {
-                    maxCost = minPower;
+                    currentMaxCost = minCost;
                 }
 
                 // cost calculation
-                var entityCost = remainingEntityNumber > 1 ? RandomStates.Instance.MiscRandom.GenerateInRange(minPower, maxCost) : totalCost;
+                var entityCost = remainingEntityNumber > 1
+                    ? RandomStates.Instance.MiscRandom.GenerateInRange(minCost, currentMaxCost)
+                    : totalCost;
 
                 // cost adjustment
-                if (entityCost < minPower)
+                if (entityCost < minCost)
                 {
-                    entityCost = minPower;
+                    entityCost = minCost;
                 }
-                if (maxPower != -1 && entityCost > maxPower)
+                if (maxCost != -1 && entityCost > maxCost)
                 {
-                    entityCost = maxPower;
+                    entityCost = maxCost;
                 }
 
                 // monster choice
@@ -869,7 +879,7 @@ namespace ProgressAdventure.Entity
         /// <param name="teamCounts">The entity counts for teams.</param>
         private static int GetTotalEntityCount(Dictionary<string, int> teamCounts)
         {
-            int count = 0;
+            var count = 0;
             foreach (var teamCount in teamCounts)
             {
                 count += teamCount.Value;
@@ -914,6 +924,7 @@ namespace ProgressAdventure.Entity
             {
                 oneEntityTeamExists = true;
             }
+
             if (oneEntityTeamExists)
             {
                 Console.WriteLine($"{(multiEntityTeamExists ? "Other e" : "E")}ntities:\n");

@@ -35,6 +35,9 @@ namespace ProgressAdventure.Entity
         [JsonPropertyName("loot")]
         public readonly List<LootFactory> loot;
 
+        [JsonPropertyName("has_inventory")]
+        public readonly bool hasInventory;
+
         [JsonPropertyName("updates_world_when_moving")]
         public readonly bool updatesWorldWhenMoving;
 
@@ -50,6 +53,7 @@ namespace ProgressAdventure.Entity
         /// <param name="originalTeam"><inheritdoc cref="originalTeam" path="//summary"/></param>
         /// <param name="teamChangeChange"><inheritdoc cref="teamChangeChange" path="//summary"/></param>
         /// <param name="loot"><inheritdoc cref="loot" path="//summary"/></param>
+        /// <param name="hasInventory"><inheritdoc cref="hasInventory" path="//summary"/></param>
         /// <param name="updatesWorldWhenMoving"><inheritdoc cref="updatesWorldWhenMoving" path="//summary"/></param>
         [JsonConstructor]
         public EntityPropertiesDTO(
@@ -62,6 +66,7 @@ namespace ProgressAdventure.Entity
             int originalTeam = 1,
             double teamChangeChange = 0.005,
             List<LootFactory>? loot = null,
+            bool hasInventory = false,
             bool updatesWorldWhenMoving = false
         )
         {
@@ -74,6 +79,7 @@ namespace ProgressAdventure.Entity
             this.originalTeam = originalTeam;
             this.teamChangeChange = teamChangeChange;
             this.loot = loot ?? [];
+            this.hasInventory = hasInventory;
             this.updatesWorldWhenMoving = updatesWorldWhenMoving;
         }
 
@@ -91,6 +97,7 @@ namespace ProgressAdventure.Entity
         /// <param name="originalTeam"><inheritdoc cref="originalTeam" path="//summary"/></param>
         /// <param name="teamChangeChange"><inheritdoc cref="teamChangeChange" path="//summary"/></param>
         /// <param name="loot"><inheritdoc cref="loot" path="//summary"/></param>
+        /// <param name="hasInventory"><inheritdoc cref="hasInventory" path="//summary"/></param>
         /// <param name="updatesWorldWhenMoving"><inheritdoc cref="updatesWorldWhenMoving" path="//summary"/></param>
         public EntityPropertiesDTO(
             string displayName,
@@ -104,6 +111,7 @@ namespace ProgressAdventure.Entity
             int originalTeam = 1,
             double teamChangeChange = 0.005,
             List<LootFactory>? loot = null,
+            bool hasInventory = false,
             bool updatesWorldWhenMoving = false
         )
             : this(
@@ -116,6 +124,7 @@ namespace ProgressAdventure.Entity
                 originalTeam,
                 teamChangeChange,
                 loot,
+                hasInventory,
                 updatesWorldWhenMoving
             )
         {

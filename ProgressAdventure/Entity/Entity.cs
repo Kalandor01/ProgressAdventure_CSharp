@@ -1,4 +1,5 @@
-﻿using PACommon;
+﻿using NPrng.Generators;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
@@ -115,10 +116,9 @@ namespace ProgressAdventure.Entity
 
         #region Public constructors
         #region Entity type specific constructors
-        private static void SpecificConstructorPlayer(Entity entity, Dictionary<string, object?> extraData)
+        private static void SpecificConstructorPlayer(Entity entity, Dictionary<string, object?>? extraData)
         {
             entity.name = Tools.CorrectPlayerName(entity.name);
-            SetExtraDataValueFromConstructor(entity, extraData, Constants.JsonKeys.Entity.Player.INVENTORY, new Inventory());
         }
         #endregion
 
@@ -164,7 +164,7 @@ namespace ProgressAdventure.Entity
             }
 
             this.type = entityType;
-            this.name = name ?? properties.displayName;
+            this.name = name ?? GenerateEntityName();
             
             int actualCurrentHp;
             if (
@@ -217,11 +217,16 @@ namespace ProgressAdventure.Entity
             this.position = position ?? (0, 0);
             this.facing = facing ?? Facing.NORTH;
 
-            // specific constructors
             this.extraData = [];
+            if (properties.hasInventory)
+            {
+                SetExtraDataValueFromConstructor(this, extraData, Constants.JsonKeys.Entity.INVENTORY, new Inventory());
+            }
+
+            // specific constructors
             if (type == EntityType.PLAYER)
             {
-                SpecificConstructorPlayer(this, extraData ?? []);
+                SpecificConstructorPlayer(this, extraData);
             }
 
             SetupStats(actualCurrentHp);
@@ -267,9 +272,9 @@ namespace ProgressAdventure.Entity
             var attributeNames = new StringBuilder();
             foreach (var attribute in attributes)
             {
-                attributeNames.Append(attribute.ToString() + " ");
+                attributeNames.Append(ConfigUtils.RemoveNamespace(attribute.Name) + " ");
             }
-            FullName = (attributeNames.ToString() + name).Capitalize();
+            FullName = attributeNames.ToString().Capitalize() + name;
         }
 
         /// <summary>
@@ -307,17 +312,8 @@ namespace ProgressAdventure.Entity
         /// Modifies the position of the entity.
         /// </summary>
         /// <param name="position">The position to move to.</param>
-        public virtual void SetPosition((long x, long y) position)
-        {
-            SetPosition(position, EntityUtils.EntityPropertiesMap[type].updatesWorldWhenMoving);
-        }
-
-        /// <summary>
-        /// Modifies the position of the entity.
-        /// </summary>
-        /// <param name="position">The position to move to.</param>
         /// <param name="updateWorld">Whether to update the tile, the entitiy is on.</param>
-        public virtual void SetPosition((long x, long y) position, bool updateWorld)
+        public virtual void SetPosition((long x, long y) position, bool? updateWorld = null)
         {
             var oldPosition = this.position;
             this.position = position;
@@ -326,7 +322,8 @@ namespace ProgressAdventure.Entity
                 $"name: {FullName}, {oldPosition} -> {this.position}",
                 LogSeverity.DEBUG
             );
-            if (updateWorld)
+
+            if (updateWorld ?? EntityUtils.EntityPropertiesMap[type].updatesWorldWhenMoving)
             {
                 World.TryGetTileAll(this.position, out var tile);
                 if (type == EntityType.PLAYER)
@@ -402,7 +399,7 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public string GetFullNameWithSpecies()
         {
-            return FullName + (type != EntityType.PLAYER ? $" ({ConfigUtils.RemoveNamespace(type.Name)})" : "");
+            return FullName + (type != EntityType.PLAYER ? $" ({EntityUtils.EntityPropertiesMap[type].displayName})" : "");
         }
 
         #region Entity type specific methods
@@ -411,9 +408,9 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public Inventory? TryGetInventory()
         {
-            if (type == EntityType.PLAYER)
+            if (EntityUtils.EntityPropertiesMap[type].hasInventory)
             {
-                return extraData[Constants.JsonKeys.Entity.Player.INVENTORY] as Inventory;
+                return extraData[Constants.JsonKeys.Entity.INVENTORY] as Inventory;
             }
             return null;
         }
@@ -424,9 +421,9 @@ namespace ProgressAdventure.Entity
         /// <param name="inventory">The new inventory value.</param>
         public bool TrySetInventory(Inventory inventory)
         {
-            if (type == EntityType.PLAYER)
+            if (EntityUtils.EntityPropertiesMap[type].hasInventory)
             {
-                extraData[Constants.JsonKeys.Entity.Player.INVENTORY] = inventory;
+                extraData[Constants.JsonKeys.Entity.INVENTORY] = inventory;
                 return true;
             }
             return false;
@@ -484,13 +481,13 @@ namespace ProgressAdventure.Entity
         /// <param name="defaultValue">The default value for the data.</param>
         private static void SetExtraDataValueFromConstructor(
             Entity entity,
-            Dictionary<string, object?> extraData,
+            Dictionary<string, object?>? extraData,
             string key,
             object? defaultValue
         )
         {
             entity.extraData[key] =
-                extraData.TryGetValue(key, out var value)
+                extraData is not null && extraData.TryGetValue(key, out var value)
                     ? value
                     : defaultValue;
         }
@@ -499,21 +496,36 @@ namespace ProgressAdventure.Entity
         #region Public overrides
         public override string ToString()
         {
-            var typeLine = type != EntityType.PLAYER ? $"\nSpecies: {type.Name}" : "";
+            var typeLine = type != EntityType.PLAYER ? $"\nSpecies: {EntityUtils.EntityPropertiesMap[type].displayName}" : "";
             var attributesStr = string.Join(", ", attributes);
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
             var dropsStr = string.Join("\n, ", drops.Select(d => $"\t{d}"));
-            var entityStr = $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\nAttributes: {attributesStr}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {dropsStr}";
+            var entityStr = $"Name: {name}{typeLine}\n" +
+                $"Full name: {FullName}\n" +
+                $"Hp: {MaxHp}\n" +
+                $"Attack: {Attack}\n" +
+                $"Defence: {Defence}\n" +
+                $"Agility: {Agility}\n" +
+                $"Attributes: {attributesStr}\n" +
+                $"Original team: {originalTeamStr}\n" +
+                $"Current team: {teamStr}\n" +
+                $"Drops: {dropsStr}\n" +
+                $"{(EntityUtils.EntityPropertiesMap[type].hasInventory ? $"{TryGetInventory()}\n" : "")}" +
+                $"Position: {position}\n" +
+                $"Rotation: {facing}";
+            return entityStr;
+        }
+        #endregion
 
-            if (type == EntityType.PLAYER)
-            {
-                return $"{entityStr}\n{TryGetInventory()}\nPosition: {position}\nRotation: {facing}";
-            }
-            else
-            {
-                return entityStr;
-            }
+        #region Public functions
+        /// <summary>
+        /// Generates an entity name.
+        /// </summary>
+        /// <param name="randomGenrator">The genrator to use.</param>
+        public static string GenerateEntityName(SplittableRandom? randomGenrator = null)
+        {
+            return SentenceGenerator.GenerateNameSequence((2, 3), randomGenerator: randomGenrator ?? RandomStates.Instance.MiscRandom);
         }
         #endregion
 
@@ -564,38 +576,6 @@ namespace ProgressAdventure.Entity
                 );
             }, "2.4.1"),
         ];
-
-        #region Entity type specific FromJsonPreConstructor
-        private static bool SpecificFromJsonPreConstructorPlayer(
-            EntityPropertiesDTO properties,
-            JsonDictionary miscJson,
-            string fileVersion,
-            out Dictionary<string, object?> extraData
-        )
-        {
-            extraData = [];
-            return true;
-        }
-        #endregion
-
-        #region Entity type specific FromJsonPostConstructor
-        private static bool SpecificFromJsonPostConstructorPlayer(
-            EntityPropertiesDTO properties,
-            ref Entity entityObject,
-            JsonDictionary miscJson,
-            string fileVersion
-        )
-        {
-            var success = PACTools.TryParseJsonConvertableValue<Entity, Inventory>(
-                miscJson,
-                fileVersion,
-                Constants.JsonKeys.Entity.Player.INVENTORY,
-                out var inventory
-            );
-            entityObject.TrySetInventory(inventory ?? new Inventory());
-            return success;
-        }
-        #endregion
 
         static bool IJsonConvertable<Entity>.FromJsonWithoutCorrection(
             JsonDictionary entityJson,
@@ -659,15 +639,17 @@ namespace ProgressAdventure.Entity
             }
             success &= PACTools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
-            // specific FromJson pre constructor
-            Dictionary<string, object?> extraData;
-            if (entityType == EntityType.PLAYER)
+            // specific extra constructor data
+            var  extraData = new Dictionary<string, object?>();
+            if (properties.hasInventory)
             {
-                success &= SpecificFromJsonPreConstructorPlayer(properties, entityJson, fileVersion, out extraData);
-            }
-            else
-            {
-                extraData = [];
+                success &= PACTools.TryParseJsonConvertableValue<Entity, Inventory>(
+                    entityJson,
+                    fileVersion,
+                    Constants.JsonKeys.Entity.INVENTORY,
+                    out var inventory
+                );
+                extraData[Constants.JsonKeys.Entity.INVENTORY] = inventory ?? new Inventory();
             }
 
             entityObject = new Entity(
@@ -687,30 +669,12 @@ namespace ProgressAdventure.Entity
                 extraData
             );
 
-            // specific FromJson post constructor
-            if (entityType == EntityType.PLAYER)
-            {
-                success &= SpecificFromJsonPostConstructorPlayer(properties, ref entityObject, entityJson, fileVersion);
-            }
-            else
-            {
-                extraData = [];
-            }
-
             entityObject.SetupStats(entityObject.CurrentHp);
             entityObject.UpdateFullName();
             return success && entityObject is not null;
         }
 
         #region Methods
-        #region Entity type specific ToJson
-        private JsonDictionary SpecificToJsonPlayer(JsonDictionary entityJson)
-        {
-            entityJson[Constants.JsonKeys.Entity.Player.INVENTORY] = TryGetInventory()!.ToJson();
-            return entityJson;
-        }
-        #endregion
-
         public virtual JsonDictionary ToJson()
         {
             // attributes
@@ -718,7 +682,7 @@ namespace ProgressAdventure.Entity
             // drops
             var dropsJson = drops.Select(drop => (JsonObject?)drop.ToJson()).ToList();
             // properties
-            var baseJson = new JsonDictionary
+            var entityJson = new JsonDictionary
             {
                 [Constants.JsonKeys.Entity.TYPE] = type,
                 [Constants.JsonKeys.Entity.NAME] = name,
@@ -736,15 +700,13 @@ namespace ProgressAdventure.Entity
                 [Constants.JsonKeys.Entity.FACING] = (int)facing,
             };
 
-            // specific
-            if (type == EntityType.PLAYER)
+            var properties = EntityUtils.EntityPropertiesMap[type];
+            if (properties.hasInventory)
             {
-                return SpecificToJsonPlayer(baseJson);
+                entityJson[Constants.JsonKeys.Entity.INVENTORY] = TryGetInventory()!.ToJson();
             }
-            else
-            {
-                return baseJson;
-            }
+
+            return entityJson;
         }
         #endregion
         #endregion

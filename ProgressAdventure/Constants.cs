@@ -222,10 +222,13 @@ namespace ProgressAdventure
                 public const string Y_POSITION = "y_position";
                 public const string FACING = "facing";
 
+                //specific keys
+                public const string INVENTORY = "inventory";
+
                 #region Player
                 public static class Player
                 {
-                    public const string INVENTORY = "inventory";
+
                 }
                 #endregion
             }
@@ -400,7 +403,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v6";
+        public const string CONFIG_VERSION = "v7";
         /// <summary>
         /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
         /// </summary>

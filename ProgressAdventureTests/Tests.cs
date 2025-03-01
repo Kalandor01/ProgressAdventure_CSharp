@@ -1242,7 +1242,7 @@ namespace ProgressAdventureTests
                     (15, -6),
                     extraData: new Dictionary<string, object?>
                     {
-                        [PAConstants.JsonKeys.Entity.Player.INVENTORY] = new Inventory(
+                        [PAConstants.JsonKeys.Entity.INVENTORY] = new Inventory(
                         [
                             new MaterialItem(Material.CLOTH, 15),
                             new MaterialItem(Material.GOLD, 5.27),
