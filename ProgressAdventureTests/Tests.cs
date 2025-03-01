@@ -134,55 +134,55 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
-        /// Checks if the EntityUtils, entity type map dictionary contains all required keys and correct values.
+        /// Checks if the EntityUtils, entity properties map dictionary contains all required keys and correct values.
         /// </summary>
-        public static TestResultDTO? EntityUtilsEntityTypeMapDictionaryCheck()
+        public static TestResultDTO? EntityUtilsEntityPropertiesMapDictionaryCheck()
         {
-            // get all classes that implement Entity
-            var entityType = typeof(Entity);
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
-            var unfilteredTypes = paAssembly.GetTypes().Where(entityType.IsAssignableFrom);
-            var filteredTypes = unfilteredTypes.Where(type => !type.IsAbstract && !type.IsInterface);
-
-            var requiredValues = filteredTypes.ToList();
-            IDictionary<string, Type> checkedDictionary;
+            var requiredKeys = EntityType.GetValues();
+            IDictionary<EnumValue<EntityType>, EntityPropertiesDTO> checkedDictionary;
 
             try
             {
-                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), "EntityTypeMap");
+                checkedDictionary = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<EntityType>, EntityPropertiesDTO>>(
+                    typeof(EntityUtils), "EntityPropertiesMap"
+                );
             }
             catch (Exception ex)
             {
                 return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
-            var existingKeys = new List<string>();
-
             var errorMessages = new List<string>();
-            foreach (var value in requiredValues)
+            foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.Values.Contains(value))
+                if (!checkedDictionary.TryGetValue(key, out var property))
                 {
-                    var key = checkedDictionary.FirstOrDefault(x => x.Value == value).Key;
-                    if (string.IsNullOrWhiteSpace(key))
-                    {
-                        errorMessages.Add($"The dictionary key at value \"{value}\" is null or whitespace.");
-                        continue;
-                    }
-
-                    if (existingKeys.Contains(key))
-                    {
-                        errorMessages.Add($"The dictionary already contains the key \"{key}\", associated with \"{value}\".");
-                        continue;
-                    }
-                    else
-                    {
-                        existingKeys.Add(key);
-                    }
+                    errorMessages.Add($"The dictionary doesn't contain the key: \"{key}\".");
+                    continue;
                 }
-                else
+
+                if (property is null)
                 {
-                    errorMessages.Add($"The dictionary doesn't contain a key for \"{value}\".");
+                    errorMessages.Add($"The dictionary value at key \"{key}\" is null.");
+                    continue;
+                }
+
+                if (
+                    string.IsNullOrWhiteSpace(property.displayName) ||
+                    property.maxHp.baseValue - property.maxHp.negativeFluctuation < 0 ||
+                    property.attack.baseValue - property.attack.negativeFluctuation < 0 ||
+                    property.defence.baseValue - property.defence.negativeFluctuation < 0 ||
+                    property.agility.baseValue - property.agility.negativeFluctuation < 0 ||
+                    property.teamChangeChange > 1 ||
+                    property.teamChangeChange < 0 ||
+                    property.attributeChances.Any(ac =>
+                        ac.positiveAttributeChance + ac.negativeAttributeChance > 1 ||
+                        ac.positiveAttributeChance < 0 ||
+                        ac.positiveAttributeChance < 0
+                    )
+                )
+                {
+                    errorMessages.Add($"Incorrect property value associated with \"{key}\".");
                     continue;
                 }
             }
@@ -805,49 +805,36 @@ namespace ProgressAdventureTests
         {
             RandomStates.Initialize();
 
-            IDictionary<string, Type> entityTypeMap;
+            IDictionary<EnumValue<EntityType>, EntityPropertiesDTO> entitypropertiesMap;
 
             try
             {
-                entityTypeMap = Utils.GetInternalPropertyFromStaticClass<IDictionary<string, Type>>(typeof(EntityUtils), "EntityTypeMap");
+                entitypropertiesMap = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<EntityType>, EntityPropertiesDTO>>(
+                    typeof(EntityUtils),
+                    "EntityPropertiesMap"
+                );
             }
             catch (Exception ex)
             {
                 return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
             }
 
-            var entityType = typeof(Entity);
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
-            var entityTypes = paAssembly.GetTypes().Where(entityType.IsAssignableFrom);
-            var filteredEntityTypes = entityTypes.Where(type => type != typeof(Entity) && type != typeof(Entity<>));
-
             var entities = new List<Entity>();
 
             // check if entity exists and loadable from jsom
             var errorMessages = new List<string>();
-            foreach (var type in filteredEntityTypes)
+            foreach (var entityType in EntityType.GetValues())
             {
-                // get entity type name
-                string? typeName = null;
-                foreach (var eType in entityTypeMap)
+                // get entity type properties
+                if (!entitypropertiesMap.TryGetValue(entityType, out var properties))
                 {
-                    if (eType.Value == type)
-                    {
-                        typeName = eType.Key;
-                        break;
-                    }
-                }
-
-                if (typeName is null)
-                {
-                    errorMessages.Add("Entity type has no type name in entity type map");
+                    errorMessages.Add("Entity type has no properties in entity properties map");
                     continue;
                 }
 
-
                 var defEntityJson = new JsonDictionary()
                 {
-                    ["type"] = typeName,
+                    ["type"] = entityType,
                 };
 
                 Entity? entity;
@@ -855,12 +842,12 @@ namespace ProgressAdventureTests
                 try
                 {
                     PACSingletons.Instance.Logger.Log("Beggining mock entity creation", "ignore \"value is null\" warnings", LogSeverity.OTHER);
-                    Entity.AnyEntityFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
+                    PACTools.TryFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
                     PACSingletons.Instance.Logger.Log("Mock entity creation ended", "", LogSeverity.OTHER);
 
                     if (entity is null)
                     {
-                        throw new ArgumentNullException(typeName);
+                        throw new ArgumentNullException(entityType.Name);
                     }
                 }
                 catch (Exception ex)
@@ -885,7 +872,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     var entityJson = entity.ToJson();
-                    var success = Entity.AnyEntityFromJson(entityJson, PAConstants.SAVE_VERSION, out loadedEntity);
+                    var success = PACTools.TryFromJson(entityJson, PAConstants.SAVE_VERSION, out loadedEntity);
 
                     if (loadedEntity is null || !success)
                     {
@@ -899,19 +886,31 @@ namespace ProgressAdventureTests
                 }
 
                 if (
-                    loadedEntity.GetType() == entity.GetType() &&
+                    loadedEntity.type == entity.type &&
                     loadedEntity.FullName == entity.FullName &&
                     loadedEntity.MaxHp == entity.MaxHp &&
                     loadedEntity.CurrentHp == entity.CurrentHp &&
                     loadedEntity.Attack == entity.Attack &&
                     loadedEntity.Defence == entity.Defence &&
-                    loadedEntity.Agility == entity.Agility
+                    loadedEntity.Agility == entity.Agility &&
+                    loadedEntity.originalTeam == entity.originalTeam &&
+                    loadedEntity.currentTeam == entity.currentTeam &&
+                    loadedEntity.attributes.SequenceEqual(entity.attributes) &&
+                    loadedEntity.drops.SequenceEqual(entity.drops) &&
+                    (
+                        (loadedEntity.TryGetInventory() is null && entity.TryGetInventory() is null) ||
+                        (
+                            loadedEntity.TryGetInventory() is Inventory loadedInv &&
+                            entity.TryGetInventory() is Inventory entityInv &&
+                            loadedInv.items.SequenceEqual(entityInv.items)
+                        )
+                    )
                 )
                 {
                     continue;
                 }
 
-                errorMessages.Add($"Original entity, and entity loaded from json are not the same for \"{entity.GetType()}\"");
+                errorMessages.Add($"Original entity, and entity loaded from json are not the same for \"{entity.type}\"");
                 continue;
             }
             if (errorMessages.Count != 0)
@@ -929,7 +928,7 @@ namespace ProgressAdventureTests
         /// Checks if all reference save files can be loaded without errors or warnings.<br/>
         /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES!
         /// </summary>
-        public static TestResultDTO? BasicAllMainSaveFileVersionsLoadableTest()
+        public static TestResultDTO? BasicAllMainSaveFileVersionsLoadable()
         {
             // create current refrence save
             var currentSaveName = "current";
@@ -1012,11 +1011,7 @@ namespace ProgressAdventureTests
             // list of classes that implement "IJsonConvertable<T>"!
             var testObjects = new List<IJsonReadable>
             {
-                new Caveman(),
-                new Ghoul(),
-                new Troll(),
-                new Dragon(),
-                new Player(),
+                new Entity(EntityType.PLAYER),
                 new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
                 new Inventory(),
                 new MaterialItem(Material.FLINT),
@@ -1242,18 +1237,22 @@ namespace ProgressAdventureTests
                 saveName,
                 $"test save ({saveName})",
                 null, null,
-                new Player(
+                new Entity(EntityType.PLAYER,
                     $"test player ({saveName})",
-                    new Inventory(
-                    [
-                        new MaterialItem(Material.CLOTH, 15),
-                        new MaterialItem(Material.GOLD, 5.27),
-                        new MaterialItem(Material.HEALING_LIQUID, 0.3),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, [Material.STEEL, Material.WOOD], 12),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, [Material.WOOD], 3),
-                        ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, [Material.FLINT, Material.WOOD], 152),
-                    ]),
-                    (15, -6))
+                    (15, -6),
+                    extraData: new Dictionary<string, object?>
+                    {
+                        [PAConstants.JsonKeys.Entity.Player.INVENTORY] = new Inventory(
+                        [
+                            new MaterialItem(Material.CLOTH, 15),
+                            new MaterialItem(Material.GOLD, 5.27),
+                            new MaterialItem(Material.HEALING_LIQUID, 0.3),
+                            ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, [Material.STEEL, Material.WOOD], 12),
+                            ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, [Material.WOOD], 3),
+                            ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, [Material.FLINT, Material.WOOD], 152),
+                        ])
+                    }
+                )
             );
             World.Initialize();
             World.GenerateChunk((0, 0));

@@ -1,6 +1,6 @@
 ﻿using PACommon;
 using PACommon.JsonUtils;
-using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
@@ -20,7 +20,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The player object.
         /// </summary>
-        public Player player;
+        public Entity.Entity player;
         #endregion
 
         #region Private fields
@@ -82,7 +82,7 @@ namespace ProgressAdventure
             string? displaySaveName = null,
             DateTime? lastSave = null,
             TimeSpan? playtime = null,
-            Player? player = null,
+            Entity.Entity? player = null,
             bool initialiseRandomGenerators = true
         )
         {
@@ -97,7 +97,7 @@ namespace ProgressAdventure
                 RandomStates.Initialize();
             }
 
-            this.player = player ?? new Player();
+            this.player = player is null || player.type != EntityType.PLAYER ? new Entity.Entity(EntityType.PLAYER) : player;
         }
         #endregion
 
@@ -116,7 +116,7 @@ namespace ProgressAdventure
             string? displaySaveName = null,
             DateTime? lastSave = null,
             TimeSpan? playtime = null,
-            Player? player = null,
+            Entity.Entity? player = null,
             bool initialiseRandomGenerators = true
         )
         {
@@ -170,7 +170,11 @@ namespace ProgressAdventure
             };
         }
 
-        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(JsonDictionary saveDataJson, string fileVersion, [NotNullWhen(true)] ref SaveData? saveData)
+        static bool IJsonConvertable<SaveData>.FromJsonWithoutCorrection(
+            JsonDictionary saveDataJson,
+            string fileVersion,
+            [NotNullWhen(true)] ref SaveData? saveData
+        )
         {
             var success = true;
 
@@ -178,7 +182,7 @@ namespace ProgressAdventure
             success &= PACTools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
             success &= PACTools.TryParseJsonValue<SaveData, DateTime?>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
             success &= PACTools.TryParseJsonValue<SaveData, TimeSpan?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
-            success &= PACTools.TryParseJsonConvertableValue<SaveData, Player>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);
+            success &= PACTools.TryParseJsonConvertableValue<SaveData, Entity.Entity>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);
             success &= PACTools.TryParseJsonConvertableValue<SaveData, RandomStates>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.RANDOM_STATES, out _);
 
             saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player, false);

@@ -17,7 +17,7 @@ namespace PACommon
         /// A function to return the corrected verson of a string, that the user inputed.
         /// </summary>
         /// <param name="rawText">The raw user input to correct.</param>
-        public delegate string StringCorrectorDelegate(string? rawText);
+        public delegate string StringCorrectorDelegate(string rawText);
         #endregion
 
         #region Private fields

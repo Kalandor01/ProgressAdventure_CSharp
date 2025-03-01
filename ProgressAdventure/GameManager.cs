@@ -270,7 +270,7 @@ namespace ProgressAdventure
 
                 SaveData.Instance.player.Stats(false);
                 Console.ReadKey(true);
-                MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
+                MenuManager.InventoryViewer(SaveData.Instance.player.TryGetInventory()!);
 
                 PASingletons.Instance.Globals.Unpause();
             }

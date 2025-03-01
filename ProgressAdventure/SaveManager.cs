@@ -1,7 +1,8 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
-using ProgressAdventure.Entity;
+using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
 using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
@@ -46,15 +47,16 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="displaySaveName">The display name of the save file.</param>
         /// <param name="playerName">The name of the player.</param>
-        public static void CreateSaveData(string? displaySaveName, string? playerName)
+        /// <param name="seedString">The seed string.</param>
+        public static void CreateSaveData(string? displaySaveName, string? playerName, string? seedString)
         {
             PACSingletons.Instance.Logger.Log("Preparing game data");
             // make save name
             var saveName = Tools.CorrectSaveName(displaySaveName);
             // random generators
-            RandomStates.Initialize();
+            RandomStates.Initialize(seedString is not null ? NPrngExtensionsPA.GetRandomFromString(seedString, out _) : null);
             // player
-            var player = new Player(playerName);
+            var player = new Entity.Entity(EntityType.PLAYER, playerName);
             // load to class
             SaveData.Initialize(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
             World.Initialize();
@@ -78,7 +80,19 @@ namespace ProgressAdventure
                 clearScreen: false
             ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
 
-            CreateSaveData(displaySaveName, playerName);
+            var seedText = new RealTimeCorrectedTextField(
+                "Custom seed: ",
+                new StringCorrectorDelegate(Tools.CorrectSeed),
+                clearScreen: false
+            ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
+
+            string? seedString = null;
+            if (seedText != "")
+            {
+                NPrngExtensionsPA.GetRandomFromString(seedText, out seedString);
+            }
+
+            CreateSaveData(displaySaveName, playerName, seedString);
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
+using ProgressAdventure.Extensions;
 
 namespace ProgressAdventure
 {
@@ -38,6 +39,10 @@ namespace ProgressAdventure
         /// The modifier used when creating a chunk random generator.
         /// </summary>
         public double ChunkSeedModifier { get; private set; }
+        /// <summary>
+        /// The seed string that can be used to get the same seed again.
+        /// </summary>
+        public string SeedString { get; private set; }
         #endregion
 
         #region Private fields
@@ -80,15 +85,18 @@ namespace ProgressAdventure
         /// <param name="miscRandom"><inheritdoc cref="MiscRandom" path="//summary"/></param>
         /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
         /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
+        /// <param name="seedString"><inheritdoc cref="SeedString" path="//summary"/></param>
         private RandomStates(
             SplittableRandom? mainRandom = null,
             SplittableRandom? worldRandom = null,
             SplittableRandom? miscRandom = null,
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null,
-            double? chunkSeedModifier = null
+            double? chunkSeedModifier = null,
+            string? seedString = null
         )
         {
             MainRandom = mainRandom ?? new SplittableRandom();
+            SeedString = seedString ?? MainRandom.ToSeedString();
             WorldRandom = worldRandom ?? PACTools.MakeRandomGenerator(MainRandom);
             MiscRandom = miscRandom ?? PACTools.MakeRandomGenerator(MainRandom);
             TileTypeNoiseSeeds = tileTypeNoiseSeeds is not null ? RecalculateTileTypeNoiseSeeds(tileTypeNoiseSeeds, WorldRandom) : RecalculateTileTypeNoiseSeeds(WorldRandom);
@@ -107,15 +115,17 @@ namespace ProgressAdventure
         /// <param name="miscRandom"><inheritdoc cref="MiscRandom" path="//summary"/></param>
         /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
         /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
+        /// <param name="seedString"><inheritdoc cref="SeedString" path="//summary"/></param>
         public static RandomStates Initialize(
             SplittableRandom? mainRandom = null,
             SplittableRandom? worldRandom = null,
             SplittableRandom? miscRandom = null,
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null,
-            double? chunkSeedModifier = null
+            double? chunkSeedModifier = null,
+            string? seedString = null
         )
         {
-            _instance = new RandomStates(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
+            _instance = new RandomStates(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier, seedString);
             PACSingletons.Instance.Logger.Log($"{nameof(RandomStates)} initialized");
             return _instance;
         }
@@ -184,6 +194,12 @@ namespace ProgressAdventure
                     ["chunkSeedModifier"] = "chunk_seed_modifier",
                 });
             }, "2.2"),
+            // 2.4 -> 2.4.1
+            (oldJson =>
+            {
+                // empty seed string
+                oldJson["seed"] = "";
+            }, "2.4.1"),
         ];
 
         public JsonDictionary ToJson()
@@ -198,6 +214,7 @@ namespace ProgressAdventure
                     v => (JsonObject?)v.Value
                 ),
                 [Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER] = ChunkSeedModifier,
+                [Constants.JsonKeys.RandomStates.SEED_STRING] = SeedString,
             };
         }
 
@@ -260,8 +277,9 @@ namespace ProgressAdventure
             }
 
             success &= PACTools.TryParseJsonValue<RandomStates, double?>(randomStatesJson, Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER, out var chunkSeedModifier);
+            success &= PACTools.TryParseJsonValue<RandomStates, string?>(randomStatesJson, Constants.JsonKeys.RandomStates.SEED_STRING, out var seedString);
 
-            randomStates = Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier);
+            randomStates = Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier, seedString);
             return success;
         }
         #endregion

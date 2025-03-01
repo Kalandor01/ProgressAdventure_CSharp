@@ -9,6 +9,8 @@ namespace PACommon.Extensions
     /// </summary>
     public static class NPrngExtensions
     {
+        public const ulong GOLDEN_GAMMA = 0x9e3779b97f4a7c15UL;
+
         /// <summary>
         /// Returns a number in a range, between the min and max, in a triangular distribution.
         /// </summary>

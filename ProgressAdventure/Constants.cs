@@ -221,13 +221,13 @@ namespace ProgressAdventure
                 public const string X_POSITION = "x_position";
                 public const string Y_POSITION = "y_position";
                 public const string FACING = "facing";
-            }
-            #endregion
 
-            #region Player
-            public static class Player
-            {
-                public const string INVENTORY = "inventory";
+                #region Player
+                public static class Player
+                {
+                    public const string INVENTORY = "inventory";
+                }
+                #endregion
             }
             #endregion
 
@@ -262,6 +262,7 @@ namespace ProgressAdventure
                 public const string MISC_RANDOM = "misc_random";
                 public const string TILE_TYPE_NOISE_SEEDS = "tile_type_noise_seeds";
                 public const string CHUNK_SEED_MODIFIER = "chunk_seed_modifier";
+                public const string SEED_STRING = "seed";
             }
             #endregion
 
@@ -399,7 +400,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v5";
+        public const string CONFIG_VERSION = "v6";
         /// <summary>
         /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
         /// </summary>
@@ -430,7 +431,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.4";
+        public const string SAVE_VERSION = "2.4.1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

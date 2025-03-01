@@ -9,6 +9,7 @@
 
   <PropertyGroup Label="Normalise stack trace file locations">
     <PathMap>$(MSBuildProjectDirectory)=.\\$(MSBuildProjectName)</PathMap>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   
 

@@ -189,6 +189,7 @@ namespace ProgressAdventure
                         new TypeConverter(),
                         new AdvancedEnumConverter<Attribute>(),
                         new AdvancedEnumConverter<Material>(),
+                        new AdvancedEnumConverter<EntityType>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new ConsoleKeyInfoConverter(),

@@ -2,83 +2,85 @@
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
-using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using AItem = ProgressAdventure.ItemManagement.AItem;
 using Attribute = ProgressAdventure.Enums.Attribute;
+using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.Entity
 {
     /// <summary>
-    /// A representation of an entity.<br/>
-    /// Classes implementing this class MUST create a (protected) constructor, with signiture protected Type([return type from "FromJsonInternal()"] entityData) for FromJson<T>() to work.
+    /// A representation of an entity.
     /// </summary>
-    public abstract class Entity : IJsonReadable
+    public class Entity : IJsonConvertable<Entity>
     {
         #region Public fields
         /// <summary>
-        /// The name of the <c>Entity</c>.
+        /// The type of the <see cref="Entity"/>.
+        /// </summary>
+        public EnumValue<EntityType> type;
+        /// <summary>
+        /// The name of the <see cref="Entity"/>.
         /// </summary>
         public string name;
         /// <summary>
-        /// The base hp of the <c>Entity</c>.
+        /// The base hp of the <see cref="Entity"/>.
         /// </summary>
         public int baseMaxHp;
         /// <summary>
-        /// The base attack of the <c>Entity</c>.
+        /// The base attack of the <see cref="Entity"/>.
         /// </summary>
         public int baseAttack;
         /// <summary>
-        /// The base defence of the <c>Entity</c>.
+        /// The base defence of the <see cref="Entity"/>.
         /// </summary>
         public int baseDefence;
         /// <summary>
-        /// The base agility of the <c>Entity</c>.
+        /// The base agility of the <see cref="Entity"/>.
         /// </summary>
         public int baseAgility;
         /// <summary>
-        /// The original team that the <c>Entity</c> is a part of.
+        /// The original team that the <see cref="Entity"/> is a part of.
         /// </summary>
         public int originalTeam;
         /// <summary>
-        /// The current team that the <c>Entity</c> is a part of.
+        /// The current team that the <see cref="Entity"/> is a part of.
         /// </summary>
         public int currentTeam;
         /// <summary>
-        /// The list of attributes that the <c>Entity</c> has.
+        /// The list of attributes that the <see cref="Entity"/> has.
         /// </summary>
         public List<EnumValue<Attribute>> attributes;
         /// <summary>
-        /// The list of items that the <c>Entity</c> will drop on death.
+        /// The list of items that the <see cref="Entity"/> will drop on death.
         /// </summary>
         public List<AItem> drops;
         /// <summary>
-        /// The position of the entity in the world.
+        /// The position of the <see cref="Entity"/> in the world.
         /// </summary>
         public (long x, long y) position;
         /// <summary>
-        /// The facing direction of the entity.
+        /// The facing direction of the <see cref="Entity"/>.
         /// </summary>
         public Facing facing;
-        #endregion
 
-        #region Private fields
+        #region Entity type specific
         /// <summary>
-        /// The maximum hp of the <c>Entity</c>.
+        /// The extra entity type specific data.
         /// </summary>
-        private int _maxHp;
-        /// <summary>
-        /// The current hp of the <c>Entity</c>.
-        /// </summary>
-        private int _currentHp;
+        private readonly Dictionary<string, object?> extraData;
+        #endregion
         #endregion
 
         #region Public properties
         /// <summary>
-        /// The full name of the <c>Entity</c>.
+        /// The full name of the <see cref="Entity"/>.
         /// </summary>
         public string FullName { get; protected set; }
         /// <summary>
@@ -86,75 +88,174 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public int MaxHp
         {
-            get
-            {
-                return _maxHp;
-            }
-            protected set
-            {
-                _maxHp = value >= 0 ? value : 0;
-            }
+            get;
+            protected set => field = value >= 0 ? value : 0;
         }
         /// <summary>
         /// <inheritdoc cref="_currentHp" path="//summary"/>
         /// </summary>
         public int CurrentHp
         {
-            get
-            {
-                return _currentHp;
-            }
-            protected set
-            {
-                _currentHp = Math.Clamp(value, 0, MaxHp);
-            }
+            get;
+            protected set => field = Math.Clamp(value, 0, MaxHp);
         }
         /// <summary>
-        /// The current attack of the <c>Entity</c>.
+        /// The current attack of the <see cref="Entity"/>.
         /// </summary>
         public int Attack { get; protected set; }
         /// <summary>
-        /// The current defence of the <c>Entity</c>.
+        /// The current defence of the <see cref="Entity"/>.
         /// </summary>
         public int Defence { get; protected set; }
         /// <summary>
-        /// The current agility of the <c>Entity</c>.
+        /// The current agility of the <see cref="Entity"/>.
         /// </summary>
         public int Agility { get; protected set; }
         #endregion
 
         #region Public constructors
+        #region Entity type specific constructors
+        private static void SpecificConstructorPlayer(Entity entity, Dictionary<string, object?> extraData)
+        {
+            entity.name = Tools.CorrectPlayerName(entity.name);
+            SetExtraDataValueFromConstructor(entity, extraData, Constants.JsonKeys.Entity.Player.INVENTORY, new Inventory());
+        }
+        #endregion
+
         /// <summary>
         /// <inheritdoc cref="Entity"/><br/>
-        /// Can be used for creating a new <c>Entity</c>, from the result of the EntityManager function.
+        /// Can be used for loading the <see cref="Entity"/> from json.
         /// </summary>
-        /// <param name="name">The name of the entity.</param>
-        /// <param name="stats">The tuple of stats, representin all other values from the other constructor, other than drops.</param>
-        /// <param name="drops"><inheritdoc cref="drops" path="//summary"/></param>
-        public Entity(
-            string name,
-            EntityManagerStatsDTO stats,
-            List<AItem>? drops = null
+        /// <param name="entityType"></param>
+        /// <param name="name"></param>
+        /// <param name="baseMaxHp"></param>
+        /// <param name="currentHp"></param>
+        /// <param name="baseAttack"></param>
+        /// <param name="baseDefence"></param>
+        /// <param name="baseAgility"></param>
+        /// <param name="originalTeam"></param>
+        /// <param name="currentTeam"></param>
+        /// <param name="attributes"></param>
+        /// <param name="drops"></param>
+        /// <param name="position"></param>
+        /// <param name="facing"></param>
+        /// <param name="extraData"></param>
+        /// <exception cref="ArgumentException">Thrown if the entity type is invalid.</exception>
+        private Entity(
+            EnumValue<EntityType> entityType,
+            string? name = null,
+            int? baseMaxHp = null,
+            int? currentHp = null,
+            int? baseAttack = null,
+            int? baseDefence = null,
+            int? baseAgility = null,
+            int? originalTeam = null,
+            int? currentTeam = null,
+            List<EnumValue<Attribute>>? attributes = null,
+            List<AItem>? drops = null,
+            (long x, long y)? position = null,
+            Facing? facing = null,
+            Dictionary<string, object?>? extraData = null
         )
-            : this(
-                new GenericEntityConstructorParametersDTO()
-                {
-                    name = name,
-                    baseMaxHp = stats.baseMaxHp,
-                    currentHp = null,
-                    baseAttack = stats.baseAttack,
-                    baseDefence = stats.baseDefence,
-                    baseAgility = stats.baseAgility,
-                    originalTeam = stats.originalTeam,
-                    currentTeam = stats.currentTeam,
-                    attributes = stats.attributes,
-                    drops = drops,
-                    position = null,
-                    facing = null
-                },
-                false
+        {
+            if (!EntityUtils.EntityPropertiesMap.TryGetValue(entityType, out var properties))
+            {
+                throw new ArgumentException("Entity type doesn't have properties!", nameof(entityType));
+            }
+
+            this.type = entityType;
+            this.name = name ?? properties.displayName;
+            
+            int actualCurrentHp;
+            if (
+                baseMaxHp is null ||
+                currentHp is null ||
+                baseAttack is null ||
+                baseDefence is null ||
+                baseAgility is null ||
+                originalTeam is null ||
+                currentTeam is null ||
+                attributes is null
             )
-        { }
+            {
+                var stats = EntityUtils.EntityManager(
+                    properties.maxHp,
+                    properties.attack,
+                    properties.defence,
+                    properties.agility,
+                    properties.attributeChances,
+                    originalTeam ?? properties.originalTeam,
+                    properties.teamChangeChange
+                );
+
+                this.baseMaxHp = baseMaxHp ?? stats.baseMaxHp;
+                this.CurrentHp = currentHp ?? stats.baseMaxHp;
+                this.baseAttack = baseAttack ?? stats.baseAttack;
+                this.baseDefence = baseDefence ?? stats.baseDefence;
+                this.baseAgility = baseAgility ?? stats.baseAgility;
+                this.originalTeam = originalTeam ?? stats.originalTeam;
+                this.currentTeam = currentTeam ?? stats.currentTeam;
+                this.attributes = attributes ?? stats.attributes;
+
+                actualCurrentHp = currentHp ?? stats.baseMaxHp;
+            }
+            else
+            {
+                this.baseMaxHp = (int)baseMaxHp;
+                this.CurrentHp = (int)currentHp;
+                this.baseAttack = (int)baseAttack;
+                this.baseDefence = (int)baseDefence;
+                this.baseAgility = (int)baseAgility;
+                this.originalTeam = (int)originalTeam;
+                this.currentTeam = (int)currentTeam;
+                this.attributes = attributes;
+
+                actualCurrentHp = (int)currentHp;
+            }
+
+            this.drops = drops ?? LootFactory.LootManager(properties.loot);
+            this.position = position ?? (0, 0);
+            this.facing = facing ?? Facing.NORTH;
+
+            // specific constructors
+            this.extraData = [];
+            if (type == EntityType.PLAYER)
+            {
+                SpecificConstructorPlayer(this, extraData ?? []);
+            }
+
+            SetupStats(actualCurrentHp);
+            UpdateFullName();
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Entity"/><br/>
+        /// </summary>
+        /// <param name="entityType"><inheritdoc cref="type" path="//summary"/></param>
+        /// <param name="name"><inheritdoc cref="name" path="//summary"/></param>
+        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
+        /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
+        /// <param name="teamOverwrite">Overwrites the original team of the <see cref="Entity"/>.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public Entity(
+            EnumValue<EntityType> entityType,
+            string? name = null,
+            (long x, long y)? position = null,
+            Facing? facing = null,
+            int? teamOverwrite = null,
+            Dictionary<string, object?>? extraData = null
+        )
+            :this(
+                 entityType,
+                 name,
+                 originalTeam: teamOverwrite,
+                 position: position,
+                 facing: facing,
+                 extraData: extraData
+            )
+        {
+
+        }
         #endregion
 
         #region Public methods
@@ -208,7 +309,7 @@ namespace ProgressAdventure.Entity
         /// <param name="position">The position to move to.</param>
         public virtual void SetPosition((long x, long y) position)
         {
-            SetPosition(position, false);
+            SetPosition(position, EntityUtils.EntityPropertiesMap[type].updatesWorldWhenMoving);
         }
 
         /// <summary>
@@ -220,10 +321,18 @@ namespace ProgressAdventure.Entity
         {
             var oldPosition = this.position;
             this.position = position;
-            PACSingletons.Instance.Logger.Log("Entity moved", $"name: {FullName}, {oldPosition} -> {this.position}", LogSeverity.DEBUG);
+            PACSingletons.Instance.Logger.Log(
+                $"{(type == EntityType.PLAYER ? "Player" : "Entity")} moved",
+                $"name: {FullName}, {oldPosition} -> {this.position}",
+                LogSeverity.DEBUG
+            );
             if (updateWorld)
             {
-                World.TryGetTileAll(this.position, out _);
+                World.TryGetTileAll(this.position, out var tile);
+                if (type == EntityType.PLAYER)
+                {
+                    tile.Visit();
+                }
             }
         }
 
@@ -293,15 +402,58 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public string GetFullNameWithSpecies()
         {
-            return FullName + (GetType() != typeof(Player) ? $" ({EntityUtils.GetEntityTypeName(this)})" : "");
+            return FullName + (type != EntityType.PLAYER ? $" ({ConfigUtils.RemoveNamespace(type.Name)})" : "");
         }
+
+        #region Entity type specific methods
+        /// <summary>
+        /// Returns the (player) inventory.
+        /// </summary>
+        public Inventory? TryGetInventory()
+        {
+            if (type == EntityType.PLAYER)
+            {
+                return extraData[Constants.JsonKeys.Entity.Player.INVENTORY] as Inventory;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Sets a value for the (player) inventory.
+        /// </summary>
+        /// <param name="inventory">The new inventory value.</param>
+        public bool TrySetInventory(Inventory inventory)
+        {
+            if (type == EntityType.PLAYER)
+            {
+                extraData[Constants.JsonKeys.Entity.Player.INVENTORY] = inventory;
+                return true;
+            }
+            return false;
+        }
+
+
+        /// <summary>
+        /// Displays the player's stats.
+        /// </summary>
+        /// <param name="displayInventory">If the inventory should be displayed.</param>
+        public void Stats(bool displayInventory = true)
+        {
+            Console.WriteLine($"\nName: {FullName}\n\nSTATS:");
+            Console.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\n");
+            if (displayInventory)
+            {
+                Console.WriteLine(TryGetInventory());
+            }
+        }
+        #endregion
         #endregion
 
         #region Private methods
         /// <summary>
         /// Sets up the entity's stats acording to its base attributes.
         /// </summary>
-        private void SetupAttributes(int? currentHp = null)
+        private void SetupStats(int? currentHp = null)
         {
             double tempMaxHp = baseMaxHp;
             double tempAttack = baseAttack;
@@ -322,141 +474,134 @@ namespace ProgressAdventure.Entity
             Defence = (int)Math.Clamp(tempDefence, int.MinValue, int.MaxValue);
             Agility = (int)Math.Clamp(tempAgility, int.MinValue, int.MaxValue);
         }
+
+        /// <summary>
+        /// Sets the extra value for the given key, if it exists in the given extra data dict, or the default value.
+        /// </summary>
+        /// <param name="entity">The entity to set the extra value.</param>
+        /// <param name="extraData">The extra data to use.</param>
+        /// <param name="key">The key of the data.</param>
+        /// <param name="defaultValue">The default value for the data.</param>
+        private static void SetExtraDataValueFromConstructor(
+            Entity entity,
+            Dictionary<string, object?> extraData,
+            string key,
+            object? defaultValue
+        )
+        {
+            entity.extraData[key] =
+                extraData.TryGetValue(key, out var value)
+                    ? value
+                    : defaultValue;
+        }
         #endregion
 
         #region Public overrides
         public override string ToString()
         {
+            var typeLine = type != EntityType.PLAYER ? $"\nSpecies: {type.Name}" : "";
+            var attributesStr = string.Join(", ", attributes);
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();
-            var typeLine = GetType() != typeof(Player) ? $"\nSpecies: {EntityUtils.GetEntityTypeName(this)}" : "";
-            return $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\nAttributes: {string.Join(", ", attributes)}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {string.Join("\n, ", drops.Select(d => $"\t{d}"))}";
+            var dropsStr = string.Join("\n, ", drops.Select(d => $"\t{d}"));
+            var entityStr = $"Name: {name}{typeLine}\nFull name: {FullName}\nHp: {MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\nAttributes: {attributesStr}\nOriginal team: {originalTeamStr}\nCurrent team: {teamStr}\nDrops: {dropsStr}";
+
+            if (type == EntityType.PLAYER)
+            {
+                return $"{entityStr}\n{TryGetInventory()}\nPosition: {position}\nRotation: {facing}";
+            }
+            else
+            {
+                return entityStr;
+            }
         }
         #endregion
 
         #region JsonConvert
-        #region Constructors
-        /// <summary>
-        /// <inheritdoc cref="Entity"/><br/>
-        /// Can be used for loading the <c>Entity</c> from json.
-        /// </summary>
-        /// <param name="entityData">The entity data, from <c>FromJsonInternal</c>.</param>
-        /// <param name="invokedFromFromJson">Whether this constructor was called using the invoke method, as a part of loading an entity from json, and so the entity's attributes shouldn't be set yet.</param>
-        protected Entity(GenericEntityConstructorParametersDTO entityData, bool invokedFromFromJson)
-        {
-            name = entityData.name ?? GetDefaultName();
-            position = entityData.position ?? (0, 0);
-            facing = entityData.facing ?? Facing.NORTH;
-            if (
-                entityData.baseMaxHp is null ||
-                entityData.baseAttack is null ||
-                entityData.baseDefence is null ||
-                entityData.baseAgility is null ||
-                entityData.originalTeam is null ||
-                entityData.currentTeam is null ||
-                entityData.attributes is null
-            )
+        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<Entity>.VersionCorrecters { get; } =
+        [
+            // 2.0 -> 2.0.1
+            (oldJson =>
             {
-                var entityStats = GetBaseStats();
-                baseMaxHp = entityData.baseMaxHp ?? entityStats.baseMaxHp;
-                baseAttack = entityData.baseAttack ?? entityStats.baseAttack;
-                baseDefence = entityData.baseDefence ?? entityStats.baseDefence;
-                baseAgility = entityData.baseAgility ?? entityStats.baseAgility;
-                originalTeam = entityData.originalTeam ?? entityStats.originalTeam;
-                currentTeam = entityData.currentTeam ?? entityStats.currentTeam;
-                attributes = entityData.attributes ?? entityStats.attributes;
-            }
-            else
+                // player inventory items in dictionary
+                if (
+                    oldJson.TryGetValue("type", out var entityType) &&
+                    entityType?.Value.ToString() == "player"
+                )
+                {
+                    oldJson.TryGetValue("inventory", out var inventoryJson);
+                    oldJson["inventory"] = new JsonDictionary() { ["items"] = inventoryJson };
+                }
+            }, "2.0.1"),
+            // 2.1 -> 2.1.1
+            (oldJson =>
             {
-                baseMaxHp = (int)entityData.baseMaxHp;
-                baseAttack = (int)entityData.baseAttack;
-                baseDefence = (int)entityData.baseDefence;
-                baseAgility = (int)entityData.baseAgility;
-                originalTeam = (int)entityData.originalTeam;
-                currentTeam = (int)entityData.currentTeam;
-                attributes = entityData.attributes;
-            }
-            drops = entityData.drops ?? GetDefaultDrops();
+                // renamed speed to agility
+                JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "baseSpeed", "baseAgility");
+            }, "2.1.1"),
+            // 2.1.1 -> 2.2
+            (oldJson =>
+            {
+                // snake case keys
+                JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string> {
+                    ["baseMaxHp"] = "base_max_hp",
+                    ["currentHp"] = "current_hp",
+                    ["baseAttack"] = "base_attack",
+                    ["baseDefence"] = "base_defence",
+                    ["baseAgility"] = "base_agility",
+                    ["originalTeam"] = "original_team",
+                    ["currentTeam"] = "current_team",
+                    ["xPos"] = "x_position",
+                    ["yPos"] = "y_position",
+                });
+            }, "2.2"),
+            // 2.4 -> 2.4.1
+            (oldJson =>
+            {
+                // namespaced type
+                JsonDataCorrecterUtils.TransformValue<Entity, string>(
+                    oldJson, "type", (value) => (true, ConfigUtils.GetSpecificNamespacedString(value))
+                );
+            }, "2.4.1"),
+        ];
 
-            if (!invokedFromFromJson)
-            {
-                SetupAttributes(entityData.currentHp);
-                UpdateFullName();
-            }
-        }
-        #endregion
-
-        #region Methods
-        public virtual JsonDictionary ToJson()
+        #region Entity type specific FromJsonPreConstructor
+        private static bool SpecificFromJsonPreConstructorPlayer(
+            EntityPropertiesDTO properties,
+            JsonDictionary miscJson,
+            string fileVersion,
+            out Dictionary<string, object?> extraData
+        )
         {
-            // attributes
-            var attributesProcessed = attributes.Select(a => (JsonObject?)a).ToList();
-            // drops
-            var dropsJson = drops.Select(drop => (JsonObject?)drop.ToJson()).ToList();
-            // properties
-            return new JsonDictionary
-            {
-                [Constants.JsonKeys.Entity.TYPE] = EntityUtils.GetEntityTypeName(this),
-                [Constants.JsonKeys.Entity.NAME] = name,
-                [Constants.JsonKeys.Entity.BASE_MAX_HP] = baseMaxHp,
-                [Constants.JsonKeys.Entity.CURRENT_HP] = CurrentHp,
-                [Constants.JsonKeys.Entity.BASE_ATTACK] = baseAttack,
-                [Constants.JsonKeys.Entity.BASE_DEFENCE] = baseDefence,
-                [Constants.JsonKeys.Entity.BASE_AGILITY] = baseAgility,
-                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = originalTeam,
-                [Constants.JsonKeys.Entity.CURRENT_TEAM] = currentTeam,
-                [Constants.JsonKeys.Entity.ATTRIBUTES] = attributesProcessed,
-                [Constants.JsonKeys.Entity.DROPS] = dropsJson,
-                [Constants.JsonKeys.Entity.X_POSITION] = position.x,
-                [Constants.JsonKeys.Entity.Y_POSITION] = position.y,
-                [Constants.JsonKeys.Entity.FACING] = (int)facing,
-            };
-        }
-
-        /// <summary>
-        /// Converts the misc data of the entity from a json version.
-        /// </summary>
-        /// <param name="miscJson">The json representation of the misc data for the specific entity type.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <returns>If it was succesful without any warnings.</returns>
-        protected virtual bool FromMiscJson(JsonDictionary miscJson, string fileVersion)
-        {
+            extraData = [];
             return true;
         }
         #endregion
 
-        #region Public functions
-        /// <summary>
-        /// Tries to convert the json representation of the entity to a specific entity object.
-        /// </summary>
-        /// <typeparam name="T">The type of the entity to try to convert into.</typeparam>
-        /// <param name="entityJson">The json representation of the entity.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="entityObject">The converted entity object.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        /// <returns>If it was succesful without any warnings.</returns>
-        public static bool FromJsonWithoutGeneralCorrection<T>(JsonDictionary? entityJson, string fileVersion, out T? entityObject)
-            where T : Entity<T>
+        #region Entity type specific FromJsonPostConstructor
+        private static bool SpecificFromJsonPostConstructorPlayer(
+            EntityPropertiesDTO properties,
+            ref Entity entityObject,
+            JsonDictionary miscJson,
+            string fileVersion
+        )
         {
-            if (entityJson is null)
-            {
-                entityObject = null;
-                return false;
-            }
-
-            var success = AnyEntityFromJsonPrivate(typeof(T), entityJson, fileVersion, out Entity? entity);
-            entityObject = (T?)entity;
+            var success = PACTools.TryParseJsonConvertableValue<Entity, Inventory>(
+                miscJson,
+                fileVersion,
+                Constants.JsonKeys.Entity.Player.INVENTORY,
+                out var inventory
+            );
+            entityObject.TrySetInventory(inventory ?? new Inventory());
             return success;
         }
+        #endregion
 
-        /// <summary>
-        /// Tries to convert any entity json, from a json format, into an entity object (if it implements the nececary protected constructor).
-        /// </summary>
-        /// <param name="entityJson">The json representation of an entity.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="entityObject">The converted entity object.</param>
-        /// <returns>If it was succesful without any warnings.</returns>
-        public static bool AnyEntityFromJson(JsonDictionary? entityJson, string fileVersion, out Entity? entityObject)
+        static bool IJsonConvertable<Entity>.FromJsonWithoutCorrection(
+            JsonDictionary entityJson,
+            string fileVersion,
+            [NotNullWhen(true)] ref Entity? entityObject
+        )
         {
             entityObject = null;
             if (entityJson is null)
@@ -465,97 +610,20 @@ namespace ProgressAdventure.Entity
                 return false;
             }
 
-            if (!(
-                PACTools.TryParseJsonValue<Entity, string>(
+            if (
+                !PACTools.TryParseJsonValue<Entity, EnumValue<EntityType>>(
                     entityJson,
                     Constants.JsonKeys.Entity.TYPE,
-                    out var entityTypeValue,
+                    out var entityType,
                     isCritical: true
-                ) &&
-                EntityUtils.EntityTypeMap.TryGetValue(entityTypeValue ?? "", out Type? entityType) &&
-                entityType is not null
-            ))
+                ) ||
+                !EntityUtils.EntityPropertiesMap.TryGetValue(entityType, out var properties)
+            )
             {
                 PACTools.LogJsonError<Entity>("invalid entity type", true);
                 return false;
             }
 
-            return AnyEntityFromJsonPrivate(entityType, entityJson, fileVersion, out entityObject);
-        }
-
-        /// <summary>
-        /// Returns a newly generated name of this entity, specific to this entity type.
-        /// </summary>
-        public static string GetDefaultName()
-        {
-            return EntityUtils.GetEntityNameFromClass(1);
-        }
-
-        /// <summary>
-        /// Returns the newly rolled stats, specific to this entity type.
-        /// </summary>
-        public static EntityManagerStatsDTO GetBaseStats()
-        {
-            return EntityUtils.EntityManager(5, 5, 5, 5);
-        }
-
-        /// <summary>
-        /// Returns the newly generated drops, specific to this entity type.
-        /// </summary>
-        public static List<AItem> GetDefaultDrops()
-        {
-            return [ItemUtils.CreateCompoundItem(ItemType.Misc.COIN, Material.COPPER)];
-        }
-        #endregion
-
-        #region Private functions
-        /// <summary>
-        /// Tries to convert the json representation of the entity to a specific entity object.
-        /// </summary>
-        /// <param name="entityType">The type of the entity to try to convert into.</param>
-        /// <param name="entityJson">The json representation of the entity.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="entityObject">The converted entity object.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the entity type couldn't be converted from json with the required constructor.</exception>
-        /// <returns>If it was succesful without any warnings.</returns>
-        private static bool AnyEntityFromJsonPrivate(Type entityType, JsonDictionary entityJson, string fileVersion, out Entity? entityObject)
-        {
-            var success = CommonAttributesFromJson(entityJson, fileVersion, out var entityData);
-
-            // get entity
-            var constructor = entityType.GetConstructor(
-                BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.Instance,
-                null,
-                [entityData.GetType()],
-                null
-            ) ?? throw new ArgumentNullException(message: $"Couldn't find required entity constructor for type \"{entityType}\"!", null);
-            var entity = constructor.Invoke([entityData]) ?? throw new ArgumentNullException(message: $"Couldn't create entity object from type \"{entityType}\"!", null);
-            entityObject = (Entity?)entity;
-            if (entityObject is null)
-            {
-                return false;
-            }
-
-            success &= entityObject.FromMiscJson(entityJson, fileVersion);
-            entityObject.SetupAttributes(entityData.currentHp);
-            entityObject.UpdateFullName();
-
-            return success && entityObject is not null;
-        }
-
-        /// <summary>
-        /// Tries to convert the json representation of the <c>Entity</c> to a format that can easily be turned to an <c>Entity</c> object.
-        /// </summary>
-        /// <param name="entityJson">The json representation of the <c>Entity</c>.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
-        /// <param name="entityData">The basic data of the entity.</param>
-        /// <returns>If it was succesful without any warnings.</returns>
-        private static bool CommonAttributesFromJson(
-            JsonDictionary entityJson,
-            string fileVersion,
-            out GenericEntityConstructorParametersDTO entityData
-        )
-        {
             var success = true;
             success &= PACTools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
             success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
@@ -589,25 +657,94 @@ namespace ProgressAdventure.Entity
                 PACTools.LogJsonParseError<Entity>(nameof(position));
                 success = false;
             }
-
             success &= PACTools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
-            entityData = new GenericEntityConstructorParametersDTO
+            // specific FromJson pre constructor
+            Dictionary<string, object?> extraData;
+            if (entityType == EntityType.PLAYER)
             {
-                name = name,
-                baseMaxHp = baseMaxHp,
-                currentHp = currentHp,
-                baseAttack = baseAttack,
-                baseDefence = baseDefence,
-                baseAgility = baseAgility,
-                originalTeam = originalTeam,
-                currentTeam = currentTeam,
-                attributes = attributes,
-                drops = drops,
-                position = position,
-                facing = facing
+                success &= SpecificFromJsonPreConstructorPlayer(properties, entityJson, fileVersion, out extraData);
+            }
+            else
+            {
+                extraData = [];
+            }
+
+            entityObject = new Entity(
+                entityType,
+                name,
+                baseMaxHp,
+                currentHp,
+                baseAttack,
+                baseDefence,
+                baseAgility,
+                originalTeam,
+                currentTeam,
+                attributes,
+                drops,
+                position,
+                facing,
+                extraData
+            );
+
+            // specific FromJson post constructor
+            if (entityType == EntityType.PLAYER)
+            {
+                success &= SpecificFromJsonPostConstructorPlayer(properties, ref entityObject, entityJson, fileVersion);
+            }
+            else
+            {
+                extraData = [];
+            }
+
+            entityObject.SetupStats(entityObject.CurrentHp);
+            entityObject.UpdateFullName();
+            return success && entityObject is not null;
+        }
+
+        #region Methods
+        #region Entity type specific ToJson
+        private JsonDictionary SpecificToJsonPlayer(JsonDictionary entityJson)
+        {
+            entityJson[Constants.JsonKeys.Entity.Player.INVENTORY] = TryGetInventory()!.ToJson();
+            return entityJson;
+        }
+        #endregion
+
+        public virtual JsonDictionary ToJson()
+        {
+            // attributes
+            var attributesProcessed = attributes.Select(a => (JsonObject?)a).ToList();
+            // drops
+            var dropsJson = drops.Select(drop => (JsonObject?)drop.ToJson()).ToList();
+            // properties
+            var baseJson = new JsonDictionary
+            {
+                [Constants.JsonKeys.Entity.TYPE] = type,
+                [Constants.JsonKeys.Entity.NAME] = name,
+                [Constants.JsonKeys.Entity.BASE_MAX_HP] = baseMaxHp,
+                [Constants.JsonKeys.Entity.CURRENT_HP] = CurrentHp,
+                [Constants.JsonKeys.Entity.BASE_ATTACK] = baseAttack,
+                [Constants.JsonKeys.Entity.BASE_DEFENCE] = baseDefence,
+                [Constants.JsonKeys.Entity.BASE_AGILITY] = baseAgility,
+                [Constants.JsonKeys.Entity.ORIGINAL_TEAM] = originalTeam,
+                [Constants.JsonKeys.Entity.CURRENT_TEAM] = currentTeam,
+                [Constants.JsonKeys.Entity.ATTRIBUTES] = attributesProcessed,
+                [Constants.JsonKeys.Entity.DROPS] = dropsJson,
+                [Constants.JsonKeys.Entity.X_POSITION] = position.x,
+                [Constants.JsonKeys.Entity.Y_POSITION] = position.y,
+                [Constants.JsonKeys.Entity.FACING] = (int)facing,
             };
-            return success;
+
+            // specific
+            if (type == EntityType.PLAYER)
+            {
+                return SpecificToJsonPlayer(baseJson);
+            }
+            else
+            {
+                return baseJson;
+            }
         }
         #endregion
         #endregion

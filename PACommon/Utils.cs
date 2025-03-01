@@ -694,6 +694,36 @@ namespace PACommon
             var bytes = Encoding.Convert(Encoding.UTF8, encoding, utfBytes);
             return encoding.GetString(bytes);
         }
+
+        /// <summary>
+        /// Converts a byte array to a ulong.
+        /// </summary>
+        /// <param name="arr">The byte array.</param>
+        public static ulong ByteArrayToUlong(byte[] arr)
+        {
+            ulong val = 0;
+            for (var x = 0; x < 8; x++)
+            {
+                val <<= 8;
+                val += arr.Length > x ? arr[x] : 0UL;
+            }
+            return val;
+        }
+
+        /// <summary>
+        /// Converts a ulong to a byte array.
+        /// </summary>
+        /// <param name="value">The ulong.</param>
+        public static byte[] UlongToByteArray(ulong value)
+        {
+            var arr = new byte[8];
+            for (var x = 0; x < 8; x++)
+            {
+                arr[7 - x] = (byte)value;
+                value >>= 8;
+            }
+            return arr;
+        }
         #endregion
 
         #region Private functions

@@ -3,7 +3,7 @@ using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
-using System.Diagnostics;
+using ProgressAdventure.ItemManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.Entity
@@ -14,6 +14,18 @@ namespace ProgressAdventure.Entity
     public static class EntityUtils
     {
         #region Default config values
+        /// <summary>
+        /// The default value for the config used for the values of <see cref="EntityType"/>.
+        /// </summary>
+        private static readonly List<EnumValue<EntityType>> _defaultEntityTypes =
+        [
+            EntityType.PLAYER,
+            EntityType.CAVEMAN,
+            EntityType.GHOUL,
+            EntityType.TROLL,
+            EntityType.DRAGON,
+        ];
+
         /// <summary>
         /// The default value for the config used for the values of <see cref="Attribute"/>.
         /// </summary>
@@ -34,13 +46,61 @@ namespace ProgressAdventure.Entity
         /// <summary>
         /// The default value for the config used for the value of <see cref="EntityTypeMap"/>.
         /// </summary>
-        private static readonly Dictionary<string, Type> _defaultEntityTypeMap = new()
+        public static readonly Dictionary<EnumValue<EntityType>, EntityPropertiesDTO> _defaultEntityPropertiesMap = new()
         {
-            ["player"] = typeof(Player),
-            ["caveman"] = typeof(Caveman),
-            ["ghoul"] = typeof(Ghoul),
-            ["troll"] = typeof(Troll),
-            ["dragon"] = typeof(Dragon),
+            [EntityType.PLAYER] = new EntityPropertiesDTO(
+                "You",
+                new(20, 6, 6),
+                new(10, 3, 3),
+                new(10, 3, 3),
+                new(10, 9, 10),
+                [],
+                0, 0,
+                [],
+                true
+            ),
+            [EntityType.CAVEMAN] = new EntityPropertiesDTO(
+                "Caveman",
+                7, 7, 7, 7,
+                loot: [
+                    new(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
+                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.15, 3, 0, 1),
+                    new(ItemType.Misc.COIN, Material.COPPER, 0.35, 3, 0, 4),
+                ]
+            ),
+            [EntityType.GHOUL] = new EntityPropertiesDTO(
+                "Ghoul",
+                11, 9, 9, 9,
+                loot: [
+                    new(ItemType.Weapon.SWORD, Material.STONE, 0.2),
+                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.ROTTEN_FLESH, 0.55, 3, 0, 1),
+                    new(ItemType.Misc.COIN, Material.COPPER, 0.4, 4, 0, 5),
+                ]
+            ),
+            [EntityType.TROLL] = new EntityPropertiesDTO(
+                "Troll",
+                13, 11, 11, 5,
+                loot: [
+                    new(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
+                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.25, 2, 1, 3),
+                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.TEETH, 0.35, 2, 1, 5),
+                    new(ItemType.Misc.COIN, Material.SILVER, 0.3, 3, 1, 3),
+                ]
+            ),
+            [EntityType.DRAGON] = new EntityPropertiesDTO(
+                "Dragon",
+                100, 50, 50, 20,
+                10, 20,
+                GetDefaultAttributeChancesPositiveOnly(),
+                -1, 0,
+                [
+                    new(ItemType.Misc.COIN, Material.GOLD, 0.8, 10, 1, 10),
+                    new(ItemType.Misc.COIN, Material.SILVER, 0.9, 8, 5, 15),
+                    new(ItemType.Misc.COIN, Material.COPPER, 1, 5, 10, 20),
+                    new(ItemType.Weapon.SWORD, Material.STEEL, 1, 10, 0, 1),
+                    new(ItemType.Defence.SHIELD, Material.WOOD, 1, 5, 0, 1),
+                ]
+            ),
         };
 
         /// <summary>
@@ -78,9 +138,9 @@ namespace ProgressAdventure.Entity
 
         #region Config dictionaries
         /// <summary>
-        /// The dictionary pairing up entity type strings, to entity types.
+        /// The dictionary pairing up entity types to their type attributes.
         /// </summary>
-        internal static Dictionary<string, Type> EntityTypeMap { get; private set; }
+        internal static Dictionary<EnumValue<EntityType>, EntityPropertiesDTO> EntityPropertiesMap { get; private set; }
 
         /// <summary>
         /// The dictionary pairing up facing types, to their vector equivalents.
@@ -103,9 +163,9 @@ namespace ProgressAdventure.Entity
         #region Public fuctions
         #region Configs
         #region Write default config or get reload common data
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataEntityTypeMap(bool isWriteConfig)
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataEntityTypes(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_type_map");
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_types");
             if (!isWriteConfig)
             {
                 return (basePath, false);
@@ -114,7 +174,44 @@ namespace ProgressAdventure.Entity
             PACSingletons.Instance.ConfigManager.SetConfig(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultEntityTypeMap
+                    _defaultAttributes
+                );
+            return default;
+        }
+
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataAttributes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes");
+            if (!isWriteConfig)
+            {
+                return (basePath, false);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultAttributes
+                );
+            return default;
+        }
+
+        private static (
+            string configName,
+            Func<EnumValue<EntityType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_properties_map");
+            static string KeySerializer(EnumValue<EntityType> key) => key.Name;
+            if (!isWriteConfig)
+            {
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultEntityPropertiesMap,
+                    KeySerializer
                 );
             return default;
         }
@@ -141,23 +238,8 @@ namespace ProgressAdventure.Entity
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultFacingToMovementVectorMap,
-                    ValueSerializer
-                );
-            return default;
-        }
-
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataAttributes(bool isWriteConfig)
-        {
-            var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes");
-            if (!isWriteConfig)
-            {
-                return (basePath, false);
-            }
-
-            PACSingletons.Instance.ConfigManager.SetConfig(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultAttributes
+                    ValueSerializer,
+                    KeySerializer
                 );
             return default;
         }
@@ -198,9 +280,10 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static void LoadDefaultConfigs()
         {
-            EntityTypeMap = _defaultEntityTypeMap;
-            FacingToMovementVectorMap = _defaultFacingToMovementVectorMap;
+            Tools.LoadDefultAdvancedEnum(_defaultEntityTypes);
             Tools.LoadDefultAdvancedEnum(_defaultAttributes);
+            EntityPropertiesMap = _defaultEntityPropertiesMap;
+            FacingToMovementVectorMap = _defaultFacingToMovementVectorMap;
             AttributeStatChangeMap = _defaultAttributeStatChangeMap;
         }
 
@@ -209,9 +292,10 @@ namespace ProgressAdventure.Entity
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            WriteDefaultConfigOrGetReloadDataEntityTypeMap(true);
-            WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(true);
+            WriteDefaultConfigOrGetReloadDataEntityTypes(true);
             WriteDefaultConfigOrGetReloadDataAttributes(true);
+            WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(true);
+            WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(true);
             WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(true);
         }
 
@@ -230,10 +314,31 @@ namespace ProgressAdventure.Entity
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
-            EntityTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                WriteDefaultConfigOrGetReloadDataEntityTypeMap(false).configName,
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                WriteDefaultConfigOrGetReloadDataEntityTypes(false).configName,
                 namespaceFolders,
-                _defaultEntityTypeMap,
+                _defaultEntityTypes,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true
+            );
+
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                WriteDefaultConfigOrGetReloadDataAttributes(false).configName,
+                namespaceFolders,
+                _defaultAttributes,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true
+            );
+
+            var entityPropertiesMapData = WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(false);
+            EntityPropertiesMap = ConfigUtils.ReloadConfigsAggregateDict(
+                entityPropertiesMapData.configName,
+                namespaceFolders,
+                _defaultEntityPropertiesMap,
+                entityPropertiesMapData.serializeKeys,
+                key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -251,15 +356,6 @@ namespace ProgressAdventure.Entity
                 showProgressIndentation
             );
 
-            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataAttributes(false).configName,
-                namespaceFolders,
-                _defaultAttributes,
-                isVanillaInvalid,
-                showProgressIndentation,
-                true
-            );
-
             var attributeStatChangeMapData = WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(false);
             AttributeStatChangeMap = ConfigUtils.ReloadConfigsAggregateDict(
                 attributeStatChangeMapData.configName,
@@ -274,6 +370,36 @@ namespace ProgressAdventure.Entity
             );
         }
         #endregion
+
+        /// <summary>
+        /// Gets only the positive default attribute chances.
+        /// </summary>
+        public static List<EntityAttributeChance> GetDefaultAttributeChancesPositiveOnly()
+        {
+            return
+            [
+                new(Attribute.RARE, 0.02),
+                new(Attribute.HEALTHY, 0.1),
+                new(Attribute.STRONG, 0.1),
+                new(Attribute.TOUGH, 0.1),
+                new(Attribute.AGILE, 0.1),
+            ];
+        }
+
+        /// <summary>
+        /// Gets the default attribute chances.
+        /// </summary>
+        public static List<EntityAttributeChance> GetDefaultAttributeChances()
+        {
+            return
+            [
+                new(Attribute.CRIPPLED, Attribute.RARE, 0.02, 0.02),
+                new(Attribute.SICK, Attribute.HEALTHY, 0.1, 0.1),
+                new(Attribute.WEAK, Attribute.STRONG, 0.1, 0.1),
+                new(Attribute.FRAIL, Attribute.TOUGH, 0.1, 0.1),
+                new(Attribute.SLOW, Attribute.AGILE, 0.1, 0.1),
+            ];
+        }
 
         /// <summary>
         /// Function to create the stats for an entity object.<br/>
@@ -295,16 +421,16 @@ namespace ProgressAdventure.Entity
             int baseAgility,
             int negativeFluctuation = 2,
             int positiveFluctuation = 3,
-            AttributeChancesDTO? attributeChances = null,
+            List<EntityAttributeChance>? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
         )
         {
             return EntityManager(
-                (baseMaxHp - negativeFluctuation, baseMaxHp, baseMaxHp + positiveFluctuation),
-                (baseAttack - negativeFluctuation, baseAttack, baseAttack + positiveFluctuation),
-                (baseDefence - negativeFluctuation, baseDefence, baseDefence + positiveFluctuation),
-                (baseAgility - negativeFluctuation, baseAgility, baseAgility + positiveFluctuation),
+                new(baseMaxHp, negativeFluctuation, positiveFluctuation),
+                new(baseAttack, negativeFluctuation, positiveFluctuation),
+                new(baseDefence, negativeFluctuation, positiveFluctuation),
+                new(baseAgility, negativeFluctuation, positiveFluctuation),
                 attributeChances,
                 originalTeam,
                 teamChangeChange
@@ -323,11 +449,11 @@ namespace ProgressAdventure.Entity
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
         public static EntityManagerStatsDTO EntityManager(
-            (int lower, int middle, int upper) baseMaxHp,
-            (int lower, int middle, int upper) baseAttack,
-            (int lower, int middle, int upper) baseDefence,
-            (int lower, int middle, int upper) baseAgility,
-            AttributeChancesDTO? attributeChances = null,
+            EntityAttributeValue<int> baseMaxHp,
+            EntityAttributeValue<int> baseAttack,
+            EntityAttributeValue<int> baseDefence,
+            EntityAttributeValue<int> baseAgility,
+            List<EntityAttributeChance>? attributeChances = null,
             int originalTeam = 1,
             double teamChangeChange = 0.005
         )
@@ -347,100 +473,41 @@ namespace ProgressAdventure.Entity
             {
                 currentTeam = 0;
             }
-            return new EntityManagerStatsDTO(baseMaxHpValue, baseAttackValue, baseDefenceValue, baseAgilityValue, originalTeam, currentTeam, attributes);
+            return new EntityManagerStatsDTO(
+                baseMaxHpValue,
+                baseAttackValue,
+                baseDefenceValue,
+                baseAgilityValue,
+                originalTeam,
+                currentTeam,
+                attributes
+            );
         }
 
-        public static List<EnumValue<Attribute>> GenerateEntityAttributes(AttributeChancesDTO? attributeChances)
+        public static List<EnumValue<Attribute>> GenerateEntityAttributes(List<EntityAttributeChance>? attributeChances)
         {
-            var attrChances = attributeChances ?? new AttributeChancesDTO();
             var attributes = new List<EnumValue<Attribute>>();
-            // all attributes
-            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
+            foreach (var attributeChance in attributeChances ?? [])
             {
-                attributes.Add(Attribute.CRIPPLED);
-            },
-            () =>
-            {
-                attributes.Add(Attribute.RARE);
-            }, attrChances.crippledChance, attrChances.rareChance);
-            // health
-            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
-            {
-                attributes.Add(Attribute.SICK);
-            },
-            () =>
-            {
-                attributes.Add(Attribute.HEALTHY);
-            }, attrChances.sickChance, attrChances.healthyChance);
-            // attack
-            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
-            {
-                attributes.Add(Attribute.WEAK);
-            },
-            () =>
-            {
-                attributes.Add(Attribute.STRONG);
-            }, attrChances.weakChance, attrChances.strongChance);
-            // defence
-            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
-            {
-                attributes.Add(Attribute.FRAIL);
-            },
-            () =>
-            {
-                attributes.Add(Attribute.TOUGH);
-            }, attrChances.frailChance, attrChances.toughChance);
-            // agility
-            RandomStates.Instance.MainRandom.GenerateTriChance(() =>
-            {
-                attributes.Add(Attribute.SLOW);
-            },
-            () =>
-            {
-                attributes.Add(Attribute.AGILE);
-            }, attrChances.slowChance, attrChances.agileChance);
-            return attributes;
-        }
-
-        /// <summary>
-        /// Returns the name of the type of the entity.
-        /// </summary>
-        /// <param name="entity">The entity.</param>
-        public static string? GetEntityTypeName(Entity entity)
-        {
-            foreach (var entityType in EntityTypeMap)
-            {
-                if (entityType.Value == entity.GetType())
+                if (attributeChance.negativeAttribute == attributeChance.positiveAttribute)
                 {
-                    return entityType.Key;
+                    if (RandomStates.Instance.MainRandom.GenerateBool(attributeChance.negativeAttributeChance))
+                    {
+                        attributes.Add(attributeChance.negativeAttribute);
+                    }
+                    continue;
                 }
-            }
-            return null;
-        }
 
-        /// <summary>
-        /// Gets the name of the entity from the name of the calling class.
-        /// </summary>
-        /// <param name="extraDepth">Should be increased by 1, for every extra method, that called this one, that isn't the target entity class.</param>
-        public static string GetEntityNameFromClass(uint extraDepth = 0)
-        {
-            string? name = null;
-            try
-            {
-                var frame = new StackTrace().GetFrame((int)(1 + extraDepth));
-                var method = frame?.GetMethod();
-                name = method?.ReflectedType?.Name;
-                name = name?.Replace("_", " ");
+                RandomStates.Instance.MainRandom.GenerateTriChance(() =>
+                {
+                    attributes.Add(attributeChance.negativeAttribute);
+                },
+                () =>
+                {
+                    attributes.Add(attributeChance.positiveAttribute);
+                }, attributeChance.negativeAttributeChance, attributeChance.positiveAttributeChance);
             }
-            catch (NullReferenceException)
-            {
-                PACSingletons.Instance.Logger.Log("Tried to create entity with no known name", null, LogSeverity.WARN);
-            }
-            if (name is null)
-            {
-                PACSingletons.Instance.Logger.Log("Couldn't get entity name from class", "Using default name", LogSeverity.WARN);
-            }
-            return name ?? "[Unknown entity]";
+            return attributes;
         }
 
         /// <summary>
@@ -637,7 +704,7 @@ namespace ProgressAdventure.Entity
                     switch (entityNum)
                     {
                         case 0:
-                            entity = new Dragon();
+                            entity = new Entity(EntityType.DRAGON);
                             break;
                     }
                     totalCost -= 10;
@@ -648,7 +715,7 @@ namespace ProgressAdventure.Entity
                     switch (entityNum)
                     {
                         case 0:
-                            entity = new Troll();
+                            entity = new Entity(EntityType.TROLL);
                             break;
                     }
                     totalCost -= 3;
@@ -659,7 +726,7 @@ namespace ProgressAdventure.Entity
                     switch (entityNum)
                     {
                         case 0:
-                            entity = new Ghoul();
+                            entity = new Entity(EntityType.GHOUL);
                             break;
                     }
                     totalCost -= 2;
@@ -670,7 +737,7 @@ namespace ProgressAdventure.Entity
                     switch (entityNum)
                     {
                         case 0:
-                            entity = new Caveman();
+                            entity = new Entity(EntityType.CAVEMAN);
                             break;
                     }
                     totalCost -= 1;
@@ -695,25 +762,28 @@ namespace ProgressAdventure.Entity
 
         #region Private functions
         /// <summary>
-        /// Returns the actual value of the stat, roller using a triangular distribution, from the range.<br/>
-        /// The returned value cannot be less than 0.
+        /// Returns the actual value of the stat, roller using a triangular distribution, from the range.
         /// </summary>
         /// <param name="statRange">The range of the values to use.</param>
-        private static int ConfigureStat((int lower, int middle, int upper) statRange)
+        /// <param name="minValue">The returned value cannot be less than this value.</param>
+        private static int ConfigureStat(EntityAttributeValue<int> statRange, int minValue = 0)
         {
             int statValue;
-            // fluctuation
-            if (statRange.lower == statRange.upper)
+            if (statRange.negativeFluctuation == 0 && statRange.positiveFluctuation == 0)
             {
-                statValue = statRange.lower;
+                statValue = statRange.baseValue;
             }
             else
             {
-                statValue = (int)Math.Round(RandomStates.Instance.MainRandom.Triangular(statRange.lower, statRange.middle, statRange.upper));
+                statValue = (int)Math.Round(RandomStates.Instance.MainRandom.Triangular(
+                    statRange.baseValue - statRange.negativeFluctuation,
+                    statRange.baseValue,
+                    statRange.baseValue + statRange.positiveFluctuation
+                ));
             }
-            if (statValue < 0)
+            if (statValue < minValue)
             {
-                statValue = 0;
+                statValue = minValue;
             }
             return statValue;
         }
@@ -722,10 +792,10 @@ namespace ProgressAdventure.Entity
         /// Filters out invalid teams from the teams list, and returns which team the player is in.
         /// </summary>
         /// <param name="teamsRaw">The teams of entities.</param>
-        private static (Dictionary<string, List<Entity>> teams, string? playerTeam, Player? player) PrepareTeams(Dictionary<string, List<Entity>> teamsRaw)
+        private static (Dictionary<string, List<Entity>> teams, string? playerTeam, Entity? player) PrepareTeams(Dictionary<string, List<Entity>> teamsRaw)
         {
             string? playerTeam = null;
-            Player? player = null;
+            Entity? player = null;
             var teams = new Dictionary<string, List<Entity>>();
             foreach (var team in teamsRaw)
             {
@@ -741,10 +811,10 @@ namespace ProgressAdventure.Entity
                     if (entity.CurrentHp > 0)
                     {
                         entityList.Add(entity);
-                        if (entity.GetType() == typeof(Player))
+                        if (entity.type == EntityType.PLAYER)
                         {
                             playerTeam = team.Key;
-                            player = (Player)entity;
+                            player = entity;
                         }
                     }
                 }
@@ -879,7 +949,7 @@ namespace ProgressAdventure.Entity
         /// <param name="playerTeam">The team that the player is in, or null.</param>
         /// <param name="writeOut">Whether to write out, what is happening with the fight.</param>
         /// <param name="player">The (first) player in the fight, or null.</param>
-        private static void UnpreparedFight(Dictionary<string, List<Entity>> teams, string? playerTeam, Player? player, bool writeOut)
+        private static void UnpreparedFight(Dictionary<string, List<Entity>> teams, string? playerTeam, Entity? player, bool writeOut)
         {
             if (teams.Count == 0)
             {
@@ -913,89 +983,89 @@ namespace ProgressAdventure.Entity
                     for (var entityNum = 0; entityNum < team.Value.Count; entityNum++)
                     {
                         var entity = team.Value[entityNum];
-                        if (entity.CurrentHp > 0)
+                        if (entity.CurrentHp <= 0)
                         {
-                            // get target
-                            var targetTeamNum = (int)RandomStates.Instance.MiscRandom.GenerateInRange(0, teams.Count - 2);
-                            if (targetTeamNum >= teamNum)
+                            continue;
+                        }
+
+                        // get target
+                        var targetTeamNum = (int)RandomStates.Instance.MiscRandom.GenerateInRange(0, teams.Count - 2);
+                        if (targetTeamNum >= teamNum)
+                        {
+                            targetTeamNum++;
+                        }
+                        var targetTeam = teams.ElementAt(targetTeamNum);
+                        Entity targetEntity;
+                        do
+                        {
+                            var targetEntityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, targetTeam.Value.Count - 1);
+                            targetEntity = targetTeam.Value.ElementAt((int)targetEntityNum);
+                        }
+                        while (targetEntity.CurrentHp == 0);
+                        // attack
+                        var targetOldHp = targetEntity.CurrentHp;
+                        var attackResponse = entity.AttackEntity(targetEntity);
+                        if (writeOut)
+                        {
+                            Console.WriteLine($"{entity.FullName} attacked {targetEntity.FullName}");
+                            string? writeText = null;
+                            switch (attackResponse)
                             {
-                                targetTeamNum++;
+                                case AttackResponse.TARGET_DOGDED:
+                                    writeText = "DODGED!";
+                                    break;
+                                case AttackResponse.TARGET_BLOCKED:
+                                    writeText = "BLOCKED!";
+                                    break;
+                                case AttackResponse.TARGET_HIT:
+                                    writeText = $"dealt {targetOldHp - targetEntity.CurrentHp} damage ({targetEntity.CurrentHp})";
+                                    break;
                             }
-                            var targetTeam = teams.ElementAt(targetTeamNum);
-                            Entity targetEntity;
-                            do
+                            if (writeText is not null)
                             {
-                                var targetEntityNum = RandomStates.Instance.MiscRandom.GenerateInRange(0, targetTeam.Value.Count - 1);
-                                targetEntity = targetTeam.Value.ElementAt((int)targetEntityNum);
-                            }
-                            while (targetEntity.CurrentHp == 0);
-                            // attack
-                            var targetOldHp = targetEntity.CurrentHp;
-                            var attackResponse = entity.AttackEntity(targetEntity);
-                            if (writeOut)
-                            {
-                                Console.WriteLine($"{entity.FullName} attacked {targetEntity.FullName}");
-                                string? writeText = null;
-                                switch (attackResponse)
-                                {
-                                    case AttackResponse.TARGET_DOGDED:
-                                        writeText = "DODGED!";
-                                        break;
-                                    case AttackResponse.TARGET_BLOCKED:
-                                        writeText = "BLOCKED!";
-                                        break;
-                                    case AttackResponse.TARGET_HIT:
-                                        writeText = $"dealt {targetOldHp - targetEntity.CurrentHp} damage ({targetEntity.CurrentHp})";
-                                        break;
-                                }
-                                if (writeText is not null)
-                                {
-                                    Console.WriteLine(writeText);
-                                }
-                            }
-                            if (attackResponse == AttackResponse.TARGET_HIT || attackResponse == AttackResponse.TARGET_KILLED)
-                            {
-                                no_damage_in_x_turns = 0;
-                            }
-                            // kill
-                            if (attackResponse == AttackResponse.TARGET_KILLED)
-                            {
-                                if (writeOut)
-                                {
-                                    Console.WriteLine($"dealt {targetOldHp - targetEntity.CurrentHp} damage (DEAD)");
-                                    Console.WriteLine($"{entity.FullName} defeated {targetEntity.FullName}");
-                                }
-                                var targetTeamKey = teamCounts.ElementAt(targetTeamNum).Key;
-                                teamCounts[targetTeamKey]--;
-                                // loot?
-                                if (entity.GetType() == typeof(Player))
-                                {
-                                    ((Player)entity).inventory.Loot(targetEntity, writeOut ? entity.FullName : null);
-                                }
-                                if (teamCounts[targetTeamKey] <= 0)
-                                {
-                                    if (teams[targetTeamKey].Count > 1)
-                                    {
-                                        PACSingletons.Instance.Logger.Log("Fight log", $"team {targetTeamKey} defeated");
-                                        if (writeOut)
-                                        {
-                                            Console.WriteLine($"team {targetTeamKey} defeated");
-                                        }
-                                    }
-                                    teamCounts.Remove(targetTeamKey);
-                                    teams.Remove(targetTeamKey);
-                                    if (teamCounts.Count <= 1)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                            if (writeOut)
-                            {
-                                Thread.Sleep(500);
+                                Console.WriteLine(writeText);
                             }
                         }
+                        if (attackResponse == AttackResponse.TARGET_HIT || attackResponse == AttackResponse.TARGET_KILLED)
+                        {
+                            no_damage_in_x_turns = 0;
+                        }
+                        // kill
+                        if (attackResponse == AttackResponse.TARGET_KILLED)
+                        {
+                            if (writeOut)
+                            {
+                                Console.WriteLine($"dealt {targetOldHp - targetEntity.CurrentHp} damage (DEAD)");
+                                Console.WriteLine($"{entity.FullName} defeated {targetEntity.FullName}");
+                            }
+                            var targetTeamKey = teamCounts.ElementAt(targetTeamNum).Key;
+                            teamCounts[targetTeamKey]--;
+                            // loot?
+                            entity.TryGetInventory()?.Loot(targetEntity, writeOut ? entity.FullName : null);
+                            if (teamCounts[targetTeamKey] <= 0)
+                            {
+                                if (teams[targetTeamKey].Count > 1)
+                                {
+                                    PACSingletons.Instance.Logger.Log("Fight log", $"team {targetTeamKey} defeated");
+                                    if (writeOut)
+                                    {
+                                        Console.WriteLine($"team {targetTeamKey} defeated");
+                                    }
+                                }
+                                teamCounts.Remove(targetTeamKey);
+                                teams.Remove(targetTeamKey);
+                                if (teamCounts.Count <= 1)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        if (writeOut)
+                        {
+                            Thread.Sleep(500);
+                        }
                     }
+
                     if (teamCounts.Count <= 1)
                     {
                         break;
@@ -1102,7 +1172,7 @@ namespace ProgressAdventure.Entity
                         {
                             if (entity.CurrentHp == 0 && !entity.Equals(player))
                             {
-                                player?.inventory.Loot(entity.drops, writeOut ? player.FullName : null);
+                                player?.TryGetInventory()?.Loot(entity.drops, writeOut ? player.FullName : null);
                             }
                         }
                     }

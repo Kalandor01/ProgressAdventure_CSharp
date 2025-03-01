@@ -3,6 +3,7 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Entity;
+using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
@@ -216,7 +217,7 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Returns a variant of thr save name, that can be a folder name, and doesn't exist yet.
+        /// Returns a variant of the save name, that can be a folder name, and doesn't exist yet.
         /// </summary>
         /// <param name="rawSaveName">The save folder name to correct.</param>
         public static string CorrectSaveName(string? rawSaveName)
@@ -242,9 +243,28 @@ namespace ProgressAdventure
             return saveName;
         }
 
+        /// <summary>
+        /// Returns a variant of the player name, that isn't null or whitespace.
+        /// </summary>
+        /// <param name="rawPlayerName">The player name to correct.</param>
         public static string CorrectPlayerName(string? rawPlayerName)
         {
             return string.IsNullOrWhiteSpace(rawPlayerName) ? "You" : rawPlayerName;
+        }
+
+        /// <summary>
+        /// Returns a variant of the seed text, that is unified.
+        /// </summary>
+        /// <param name="rawSeedText">The seed text to correct.</param>
+        public static string CorrectSeed(string rawSeedText)
+        {
+            if (rawSeedText == "")
+            {
+                return "???";
+            }
+
+            NPrngExtensionsPA.GetRandomFromString(rawSeedText, out var seedString);
+            return seedString;
         }
 
         /// <summary>
