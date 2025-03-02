@@ -1,7 +1,7 @@
 ﻿using NPrng.Generators;
 using PACommon.Enums;
 using PACommon.JsonUtils;
-using ProgressAdventure.Entity;
+using ProgressAdventure.EntityManagement;
 
 namespace ProgressAdventure.WorldManagement.Content
 {

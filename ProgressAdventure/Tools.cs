@@ -2,7 +2,7 @@
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
-using ProgressAdventure.Entity;
+using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;

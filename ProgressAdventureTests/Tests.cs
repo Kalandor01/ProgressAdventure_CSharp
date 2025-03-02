@@ -5,7 +5,7 @@ using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
-using ProgressAdventure.Entity;
+using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;

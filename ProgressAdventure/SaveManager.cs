@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
@@ -56,7 +57,7 @@ namespace ProgressAdventure
             // random generators
             RandomStates.Initialize(seedString is not null ? NPrngExtensionsPA.GetRandomFromString(seedString, out _) : null);
             // player
-            var player = new Entity.Entity(EntityType.PLAYER, playerName);
+            var player = new Entity(EntityType.PLAYER, playerName);
             // load to class
             SaveData.Initialize(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
             World.Initialize();

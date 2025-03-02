@@ -14,7 +14,7 @@ using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     /// <summary>
     /// A representation of an entity.

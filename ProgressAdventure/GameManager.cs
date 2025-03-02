@@ -1,6 +1,6 @@
 ﻿using PACommon;
 using PACommon.Enums;
-using ProgressAdventure.Entity;
+using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 

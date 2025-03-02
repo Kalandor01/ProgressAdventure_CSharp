@@ -1,5 +1,6 @@
 ﻿using PACommon.Enums;
 using PACommon.JsonUtils;
+using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -163,7 +164,7 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         /// <param name="lootedEntity">The entity to loot.</param>
         /// <param name="looterName">Wether to write out what was picked up by who.</param>
-        public void Loot(Entity.Entity lootedEntity, string? looterName = null)
+        public void Loot(Entity lootedEntity, string? looterName = null)
         {
             if (looterName is not null)
             {

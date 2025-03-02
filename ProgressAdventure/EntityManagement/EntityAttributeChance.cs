@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     public class EntityAttributeChance
     {

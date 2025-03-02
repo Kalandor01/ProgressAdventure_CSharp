@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     public class EntityAttributeValue<T>
         where T : INumber<T>

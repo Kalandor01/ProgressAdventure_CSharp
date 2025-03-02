@@ -1,7 +1,7 @@
 ﻿using PACommon.Enums;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     /// <summary>
     /// DTO used for storing stats returned by the EntityManager function.

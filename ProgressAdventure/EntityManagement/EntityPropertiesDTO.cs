@@ -1,7 +1,7 @@
 ﻿using ProgressAdventure.ItemManagement;
 using System.Text.Json.Serialization;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     /// <summary>
     /// Properties for creating an entity type.

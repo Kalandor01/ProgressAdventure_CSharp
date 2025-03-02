@@ -2,7 +2,7 @@
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     public struct EntityConstructorParametersDTO
     {

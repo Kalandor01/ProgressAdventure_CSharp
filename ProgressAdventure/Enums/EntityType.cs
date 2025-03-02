@@ -16,5 +16,9 @@ namespace ProgressAdventure.Enums
         public static readonly EnumValue<EntityType> GHOUL = AddValue(ConfigUtils.MakeNamespacedString(nameof(GHOUL).ToLower()));
         public static readonly EnumValue<EntityType> TROLL = AddValue(ConfigUtils.MakeNamespacedString(nameof(TROLL).ToLower()));
         public static readonly EnumValue<EntityType> DRAGON = AddValue(ConfigUtils.MakeNamespacedString(nameof(DRAGON).ToLower()));
+        public static readonly EnumValue<EntityType> DEMON = AddValue(ConfigUtils.MakeNamespacedString(nameof(DEMON).ToLower()));
+        public static readonly EnumValue<EntityType> DWARF = AddValue(ConfigUtils.MakeNamespacedString(nameof(DWARF).ToLower()));
+        public static readonly EnumValue<EntityType> ELF = AddValue(ConfigUtils.MakeNamespacedString(nameof(ELF).ToLower()));
+        public static readonly EnumValue<EntityType> HUMAN = AddValue(ConfigUtils.MakeNamespacedString(nameof(HUMAN).ToLower()));
     }
 }

@@ -6,7 +6,7 @@ using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
-namespace ProgressAdventure.Entity
+namespace ProgressAdventure.EntityManagement
 {
     /// <summary>
     /// Utils for entities.
@@ -24,6 +24,10 @@ namespace ProgressAdventure.Entity
             EntityType.GHOUL,
             EntityType.TROLL,
             EntityType.DRAGON,
+            EntityType.DEMON,
+            EntityType.DWARF,
+            EntityType.ELF,
+            EntityType.HUMAN,
         ];
 
         /// <summary>
@@ -58,6 +62,50 @@ namespace ProgressAdventure.Entity
                 0, 0,
                 [],
                 true,
+                true
+            ),
+            [EntityType.DEMON] = new EntityPropertiesDTO(
+                "Demon",
+                new(25, 6, 6),
+                new(15, 3, 3),
+                new(12, 3, 3),
+                new(12, 9, 10),
+                [],
+                0, 0,
+                [],
+                true
+            ),
+            [EntityType.DWARF] = new EntityPropertiesDTO(
+                "Dwarf",
+                new(15, 6, 6),
+                new(12, 3, 3),
+                new(15, 3, 3),
+                new(7, 6, 10),
+                [],
+                0, 0,
+                [],
+                true
+            ),
+            [EntityType.ELF] = new EntityPropertiesDTO(
+                "Elf",
+                new(22, 6, 6),
+                new(10, 3, 3),
+                new(8, 3, 3),
+                new(15, 9, 10),
+                [],
+                0, 0,
+                [],
+                true
+            ),
+            [EntityType.HUMAN] = new EntityPropertiesDTO(
+                "Human",
+                new(20, 6, 6),
+                new(10, 3, 3),
+                new(10, 3, 3),
+                new(10, 9, 10),
+                [],
+                0, 0,
+                [],
                 true
             ),
             [EntityType.CAVEMAN] = new EntityPropertiesDTO(
