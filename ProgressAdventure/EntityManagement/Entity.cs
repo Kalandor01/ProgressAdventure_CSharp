@@ -116,7 +116,11 @@ namespace ProgressAdventure.EntityManagement
 
         #region Public constructors
         #region Entity type specific constructors
-        private static void SpecificConstructorPlayer(Entity entity, Dictionary<string, object?>? extraData)
+        private static void SpecificConstructorPlayer(
+            Entity entity,
+            Dictionary<string, object?>? extraData,
+            SplittableRandom? generateRandom = null
+        )
         {
             entity.name = Tools.CorrectPlayerName(entity.name);
         }
@@ -140,6 +144,7 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="position"></param>
         /// <param name="facing"></param>
         /// <param name="extraData"></param>
+        /// <param name="generationRandom">The random generator to use to generate the entity's properties.</param>
         /// <exception cref="ArgumentException">Thrown if the entity type is invalid.</exception>
         private Entity(
             EnumValue<EntityType> entityType,
@@ -155,7 +160,8 @@ namespace ProgressAdventure.EntityManagement
             List<AItem>? drops = null,
             (long x, long y)? position = null,
             Facing? facing = null,
-            Dictionary<string, object?>? extraData = null
+            Dictionary<string, object?>? extraData = null,
+            SplittableRandom? generationRandom = null
         )
         {
             if (!EntityUtils.EntityPropertiesMap.TryGetValue(entityType, out var properties))
@@ -164,7 +170,7 @@ namespace ProgressAdventure.EntityManagement
             }
 
             this.type = entityType;
-            this.name = name ?? GenerateEntityName();
+            this.name = name ?? GenerateEntityName(generationRandom);
             
             int actualCurrentHp;
             if (
@@ -185,7 +191,8 @@ namespace ProgressAdventure.EntityManagement
                     properties.agility,
                     properties.attributeChances,
                     originalTeam ?? properties.originalTeam,
-                    properties.teamChangeChange
+                    properties.teamChangeChange,
+                    generationRandom
                 );
 
                 this.baseMaxHp = baseMaxHp ?? stats.baseMaxHp;
@@ -213,7 +220,7 @@ namespace ProgressAdventure.EntityManagement
                 actualCurrentHp = (int)currentHp;
             }
 
-            this.drops = drops ?? LootFactory.LootManager(properties.loot);
+            this.drops = drops ?? LootFactory.GenerateLoot(properties.loot, generationRandom);
             this.position = position ?? (0, 0);
             this.facing = facing ?? Facing.NORTH;
 
@@ -226,7 +233,7 @@ namespace ProgressAdventure.EntityManagement
             // specific constructors
             if (type == EntityType.PLAYER)
             {
-                SpecificConstructorPlayer(this, extraData);
+                SpecificConstructorPlayer(this, extraData, generationRandom);
             }
 
             SetupStats(actualCurrentHp);
@@ -241,6 +248,7 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         /// <param name="teamOverwrite">Overwrites the original team of the <see cref="Entity"/>.</param>
+        /// <param name="generationRandom">The random generator to use to generate the entity's properties.</param>
         /// <exception cref="ArgumentException"></exception>
         public Entity(
             EnumValue<EntityType> entityType,
@@ -248,7 +256,8 @@ namespace ProgressAdventure.EntityManagement
             (long x, long y)? position = null,
             Facing? facing = null,
             int? teamOverwrite = null,
-            Dictionary<string, object?>? extraData = null
+            Dictionary<string, object?>? extraData = null,
+            SplittableRandom? generationRandom = null
         )
             :this(
                  entityType,
@@ -256,7 +265,8 @@ namespace ProgressAdventure.EntityManagement
                  originalTeam: teamOverwrite,
                  position: position,
                  facing: facing,
-                 extraData: extraData
+                 extraData: extraData,
+                 generationRandom: generationRandom
             )
         {
 

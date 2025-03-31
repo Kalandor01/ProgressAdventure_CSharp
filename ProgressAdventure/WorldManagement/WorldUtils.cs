@@ -5,7 +5,6 @@ using PACommon.Extensions;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
-using ProgressAdventure.WorldManagement.Content.Population;
 using ProgressAdventure.WorldManagement.Content.Structure;
 using ProgressAdventure.WorldManagement.Content.Terrain;
 using System.Diagnostics.CodeAnalysis;
@@ -38,17 +37,30 @@ namespace ProgressAdventure.WorldManagement
             [("population", "dwarf")] = "population/dwarf",
             [("population", "demon")] = "population/demon",
         };
+
+        /// <summary>
+        /// The dictionary pairing up pre and post 2.5 unloaded entity tape names.
+        /// </summary>
+        internal static readonly Dictionary<string, string?> _legacyPopulationContentEntityTypeNameMap = new()
+        {
+            ["pa:population/none"] = null,
+            ["pa:population/human"] = "pa:human",
+            ["pa:population/elf"] = "pa:elf",
+            ["pa:population/dwarf"] = "pa:dwarf",
+            ["pa:population/demon"] = "pa:demon",
+        };
         #endregion
 
         #region Constatnts
         /// <summary>
-        /// If difference is larger than this the structure will not generate.
+        /// If difference is larger than this, the structure will not generate.
         /// </summary>
-        public static readonly double noStructureDifferenceLimit = 0.3;
+        public const double noStructureDifferenceLimit = 0.3;
         /// <summary>
-        /// If difference is larger than this the population will not generate.
+        /// If difference is larger than this, the population will not generate.
         /// </summary>
-        public static readonly double noPopulationDifferenceLimit = 0.2;
+        public const double noPopulationDifferenceLimit = 0.2;
+        public const double populationGenerationAmountMultiplier = 100;
         #endregion
 
         #region Default config values
@@ -68,12 +80,6 @@ namespace ProgressAdventure.WorldManagement
             ContentType.Structure.VILLAGE,
             ContentType.Structure.KINGDOM,
             ContentType.Structure.BANDIT_CAMP,
-            // population
-            ContentType.Population.NONE,
-            ContentType.Population.HUMAN,
-            ContentType.Population.DWARF,
-            ContentType.Population.ELF,
-            ContentType.Population.DEMON,
         ];
 
         /// <summary>
@@ -140,34 +146,30 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// The default value for the config used for the value of <see cref="PopulationContentTypePropertyMap"/>.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultPopulationContentTypePropertyMap = new()
+        private static readonly Dictionary<EnumValue<EntityType>, Dictionary<TileNoiseType, double>> _defaultPopulationContentTypePropertyMap = new()
         {
-            [typeof(NoPopulation)] = new Dictionary<TileNoiseType, double>()
-            {
-                [TileNoiseType.POPULATION] = 0.1,
-            },
-            [typeof(HumanPopulation)] = new Dictionary<TileNoiseType, double>()
+            [EntityType.HUMAN] = new Dictionary<TileNoiseType, double>()
             {
                 [TileNoiseType.HEIGHT] = 0.6,
                 [TileNoiseType.TEMPERATURE] = 0.6,
                 [TileNoiseType.HUMIDITY] = 0.4,
                 [TileNoiseType.HOSTILITY] = 0.3,
             },
-            [typeof(ElfPopulation)] = new Dictionary<TileNoiseType, double>()
+            [EntityType.ELF] = new Dictionary<TileNoiseType, double>()
             {
                 [TileNoiseType.HEIGHT] = 1.0,
                 [TileNoiseType.TEMPERATURE] = 0.5,
                 [TileNoiseType.HUMIDITY] = 0.75,
                 [TileNoiseType.HOSTILITY] = 0.3,
             },
-            [typeof(DwarfPopulation)] = new Dictionary<TileNoiseType, double>()
+            [EntityType.DWARF] = new Dictionary<TileNoiseType, double>()
             {
                 [TileNoiseType.HEIGHT] = 0.1,
                 [TileNoiseType.TEMPERATURE] = 0.6,
                 [TileNoiseType.HUMIDITY] = 0.3,
                 [TileNoiseType.HOSTILITY] = 0.6,
             },
-            [typeof(DemonPopulation)] = new Dictionary<TileNoiseType, double>()
+            [EntityType.DEMON] = new Dictionary<TileNoiseType, double>()
             {
                 [TileNoiseType.HEIGHT] = 0.1,
                 [TileNoiseType.TEMPERATURE] = 0.9,
@@ -183,7 +185,6 @@ namespace ProgressAdventure.WorldManagement
         {
             [ContentType._TERRAIN] = new ContentTypePropertiesDTO(ContentType._TERRAIN, typeof(TerrainContent)),
             [ContentType._STRUCTURE] = new ContentTypePropertiesDTO(ContentType._STRUCTURE, typeof(StructureContent)),
-            [ContentType._POPULATION] = new ContentTypePropertiesDTO(ContentType._POPULATION, typeof(PopulationContent)),
         };
         
         /// <summary>
@@ -207,18 +208,6 @@ namespace ProgressAdventure.WorldManagement
             [ContentType.Structure.VILLAGE] = new ContentTypePropertiesDTO(ContentType.Structure.VILLAGE, typeof(VillageStructure)),
             [ContentType.Structure.KINGDOM] = new ContentTypePropertiesDTO(ContentType.Structure.KINGDOM, typeof(KingdomStructure)),
         };
-
-        /// <summary>
-        /// The default value for the config used for the value of <see cref="PopulationContentTypeMap"/>.
-        /// </summary>
-        private static readonly Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> _defaultPopulationContentTypeMap = new()
-        {
-            [ContentType.Population.NONE] = new ContentTypePropertiesDTO(ContentType.Population.NONE, typeof(NoPopulation)),
-            [ContentType.Population.HUMAN] = new ContentTypePropertiesDTO(ContentType.Population.HUMAN, typeof(HumanPopulation)),
-            [ContentType.Population.ELF] = new ContentTypePropertiesDTO(ContentType.Population.ELF, typeof(ElfPopulation)),
-            [ContentType.Population.DWARF] = new ContentTypePropertiesDTO(ContentType.Population.DWARF, typeof(DwarfPopulation)),
-            [ContentType.Population.DEMON] = new ContentTypePropertiesDTO(ContentType.Population.DEMON, typeof(DemonPopulation)),
-        };
         #endregion
 
         #region Config values
@@ -240,7 +229,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain types to their ideal properties.
         /// </summary>
-        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> PopulationContentTypePropertyMap { get; set; }
+        internal static Dictionary<EnumValue<EntityType>, Dictionary<TileNoiseType, double>> PopulationContentTypePropertyMap { get; set; }
 
         /// <summary>
         /// Dictionary to map content types to their property maps.
@@ -249,7 +238,6 @@ namespace ProgressAdventure.WorldManagement
         {
             [typeof(TerrainContent)] = null,
             [typeof(StructureContent)] = null,
-            [typeof(PopulationContent)] = null,
         };
 
         /// <summary>
@@ -264,7 +252,6 @@ namespace ProgressAdventure.WorldManagement
         {
             [ContentType._TERRAIN] = null,
             [ContentType._STRUCTURE] = null,
-            [ContentType._POPULATION] = null,
         };
 
         /// <summary>
@@ -369,11 +356,11 @@ namespace ProgressAdventure.WorldManagement
 
         private static (
             string configName,
-            Func<Type, string> serializeKeys
+            Func<EnumValue<EntityType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataPopulationContentTypePropertyMap(bool isWriteConfig)
         {
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map");
-            static string KeySerializer(Type key) => key.FullName
+            static string KeySerializer(EnumValue<EntityType> key) => key.Name
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
             {
@@ -451,38 +438,15 @@ namespace ProgressAdventure.WorldManagement
                 );
             return default;
         }
-
-        private static (
-            string configName,
-            Func<EnumTreeValue<ContentType>, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataPopulationContentTypeMap(bool isWriteConfig)
-        {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_map");
-            static string KeySerializer(EnumTreeValue<ContentType> key) => key.FullName;
-            if (!isWriteConfig)
-            {
-                return (basePath, KeySerializer);
-            }
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultPopulationContentTypeMap,
-                    KeySerializer
-                );
-            return default;
-        }
         #endregion
 
         private static void UpdateNonConfigDicts()
         {
             contentTypeSubtypesMap[ContentType._TERRAIN] = TerrainContentTypeMap;
             contentTypeSubtypesMap[ContentType._STRUCTURE] = StructureContentTypeMap;
-            contentTypeSubtypesMap[ContentType._POPULATION] = PopulationContentTypeMap;
 
             contentTypePropertyMap[typeof(TerrainContent)] = TerrainContentTypePropertyMap;
             contentTypePropertyMap[typeof(StructureContent)] = StructureContentTypePropertyMap;
-            contentTypePropertyMap[typeof(PopulationContent)] = PopulationContentTypePropertyMap;
         }
 
         /// <summary>
@@ -498,7 +462,6 @@ namespace ProgressAdventure.WorldManagement
             BaseContentTypeMap = _defaultBaseContentTypeMap;
             TerrainContentTypeMap = _defaultTerrainContentTypeMap;
             StructureContentTypeMap = _defaultStructureContentTypeMap;
-            PopulationContentTypeMap = _defaultPopulationContentTypeMap;
             UpdateNonConfigDicts();
         }
 
@@ -515,7 +478,6 @@ namespace ProgressAdventure.WorldManagement
             WriteDefaultConfigOrGetReloadDataBaseContentTypeMap(true);
             WriteDefaultConfigOrGetReloadDataTerrainContentTypeMap(true);
             WriteDefaultConfigOrGetReloadDataStructureContentTypeMap(true);
-            WriteDefaultConfigOrGetReloadDataPopulationContentTypeMap(true);
         }
 
         /// <summary>
@@ -580,7 +542,7 @@ namespace ProgressAdventure.WorldManagement
                 namespaceFolders,
                 _defaultPopulationContentTypePropertyMap,
                 populationContentTypePropertyMapData.serializeKeys,
-                key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
+                key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
@@ -615,18 +577,6 @@ namespace ProgressAdventure.WorldManagement
                 namespaceFolders,
                 _defaultStructureContentTypeMap,
                 structureContentTypeMapData.serializeKeys,
-                key => ParseContentTypeFromRealName(ConfigUtils.GetNameapacedString(key))
-                    ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
-                isVanillaInvalid,
-                showProgressIndentation
-            );
-
-            var populationContentTypeMapData = WriteDefaultConfigOrGetReloadDataPopulationContentTypeMap(false);
-            PopulationContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                populationContentTypeMapData.configName,
-                namespaceFolders,
-                _defaultPopulationContentTypeMap,
-                populationContentTypeMapData.serializeKeys,
                 key => ParseContentTypeFromRealName(ConfigUtils.GetNameapacedString(key))
                     ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
                 isVanillaInvalid,
@@ -678,12 +628,10 @@ namespace ProgressAdventure.WorldManagement
         /// <typeparam name="T">The content type to reurn.</typeparam>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
         /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
-        /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
-        public static Type CalculateClosestContentType<T>(IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
+        public static Type CalculateClosestContentType<T>(IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null)
             where T : BaseContent
         {
             noStructureDLOverride ??= noStructureDifferenceLimit;
-            noPopulationDLOverride ??= noPopulationDifferenceLimit;
             var contentProperties = contentTypePropertyMap[typeof(T)];
             var minDiffContentType = contentProperties.Keys.First();
             var minDiff = 1000000.0;
@@ -712,28 +660,70 @@ namespace ProgressAdventure.WorldManagement
             {
                 minDiffContentType = typeof(NoStructure);
             }
-            else if (contentProperties == PopulationContentTypePropertyMap && minDiff >= noPopulationDLOverride)
-            {
-                minDiffContentType = typeof(NoPopulation);
-            }
             return minDiffContentType;
         }
 
         /// <summary>
-        /// Calculates the best content for the space depending on the perlin noise values.
+        /// Calculates the best content for the tile depending on the perlin noise values.
         /// </summary>
         /// <typeparam name="T">The content type to reurn.</typeparam>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
         /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
-        /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
         /// <exception cref="ArgumentNullException">Thrown if the content type cannot be created.</exception>
-        public static T CalculateClosestContent<T>(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null, double? noPopulationDLOverride = null)
+        public static T CalculateClosestContent<T>(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null)
             where T : BaseContent
         {
-            var minDiffContentType = CalculateClosestContentType<T>(noiseValues, noStructureDLOverride, noPopulationDLOverride);
+            var minDiffContentType = CalculateClosestContentType<T>(noiseValues, noStructureDLOverride);
             var contentObj = Activator.CreateInstance(minDiffContentType, [chunkRandom, null, null]) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
             return (T)contentObj;
+        }
+
+        /// <summary>
+        /// Calculates the distribution of entity types for the tile depending on the perlin noise values.
+        /// </summary>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
+        /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
+        /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
+        public static Dictionary<EnumValue<EntityType>, int> CalculatePopulationDistribution(
+            IDictionary<TileNoiseType, double> noiseValues,
+            double? noPopulationDLOverride = null
+        )
+        {
+            noPopulationDLOverride ??= noPopulationDifferenceLimit;
+            var entityCountDistributions = new Dictionary<EnumValue<EntityType>, double>();
+            var allSumDiff = 0.0;
+            foreach (var propertyEntry in PopulationContentTypePropertyMap)
+            {
+                var properties = propertyEntry.Value;
+                var sumDiff = 0.0;
+                var propertyNum = 0;
+                foreach (var property in properties)
+                {
+                    if (noiseValues.TryGetValue(property.Key, out double noiseValue))
+                    {
+                        sumDiff += Math.Abs(property.Value - noiseValue);
+                        propertyNum++;
+                    }
+                }
+                var propDif = sumDiff / propertyNum;
+                if (propDif < noPopulationDLOverride)
+                {
+                    entityCountDistributions[propertyEntry.Key] = propDif;
+                    allSumDiff += propDif;
+                }
+            }
+
+            return entityCountDistributions
+                .Select(d => new KeyValuePair<EnumValue<EntityType>, int>(
+                    d.Key,
+                    (int)((allSumDiff - d.Value) / allSumDiff * populationGenerationAmountMultiplier)
+                ))
+                .Where(v => v.Value > 0)
+                .ToDictionary(
+                    k => k.Key,
+                    v => v.Value
+                );
         }
 
         /// <summary>

@@ -15,16 +15,16 @@ namespace ProgressAdventure.WorldManagement.Content
         /// The type of the content for this content type.
         /// </summary>
         [JsonPropertyName("matching_type")]
-        public readonly Type matchingType;
+        public readonly Type? matchingType;
 
         [JsonConstructor]
-        public ContentTypePropertiesDTO(string typeName, Type matchingType)
+        public ContentTypePropertiesDTO(string typeName, Type? matchingType)
         {
             this.typeName = typeName;
             this.matchingType = matchingType;
         }
 
-        public ContentTypePropertiesDTO(EnumTreeValue<ContentType> contentType, Type machingType)
+        public ContentTypePropertiesDTO(EnumTreeValue<ContentType> contentType, Type? machingType)
             : this(contentType.FullName, machingType)
         { }
     }

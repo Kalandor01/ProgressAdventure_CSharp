@@ -428,7 +428,7 @@ namespace PACommon
             var fromJsonMethodName = "FromJsonWithoutCorrection";
             var correcterMethodName = "CorrectJsonDataVersionPrivate";
 
-            return frames.Where(frame =>
+            return [.. frames.Where(frame =>
             {
                 var frameName = frame.GetMethod()?.Name ?? "";
                 return frameName == correcterMethodName || frameName.Contains(fromJsonMethodName);
@@ -446,8 +446,7 @@ namespace PACommon
                         return frames[frameIndex];
                     }
                     return null;
-            })
-            .ToList();
+            })];
         }
 
         /// <summary>
@@ -875,6 +874,39 @@ namespace PACommon
             }
 
             var success = TryFromJson(result, fileVersion, out value);
+            if (value is null)
+            {
+                LogJsonParseError<T>(jsonKey, null, isCritical);
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Tries to parse an IJsonConvertableExtra value from a json dictionary, and logs a warning, if it can't pe parsed.
+        /// </summary>
+        /// <param name="extraData">The extra data for the json parsing.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
+        /// <typeparam name="TJc">The type of the IJsonConvertableExtra class to convert to.</typeparam>
+        /// <typeparam name="TJe">The type of the extra data to pass into the IJsonConvertableExtra class.</typeparam>
+        /// <returns>If the object was parsed without warnings.</returns>
+        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        public static bool TryParseJsonConvertableValue<T, TJc, TJe>(
+            JsonDictionary objectJson,
+            TJe extraData,
+            string fileVersion,
+            string jsonKey,
+            [NotNullWhen(true)] out TJc? value,
+            bool isCritical = false
+        )
+            where TJc : IJsonConvertableExtra<TJc, TJe>
+        {
+            value = default;
+            if (!TryCastJsonAnyValue<T, JsonDictionary>(objectJson, jsonKey, out var result, isCritical, true))
+            {
+                return false;
+            }
+
+            var success = TryFromJsonExtra(result, extraData, fileVersion, out value);
             if (value is null)
             {
                 LogJsonParseError<T>(jsonKey, null, isCritical);

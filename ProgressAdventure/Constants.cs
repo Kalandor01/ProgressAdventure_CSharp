@@ -311,10 +311,11 @@ namespace ProgressAdventure
             }
             #endregion
 
-            #region PopulationContent
-            public static class PopulationContent
+            #region PopulationManager
+            public static class PopulationManager
             {
-                public const string AMOUNT = "amount";
+                public const string UNLOADED_ENTITIES = "unloaded_entities";
+                public const string LOADED_ENTITIES = "loaded_entities";
             }
             #endregion
 
@@ -403,7 +404,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v7";
+        public const string CONFIG_VERSION = "v8";
         /// <summary>
         /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
         /// </summary>
@@ -434,7 +435,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.4.1";
+        public const string SAVE_VERSION = "2.5";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

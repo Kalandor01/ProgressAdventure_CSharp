@@ -1,4 +1,5 @@
-﻿using PACommon;
+﻿using NPrng.Generators;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.ConfigManagement;
@@ -463,6 +464,7 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
+        /// <param name="generationRandom">The random generator to use to create the entity stats.</param>
         public static EntityManagerStatsDTO EntityManager(
             int baseMaxHp,
             int baseAttack,
@@ -472,7 +474,8 @@ namespace ProgressAdventure.EntityManagement
             int positiveFluctuation = 3,
             List<EntityAttributeChance>? attributeChances = null,
             int originalTeam = 1,
-            double teamChangeChange = 0.005
+            double teamChangeChange = 0.005,
+            SplittableRandom? generationRandom = null
         )
         {
             return EntityManager(
@@ -482,7 +485,8 @@ namespace ProgressAdventure.EntityManagement
                 new(baseAgility, negativeFluctuation, positiveFluctuation),
                 attributeChances,
                 originalTeam,
-                teamChangeChange
+                teamChangeChange,
+                generationRandom
             );
         }
 
@@ -497,6 +501,7 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="attributeChances">The chances of the entitiy having a specific attribute.</param>
         /// <param name="originalTeam">The original team of the entity.</param>
         /// <param name="teamChangeChange">The chance of the entitiy changing its team to the player's team. (1 = 100%)</param>
+        /// <param name="generationRandom">The random generator to use to create the entity stats.</param>
         public static EntityManagerStatsDTO EntityManager(
             EntityAttributeValue<int> baseMaxHp,
             EntityAttributeValue<int> baseAttack,
@@ -504,21 +509,23 @@ namespace ProgressAdventure.EntityManagement
             EntityAttributeValue<int> baseAgility,
             List<EntityAttributeChance>? attributeChances = null,
             int originalTeam = 1,
-            double teamChangeChange = 0.005
+            double teamChangeChange = 0.005,
+            SplittableRandom? generationRandom = null
         )
         {
-            var baseMaxHpValue = ConfigureStat(baseMaxHp);
-            var baseAttackValue = ConfigureStat(baseAttack);
-            var baseDefenceValue = ConfigureStat(baseDefence);
-            var baseAgilityValue = ConfigureStat(baseAgility);
-            var attributes = GenerateEntityAttributes(attributeChances);
+            generationRandom ??= RandomStates.Instance.MainRandom;
+            var baseMaxHpValue = ConfigureStat(baseMaxHp, 1, generationRandom);
+            var baseAttackValue = ConfigureStat(baseAttack, generationRandom: generationRandom);
+            var baseDefenceValue = ConfigureStat(baseDefence, generationRandom: generationRandom);
+            var baseAgilityValue = ConfigureStat(baseAgility, generationRandom: generationRandom);
+            var attributes = GenerateEntityAttributes(attributeChances, generationRandom);
             if (baseMaxHpValue <= 0)
             {
                 baseMaxHpValue = 1;
             }
             // team
             int currentTeam = originalTeam;
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < teamChangeChange)
+            if (generationRandom.GenerateBool(teamChangeChange))
             {
                 currentTeam = 0;
             }
@@ -533,21 +540,30 @@ namespace ProgressAdventure.EntityManagement
             );
         }
 
-        public static List<EnumValue<Attribute>> GenerateEntityAttributes(List<EntityAttributeChance>? attributeChances)
+        /// <summary>
+        /// Generates the attributes for an entity.
+        /// </summary>
+        /// <param name="attributeChances">The chances for each attribute.</param>
+        /// <param name="generationRandom">The random generator to use to create the entity stats.</param>
+        public static List<EnumValue<Attribute>> GenerateEntityAttributes(
+            List<EntityAttributeChance>? attributeChances,
+            SplittableRandom? generationRandom = null
+        )
         {
+            generationRandom ??= RandomStates.Instance.MainRandom;
             var attributes = new List<EnumValue<Attribute>>();
             foreach (var attributeChance in attributeChances ?? [])
             {
                 if (attributeChance.negativeAttribute == attributeChance.positiveAttribute)
                 {
-                    if (RandomStates.Instance.MainRandom.GenerateBool(attributeChance.negativeAttributeChance))
+                    if (generationRandom.GenerateBool(attributeChance.negativeAttributeChance))
                     {
                         attributes.Add(attributeChance.negativeAttribute);
                     }
                     continue;
                 }
 
-                RandomStates.Instance.MainRandom.GenerateTriChance(() =>
+                generationRandom.GenerateTriChance(() =>
                 {
                     attributes.Add(attributeChance.negativeAttribute);
                 },
@@ -824,8 +840,14 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         /// <param name="statRange">The range of the values to use.</param>
         /// <param name="minValue">The returned value cannot be less than this value.</param>
-        private static int ConfigureStat(EntityAttributeValue<int> statRange, int minValue = 0)
+        /// <param name="generationRandom">The random generator to use to create the entity stats.</param>
+        private static int ConfigureStat(
+            EntityAttributeValue<int> statRange,
+            int minValue = 0,
+            SplittableRandom? generationRandom = null
+        )
         {
+            generationRandom ??= RandomStates.Instance.MainRandom;
             int statValue;
             if (statRange.negativeFluctuation == 0 && statRange.positiveFluctuation == 0)
             {
@@ -833,7 +855,7 @@ namespace ProgressAdventure.EntityManagement
             }
             else
             {
-                statValue = (int)Math.Round(RandomStates.Instance.MainRandom.Triangular(
+                statValue = (int)Math.Round(generationRandom.Triangular(
                     statRange.baseValue - statRange.negativeFluctuation,
                     statRange.baseValue,
                     statRange.baseValue + statRange.positiveFluctuation

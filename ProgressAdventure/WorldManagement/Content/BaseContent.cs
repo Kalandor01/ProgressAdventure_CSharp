@@ -228,14 +228,14 @@ namespace ProgressAdventure.WorldManagement.Content
                 if (
                     PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "type", out var typeValue, false) &&
                     !string.IsNullOrWhiteSpace(typeValue) &&
-                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "subtype", out var materialValue, false) &&
-                    !string.IsNullOrWhiteSpace(materialValue)
+                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "subtype", out var subtypeValue, false) &&
+                    !string.IsNullOrWhiteSpace(subtypeValue)
                 )
                 {
                     JsonDataCorrecterUtils.SetMultipleValues(oldJson, new Dictionary<string, JsonObject?>
                     {
                         ["type"] = ConfigUtils.GetSpecificNamespacedString(typeValue),
-                        ["subtype"] = ConfigUtils.GetSpecificNamespacedString(materialValue),
+                        ["subtype"] = ConfigUtils.GetSpecificNamespacedString(subtypeValue),
                     });
                 }
             }, "2.4"),

@@ -10,7 +10,7 @@ namespace ProgressAdventure.WorldManagement
     /// <summary>
     /// Object, representing a tile in a chunk.
     /// </summary>
-    public class Tile : IJsonConvertableExtra<Tile, SplittableRandom>
+    public class Tile : IJsonConvertableExtra<Tile, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)>
     {
         #region Public fields
         /// <summary>
@@ -26,9 +26,9 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public readonly StructureContent structure;
         /// <summary>
-        /// The population on this tile.
+        /// The population manager of the tile.
         /// </summary>
-        public readonly PopulationContent population;
+        public readonly PopulationManager populationManager;
         #endregion
 
         #region Public properties
@@ -54,13 +54,20 @@ namespace ProgressAdventure.WorldManagement
         /// Load an existing Tile object, from json.
         /// </summary>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
-        /// <param name="position">The position of the Tile.</param>
+        /// <param name="position">The absolute position of the Tile.</param>
         /// <param name="visited"><inheritdoc cref="Visited" path="//summary"/></param>
         /// <param name="terrain"><inheritdoc cref="terrain" path="//summary"/></param>
         /// <param name="structure"><inheritdoc cref="structure" path="//summary"/></param>
-        /// <param name="population"><inheritdoc cref="structure" path="//summary"/></param>
-        public Tile(SplittableRandom chunkRandom, (long x, long y) position, int? visited, TerrainContent terrain, StructureContent structure, PopulationContent population)
-            : this(position.x, position.y, chunkRandom, visited, terrain, structure, population) { }
+        /// <param name="populationManager"><inheritdoc cref="populationManager" path="//summary"/></param>
+        public Tile(
+            SplittableRandom chunkRandom,
+            (long x, long y) position,
+            int? visited,
+            TerrainContent terrain,
+            StructureContent structure,
+            PopulationManager populationManager
+        )
+            : this(position.x, position.y, chunkRandom, visited, terrain, structure, populationManager) { }
         #endregion
 
         #region Private constructors
@@ -74,45 +81,58 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="visited"><inheritdoc cref="Visited" path="//summary"/></param>
         /// <param name="terrain"><inheritdoc cref="terrain" path="//summary"/></param>
         /// <param name="structure"><inheritdoc cref="structure" path="//summary"/></param>
-        /// <param name="population"><inheritdoc cref="population" path="//summary"/></param>
-        private Tile(long absoluteX, long absoluteY, SplittableRandom? chunkRandom = null, int? visited = null, TerrainContent? terrain = null, StructureContent? structure = null, PopulationContent? population = null)
+        /// <param name="populationManager"><inheritdoc cref="populationManager" path="//summary"/></param>
+        private Tile(
+            long absoluteX,
+            long absoluteY,
+            SplittableRandom? chunkRandom = null,
+            int? visited = null,
+            TerrainContent? terrain = null,
+            StructureContent? structure = null,
+            PopulationManager? populationManager = null
+        )
         {
             relativePosition = (Utils.Mod(absoluteX, Constants.CHUNK_SIZE), Utils.Mod(absoluteY, Constants.CHUNK_SIZE));
             Visited = visited ?? 0;
-            if (terrain is null || structure is null || population is null)
+            if (terrain is not null && structure is not null && populationManager is not null)
             {
-                chunkRandom ??= Chunk.GetChunkRandom((absoluteX, absoluteY));
-                var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
-                WorldUtils.ShiftNoiseValues(noiseValues);
-                terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(chunkRandom, noiseValues);
-                if (structure is null)
+                this.terrain = terrain;
+                this.structure = structure;
+                this.populationManager = populationManager;
+            }
+
+            chunkRandom ??= Chunk.GetChunkRandom((absoluteX, absoluteY));
+            var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
+            WorldUtils.ShiftNoiseValues(noiseValues);
+            terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(chunkRandom, noiseValues);
+            if (structure is null)
+            {
+                // less structures on water
+                var noStructureDL = WorldUtils.noStructureDifferenceLimit;
+                if (terrain.subtype == ContentType.Terrain.OCEAN)
                 {
-                    // less structures on water
-                    var noStructureDL = WorldUtils.noStructureDifferenceLimit;
-                    if (terrain.subtype == ContentType.Terrain.OCEAN)
-                    {
-                        noStructureDL -= 0.1;
-                    }
-                    else if (terrain.subtype == ContentType.Terrain.SHORE)
-                    {
-                        noStructureDL -= 0.05;
-                    }
-                    structure = WorldUtils.CalculateClosestContent<StructureContent>(chunkRandom, noiseValues, noStructureDL);
+                    noStructureDL -= 0.1;
                 }
-                if (population is null)
+                else if (terrain.subtype == ContentType.Terrain.SHORE)
                 {
-                    // less population on not structures
-                    var noPopulationDL = WorldUtils.noPopulationDifferenceLimit;
-                    if (structure.subtype == ContentType.Structure.NONE)
-                    {
-                        noPopulationDL -= 0.1;
-                    }
-                    population = WorldUtils.CalculateClosestContent<PopulationContent>(chunkRandom, noiseValues, noPopulationDL);
+                    noStructureDL -= 0.05;
                 }
+                structure = WorldUtils.CalculateClosestContent<StructureContent>(chunkRandom, noiseValues, noStructureDL);
+            }
+            if (populationManager is null)
+            {
+                // less population on not structures
+                var noPopulationDL = WorldUtils.noPopulationDifferenceLimit;
+                if (structure.subtype == ContentType.Structure.NONE)
+                {
+                    noPopulationDL -= 0.1;
+                }
+                var entityCounts = WorldUtils.CalculatePopulationDistribution(noiseValues, noPopulationDL);
+                populationManager = new PopulationManager(entityCounts, (absoluteX, absoluteY), chunkRandom);
             }
             this.terrain = terrain;
             this.structure = structure;
-            this.population = population;
+            this.populationManager = populationManager;
         }
         #endregion
 
@@ -125,16 +145,16 @@ namespace ProgressAdventure.WorldManagement
             Visited++;
             terrain.Visit(this);
             structure.Visit(this);
-            population.Visit(this);
+            //populationManager.Visit(this);
         }
         #endregion
 
         #region JsonConvert
         #region Protected properties
-        static List<(Action<JsonDictionary, SplittableRandom> objectJsonCorrecter, string newFileVersion)> IJsonConvertableExtra<Tile, SplittableRandom>.VersionCorrecters { get; } =
+        static List<(Action<JsonDictionary, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)> objectJsonCorrecter, string newFileVersion)> IJsonConvertableExtra<Tile, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)>.VersionCorrecters { get; } =
         [
             // 2.1.1 -> 2.2
-            ((oldJson, random) =>
+            ((oldJson, extraData) =>
             {
                 // snake case rename
                 JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string>
@@ -155,12 +175,23 @@ namespace ProgressAdventure.WorldManagement
                 [Constants.JsonKeys.Tile.VISITED] = Visited,
                 [Constants.JsonKeys.Tile.TERRAIN] = terrain.ToJson(),
                 [Constants.JsonKeys.Tile.STRUCTURE] = structure.ToJson(),
-                [Constants.JsonKeys.Tile.POPULATION] = population.ToJson(),
+                [Constants.JsonKeys.Tile.POPULATION] = populationManager.ToJson(),
             };
         }
 
-        static bool IJsonConvertableExtra<Tile, SplittableRandom>.FromJsonWithoutCorrection(JsonDictionary objectJson, SplittableRandom extraData, string fileVersion, [NotNullWhen(true)] ref Tile? convertedObject)
+        static bool IJsonConvertableExtra<Tile, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)>.FromJsonWithoutCorrection(
+            JsonDictionary objectJson,
+            (SplittableRandom chunkRandom, (long x, long y) chunkPosition) extraData,
+            string fileVersion,
+            [NotNullWhen(true)] ref Tile? convertedObject
+        )
         {
+            if (extraData.chunkRandom is null)
+            {
+                PACTools.LogJsonTypeParseError<PopulationManager>("invalid extra data for this type", true);
+                return false;
+            }
+
             if (!(
                 PACTools.TryParseJsonValue<Tile, long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
                 PACTools.TryParseJsonValue<Tile, long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)
@@ -169,16 +200,24 @@ namespace ProgressAdventure.WorldManagement
                 return false;
             }
 
+            var absoluteX = extraData.chunkPosition.x + xPos;
+            var absoluteY = extraData.chunkPosition.y + yPos;
+
             var success = true;
             success &= PACTools.TryParseJsonValue<Tile, int?>(objectJson, Constants.JsonKeys.Tile.VISITED, out var visited);
             success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson, isStraigthCast: true);
-            success &= TerrainContent.FromJson(extraData, terrainJson, fileVersion, out var terrain);
+            success &= TerrainContent.FromJson(extraData.chunkRandom, terrainJson, fileVersion, out var terrain);
             success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson, isStraigthCast: true);
-            success &= StructureContent.FromJson(extraData, structureJson, fileVersion, out var structure);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.POPULATION, out var populationJson, isStraigthCast: true);
-            success &= PopulationContent.FromJson(extraData, populationJson, fileVersion, out var population);
+            success &= StructureContent.FromJson(extraData.chunkRandom, structureJson, fileVersion, out var structure);
+            success &= PACTools.TryParseJsonConvertableValue<Tile, PopulationManager, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)>(
+                objectJson,
+                (extraData.chunkRandom, (absoluteX, absoluteY)),
+                fileVersion,
+                Constants.JsonKeys.Tile.POPULATION,
+                out var population
+            );
 
-            convertedObject = new Tile(xPos, yPos, extraData, visited, terrain, structure, population);
+            convertedObject = new Tile(absoluteX, absoluteY, extraData.chunkRandom, visited, terrain, structure, population);
             return success;
         }
         #endregion

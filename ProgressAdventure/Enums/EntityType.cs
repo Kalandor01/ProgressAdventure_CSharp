@@ -12,6 +12,7 @@ namespace ProgressAdventure.Enums
         protected static readonly bool isRemovable = UpdateIsRemovable(true);
 
         public static readonly EnumValue<EntityType> PLAYER = AddValue(ConfigUtils.MakeNamespacedString(nameof(PLAYER).ToLower()));
+
         public static readonly EnumValue<EntityType> CAVEMAN = AddValue(ConfigUtils.MakeNamespacedString(nameof(CAVEMAN).ToLower()));
         public static readonly EnumValue<EntityType> GHOUL = AddValue(ConfigUtils.MakeNamespacedString(nameof(GHOUL).ToLower()));
         public static readonly EnumValue<EntityType> TROLL = AddValue(ConfigUtils.MakeNamespacedString(nameof(TROLL).ToLower()));

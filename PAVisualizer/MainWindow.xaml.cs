@@ -346,14 +346,14 @@ namespace PAVisualizer
             if (
                 worldTileTypeCounts.TryGetValue(WorldLayer.Population, out Dictionary<EnumTreeValue<ContentType>, long>? pCounts) &&
                 pCounts is not null &&
-                pCounts.ContainsKey(tile.population.subtype)
+                pCounts.ContainsKey(tile.populationManager.subtype)
             )
             {
-                worldTileTypeCounts[WorldLayer.Population][tile.population.subtype]++;
+                worldTileTypeCounts[WorldLayer.Population][tile.populationManager.subtype]++;
             }
             else
             {
-                worldTileTypeCounts[WorldLayer.Population][tile.population.subtype] = 1;
+                worldTileTypeCounts[WorldLayer.Population][tile.populationManager.subtype] = 1;
             }
         }
 
@@ -444,9 +444,9 @@ namespace PAVisualizer
 
                     BaseContent tileContent;
 
-                    if (layers.Contains(WorldLayer.Population) && tileObj.population.subtype != ContentType.Population.NONE)
+                    if (layers.Contains(WorldLayer.Population) && tileObj.populationManager.subtype != ContentType.Population.NONE)
                     {
-                        tileContent = tileObj.population;
+                        tileContent = tileObj.populationManager;
                     }
                     else if (layers.Contains(WorldLayer.Structure) && tileObj.structure.subtype != ContentType.Structure.NONE)
                     {
@@ -480,9 +480,9 @@ namespace PAVisualizer
                         var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
                         tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} {extraStructureData}" });
                     }
-                    if (tileObj.population.subtype != ContentType.Population.NONE)
+                    if (tileObj.populationManager.subtype != ContentType.Population.NONE)
                     {
-                        tooltipContent.Children.Add(new Label() { Content = $"Population: {tileObj.population.GetSubtypeName()} ({tileObj.population.amount})" });
+                        tooltipContent.Children.Add(new Label() { Content = $"Population: {tileObj.populationManager.GetSubtypeName()} ({tileObj.populationManager.amount})" });
                     }
 
                     var content = new Label()

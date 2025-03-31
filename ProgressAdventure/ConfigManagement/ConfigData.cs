@@ -62,6 +62,12 @@ namespace ProgressAdventure.ConfigManagement
             [NotNullWhen(true)] ref ConfigData? convertedObject
         )
         {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                PACommon.Tools.LogJsonTypeParseError<ConfigData>("invalid extra data for this type", true);
+                return false;
+            }
+
             if (
                 !PACommon.Tools.TryParseJsonValue<ConfigData, string>(configJson, Constants.JsonKeys.ConfigData.NAMESPACE, out var namespaceName, isCritical: true) ||
                 !ConfigUtils.NamespaceRegex().IsMatch(namespaceName)

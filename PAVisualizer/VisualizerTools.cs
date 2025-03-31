@@ -243,7 +243,7 @@ namespace PAVisualizer
             }
             if (layer == WorldLayer.Population)
             {
-                return tile.population.subtype;
+                return tile.populationManager.subtype;
             }
             return tile.terrain.subtype;
         }

@@ -15,11 +15,11 @@ namespace ProgressAdventure.Extensions
         public static string ToSeedString(this SplittableRandom random)
         {
             var gamma = random.GetGamma();
-            var seedArray = Utils.UlongToByteArray(random.GetSeed()).Reverse().ToArray();
+            var seedArray = Utils.UlongToByteArray(random.GetSeed()).ReverseEnum().ToArray();
 
             return Convert.ToBase64String(gamma == NPrngExtensions.GOLDEN_GAMMA
                 ? seedArray
-                : ([.. seedArray, .. Utils.UlongToByteArray(gamma).Reverse().ToArray()])
+                : [.. seedArray, .. Utils.UlongToByteArray(gamma).ReverseEnum().ToArray()]
             );
         }
         
@@ -48,8 +48,8 @@ namespace ProgressAdventure.Extensions
 
             var seedArrReverse = limitedArray[..8];
             var gammaArrReverse = limitedArray[8..];
-            var seedArr = seedArrReverse.Reverse().ToArray();
-            var gammaArr = gammaArrReverse.Reverse().ToArray();
+            var seedArr = seedArrReverse.ReverseEnum().ToArray();
+            var gammaArr = gammaArrReverse.ReverseEnum().ToArray();
 
             // seed + gamma to seed string
             var gamma = Utils.ByteArrayToUlong(gammaArr);

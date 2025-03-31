@@ -1,5 +1,7 @@
-﻿using PACommon;
+﻿using NPrng.Generators;
+using PACommon;
 using PACommon.Enums;
+using PACommon.Extensions;
 using ProgressAdventure.Enums;
 using System.Text.Json.Serialization;
 
@@ -100,31 +102,37 @@ namespace ProgressAdventure.ItemManagement
 
         #region Public functions
         /// <summary>
-        /// Converts a list of <c>LootFactory</c>s into a list of <c>Item</c>s.
+        /// Converts a list of <see cref="LootFactory"/>s into a list of <see cref="AItem"/>s.
         /// </summary>
-        /// <param name="drops">A list of <c>LootFactory</c>s.</param>
-        /// <returns></returns>
-        public static List<AItem> LootManager(IEnumerable<LootFactory>? drops = null)
+        /// <param name="lootFactories">A list of <see cref="LootFactory"/>s.</param>
+        /// <param name="generationRandom">The random generator to use to generate the entity's properties.</param>
+        public static List<AItem> GenerateLoot(
+            IEnumerable<LootFactory>? lootFactories = null,
+            SplittableRandom? generationRandom = null
+        )
         {
-            if (drops is null)
+            if (lootFactories is null)
             {
                 return [];
             }
 
+            generationRandom ??= RandomStates.Instance.MainRandom;
             var loot = new List<AItem>();
-            foreach (var drop in drops)
+            foreach (var lootFactory in lootFactories)
             {
                 var num = 0L;
-                for (var x = 0; x < drop.rolls; x++)
+                for (var x = 0; x < lootFactory.rolls; x++)
                 {
-                    num += RandomStates.Instance.MainRandom.GenerateDouble() <= drop.chance ? RandomStates.Instance.MainRandom.GenerateInRange(drop.amountMin, drop.amountMax) : 0;
+                    num += generationRandom.GenerateBool(lootFactory.chance)
+                        ? generationRandom.GenerateInRange(lootFactory.amountMin, lootFactory.amountMax)
+                        : 0;
                 }
                 if (num > 0)
                 {
                     loot.Add(
-                        drop.itemType == ItemUtils.MATERIAL_ITEM_TYPE ?
-                            new MaterialItem(drop.material, num) :
-                            ItemUtils.CreateCompoundItem(drop.itemType, drop.material, num)
+                        lootFactory.itemType == ItemUtils.MATERIAL_ITEM_TYPE
+                            ? new MaterialItem(lootFactory.material, num)
+                            : ItemUtils.CreateCompoundItem(lootFactory.itemType, lootFactory.material, num)
                     );
                 }
             }

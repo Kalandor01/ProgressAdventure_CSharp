@@ -70,7 +70,11 @@ namespace ProgressAdventure.WorldManagement
             tiles[tileKey] = tile;
             var posX = Utils.Mod(absolutePosition.x, Constants.CHUNK_SIZE);
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
-            PACSingletons.Instance.Logger.Log("Created tile", $"x: {posX}, y: {posY}, terrain: {WorldUtils.TerrainContentTypeMap[tile.terrain.subtype].typeName}, structure: {WorldUtils.StructureContentTypeMap[tile.structure.subtype].typeName}, population: {WorldUtils.PopulationContentTypeMap[tile.population.subtype].typeName}", LogSeverity.DEBUG);
+            PACSingletons.Instance.Logger.Log(
+                "Created tile",
+                $"x: {posX}, y: {posY}, terrain: {WorldUtils.TerrainContentTypeMap[tile.terrain.subtype].typeName}, structure: {WorldUtils.StructureContentTypeMap[tile.structure.subtype].typeName}, population: {tile.populationManager}",
+                LogSeverity.DEBUG
+            );
             return tile;
         }
 
@@ -317,7 +321,7 @@ namespace ProgressAdventure.WorldManagement
                     success = false;
                     return (false, default);
                 }
-                success &= PACTools.TryFromJsonExtra(tileJsonValue, chunkRandom, fileVersion, out Tile? tile);
+                success &= PACTools.TryFromJsonExtra(tileJsonValue, (chunkRandom, position), fileVersion, out Tile? tile);
                 return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(GetTileDictName(tile.relativePosition), tile));
             }, out var tilesKvPair, true))
             {

@@ -35,7 +35,7 @@ namespace ProgressAdventure.WorldManagement
 
         #region Public functions
         /// <summary>
-        /// Returns the <c>Chunk</c> if it exists, or null.
+        /// Returns the <see cref="Chunk"/> if it exists, or null.
         /// </summary>
         /// <param name="position">The position of the chunk.</param>
         public static Chunk? FindChunk((long x, long y) position)
@@ -44,7 +44,7 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Generates a new <c>Chunk</c> at a specific position.
+        /// Generates a new <see cref="Chunk"/> at a specific position.
         /// </summary>
         /// <param name="position">The position of the chunk.</param>
         public static Chunk GenerateChunk((long x, long y) position)
@@ -451,7 +451,6 @@ namespace ProgressAdventure.WorldManagement
             {
                 var chunkFileName = Chunk.GetChunkFileName(chunkPosition, oldChunkSize);
 
-
                 if (
                     Tools.LoadCompressedFileExpected<Chunk>(
                         Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
@@ -490,7 +489,7 @@ namespace ProgressAdventure.WorldManagement
                         success = false;
                         return (false, default);
                     }
-                    success &= PACTools.TryFromJsonExtra(tileJsonValue, chunkRandom, fileVersion, out Tile? tile);
+                    success &= PACTools.TryFromJsonExtra(tileJsonValue, (chunkRandom, chunkPosition), fileVersion, out Tile? tile);
                     if (tile is null)
                     {
                         return (false, default);
