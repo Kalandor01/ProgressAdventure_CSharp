@@ -680,12 +680,11 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Calculates the distribution of entity types for the tile depending on the perlin noise values.
+        /// Calculates the fit differences for all entity types for the tile depending on the perlin noise values.
         /// </summary>
-        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
-        /// <param name="noPopulationDLOverride">Overrides the default limit for choosing no population, if the noise value difference is over this limit.</param>
-        public static Dictionary<EnumValue<EntityType>, int> CalculatePopulationDistribution(
+        /// <param name="noPopulationDLOverride">Overrides the default limit for not having a population of that type, if the noise value difference is over this limit.</param>
+        public static Dictionary<EnumValue<EntityType>, double> CalculatePopulationFitDifferences(
             IDictionary<TileNoiseType, double> noiseValues,
             double? noPopulationDLOverride = null
         )
@@ -713,6 +712,22 @@ namespace ProgressAdventure.WorldManagement
                     allSumDiff += propDif;
                 }
             }
+
+            return entityCountDistributions;
+        }
+
+        /// <summary>
+        /// Calculates the distribution of entity types for the tile depending on the perlin noise values.
+        /// </summary>
+        /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
+        /// <param name="noPopulationDLOverride">Overrides the default limit for not having a population of that type, if the noise value difference is over this limit.</param>
+        public static Dictionary<EnumValue<EntityType>, int> CalculatePopulation(
+            IDictionary<TileNoiseType, double> noiseValues,
+            double? noPopulationDLOverride = null
+        )
+        {
+            var entityCountDistributions = CalculatePopulationFitDifferences(noiseValues, noPopulationDLOverride);
+            var allSumDiff = entityCountDistributions.Values.Sum();
 
             return entityCountDistributions
                 .Select(d => new KeyValuePair<EnumValue<EntityType>, int>(

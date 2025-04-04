@@ -1,4 +1,5 @@
-﻿using DrawingColor = System.Drawing.Color;
+﻿using System;
+using DrawingColor = System.Drawing.Color;
 using MediaColor = System.Windows.Media.Color;
 
 namespace PAVisualizer
@@ -31,6 +32,16 @@ namespace PAVisualizer
         public MediaColor ToMediaColor()
         {
             return MediaColor.FromArgb(A, R, G, B);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="opacityMultiplier">The number to multiply the opacity of the color by.</param>
+        /// <returns></returns>
+        public ColorData MultiplyOpacity(double opacityMultiplier)
+        {
+            return new ColorData(R, G, B, (byte)Math.Clamp(A * opacityMultiplier, 0, 255));
         }
         #endregion
     }

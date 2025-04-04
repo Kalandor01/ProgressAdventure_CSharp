@@ -1,16 +1,25 @@
 ﻿using ConsoleUI;
 using ConsoleUI.UIElements;
 using PACommon;
+using PACommon.ConfigManagement;
+using PACommon.ConfigManagement.JsonConverters;
 using PACommon.Enums;
 using PACommon.Extensions;
+using PACommon.JsonUtils;
+using PACommon.Logging;
 using PACommon.SettingsManagement;
 using ProgressAdventure;
+using ProgressAdventure.ConfigManagement;
+using ProgressAdventure.Enums;
+using ProgressAdventure.Exceptions;
 using ProgressAdventure.SettingsManagement;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Windows;
+using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
 using Utils = PACommon.Utils;
 
@@ -18,10 +27,7 @@ namespace PAVisualizer
 {
     internal static class Program
     {
-        /// <summary>
-        /// The main function for the program.
-        /// </summary>
-        static void MainFunction()
+        static void ConsoleMainFunction()
         {
             PACSingletons.Instance.Logger.DefaultWriteOut = false;
 
@@ -39,7 +45,11 @@ namespace PAVisualizer
         static void VisualizeSaveCommand()
         {
             var saveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}";
-            string? folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog([(saveDataFileName, $"Data file ({saveDataFileName})")]))?.folderPath;
+            var oldSaveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.OLD_SAVE_EXT}";
+            string? folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog([
+                (saveDataFileName, $"Data file ({saveDataFileName})"),
+                (oldSaveDataFileName, $"Old data file ({oldSaveDataFileName})")
+            ]))?.folderPath;
             var selectedFolder = VisualizerTools.GetSaveFolderFromPath(folderPath);
             if (selectedFolder is not null)
             {
@@ -67,6 +77,21 @@ namespace PAVisualizer
         }
 
         /// <summary>
+        /// The main function for the program.
+        /// </summary>
+        static void MainFunction()
+        {
+            if (MenuManager.AskYesNoUIQuestion("Open visualizer GUI?"))
+            {
+                ShowMainWindow();
+            }
+            else
+            {
+                ConsoleMainFunction();
+            }
+        }
+
+        /// <summary>
         /// Function for setting up the enviorment, and initialising global variables.
         /// </summary>
         static void Preloading()
@@ -74,13 +99,42 @@ namespace PAVisualizer
             Console.OutputEncoding = Encoding.UTF8;
 
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
-            PACSingletons.Instance.Logger.LogNewLine();
-            PACSingletons.Instance.Logger.DefaultWriteOut = true;
             Console.WriteLine("Loading...");
+
+            // initializing PAC singletons
+            var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
+
+            PACSingletons.Initialize(
+                Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
+                JsonDataCorrecter.Initialize(
+                    PAConstants.SAVE_VERSION,
+                    PAConstants.ORDER_JSON_CORRECTERS,
+                    new Dictionary<string, IList<Type>>
+                    {
+                        [PAConstants.CONFIG_VERSION] = [typeof(ConfigData)],
+                    },
+                    false
+                ),
+                ConfigManager.Initialize(
+                    [
+                        new JsonStringEnumConverter(allowIntegerValues: false),
+                        new TypeConverter(),
+                        new AdvancedEnumConverter<Attribute>(),
+                        new AdvancedEnumConverter<Material>(),
+                        new AdvancedEnumConverter<EntityType>(),
+                        new AdvancedEnumTreeConverter<ItemType>(),
+                        new MaterialItemAttributesDTOConverter(),
+                        new ConsoleKeyInfoConverter(),
+                    ],
+                    PAConstants.CONFIGS_FOLDER_PATH,
+                    PAConstants.CONFIG_EXT,
+                    false
+                )
+            );
 
             if (!Utils.TryEnableAnsiCodes())
             {
-                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the non-debug terminal", null, LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
             // initializing PA singletons
@@ -90,29 +144,40 @@ namespace PAVisualizer
                 new Globals(),
                 new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
+
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
-            ProgressAdventure.Tools.ReloadConfigs();
+
+            Console.WriteLine("Reloading configs...");
+            // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
+            ProgressAdventure.Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
+            PACSingletons.Instance.Logger.Log("Finished initialization");
         }
+
 
         /// <summary>
         /// The error handler, for the preloading.
         /// </summary>
         static void PreloadingErrorHandler()
         {
-            try
+            bool exitPreloading;
+            do
             {
-                Preloading();
-            }
-            catch (Exception e)
-            {
-                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL);
-                if (PAConstants.ERROR_HANDLING)
+                exitPreloading = true;
+                try
                 {
-                    Utils.PressKey("ERROR: " + e.Message);
+                    Preloading();
                 }
-                throw;
+                catch (Exception e)
+                {
+                    if (MenuManager.HandleErrorMenu(e, true))
+                    {
+                        throw;
+                    }
+                    exitPreloading = false;
+                }
             }
+            while (!exitPreloading);
         }
 
         /// <summary>
@@ -120,54 +185,65 @@ namespace PAVisualizer
         /// </summary>
         static void MainErrorHandler()
         {
-            // general crash handler (release only)
-
             bool exitGame;
             do
             {
                 exitGame = true;
                 try
                 {
-                    PACSingletons.Instance.Logger.Log("Beginning new instance");
+                    PACSingletons.Instance.Logger.Log("Beginning new instance", forceLog: true);
                     MainFunction();
                     //exit
-                    PACSingletons.Instance.Logger.Log("Instance ended succesfuly");
+                    PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
                     PACSingletons.Instance.Dispose();
                 }
                 catch (Exception e)
                 {
-                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL);
-                    if (PAConstants.ERROR_HANDLING)
+                    if (MenuManager.HandleErrorMenu(e, false))
                     {
-                        Console.WriteLine("ERROR: " + e.Message);
-                        var ans = Utils.Input("Restart?(Y/N): ");
-                        if (ans is not null && ans.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            PACSingletons.Instance.Logger.Log("Restarting instance");
-                            exitGame = false;
-                        }
+                        throw;
+                    }
+                    exitGame = false;
+                }
+            }
+            while (!exitGame);
+        }
+
+        static void Main(string[] args)
+        {
+            bool exitGame;
+            do
+            {
+                RestartException? restartException = null;
+                exitGame = true;
+                try
+                {
+                    PreloadingErrorHandler();
+                    MainErrorHandler();
+                }
+                catch (RestartException re)
+                {
+                    restartException = re;
+                }
+                catch (Exception ie)
+                {
+                    if (ie.InnerException is RestartException re)
+                    {
+                        restartException = re;
                     }
                     else
                     {
                         throw;
                     }
                 }
+
+                if (restartException is not null)
+                {
+                    PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), LogSeverity.INFO, forceLog: true);
+                    exitGame = false;
+                }
             }
             while (!exitGame);
-        }
-
-        public static void Main()
-        {
-            PreloadingErrorHandler();
-
-            if (MenuManager.AskYesNoUIQuestion("Open visualizer GUI?"))
-            {
-                ShowMainWindow();
-            }
-            else
-            {
-                MainErrorHandler();
-            }
         }
     }
 }

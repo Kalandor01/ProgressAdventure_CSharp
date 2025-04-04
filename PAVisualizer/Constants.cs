@@ -35,6 +35,7 @@ namespace PAVisualizer
         {
             public static readonly ColorData TRANSPARENT = new(0, 0, 0, 0);
             public static readonly ColorData MAGENTA = new(255, 0, 255);
+            public static readonly ColorData WHITE = new(255, 0, 255);
             public static readonly ColorData RED = new(255, 0, 0);
             public static readonly ColorData DARK_RED = new(150, 0, 0);
             public static readonly ColorData GREEN = new(0, 255, 0);
@@ -43,6 +44,7 @@ namespace PAVisualizer
             public static readonly ColorData SKIN = new(212, 154, 99);
             public static readonly ColorData LIGHT_BLUE = new(60, 60, 255);
             public static readonly ColorData LIGHT_GRAY = new(75, 75, 75);
+            public static readonly ColorData GRAY = new(40, 40, 40);
             public static readonly ColorData LIGHT_BROWN = new(82, 56, 36);
             public static readonly ColorData LIGHTER_BLUE = new(99, 99, 255);
             public static readonly ColorData DARK_GREEN = new(28, 87, 25);

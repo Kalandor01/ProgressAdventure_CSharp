@@ -127,7 +127,7 @@ namespace ProgressAdventure.WorldManagement
                 {
                     noPopulationDL -= 0.1;
                 }
-                var entityCounts = WorldUtils.CalculatePopulationDistribution(noiseValues, noPopulationDL);
+                var entityCounts = WorldUtils.CalculatePopulation(noiseValues, noPopulationDL);
                 populationManager = new PopulationManager(entityCounts, (absoluteX, absoluteY), chunkRandom);
             }
             this.terrain = terrain;

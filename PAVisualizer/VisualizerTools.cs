@@ -3,6 +3,7 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
 using System;
@@ -35,12 +36,22 @@ namespace PAVisualizer
             [ContentType.Structure.VILLAGE] = Constants.Colors.LIGHT_BROWN,
             [ContentType.Structure.KINGDOM] = Constants.Colors.BROWN,
             [ContentType.Structure.BANDIT_CAMP] = Constants.Colors.RED,
+        };
 
-            [ContentType.Population.NONE] = Constants.Colors.TRANSPARENT,
-            [ContentType.Population.DWARF] = Constants.Colors.BROWN,
-            [ContentType.Population.HUMAN] = Constants.Colors.SKIN,
-            [ContentType.Population.DEMON] = Constants.Colors.DARK_RED,
-            [ContentType.Population.ELF] = Constants.Colors.DARK_GREEN,
+        /// <summary>
+        /// Dictionary pairing up entity types with their colors.
+        /// </summary>
+        public static readonly Dictionary<EnumValue<EntityType>, ColorData> entityTypeColorMap = new()
+        {
+            [EntityType.PLAYER] = Constants.Colors.WHITE,
+            [EntityType.CAVEMAN] = Constants.Colors.LIGHT_BROWN,
+            [EntityType.GHOUL] = Constants.Colors.GRAY,
+            [EntityType.TROLL] = Constants.Colors.DARK_GREEN,
+            [EntityType.DRAGON] = Constants.Colors.RED,
+            [EntityType.DEMON] = Constants.Colors.DARK_RED,
+            [EntityType.DWARF] = Constants.Colors.BROWN,
+            [EntityType.ELF] = Constants.Colors.GREEN,
+            [EntityType.HUMAN] = Constants.Colors.SKIN,
         };
         #endregion
 
@@ -146,6 +157,68 @@ namespace PAVisualizer
         #endregion
 
         /// <summary>
+        /// Gets the color ascociated with the content subtype, or <see cref="Constants.Colors.MAGENTA"/>.
+        /// </summary>
+        /// <param name="contentSubtype">The content subtype.</param>
+        public static ColorData GetContentColor(EnumTreeValue<ContentType> contentSubtype)
+        {
+            return contentSubtypeColorMap.TryGetValue(contentSubtype, out var cColor) ? cColor : Constants.Colors.MAGENTA;
+        }
+
+        /// <summary>
+        /// Gets the color ascociated with the entity type, or <see cref="Constants.Colors.MAGENTA"/>.
+        /// </summary>
+        /// <param name="entityType">The entity type.</param>
+        public static ColorData GetEntityTypeColor(EnumValue<EntityType> entityType)
+        {
+            return entityTypeColorMap.TryGetValue(entityType, out var cColor) ? cColor : Constants.Colors.MAGENTA;
+        }
+
+        public static List<(EnumValue<EntityType> type, long amount)> GetPopulationCounts(PopulationManager populationManager)
+        {
+            return [.. populationManager.ContainedEntities.Select(eType => (eType, populationManager.GetEntityCount(eType, out _)))];
+        }
+
+        /// <summary>
+        /// Gets the color ascociated with the entity with the highest population, or <see cref="Constants.Colors.MAGENTA"/>.
+        /// </summary>
+        /// <param name="populationManager">The <see cref="PopulationManager"/>.</param>
+        public static ColorData GetPopulationManagerColor(PopulationManager populationManager)
+        {
+            if (populationManager.PopulationCount == 0)
+            {
+                return Constants.Colors.MAGENTA;
+            }
+
+            var sortedEntityCounts = GetPopulationCounts(populationManager)
+                .StableSort((n1, n2) => n1.amount > n2.amount ? 1 : (n1.amount == n2.amount ? 0 : -1))
+                .ToList();
+
+            if (sortedEntityCounts.Count == 0)
+            {
+                return Constants.Colors.MAGENTA;
+            }
+
+            return GetEntityTypeColor(sortedEntityCounts.Last().type);
+        }
+
+        /// <summary>
+        /// Gets the color ascociated with a layer of a tile, or <see cref="Constants.Colors.MAGENTA"/>.
+        /// </summary>
+        /// <param name="tile">The tile to get the color from.</param>
+        /// <param name="layer">The layer to get the color from.</param>
+        public static ColorData GetLayerContentColor(Tile tile, VisibleTileLayer layer)
+        {
+            return layer switch
+            {
+                VisibleTileLayer.Terrain => GetContentColor(tile.terrain.subtype),
+                VisibleTileLayer.Structure => GetContentColor(tile.structure.subtype),
+                VisibleTileLayer.Population => GetPopulationManagerColor(tile.populationManager),
+                _ => Constants.Colors.MAGENTA
+            };
+        }
+
+        /// <summary>
         /// Returns a string, displaying the general data from the loaded save file.
         /// </summary>
         public static string GetDisplayGeneralSaveData()
@@ -167,7 +240,7 @@ namespace PAVisualizer
         /// Returns a string, displaying the tile types, and their counts.
         /// </summary>
         /// <param name="tileTypeCounts">The dictionary containing the tile subtype counts for each layer.</param>
-        public static string GetDisplayTileCountsData(Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>> tileTypeCounts)
+        public static string GetDisplayTileCountsData(Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>> tileTypeCounts)
         {
             var txt = new StringBuilder();
             foreach (var layer in tileTypeCounts)
@@ -185,6 +258,24 @@ namespace PAVisualizer
         }
 
         /// <summary>
+        /// Returns a string, displaying the entities, and their counts.
+        /// </summary>
+        /// <param name="entityTypeCounts">The dictionary containing the entity type counts.</param>
+        public static string GetDisplayPopulationCountsData(Dictionary<EnumValue<EntityType>, long> entityTypeCounts)
+        {
+            var txt = new StringBuilder();
+            var total = 0L;
+            txt.AppendLine($"Entity types:");
+            foreach (var entityTypeCount in entityTypeCounts)
+            {
+                txt.AppendLine($"\t{entityTypeCount.Key}: {entityTypeCount.Value}");
+                total += entityTypeCount.Value;
+            }
+            txt.AppendLine($"\tTOTAL: {total}\n");
+            return txt.ToString();
+        }
+
+        /// <summary>
         /// Gets the save folder name, and save folder path from a path to a folder. If it's not correct, it returns null.
         /// </summary>
         /// <param name="folderPath">The path of the save folder.</param>
@@ -192,7 +283,10 @@ namespace PAVisualizer
         {
             if (
                 folderPath is null ||
-                !File.Exists(Path.Join(folderPath, $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}"))
+                (
+                    !File.Exists(Path.Join(folderPath, $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}")) &&
+                    !File.Exists(Path.Join(folderPath, $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.OLD_SAVE_EXT}"))
+                )
             )
             {
                 return null;
@@ -214,7 +308,7 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="layers">The list of used layers.</param>
         /// <param name="currentLayer">The current layer to get the opacity for.</param>
-        public static double GetLayerOpacity(List<WorldLayer> layers, WorldLayer currentLayer)
+        public static double GetLayerOpacity(List<VisibleTileLayer> layers, VisibleTileLayer currentLayer)
         {
             if (layers.Count < 2)
             {
@@ -235,28 +329,14 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="tile">The selected tile.</param>
         /// <param name="layer">The selected layer.</param>
-        public static EnumTreeValue<ContentType> GetLayerSubtype(Tile tile, WorldLayer layer)
+        public static EnumTreeValue<ContentType> GetLayerSubtype(Tile tile, BaseContentType layer)
         {
-            if (layer == WorldLayer.Structure)
+            return layer switch
             {
-                return tile.structure.subtype;
-            }
-            if (layer == WorldLayer.Population)
-            {
-                return tile.populationManager.subtype;
-            }
-            return tile.terrain.subtype;
-        }
-
-        /// <summary>
-        /// Returns the color associated to the subtype.
-        /// </summary>
-        /// <param name="subtype">The subtype.</param>
-        /// <param name="opacityMultiplier">The number to multiply the opacity of the color by.</param>
-        public static ColorData GetTileColor(EnumTreeValue<ContentType> subtype, double opacityMultiplier = 1)
-        {
-            ColorData rawColor = contentSubtypeColorMap.TryGetValue(subtype, out ColorData rColor) ? rColor : Constants.Colors.MAGENTA;
-            return new ColorData(rawColor.R, rawColor.G, rawColor.B, (byte)Math.Clamp(rawColor.A * opacityMultiplier, 0, 255));
+                BaseContentType.Structure => tile.structure.subtype,
+                BaseContentType.Terrain => tile.terrain.subtype,
+                _ => throw new Exception("Invalid layer type!"),
+            };
         }
 
         /// <summary>

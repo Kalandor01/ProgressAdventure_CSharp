@@ -22,16 +22,58 @@ namespace PAVisualizer
         /// <summary>
         /// Generates an image of the content type distribution graph using the provided noise types.
         /// </summary>
-        /// <typeparam name="T">The layer type to use.</typeparam>
+        /// <param name="layer">The layer to make an image from.</param>
         /// <param name="noiseTypeXAxis">The noise type to use for the X axis for the graph.</param>
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the pixels.</param>
-        public static Bitmap CreateNoiseTypeDistributionImage<T>(TileNoiseType noiseTypeXAxis, TileNoiseType noiseTypeYAxis, uint resolution, double opacityMultiplier = 1)
-            where T : BaseContent
+        public static Bitmap CreateNoiseTypeDistributionImage(
+            VisibleTileLayer layer,
+            TileNoiseType noiseTypeXAxis,
+            TileNoiseType noiseTypeYAxis,
+            uint resolution,
+            double opacityMultiplier = 1
+        )
         {
-            (int x, int y) tileSize = (1, 1);
+            Func<Dictionary<TileNoiseType, double>, ColorData> colorGetterFunction;
+            if (layer == VisibleTileLayer.Population)
+            {
+                colorGetterFunction = (noises) =>
+                {
+                    var diffs = WorldUtils.CalculatePopulationFitDifferences(noises);
+                    if (diffs.Count == 0)
+                    {
+                        return Constants.Colors.MAGENTA;
+                    }
 
+                    var minDiff = diffs.StableSort((n1, n2) => n1.Value > n2.Value ? 1 : (n1.Value == n2.Value ? 0 : -1)).First().Key;
+                    return VisualizerTools.GetEntityTypeColor(minDiff);
+                };
+            }
+            else
+            {
+                var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<Type, Dictionary<EnumTreeValue<ContentType>, Type>>>(typeof(WorldUtils), "contentTypeMap");
+                var isTerrain = layer == VisibleTileLayer.Terrain;
+                var contentSubtypeMap = contentTypeMap[isTerrain ? typeof(TerrainContent) : typeof(StructureContent)];
+
+                colorGetterFunction = (noises) =>
+                {
+                    var contentType = isTerrain
+                        ? WorldUtils.CalculateClosestContentType<TerrainContent>(noises)
+                        : WorldUtils.CalculateClosestContentType<StructureContent>(noises);
+                    var subtype = contentSubtypeMap.First().Key;
+                    foreach (var contentSubtype in contentSubtypeMap)
+                    {
+                        if (contentSubtype.Value == contentType)
+                        {
+                            subtype = contentSubtype.Key;
+                        }
+                    }
+                    return VisualizerTools.GetContentColor(subtype);
+                };
+            }
+
+            (int x, int y) tileSize = (1, 1);
 
             var image = new Bitmap((int)resolution * tileSize.x, (int)resolution * tileSize.y);
             var drawer = Graphics.FromImage(image);
@@ -49,22 +91,12 @@ namespace PAVisualizer
                 {
                     noiseValues[noiseTypeXAxis] = increment * x;
                     noiseValues[noiseTypeYAxis] = increment * y;
-                    WorldUtils.ShiftNoiseValues(noiseValues);
-                    var contentType = WorldUtils.CalculateClosestContentType<T>(noiseValues);
+
                     var startX = x * tileSize.x;
                     var startY = resolution - y * tileSize.y - 1;
-                    // find type
-                    var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<Type, Dictionary<EnumTreeValue<ContentType>, Type>>>(typeof(WorldUtils), "contentTypeMap");
-                    var contentSubtypeMap = contentTypeMap[typeof(T)];
-                    var subtype = contentSubtypeMap.First().Key;
-                    foreach (var contentSubtype in contentSubtypeMap)
-                    {
-                        if (contentSubtype.Value == contentType)
-                        {
-                            subtype = contentSubtype.Key;
-                        }
-                    }
-                    var color = VisualizerTools.GetTileColor(subtype, opacityMultiplier);
+
+                    WorldUtils.ShiftNoiseValues(noiseValues);
+                    var color = colorGetterFunction(noiseValues).MultiplyOpacity(opacityMultiplier);
 
                     if (tileSize.x > 2 && tileSize.y > 2)
                     {
@@ -83,16 +115,21 @@ namespace PAVisualizer
         /// <summary>
         /// Creates an image of the content type distribution graph using the provided noise types and saves the image using the provided path.
         /// </summary>
-        /// <typeparam name="T">The layer type to use.</typeparam>
+        /// <param name="layer">The layer to make an image from.</param>
         /// <param name="noiseTypeXAxis">The noise type to use for the X axis for the graph.</param>
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="exportPath">The path to export the image to.</param>
-        public static void MakeImage<T>(TileNoiseType noiseTypeXAxis, TileNoiseType noiseTypeYAxis, uint resolution, string exportPath)
-            where T : BaseContent
+        public static void MakeImage(
+            VisibleTileLayer layer,
+            TileNoiseType noiseTypeXAxis,
+            TileNoiseType noiseTypeYAxis,
+            uint resolution,
+            string exportPath
+        )
         {
             Console.Write("Generating image...");
-            var image = CreateNoiseTypeDistributionImage<T>(noiseTypeXAxis, noiseTypeYAxis, resolution);
+            var image = CreateNoiseTypeDistributionImage(layer, noiseTypeXAxis, noiseTypeYAxis, resolution);
             Console.WriteLine("DONE!");
             image.Save(exportPath);
         }
@@ -105,19 +142,19 @@ namespace PAVisualizer
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="exportPath">The path to export the image to.</param>
-        public static void MakeImageForLayer(WorldLayer layer, TileNoiseType noiseTypeXAxis, TileNoiseType noiseTypeYAxis, uint resolution, string exportPath)
+        public static void MakeImageForLayer(BaseContentType layer, TileNoiseType noiseTypeXAxis, TileNoiseType noiseTypeYAxis, uint resolution, string exportPath)
         {
-            if (layer == WorldLayer.Terrain)
+            if (layer == BaseContentType.Terrain)
             {
-                MakeImage<TerrainContent>(noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
+                MakeImage(VisibleTileLayer.Terrain, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
             }
-            else if (layer == WorldLayer.Structure)
+            else if (layer == BaseContentType.Structure)
             {
-                MakeImage<StructureContent>(noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
+                MakeImage(VisibleTileLayer.Structure, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
             }
             else
             {
-                MakeImage<PopulationContent>(noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
+                MakeImage(VisibleTileLayer.Population, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
             }
         }
 
@@ -164,7 +201,7 @@ namespace PAVisualizer
             noiseTypeElements.Add(noiseTypeYSelectionElement);
             noiseTypeElements.Add(null);
 
-            var layerTypes = Enum.GetValues<WorldLayer>();
+            var layerTypes = Enum.GetValues<BaseContentType>();
             var layerSelectionElement = new PAChoice(layerTypes.Select(layer => layer.ToString().Capitalize()).ToList(), 0, "Layer: ");
             noiseTypeElements.Add(layerSelectionElement);
             noiseTypeElements.Add(null);
@@ -214,7 +251,7 @@ namespace PAVisualizer
         #region Pivate fields
         private static void GenerateImageCommand(
             PAChoice layerSelectionElement,
-            WorldLayer[] layers,
+            BaseContentType[] layers,
             PAChoice noiseTypeXSelectionElement,
             PAChoice noiseTypeYSelectionElement,
             TileNoiseType[] noiseTypes,
@@ -237,7 +274,7 @@ namespace PAVisualizer
         }
 
         private static void GenerateAllImagesCommand(
-            WorldLayer[] layers,
+            BaseContentType[] layers,
             TileNoiseType[] noiseTypes,
             TextField resolutionElement,
             string visualizedContentDistributionPath

@@ -1,11 +1,13 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using ProgressAdventure;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -29,12 +31,13 @@ namespace PAVisualizer
 
         private string saveName;
         private DateTime lastWorldChange;
-        private Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>> worldTileTypeCounts;
+        private Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>> worldTileTypeCounts;
+        private Dictionary<EnumValue<EntityType>, long> entityTypeCounts;
         private string worldInfoString;
 
         private (double x, double y) center;
         private double worldGridScale;
-        private List<WorldLayer> layers;
+        private List<VisibleTileLayer> layers;
         #endregion
 
         #region Public properties
@@ -72,7 +75,8 @@ namespace PAVisualizer
 
                 if (!value)
                 {
-                    worldInfoString = VisualizerTools.GetDisplayTileCountsData(worldTileTypeCounts);
+                    worldInfoString = VisualizerTools.GetDisplayTileCountsData(worldTileTypeCounts) + "\n" + 
+                        VisualizerTools.GetDisplayPopulationCountsData(entityTypeCounts);
                 }
             }
         }
@@ -83,9 +87,10 @@ namespace PAVisualizer
         {
             center = (0, 0);
             worldGridScale = 1;
-            layers = [WorldLayer.Terrain];
+            layers = [VisibleTileLayer.Terrain];
             saveName = string.Empty;
             worldTileTypeCounts = [];
+            entityTypeCounts = [];
             worldInfoString = string.Empty;
             TileCountsNeedToBeRefreshed = true;
 
@@ -293,18 +298,18 @@ namespace PAVisualizer
 
         private void RebuildLayers()
         {
-            var newLayers = new List<WorldLayer>();
+            var newLayers = new List<VisibleTileLayer>();
             if (terrainLayerCheckBox.IsChecked == true)
             {
-                newLayers.Add(WorldLayer.Terrain);
+                newLayers.Add(VisibleTileLayer.Terrain);
             }
             if (structureLayerCheckBox.IsChecked == true)
             {
-                newLayers.Add(WorldLayer.Structure);
+                newLayers.Add(VisibleTileLayer.Structure);
             }
             if (populationLayerCheckBox.IsChecked == true)
             {
-                newLayers.Add(WorldLayer.Population);
+                newLayers.Add(VisibleTileLayer.Population);
             }
 
             layers = newLayers;
@@ -318,55 +323,55 @@ namespace PAVisualizer
         private void AppendTileCounts(Tile tile)
         {
             if (
-                worldTileTypeCounts.TryGetValue(WorldLayer.Terrain, out Dictionary<EnumTreeValue<ContentType>, long>? tCounts) &&
+                worldTileTypeCounts.TryGetValue(BaseContentType.Terrain, out Dictionary<EnumTreeValue<ContentType>, long>? tCounts) &&
                 tCounts is not null &&
                 tCounts.ContainsKey(tile.terrain.subtype)
             )
             {
-                worldTileTypeCounts[WorldLayer.Terrain][tile.terrain.subtype]++;
+                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.subtype]++;
             }
             else
             {
-                worldTileTypeCounts[WorldLayer.Terrain][tile.terrain.subtype] = 1;
+                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.subtype] = 1;
             }
 
             if (
-                worldTileTypeCounts.TryGetValue(WorldLayer.Structure, out Dictionary<EnumTreeValue<ContentType>, long>? sCounts) &&
+                worldTileTypeCounts.TryGetValue(BaseContentType.Structure, out Dictionary<EnumTreeValue<ContentType>, long>? sCounts) &&
                 sCounts is not null &&
                 sCounts.ContainsKey(tile.structure.subtype)
             )
             {
-                worldTileTypeCounts[WorldLayer.Structure][tile.structure.subtype]++;
+                worldTileTypeCounts[BaseContentType.Structure][tile.structure.subtype]++;
             }
             else
             {
-                worldTileTypeCounts[WorldLayer.Structure][tile.structure.subtype] = 1;
+                worldTileTypeCounts[BaseContentType.Structure][tile.structure.subtype] = 1;
             }
 
-            if (
-                worldTileTypeCounts.TryGetValue(WorldLayer.Population, out Dictionary<EnumTreeValue<ContentType>, long>? pCounts) &&
-                pCounts is not null &&
-                pCounts.ContainsKey(tile.populationManager.subtype)
-            )
+            var popManager = tile.populationManager;
+            foreach (var (type, amount) in VisualizerTools.GetPopulationCounts(popManager))
             {
-                worldTileTypeCounts[WorldLayer.Population][tile.populationManager.subtype]++;
-            }
-            else
-            {
-                worldTileTypeCounts[WorldLayer.Population][tile.populationManager.subtype] = 1;
+                if (entityTypeCounts.ContainsKey(type))
+                {
+                    entityTypeCounts[type] += amount;
+                }
+                else
+                {
+                    entityTypeCounts[type] = amount;
+                }
             }
         }
 
-        private void RenderWorldArea(List<WorldLayer> layers, (long minX, long minY, long maxX, long maxY)? corners = null)
+        private void RenderWorldArea(List<VisibleTileLayer> layers, (long minX, long minY, long maxX, long maxY)? corners = null)
         {
             if (TileCountsNeedToBeRefreshed)
             {
-                worldTileTypeCounts = new Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>>
+                worldTileTypeCounts = new Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>>
                 {
-                    [WorldLayer.Terrain] = [],
-                    [WorldLayer.Structure] = [],
-                    [WorldLayer.Population] = [],
+                    [BaseContentType.Terrain] = [],
+                    [BaseContentType.Structure] = [],
                 };
+                entityTypeCounts = [];
             }
 
             UpdateViewTextboxes();
@@ -436,32 +441,36 @@ namespace PAVisualizer
 
                     if (
                         xPos > maxX || xPos < minX ||
-                        yPos > maxY || yPos < minY
+                        yPos > maxY || yPos < minY ||
+                        layers.Count == 0
                     )
                     {
                         continue;
                     }
 
-                    BaseContent tileContent;
-
-                    if (layers.Contains(WorldLayer.Population) && tileObj.populationManager.subtype != ContentType.Population.NONE)
+                    VisibleTileLayer layer;
+                    string? contentName;
+                    if (layers.Contains(VisibleTileLayer.Population) && tileObj.populationManager.PopulationCount != 0)
                     {
-                        tileContent = tileObj.populationManager;
+                        layer = VisibleTileLayer.Population;
+                        contentName = null;
                     }
-                    else if (layers.Contains(WorldLayer.Structure) && tileObj.structure.subtype != ContentType.Structure.NONE)
+                    else if (layers.Contains(VisibleTileLayer.Structure) && tileObj.structure.subtype != ContentType.Structure.NONE)
                     {
-                        tileContent = tileObj.structure;
+                        layer = VisibleTileLayer.Structure;
+                        contentName = tileObj.structure.Name;
                     }
-                    else if (layers.Contains(WorldLayer.Terrain))
+                    else if (layers.Contains(VisibleTileLayer.Terrain))
                     {
-                        tileContent = tileObj.terrain;
+                        layer = VisibleTileLayer.Terrain;
+                        contentName = tileObj.terrain.Name;
                     }
                     else
                     {
                         continue;
                     }
 
-                    var color = VisualizerTools.contentSubtypeColorMap.TryGetValue(tileContent.subtype, out ColorData colorD) ? colorD : Constants.Colors.MAGENTA;
+                    var color = VisualizerTools.GetLayerContentColor(tileObj, layer);
 
                     var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out var height) ?
                         $"(height: {height})" :
@@ -480,15 +489,19 @@ namespace PAVisualizer
                         var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
                         tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} {extraStructureData}" });
                     }
-                    if (tileObj.populationManager.subtype != ContentType.Population.NONE)
+
+                    if (tileObj.populationManager.PopulationCount != 0)
                     {
-                        tooltipContent.Children.Add(new Label() { Content = $"Population: {tileObj.populationManager.GetSubtypeName()} ({tileObj.populationManager.amount})" });
+                        tooltipContent.Children.Add(new Label()
+                        {
+                            Content = $"Population:\n\t{string.Join("\n\t", VisualizerTools.GetPopulationCounts(tileObj.populationManager).Select(e => $"{e.type}: {e.amount}"))}",
+                        });
                     }
 
                     var content = new Label()
                     {
                         Background = new SolidColorBrush(color.ToMediaColor()),
-                        Content = tileContent.Name,
+                        Content = contentName,
                         ToolTip = new ToolTip()
                         {
                             Content = tooltipContent,
@@ -514,7 +527,7 @@ namespace PAVisualizer
             diameterTextBox.Content = $"Zoom scale: {Math.Round(worldGridScale, 3)}";
         }
 
-        private void RenderWorldArea(List<WorldLayer> layers, (long x, long y) center, long extraRadius)
+        private void RenderWorldArea(List<VisibleTileLayer> layers, (long x, long y) center, long extraRadius)
         {
             RenderWorldArea(layers, (center.x - extraRadius, center.y - extraRadius, center.x + extraRadius, center.y + extraRadius));
         }

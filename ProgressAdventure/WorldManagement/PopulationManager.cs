@@ -44,6 +44,7 @@ namespace ProgressAdventure.WorldManagement
         public long LoadedPopulationCount { get => loadedEntities.Sum(item => item.Value.Count); }
         public long PopulationCount { get => UnloadedPopulationCount + LoadedPopulationCount; }
         public bool IsEmpty { get => unloadedEntities.Count == 0 && loadedEntities.Count == 0; }
+        public List<EnumValue<EntityType>> ContainedEntities { get => [.. unloadedEntities.Keys.Concat(loadedEntities.Keys).Distinct()]; }
         #endregion
 
         #region Constructors
@@ -246,6 +247,17 @@ namespace ProgressAdventure.WorldManagement
                 loadedEntities.Add(LoadEntitiesUncecked(selectedKey, 1)[0]);
             }
             return loadedEntities;
+        }
+
+        /// <summary>
+        /// Returns the amount of unloaded and loaded entities of a specific type.
+        /// </summary>
+        /// <param name="entityType">The type of the entity to return the count of.</param>
+        /// <param name="unloadedCount">The count of the unloaded entities of the selected type.</param>
+        public long GetEntityCount(EnumValue<EntityType> entityType, out int unloadedCount)
+        {
+            unloadedCount = unloadedEntities.TryGetValue(entityType, out var uCount) ? uCount : 0;
+            return unloadedCount + (loadedEntities.TryGetValue(entityType, out var lCount) ? lCount.Count : 0);
         }
 
         public override string? ToString()

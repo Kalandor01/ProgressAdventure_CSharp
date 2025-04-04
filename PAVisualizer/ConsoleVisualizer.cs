@@ -3,6 +3,7 @@ using ConsoleUI.UIElements;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
 using System;
@@ -26,19 +27,24 @@ namespace PAVisualizer
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
-        public static Dictionary<EnumTreeValue<ContentType>, long> CreateWorldLayerImage(WorldLayer layer, out Bitmap image, double opacityMultiplier = 1)
+        public static (Dictionary<EnumTreeValue<ContentType>, long> contentTypeCounts, Dictionary<EnumValue<EntityType>, long> enttyTypeCounts) CreateWorldLayerImage(
+            VisibleTileLayer layer,
+            out Bitmap image,
+            double opacityMultiplier = 1
+        )
         {
             (int x, int y) tileSize = (1, 1);
 
 
             var tileTypeCounts = new Dictionary<EnumTreeValue<ContentType>, long>();
+            var entityTypeCounts = new Dictionary<EnumValue<EntityType>, long>();
 
             var worldCorners = World.GetCorners();
 
             if (worldCorners is null)
             {
                 image = new Bitmap(1, 1);
-                return tileTypeCounts;
+                return (tileTypeCounts, entityTypeCounts);
             }
 
             var (minX, minY, maxX, maxY) = worldCorners.Value;
@@ -57,16 +63,33 @@ namespace PAVisualizer
                     var startX = x * tileSize.x;
                     var startY = size.y - y * tileSize.y - 1;
                     // find type
-                    var subtype = VisualizerTools.GetLayerSubtype(tile, layer);
-                    if (tileTypeCounts.TryGetValue(subtype, out long value))
+                    if (layer == VisibleTileLayer.Population)
                     {
-                        tileTypeCounts[subtype] = value + 1;
+                        foreach (var (type, amount) in VisualizerTools.GetPopulationCounts(tile.populationManager))
+                        {
+                            if (entityTypeCounts.ContainsKey(type))
+                            {
+                                entityTypeCounts[type] += amount;
+                            }
+                            else
+                            {
+                                entityTypeCounts[type] = amount;
+                            }
+                        }
                     }
                     else
                     {
-                        tileTypeCounts[subtype] = 1;
+                        var subtype = VisualizerTools.GetLayerSubtype(tile, (BaseContentType)layer);
+                        if (tileTypeCounts.TryGetValue(subtype, out long value))
+                        {
+                            tileTypeCounts[subtype] = value + 1;
+                        }
+                        else
+                        {
+                            tileTypeCounts[subtype] = 1;
+                        }
                     }
-                    var color = VisualizerTools.GetTileColor(subtype, opacityMultiplier);
+                    var color = VisualizerTools.GetLayerContentColor(tile, layer).MultiplyOpacity(opacityMultiplier);
 
                     if (tileSize.x > 2 && tileSize.y > 2)
                     {
@@ -79,7 +102,7 @@ namespace PAVisualizer
                     }
                 }
             }
-            return tileTypeCounts;
+            return (tileTypeCounts, entityTypeCounts);
         }
 
         /// <summary>
@@ -88,21 +111,37 @@ namespace PAVisualizer
         /// <param name="layers">The layers to show.</param>
         /// <param name="image">The created image</param>
         /// <returns>The tile count for all tile types, for each layer.</returns>
-        public static Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>> CreateCombinedImage(List<WorldLayer> layers, out Bitmap? image)
+        public static (Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>> tileTypeCounts, Dictionary<EnumValue<EntityType>, long> entityTypeCounts) CreateCombinedImage(
+            List<VisibleTileLayer> layers,
+            out Bitmap? image
+        )
         {
             image = null;
 
-            var layerCounts = new Dictionary<WorldLayer, Dictionary<EnumTreeValue<ContentType>, long>>();
+            var contentCounts = new Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>>();
+            var entityCounts = new Dictionary<EnumValue<EntityType>, long>();
 
-            foreach (var layer in Enum.GetValues<WorldLayer>())
+            foreach (var layer in Enum.GetValues<VisibleTileLayer>())
             {
                 if (!layers.Contains(layer))
                 {
                     continue;
                 }
 
-                var layerTileTypeCounts = CreateWorldLayerImage(layer, out Bitmap layerImage, VisualizerTools.GetLayerOpacity(layers, layer));
-                layerCounts.Add(layer, layerTileTypeCounts);
+                var (contentTileTypeCounts, entityTypeCounts) = CreateWorldLayerImage(
+                    layer,
+                    out var layerImage,
+                    VisualizerTools.GetLayerOpacity(layers, layer)
+                );
+
+                if (layer == VisibleTileLayer.Population)
+                {
+                    entityCounts = entityTypeCounts;
+                }
+                else
+                {
+                    contentCounts.Add((BaseContentType)layer, contentTileTypeCounts);
+                }
 
                 if (image is null)
                 {
@@ -112,7 +151,7 @@ namespace PAVisualizer
                 VisualizerTools.CombineImages(ref image, layerImage);
             }
 
-            return layerCounts;
+            return (contentCounts, entityCounts);
         }
 
         /// <summary>
@@ -120,18 +159,19 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="layers">The layers to use.</param>
         /// <param name="exportPath">The path to export the image to.</param>
-        public static void MakeImage(List<WorldLayer> layers, string exportPath)
+        public static void MakeImage(List<VisibleTileLayer> layers, string exportPath)
         {
             Console.Write("Generating image...");
-            var tileTypeCounts = CreateCombinedImage(layers, out Bitmap? image);
+            var (tileTypeCounts, entityCounts) = CreateCombinedImage(layers, out var image);
             Console.WriteLine("DONE!");
 
-            if (tileTypeCounts is null || image is null)
+            if (tileTypeCounts is null || entityCounts is null || image is null)
             {
                 return;
             }
 
             Console.WriteLine(VisualizerTools.GetDisplayTileCountsData(tileTypeCounts));
+            Console.WriteLine(VisualizerTools.GetDisplayPopulationCountsData(entityCounts));
 
             image.Save(exportPath);
         }
@@ -198,7 +238,7 @@ namespace PAVisualizer
             }
 
             // select layers
-            var layers = Enum.GetValues<WorldLayer>();
+            var layers = Enum.GetValues<VisibleTileLayer>();
             var layerElements = new List<BaseUI?>();
             foreach (var layer in layers)
             {
@@ -212,10 +252,10 @@ namespace PAVisualizer
         #endregion
 
         #region Pivate fields
-        private static void GenerateImageCommand(List<BaseUI?> layerElements, WorldLayer[] layers, string visualizedSavePath)
+        private static void GenerateImageCommand(List<BaseUI?> layerElements, VisibleTileLayer[] layers, string visualizedSavePath)
         {
             // get selected layers
-            var selectedLayers = new List<WorldLayer>();
+            var selectedLayers = new List<VisibleTileLayer>();
             for (int x = 0; x < layers.Length; x++)
             {
                 if (((layerElements[x] as Toggle)?.Value) ?? false)
