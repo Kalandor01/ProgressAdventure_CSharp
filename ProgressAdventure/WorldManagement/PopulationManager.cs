@@ -260,6 +260,86 @@ namespace ProgressAdventure.WorldManagement
             return unloadedCount + (loadedEntities.TryGetValue(entityType, out var lCount) ? lCount.Count : 0);
         }
 
+        /// <summary>
+        /// Moves an <see cref="Entity"/> from one <see cref="PopulationManager"/> to another.
+        /// </summary>
+        /// <param name="entity">The <see cref="Entity"/> to move.</param>
+        /// <param name="otherPopulationManager">The <see cref="PopulationManager"/> to move the <see cref="Entity"/> to.</param>
+        /// <returns>If the entity was successfuly moved.</returns>
+        public bool MoveEntity(Entity entity, PopulationManager otherPopulationManager)
+        {
+            if (
+                this == otherPopulationManager ||
+                !loadedEntities.TryGetValue(entity.type, out var entities)
+            )
+            {
+                return false;
+            }
+
+            var entityIndex = entities.IndexOf(entity);
+            if (entityIndex == -1)
+            {
+                return false;
+            }
+
+            entities.RemoveAt(entityIndex);
+            if (entities.Count == 0)
+            {
+                loadedEntities.Remove(entity.type);
+            }
+
+            if (otherPopulationManager.loadedEntities.TryGetValue(entity.type, out var otherEntities))
+            {
+                otherEntities.Add(entity);
+            }
+            else
+            {
+                otherPopulationManager.loadedEntities[entity.type] = [entity];
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Moves a specific number on unloaded <see cref="Entity"/>s from one <see cref="PopulationManager"/> to another.
+        /// </summary>
+        /// <param name="otherPopulationManager">The <see cref="PopulationManager"/> to move the <see cref="Entity"/> to.</param>
+        /// <param name="entityType">The type of <see cref="Entity"/>s to move.</param>
+        /// <param name="amount">The amount of entities to move.</param>
+        /// <param name="moveExact">Whether to only succeed if the specified number of entities could be moved, or at least 1.</param>
+        /// <returns>If the entities were successfuly moved.</returns>
+        public bool MoveEntity(PopulationManager otherPopulationManager, EnumValue<EntityType> entityType, int amount = 1, bool moveExact = true)
+        {
+            if (
+                this == otherPopulationManager ||
+                !unloadedEntities.TryGetValue(entityType, out var entityCount) ||
+                entityCount < 1 ||
+                (moveExact && entityCount < amount)
+            )
+            {
+                return false;
+            }
+            
+            var moveAmount = Math.Min(amount, entityCount);
+            if (entityCount == moveAmount)
+            {
+                unloadedEntities.Remove(entityType);
+            }
+            else
+            {
+                unloadedEntities[entityType] -= moveAmount;
+            }
+
+            if (otherPopulationManager.unloadedEntities.ContainsKey(entityType))
+            {
+                otherPopulationManager.unloadedEntities[entityType] += moveAmount;
+            }
+            else
+            {
+                otherPopulationManager.unloadedEntities[entityType] = moveAmount;
+            }
+            return true;
+        }
+
         public override string? ToString()
         {
             var unloadedEntitiesStr = string.Join(", ", unloadedEntities.Select(ue => $"{ue.Key}: {ue.Value}"));
