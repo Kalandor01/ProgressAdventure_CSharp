@@ -620,18 +620,33 @@ namespace ProgressAdventure.EntityManagement
         /// If null, the default is used.</param>
         /// <param name="startingPosition">The starting position of the entity.<br/>
         /// If null, the default is used.</param>
-        public static void EntityMover(Entity entity, (long x, long y) relativeMovementVector, bool? updateWorld = null, (long x, long y)? startingPosition = null)
+        /// <returns>If the movement was successful.</returns>
+        public static bool EntityMover(
+            Entity entity,
+            (long x, long y) relativeMovementVector,
+            bool? updateWorld = null,
+            (long x, long y)? startingPosition = null
+        )
         {
             if (startingPosition is not null)
             {
                 entity.SetPosition(((long x, long y))startingPosition, updateWorld);
             }
-            (long x, long y) endPosition = (entity.position.x + relativeMovementVector.x, entity.position.y + relativeMovementVector.y);
-            while (entity.position != endPosition)
+            if (entity.Position is null)
             {
-                var xPosDif = entity.position.x - endPosition.x;
-                var yPosDif = entity.position.y - endPosition.y;
-                var newPos = entity.position;
+                return false;
+            }
+
+            (long x, long y) endPosition = (entity.Position.Value.x + relativeMovementVector.x, entity.Position.Value.y + relativeMovementVector.y);
+            while (entity.Position != endPosition)
+            {
+                if (entity.Position is not (long, long) newPos)
+                {
+                    return false;
+                }
+
+                var xPosDif = entity.Position.Value.x - endPosition.x;
+                var yPosDif = entity.Position.Value.y - endPosition.y;
                 if (Math.Abs(xPosDif) > Math.Abs(yPosDif) && xPosDif != 0)
                 {
                     newPos.x += xPosDif > 0 ? -1 : 1;
@@ -643,6 +658,8 @@ namespace ProgressAdventure.EntityManagement
 
                 entity.SetPosition(newPos, updateWorld);
             }
+
+            return true;
         }
 
         /// <summary>
@@ -826,7 +843,7 @@ namespace ProgressAdventure.EntityManagement
 
             if (includePlayer)
             {
-                entities.Add(SaveData.Instance.player);
+                entities.Add(SaveData.Instance.PlayerRef);
             }
 
             PACSingletons.Instance.Logger.Log("Fight log", "random fight initiated");

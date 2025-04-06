@@ -83,6 +83,7 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the tile.</param>
         /// <param name="tile">The tile that was found or created.</param>
+        /// <returns>If the <see cref="Tile"/> was found.</returns>
         public bool TryGetTile((long x, long y) absolutePosition, out Tile tile)
         {
             var res = FindTile(absolutePosition);
@@ -314,6 +315,7 @@ namespace ProgressAdventure.WorldManagement
 
             success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom?>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
             chunkRandom ??= GetChunkRandom(position);
+            var chunkPos = (Utils.FloorRound(position.x, Constants.CHUNK_SIZE), Utils.FloorRound(position.y, Constants.CHUNK_SIZE));
 
             if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
                 if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, isStraigthCast: true))
@@ -321,7 +323,7 @@ namespace ProgressAdventure.WorldManagement
                     success = false;
                     return (false, default);
                 }
-                success &= PACTools.TryFromJsonExtra(tileJsonValue, (chunkRandom, position), fileVersion, out Tile? tile);
+                success &= PACTools.TryFromJsonExtra(tileJsonValue, (chunkRandom, chunkPos), fileVersion, out Tile? tile);
                 return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(GetTileDictName(tile.relativePosition), tile));
             }, out var tilesKvPair, true))
             {

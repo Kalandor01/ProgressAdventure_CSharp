@@ -227,7 +227,7 @@ namespace PAVisualizer
             txt.AppendLine($"Save name: {SaveData.Instance.saveName}");
             txt.AppendLine($"Display save name: {SaveData.Instance.displaySaveName}");
             txt.AppendLine($"Last saved: {Utils.MakeDate(SaveData.Instance.LastSave, ".")} {Utils.MakeTime(SaveData.Instance.LastSave)}");
-            txt.AppendLine($"\nPlayer:\n{SaveData.Instance.player}");
+            txt.AppendLine($"\nPlayer:\n{SaveData.Instance.PlayerRef}");
             txt.AppendLine($"\nMain seed: {PATools.SerializeRandom(RandomStates.Instance.MainRandom)}");
             txt.AppendLine($"World seed: {PATools.SerializeRandom(RandomStates.Instance.WorldRandom)}");
             txt.AppendLine($"Misc seed: {PATools.SerializeRandom(RandomStates.Instance.MiscRandom)}");

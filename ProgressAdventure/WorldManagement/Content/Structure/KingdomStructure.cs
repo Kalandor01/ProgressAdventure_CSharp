@@ -31,7 +31,7 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.Instance.player.FullName} entered the {Name} kingdom.");
+            Console.WriteLine($"{SaveData.Instance.PlayerRef.FullName} entered the {Name} kingdom.");
             Console.WriteLine($"The kingdom has a population of {population} people.");
         }
         #endregion

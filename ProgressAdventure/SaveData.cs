@@ -2,6 +2,7 @@
 using PACommon.JsonUtils;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.WorldManagement;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
@@ -18,10 +19,6 @@ namespace ProgressAdventure
         /// The save name to display.
         /// </summary>
         public string displaySaveName;
-        /// <summary>
-        /// The player object.
-        /// </summary>
-        public Entity player;
         #endregion
 
         #region Private fields
@@ -66,6 +63,21 @@ namespace ProgressAdventure
         /// The last time, the save file was saved.
         /// </summary>
         public TimeSpan Playtime { get; private set; }
+
+        private (long x, long y)? _refrencePlayerPos;
+        private Entity _playerRef;
+        /// <summary>
+        /// A refrence to the player object.
+        /// </summary>
+        public Entity PlayerRef
+        {
+            get
+            {
+                ResolvePlayerRef();
+                return _playerRef;
+            }
+            private set => _playerRef = value;
+        }
         #endregion
 
         #region Private constructors
@@ -76,7 +88,7 @@ namespace ProgressAdventure
         /// <param name="displaySaveName"><inheritdoc cref="displaySaveName" path="//summary"/></param>
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
-        /// <param name="player"><inheritdoc cref="player" path="//summary"/></param>
+        /// <param name="player"><inheritdoc cref="PlayerRef" path="//summary"/></param>
         /// <param name="initialiseRandomGenerators">Whether to initialize the RandomStates object as well.</param>
         private SaveData(
             string saveName,
@@ -98,7 +110,7 @@ namespace ProgressAdventure
                 RandomStates.Initialize();
             }
 
-            this.player = player is null || player.type != EntityType.PLAYER ? new Entity(EntityType.PLAYER) : player;
+            PlayerRef = player is null || player.type != EntityType.PLAYER ? new Entity(EntityType.PLAYER) : player;
         }
         #endregion
 
@@ -110,7 +122,7 @@ namespace ProgressAdventure
         /// <param name="displaySaveName"><inheritdoc cref="displaySaveName" path="//summary"/></param>
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
-        /// <param name="player"><inheritdoc cref="player" path="//summary"/></param>
+        /// <param name="player"><inheritdoc cref="PlayerRef" path="//summary"/></param>
         /// <param name="initialiseRandomGenerators">Whether to initialize the RandomStates object as well.</param>
         public static SaveData Initialize(
             string saveName,
@@ -131,6 +143,88 @@ namespace ProgressAdventure
         public TimeSpan GetPlaytime()
         {
             return Playtime + DateTime.Now.Subtract(LastLoad);
+        }
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Resolves the player refrence, and makes it just an actual refrence.<br/>
+        /// This should be called after initializing the <see cref="World"/>.
+        /// </summary>
+        private void ResolvePlayerRef()
+        {
+            if (_playerRef.Position is not null && _refrencePlayerPos is null)
+            {
+                return;
+            }
+
+            var playerPos = _playerRef.Position ?? _refrencePlayerPos ?? (0, 0);
+            if (_refrencePlayerPos is null)
+            {
+                _playerRef.AddPosition(playerPos);
+                _refrencePlayerPos = null;
+                return;
+            }
+
+            World.TryGetTileAll(playerPos, out var playerTile);
+            var playerTilePopMan = playerTile.populationManager;
+            if (_playerRef.Position is not null)
+            {
+                playerTilePopMan.AddEntity(_playerRef);
+                _refrencePlayerPos = null;
+                return;
+            }
+
+            var playerCount = playerTilePopMan.GetEntityCount(EntityType.PLAYER, out var ulPlayers);
+            if (playerCount <= 0)
+            {
+                _playerRef.AddPosition(playerTilePopMan);
+                _refrencePlayerPos = null;
+                return;
+            }
+
+            var loadedPlayers = playerTilePopMan.GetPlayers();
+            if (loadedPlayers.Count == 0)
+            {
+                if (ulPlayers > 0)
+                {
+                    _playerRef = playerTilePopMan.LoadEntities(EntityType.PLAYER, 1).First();
+                    _refrencePlayerPos = null;
+                    return;
+                }
+
+                _playerRef.AddPosition(playerTilePopMan);
+                _refrencePlayerPos = null;
+                return;
+            }
+
+            if (loadedPlayers.Count == 1)
+            {
+                _playerRef = loadedPlayers.First();
+                _refrencePlayerPos = null;
+                return;
+            }
+
+            var matchingPlayer = loadedPlayers.FirstOrDefault(p =>
+                p == _playerRef ||
+                (
+                    p.FullName == _playerRef.FullName &&
+                    p.currentTeam == _playerRef.currentTeam &&
+                    p.originalTeam == _playerRef.originalTeam &&
+                    p.MaxHp == _playerRef.MaxHp &&
+                    p.CurrentHp == _playerRef.CurrentHp
+                )
+            );
+
+            if (matchingPlayer is not null)
+            {
+                _playerRef = matchingPlayer;
+                _refrencePlayerPos = null;
+                return;
+            }
+
+            _playerRef.AddPosition(playerPos);
+            _refrencePlayerPos = null;
         }
         #endregion
 
@@ -155,6 +249,34 @@ namespace ProgressAdventure
                     ["randomStates"] = "random_states",
                 });
             }, "2.2"),
+            // 2.5 -> 2.5.1?
+            (oldJson => {
+                // player -> player_ref, Entity pos stored in PopulationManager
+                JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "player", "player_ref");
+
+                if (
+                    !oldJson.TryGetValue("player_ref", out var playerJsonOjs) ||
+                    playerJsonOjs is not JsonDictionary playerJson
+                )
+                {
+                    return;
+                }
+
+                if (
+                    playerJson.TryGetValue("x_position", out var xPos) ||
+                    playerJson.TryGetValue("xPos", out xPos)
+                )
+                {
+                    oldJson["player_pos_x"] = xPos;
+                }
+                if (
+                    playerJson.TryGetValue("y_position", out var yPos) ||
+                    playerJson.TryGetValue("yPos", out yPos)
+                )
+                {
+                    oldJson["player_pos_y"] = yPos;
+                }
+            }, "2.5.1"),
         ];
 
         public JsonDictionary ToJson()
@@ -166,7 +288,9 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = LastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = GetPlaytime(),
-                [Constants.JsonKeys.SaveData.PLAYER] = player.ToJson(),
+                [Constants.JsonKeys.SaveData.PLAYER_POS_X] = PlayerRef.Position?.x,
+                [Constants.JsonKeys.SaveData.PLAYER_POS_Y] = PlayerRef.Position?.y,
+                [Constants.JsonKeys.SaveData.PLAYER_REF] = PlayerRef.ToJson(),
                 [Constants.JsonKeys.SaveData.RANDOM_STATES] = RandomStates.Instance.ToJson(),
             };
         }
@@ -183,10 +307,14 @@ namespace ProgressAdventure
             success &= PACTools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
             success &= PACTools.TryParseJsonValue<SaveData, DateTime?>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
             success &= PACTools.TryParseJsonValue<SaveData, TimeSpan?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
-            success &= PACTools.TryParseJsonConvertableValue<SaveData, Entity>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.PLAYER, out var player);
+            success &= PACTools.TryParseJsonValueNullable<SaveData, long?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYER_POS_X, out var playerPosX);
+            success &= PACTools.TryParseJsonValueNullable<SaveData, long?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYER_POS_Y, out var playerPosY);
+            (long, long)? playerPos = playerPosX is not null && playerPosY is not null ? ((long)playerPosX, (long)playerPosY) : null;
+            success &= PACTools.TryParseJsonConvertableValue<SaveData, Entity, (long, long)?>(saveDataJson, null, fileVersion, Constants.JsonKeys.SaveData.PLAYER_REF, out var player);
             success &= PACTools.TryParseJsonConvertableValue<SaveData, RandomStates>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.RANDOM_STATES, out _);
 
             saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player, false);
+            saveData._refrencePlayerPos = playerPos ?? (0, 0);
             return success;
         }
         #endregion

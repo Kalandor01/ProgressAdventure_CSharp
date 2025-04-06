@@ -137,7 +137,7 @@ namespace PAExtras
             {
                 for (var y = minY; y < maxY; y += PAConstants.CHUNK_SIZE)
                 {
-                    World.TryGetChunkAll((x, y), out Chunk chunk);
+                    World.TryGetChunkAll((x, y), out var chunk);
                     if (fillChunks)
                     {
                         chunk.FillChunk();

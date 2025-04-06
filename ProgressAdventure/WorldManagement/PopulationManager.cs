@@ -145,6 +145,14 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
+        /// Gets all loaded player entities in this <see cref="PopulationManager"/>.
+        /// </summary>
+        public List<Entity> GetPlayers()
+        {
+            return loadedEntities.TryGetValue(EntityType.PLAYER, out var playerList) ? [.. playerList] : [];
+        }
+
+        /// <summary>
         /// Loads entities of a specific type from the unloaded entities dict.
         /// </summary>
         /// <param name="entityType">The type of the entities to load.</param>
@@ -261,17 +269,57 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Moves an <see cref="Entity"/> from one <see cref="PopulationManager"/> to another.
+        /// Returns if the <see cref="Entity"/> exists in this <see cref="PopulationManager"/>.
         /// </summary>
-        /// <param name="entity">The <see cref="Entity"/> to move.</param>
-        /// <param name="otherPopulationManager">The <see cref="PopulationManager"/> to move the <see cref="Entity"/> to.</param>
-        /// <returns>If the entity was successfuly moved.</returns>
-        public bool MoveEntity(Entity entity, PopulationManager otherPopulationManager)
+        /// <param name="entity">The entity to check.</param>
+        public bool EntityExists(Entity entity)
+        {
+            return loadedEntities.TryGetValue(entity.type, out var entities) && entities.Contains(entity);
+        }
+
+        /// <summary>
+        /// Adds the <see cref="Entity"/> to the <see cref="PopulationManager"/> if it doesn't already exist there.
+        /// </summary>
+        /// <param name="entity">The <see cref="Entity"/> to add.</param>
+        /// <returns>If the <see cref="Entity"/> was successfuly added. The <see cref="Entity"/> needs to have the same position as this <see cref="PopulationManager"/>.</returns>
+        public bool AddEntity(Entity entity)
         {
             if (
-                this == otherPopulationManager ||
-                !loadedEntities.TryGetValue(entity.type, out var entities)
+                entity.Position is null ||
+                entity.Position.Value != absolutePosition
             )
+            {
+                return false;
+            }
+
+            if (loadedEntities.TryGetValue(entity.type, out var entities))
+            {
+                if (entities.Contains(entity))
+                {
+                    return false;
+                }
+                entities.Add(entity);
+            }
+            else
+            {
+                loadedEntities[entity.type] = [entity];
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Removes the <see cref="Entity"/> from the <see cref="PopulationManager"/> if it exist there.
+        /// </summary>
+        /// <param name="entity">The <see cref="Entity"/> to remove.</param>
+        /// <returns>If the <see cref="Entity"/> was successfuly removed. The <see cref="Entity"/> needs to have a <see cref="null"/> position.</returns>
+        public bool RemoveEntity(Entity entity)
+        {
+            if (entity.Position is not null)
+            {
+                return false;
+            }
+
+            if (!loadedEntities.TryGetValue(entity.type, out var entities))
             {
                 return false;
             }
@@ -286,15 +334,6 @@ namespace ProgressAdventure.WorldManagement
             if (entities.Count == 0)
             {
                 loadedEntities.Remove(entity.type);
-            }
-
-            if (otherPopulationManager.loadedEntities.TryGetValue(entity.type, out var otherEntities))
-            {
-                otherEntities.Add(entity);
-            }
-            else
-            {
-                otherPopulationManager.loadedEntities[entity.type] = [entity];
             }
             return true;
         }
@@ -409,16 +448,9 @@ namespace ProgressAdventure.WorldManagement
             var newEntities = new List<Entity>();
             for (var x = 0; x < amount; x++)
             {
-                newEntities.Add(new Entity(entityType, position: absolutePosition, generationRandom: chunkRandom));
-            }
-
-            if (loadedEntities.TryGetValue(entityType, out var entities))
-            {
-                entities.AddRange(newEntities);
-            }
-            else
-            {
-                loadedEntities[entityType] = [.. newEntities];
+                var newEntity = new Entity(entityType, generationRandom: chunkRandom);
+                newEntity.AddPosition(absolutePosition);
+                newEntities.Add(new Entity(entityType, generationRandom: chunkRandom));
             }
             return newEntities;
         }
@@ -584,7 +616,12 @@ namespace ProgressAdventure.WorldManagement
                                 return (false, default);
                             }
 
-                            success &= PACTools.TryFromJson(entityJsonValue, fileVersion, out Entity? entity);
+                            success &= PACTools.TryFromJsonExtra<Entity, (long, long)?>(
+                                entityJsonValue,
+                                extraData.absolutePosition,
+                                fileVersion,
+                                out var entity
+                            );
                             return (entity is not null, entity);
                         },
                         out var entities

@@ -61,7 +61,7 @@ namespace ProgressAdventure
             // load to class
             SaveData.Initialize(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
             World.Initialize();
-            World.GenerateTile((SaveData.Instance.player.position.x, SaveData.Instance.player.position.y));
+            var playerResolveForce =SaveData.Instance.PlayerRef;
         }
 
         /// <summary>
@@ -150,8 +150,8 @@ namespace ProgressAdventure
             PACSingletons.Instance.Logger.Log("Preparing game data");
             data[Constants.JsonKeys.SaveData.SAVE_NAME] = new JsonValue(saveName);
             success &= PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
-            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             World.Initialize();
+            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             return success;
         }
 

@@ -66,7 +66,7 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.DISPLAY_NAME] = saveData.displaySaveName,
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = saveData.LastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = saveData.GetPlaytime(),
-                [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = saveData.player.name,
+                [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = saveData.PlayerRef.name,
             };
         }
 

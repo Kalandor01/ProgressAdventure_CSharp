@@ -192,7 +192,9 @@ namespace ProgressAdventure
                 public const string LAST_SAVE = "last_save";
                 public const string PLAYTIME = "playtime";
                 public const string SAVE_NAME = "save_name";
-                public const string PLAYER = "player";
+                public const string PLAYER_POS_X = "player_pos_x";
+                public const string PLAYER_POS_Y = "player_pos_y";
+                public const string PLAYER_REF = "player_ref";
                 public const string RANDOM_STATES = "random_states";
             }
             #endregion
@@ -218,8 +220,6 @@ namespace ProgressAdventure
                 public const string CURRENT_TEAM = "current_team";
                 public const string ATTRIBUTES = "attributes";
                 public const string DROPS = "drops";
-                public const string X_POSITION = "x_position";
-                public const string Y_POSITION = "y_position";
                 public const string FACING = "facing";
 
                 //specific keys
@@ -435,7 +435,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.5";
+        public const string SAVE_VERSION = "2.5.1";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>

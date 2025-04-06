@@ -136,13 +136,13 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// <c>Chunk.FromFile()</c>, but if it finds the chunk, it adds it to the chunks dictionary.
+        /// <see cref="Chunk.FromFile(ValueTuple{long, long}, out Chunk?, string?, bool)"/>, but if it finds the chunk, it adds it to the chunks dictionary.
         /// </summary>
-        /// <param name="position">The position of the chunk.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="position">The position of the <see cref="Chunk"/>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         public static Chunk? FindChunkInFolder((long x, long y) position, string? saveFolderName = null)
         {
-            Chunk.FromFile(position, out Chunk? chunk, saveFolderName, false);
+            Chunk.FromFile(position, out var chunk, saveFolderName, false);
             if (chunk is not null)
             {
                 Chunks.Add(GetChunkDictName(position), chunk);
@@ -156,6 +156,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="position">The position of the chunk.</param>
         /// <param name="chunk">The chunk that was fould or created.</param>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <returns>If the <see cref="Chunk"/> file was found.</returns>
         public static bool TryGetChunkFromFolder((long x, long y) position, out Chunk chunk, string? saveFolderName = null)
         {
             var chunkTemp = FindChunkInFolder(position, saveFolderName);
@@ -211,7 +212,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Loads all chunks from a save file.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         /// <param name="checkOldExtension">Whether to check the pre 2.3 file extension.</param>
         public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null, bool checkOldExtension = true)
@@ -225,7 +226,10 @@ namespace ProgressAdventure.WorldManagement
                 double chunkNum = existingChunks.Count;
                 for (var x = 0; x < chunkNum; x++)
                 {
-                    FindChunkInFolder(existingChunks[x], saveFolderName);
+                    if (!Chunks.ContainsKey(GetChunkDictName(existingChunks[x])))
+                    {
+                        FindChunkInFolder(existingChunks[x], saveFolderName);
+                    }
                     loadingText.Value = (x + 1) / chunkNum;
                 }
                 loadingText.StopLoadingStandard();
@@ -234,48 +238,52 @@ namespace ProgressAdventure.WorldManagement
             {
                 foreach (var chunkPos in existingChunks)
                 {
-                    FindChunkInFolder(chunkPos, saveFolderName);
+                    if (!Chunks.ContainsKey(GetChunkDictName(chunkPos)))
+                    {
+                        FindChunkInFolder(chunkPos, saveFolderName);
+                    }
                 }
             }
             PACSingletons.Instance.Logger.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
         }
 
         /// <summary>
-        /// Returns the <c>Chunk</c>, if it exists in the the dictionary or in the file, or null.<br/>
+        /// Returns the <see cref="Chunk"/>, if it exists in the the dictionary or in the file, or null.<br/>
         /// Checks in chunks dictionary and in save folder.
         /// </summary>
-        /// <param name="position">The position of the chunk.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="position">The position of the <see cref="Chunk"/>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         public static Chunk? FindChunkAll((long x, long y) position, string? saveFolderName = null)
         {
             return FindChunk(position) ?? FindChunkInFolder(position, saveFolderName);
         }
 
         /// <summary>
-        /// Returns the <c>Tile</c> if it, and the <c>Chunk</c> is should be in exists, or null.<br/>
+        /// Returns the <see cref="Tile"/> if it, and the <see cref="Chunk"/> is should be in exists, or null.<br/>
         /// Checks in chunks dictionary and in save folder.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the tile.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         public static Tile? FindTileAll((long x, long y) absolutePosition, string? saveFolderName = null)
         {
             return FindChunkAll(absolutePosition, saveFolderName)?.FindTile(absolutePosition);
         }
 
         /// <summary>
-        /// Tries to find a <c>Chunk</c> at a specific location, creates one, if it doesn't exist in the dictionary and the save folder, and adds the result into the chunks dictionary.<br/>
+        /// Tries to find a <see cref="Chunk"/> at a specific location, creates one, if it doesn't exist in the dictionary and the save folder, and adds the result into the chunks dictionary.<br/>
         /// Checks in chunks dictionary and in save folder.
-        /// <param name="position">The position of the chunk.</param>
-        /// <param name="chunk">The chunk that was fould or created.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         /// </summary>
+        /// <param name="position">The position of the <see cref="Chunk"/>.</param>
+        /// <param name="chunk">The <see cref="Chunk"/> that was found or created.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
+        /// <returns>If the <see cref="Chunk"/> didn't need to be generated.</returns>
         public static bool TryGetChunkAll((long x, long y) position, out Chunk chunk, string? saveFolderName = null)
         {
             var res = true;
             var chunkTemp = FindChunk(position);
             if (chunkTemp is null)
             {
-                res = TryGetChunkFromFolder(position, out Chunk chunkTemp2, saveFolderName);
+                res = TryGetChunkFromFolder(position, out var chunkTemp2, saveFolderName);
                 chunkTemp = chunkTemp2;
             }
             chunk = chunkTemp;
@@ -283,27 +291,28 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Generates a new <c>Tile</c>, and the <c>Chunk</c> that should contain it, if that also doesn't exist.<br/>
+        /// Generates a new <see cref="Tile"/>, and the <see cref="Chunk"/> that should contain it, if that also doesn't exist.<br/>
         /// Checks in chunks dictionary and in save folder.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the tile.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         public static Tile GenerateTile((long x, long y) absolutePosition, string? saveFolderName = null)
         {
-            TryGetChunkAll(absolutePosition, out Chunk chunk, saveFolderName);
+            TryGetChunkAll(absolutePosition, out var chunk, saveFolderName);
             var tile = chunk.GenerateTile(absolutePosition);
             return tile;
         }
 
         /// <summary>
-        /// Tries to find a <c>Tile</c> at a specific location, creates one, if it doesn't exist in the dictionary and the save folder, and adds the result into dictionary. Generates a new <c>Tile</c>, and the <c>Chunk</c> that should contain it, if that also doesn't exist.<br/>
+        /// Tries to find a <see cref="Tile"/> at a specific location, creates one, if it doesn't exist in the dictionary and the save folder, and adds the result into dictionary. Generates a new <see cref="Tile"/>, and the <see cref="Chunk"/> that should contain it, if that also doesn't exist.<br/>
         /// Checks in chunks dictionary and in save folder.
         /// </summary>
-        /// <param name="absolutePosition">The absolute position of the tile.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="absolutePosition">The absolute position of the <see cref="Tile"/>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
+        /// <returns>If the <see cref="Chunk"/> or the <see cref="Tile"/> didn't need to be generated.</returns>
         public static bool TryGetTileAll((long x, long y) absolutePosition, out Tile tile, string? saveFolderName = null)
         {
-            var res = TryGetChunkAll(absolutePosition, out Chunk chunk, saveFolderName);
+            var res = TryGetChunkAll(absolutePosition, out var chunk, saveFolderName);
             var res2 = chunk.TryGetTile(absolutePosition, out tile);
             return res && res2;
         }
@@ -377,7 +386,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Generates chunks in a way that makes the world rectangle shaped.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while working.</param>
         public static void MakeRectangle(string? saveFolderName = null, string? showProgressText = null)
         {
@@ -420,7 +429,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Re-calculates all chunk files in a save folder, to have the correct chunk size.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         public static bool RecalculateChunkFileSizes(int oldChunkSize, int newChunkSize, string? saveFolderName = null, string? showProgressText = null)
         {
@@ -517,19 +526,19 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Converts the position of the chunk into it's dictionary key name.
         /// </summary>
-        /// <param name="position">The position of the chunk.</param>
+        /// <param name="position">The position of the <see cref="Chunk"/>.</param>
         private static string GetChunkDictName((long x, long y) position)
         {
             return $"{Utils.FloorRound(position.x, Constants.CHUNK_SIZE)}_{Utils.FloorRound(position.y, Constants.CHUNK_SIZE)}";
         }
 
         /// <summary>
-        /// Returns the <c>Chunk</c> if it exists, or null.
+        /// Returns the <see cref="Chunk"/> if it exists, or null.
         /// </summary>
         /// <param name="chunkKey">The name of the chunk in the distionary.</param>
         private static Chunk? FindChunk(string chunkKey)
         {
-            Chunks.TryGetValue(chunkKey, out Chunk? chunk);
+            Chunks.TryGetValue(chunkKey, out var chunk);
             return chunk;
         }
 

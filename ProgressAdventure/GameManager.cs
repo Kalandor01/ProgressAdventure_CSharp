@@ -19,7 +19,7 @@ namespace ProgressAdventure
         {
             SaveManager.CreateSaveData();
             SaveManager.MakeSave();
-            PACSingletons.Instance.Logger.Log("Created save", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\"");
+            PACSingletons.Instance.Logger.Log("Created save", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
             GameLoop();
         }
 
@@ -51,7 +51,7 @@ namespace ProgressAdventure
         {
             PASingletons.Instance.Globals.Saving = true;
             SaveManager.MakeSave();
-            PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.player.FullName}\"");
+            PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
             PASingletons.Instance.Globals.Saving = false;
         }
 
@@ -87,7 +87,7 @@ namespace ProgressAdventure
                 RunLoopingTaskWithErrorHandling(Constants.AUTO_SAVE_THREAD_NAME, AutoSaveThreadFunction);
             }
             // GAME
-            SaveData.Instance.player.Stats();
+            SaveData.Instance.PlayerRef.Stats();
             Console.WriteLine("Wandering...");
             for (var x = 0; x < 20; x++)
             {
@@ -98,10 +98,10 @@ namespace ProgressAdventure
                 }
 
                 Thread.Sleep(100);
-                SaveData.Instance.player.WeightedTurn();
-                SaveData.Instance.player.Move();
-                var position = SaveData.Instance.player.position;
-                World.TryGetChunkAll(position, out Chunk chunk);
+                SaveData.Instance.PlayerRef.WeightedTurn();
+                SaveData.Instance.PlayerRef.Move();
+                var position = SaveData.Instance.PlayerRef.Position;
+                World.TryGetChunkAll(position ?? (0, 0), out var chunk);
                 chunk.FillChunk();
             }
             PASingletons.Instance.Globals.PauseLock();
@@ -268,9 +268,9 @@ namespace ProgressAdventure
                     return true;
                 }
 
-                SaveData.Instance.player.Stats(false);
+                SaveData.Instance.PlayerRef.Stats(false);
                 Console.ReadKey(true);
-                MenuManager.InventoryViewer(SaveData.Instance.player.TryGetInventory()!);
+                MenuManager.InventoryViewer(SaveData.Instance.PlayerRef.TryGetInventory()!);
 
                 PASingletons.Instance.Globals.Unpause();
             }

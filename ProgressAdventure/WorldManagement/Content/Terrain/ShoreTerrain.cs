@@ -31,7 +31,7 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.Instance.player.FullName} entered the {Name} shore.");
+            Console.WriteLine($"{SaveData.Instance.PlayerRef.FullName} entered the {Name} shore.");
             Console.WriteLine($"The shore is {depth}m deep.");
         }
         #endregion

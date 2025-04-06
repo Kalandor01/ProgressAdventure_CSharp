@@ -824,6 +824,17 @@ namespace ProgressAdventureTests
 
             // check if entity exists and loadable from jsom
             var errorMessages = new List<string>();
+
+            var testSaveName = "test save";
+            (long, long)? nullTestPos = null;
+            var testPos = (15, 38);
+            var testPos2 = (68, 29);
+            (long, long)? nullableTestPos = testPos;
+
+            PATools.DeleteSave(testSaveName);
+            World.Initialize();
+            World.TryGetTileAll(testPos, out var testTile, testSaveName);
+            World.TryGetTileAll(testPos2, out var testTile2, testSaveName);
             foreach (var entityType in EntityType.GetValues())
             {
                 // get entity type properties
@@ -843,7 +854,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     PACSingletons.Instance.Logger.Log("Beggining mock entity creation", "ignore \"value is null\" warnings", LogSeverity.OTHER);
-                    PACTools.TryFromJson(defEntityJson, PAConstants.SAVE_VERSION, out entity);
+                    PACTools.TryFromJsonExtra(defEntityJson, nullTestPos, PAConstants.SAVE_VERSION, out entity);
                     PACSingletons.Instance.Logger.Log("Mock entity creation ended", "", LogSeverity.OTHER);
 
                     if (entity is null)
@@ -858,6 +869,11 @@ namespace ProgressAdventureTests
                 }
 
                 entities.Add(entity);
+
+                if (!entity.AddPosition(testPos))
+                {
+                    errorMessages.Add($"Entity type cannot be added to a Tile: \"{entityType}\"");
+                }
             }
             if (errorMessages.Count != 0)
             {
@@ -873,7 +889,7 @@ namespace ProgressAdventureTests
                 try
                 {
                     var entityJson = entity.ToJson();
-                    var success = PACTools.TryFromJson(entityJson, PAConstants.SAVE_VERSION, out loadedEntity);
+                    var success = PACTools.TryFromJsonExtra(entityJson, nullableTestPos, PAConstants.SAVE_VERSION, out loadedEntity);
 
                     if (loadedEntity is null || !success)
                     {
@@ -894,6 +910,7 @@ namespace ProgressAdventureTests
                     loadedEntity.Attack == entity.Attack &&
                     loadedEntity.Defence == entity.Defence &&
                     loadedEntity.Agility == entity.Agility &&
+                    loadedEntity.Position == entity.Position &&
                     loadedEntity.originalTeam == entity.originalTeam &&
                     loadedEntity.currentTeam == entity.currentTeam &&
                     loadedEntity.attributes.SequenceEqual(entity.attributes) &&
@@ -908,6 +925,14 @@ namespace ProgressAdventureTests
                     )
                 )
                 {
+                    if (!entity.MovePosition(testPos2))
+                    {
+                        errorMessages.Add($"Entity type cannot be moved to another Tile: \"{entity.type}\"");
+                    }
+                    if (!entity.RemovePosition())
+                    {
+                        errorMessages.Add($"Entity type cannot be removed from a Tile: \"{entity.type}\"");
+                    }
                     continue;
                 }
 
@@ -925,85 +950,6 @@ namespace ProgressAdventureTests
 
         #region Other tests
         /// <summary>
-        /// NOT COMPLETE!!!<br/>
-        /// Checks if all reference save files can be loaded without errors or warnings.<br/>
-        /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES!
-        /// </summary>
-        public static TestResultDTO? BasicAllMainSaveFileVersionsLoadable()
-        {
-            // create current refrence save
-            var currentSaveName = "current";
-            PATools.DeleteSave(currentSaveName);
-            CreateTestSaveData(currentSaveName);
-            SaveManager.MakeSave();
-            var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{currentSaveName}.{PAConstants.BACKUP_EXT}");
-            File.Delete(testBackupFilePath);
-            ZipFile.CreateFromDirectory(PATools.GetSaveFolderPath(currentSaveName), testBackupFilePath);
-            PATools.DeleteSave(currentSaveName);
-
-            var leftowerImportedFiles = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
-                .Where(path => path.StartsWith("current_imported-(") && path.EndsWith(").zip"))
-                .ToList();
-            foreach (var leftowerImportedFile in leftowerImportedFiles)
-            {
-                File.Delete(leftowerImportedFile);
-            }
-
-            // list of importable saves
-            var importedZipPaths = Directory.GetFiles(Constants.IMPORTED_REFERENCE_SAVES_FOLDER_PATH)
-                .Where(path => Path.GetExtension(path) == ".zip")
-                .ToList();
-            importedZipPaths.Sort(new VersionStringZipPathComparer());
-            PATools.RecreateSavesFolder();
-            Console.WriteLine();
-            var importOverallSuccess = true;
-            foreach (var importedZipPath in importedZipPaths)
-            {
-                var result = TestImportSaveFromZip(importedZipPath) ?? new TestResultDTO(LogSeverity.PASS);
-                var saveName = Path.GetFileNameWithoutExtension(importedZipPath);
-
-                var resultString = TestingUtils.GetResultString(result);
-                Console.WriteLine($"\r\tImporting ({saveName})..." + resultString);
-                var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
-                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(importedZipPath), result.resultType + messageText, LogSeverity.OTHER);
-                importOverallSuccess &= result.resultType == LogSeverity.PASS;
-            }
-            var overallResult = importOverallSuccess ? new TestResultDTO() : new TestResultDTO(LogSeverity.FAIL, "See above for details");
-            Console.WriteLine($"Overall... {TestingUtils.GetResultString(overallResult)}");
-
-
-            // list of reference saves
-            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
-                .Where(path => Path.GetExtension(path) == ".zip")
-                .ToList();
-            zipPaths.Sort(new VersionStringZipPathComparer());
-            PATools.RecreateSavesFolder();
-            var overallSuccess = true;
-            foreach (var zipPath in zipPaths)
-            {
-                var result = TestLoadSaveFromZip(zipPath) ?? new TestResultDTO(LogSeverity.PASS);
-                var saveName = Path.GetFileNameWithoutExtension(zipPath);
-
-                var resultString = TestingUtils.GetResultString(result);
-                Console.WriteLine($"\r\tChecking ({saveName})..." + resultString);
-                var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
-                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(zipPath), result.resultType + messageText, LogSeverity.OTHER);
-                overallSuccess &= result.resultType == LogSeverity.PASS;
-            }
-
-            var importedFiles = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
-                .Where(path => path.StartsWith("current_imported-(") && path.EndsWith(").zip"))
-                .ToList();
-            foreach (var importedFile in importedFiles)
-            {
-                File.Delete(importedFile);
-            }
-
-            Console.Write("Overall...");
-            return overallSuccess ? null : new TestResultDTO(LogSeverity.FAIL, "See above for details");
-        }
-
-        /// <summary>
         /// Checks if all objects that implement IJsonConvertable can be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
         /// </summary>
@@ -1012,7 +958,6 @@ namespace ProgressAdventureTests
             // list of classes that implement "IJsonConvertable<T>"!
             var testObjects = new List<IJsonReadable>
             {
-                new Entity(EntityType.PLAYER),
                 new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
                 new Inventory(),
                 new MaterialItem(Material.FLINT),
@@ -1095,9 +1040,10 @@ namespace ProgressAdventureTests
             var testConfigFolderName = "test config";
             (long x, long y) testPostition = (1537, 269);
             var testChunkRandom = Chunk.GetChunkRandom(testPostition);
+            (long, long)? entityTestPos = (17, 68);
 
             // list of classes that implement "IJsonConvertableExra<T, TExtra>"!
-            var testObjects = new List<(IJsonReadable obj, object extraData)>
+            var testObjects = new List<(IJsonReadable obj, object? extraData)>
             {
                 (
                     new ConfigData(testConfigFolderName, "test_namespace", "v123", ["pa", "test_depend"]),
@@ -1128,6 +1074,10 @@ namespace ProgressAdventureTests
                 (
                     new Tile(testPostition.x, testPostition.y, testChunkRandom),
                     (testChunkRandom, testPostition)
+                ),
+                (
+                    new Entity(EntityType.PLAYER),
+                    entityTestPos
                 ),
             };
 
@@ -1168,10 +1118,12 @@ namespace ProgressAdventureTests
                 var genericConvertableType = genericConvertableTypes.First(t => t.Name == jsonConvertableType.Name);
 
                 var extraDataType = genericConvertableType.GenericTypeArguments[1];
-                if (extraData.GetType() != extraDataType)
+                if (
+                    extraData?.GetType() != extraDataType &&
+                    extraData?.GetType() != (Nullable.GetUnderlyingType(extraDataType) ?? extraDataType)
+                )
                 {
-                    var h = extraData.GetType();
-                    errorMessages2.Add($"The type of the extra data for the {testObject.GetType()} type object should be {extraDataType}.");
+                    errorMessages2.Add($"The type of the extra data for the {testObject.GetType()} type object should be {extraDataType} instead of {extraData?.GetType().ToString() ?? "[NULL]"}.");
                     continue;
                 }
 
@@ -1213,6 +1165,85 @@ namespace ProgressAdventureTests
             }
             PATools.ReloadConfigs();
             return null;
+        }
+
+        /// <summary>
+        /// NOT COMPLETE!!!<br/>
+        /// Checks if all reference save files can be loaded without errors or warnings.<br/>
+        /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES!
+        /// </summary>
+        public static TestResultDTO? BasicAllMainSaveFileVersionsLoadable()
+        {
+            // create current refrence save
+            var currentSaveName = "current";
+            PATools.DeleteSave(currentSaveName);
+            CreateTestSaveData(currentSaveName);
+            SaveManager.MakeSave();
+            var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{currentSaveName}.{PAConstants.BACKUP_EXT}");
+            File.Delete(testBackupFilePath);
+            ZipFile.CreateFromDirectory(PATools.GetSaveFolderPath(currentSaveName), testBackupFilePath);
+            PATools.DeleteSave(currentSaveName);
+
+            var leftowerImportedFiles = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => path.StartsWith("current_imported-(") && path.EndsWith(").zip"))
+                .ToList();
+            foreach (var leftowerImportedFile in leftowerImportedFiles)
+            {
+                File.Delete(leftowerImportedFile);
+            }
+
+            // list of importable saves
+            var importedZipPaths = Directory.GetFiles(Constants.IMPORTED_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => Path.GetExtension(path) == ".zip")
+                .ToList();
+            importedZipPaths.Sort(new VersionStringZipPathComparer());
+            PATools.RecreateSavesFolder();
+            Console.WriteLine();
+            var importOverallSuccess = true;
+            foreach (var importedZipPath in importedZipPaths)
+            {
+                var result = TestImportSaveFromZip(importedZipPath) ?? new TestResultDTO(LogSeverity.PASS);
+                var saveName = Path.GetFileNameWithoutExtension(importedZipPath);
+
+                var resultString = TestingUtils.GetResultString(result);
+                Console.WriteLine($"\r\tImporting ({saveName})..." + resultString);
+                var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(importedZipPath), result.resultType + messageText, LogSeverity.OTHER);
+                importOverallSuccess &= result.resultType == LogSeverity.PASS;
+            }
+            var overallResult = importOverallSuccess ? new TestResultDTO() : new TestResultDTO(LogSeverity.FAIL, "See above for details");
+            Console.WriteLine($"Overall... {TestingUtils.GetResultString(overallResult)}");
+
+
+            // list of reference saves
+            var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => Path.GetExtension(path) == ".zip")
+                .ToList();
+            zipPaths.Sort(new VersionStringZipPathComparer());
+            PATools.RecreateSavesFolder();
+            var overallSuccess = true;
+            foreach (var zipPath in zipPaths)
+            {
+                var result = TestLoadSaveFromZip(zipPath) ?? new TestResultDTO(LogSeverity.PASS);
+                var saveName = Path.GetFileNameWithoutExtension(zipPath);
+
+                var resultString = TestingUtils.GetResultString(result);
+                Console.WriteLine($"\r\tChecking ({saveName})..." + resultString);
+                var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
+                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(zipPath), result.resultType + messageText, LogSeverity.OTHER);
+                overallSuccess &= result.resultType == LogSeverity.PASS;
+            }
+
+            var importedFiles = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
+                .Where(path => path.StartsWith("current_imported-(") && path.EndsWith(").zip"))
+                .ToList();
+            foreach (var importedFile in importedFiles)
+            {
+                File.Delete(importedFile);
+            }
+
+            Console.Write("Overall...");
+            return overallSuccess ? null : new TestResultDTO(LogSeverity.FAIL, "See above for details");
         }
         #endregion
         #endregion
@@ -1297,7 +1328,6 @@ namespace ProgressAdventureTests
                 null, null,
                 new Entity(EntityType.PLAYER,
                     $"test player ({saveName})",
-                    (15, -6),
                     extraData: new Dictionary<string, object?>
                     {
                         [PAConstants.JsonKeys.Entity.INVENTORY] = new Inventory(
@@ -1313,6 +1343,7 @@ namespace ProgressAdventureTests
                 )
             );
             World.Initialize();
+            SaveData.Instance.PlayerRef.AddPosition((15, -6));
             World.GenerateChunk((0, 0));
             World.GenerateChunk((-48, -458));
             World.GenerateChunk((126, -96));

@@ -145,7 +145,7 @@ namespace ProgressAdventure.WorldManagement
             Visited++;
             terrain.Visit(this);
             structure.Visit(this);
-            //populationManager.Visit(this);
+            populationManager.Visit(this);
         }
         #endregion
 

@@ -19,7 +19,7 @@ namespace ProgressAdventure.EntityManagement
     /// <summary>
     /// A representation of an entity.
     /// </summary>
-    public class Entity : IJsonConvertable<Entity>
+    public class Entity : IJsonConvertableExtra<Entity, (long absoluteX, long absoluteY)?>
     {
         #region Public fields
         /// <summary>
@@ -65,7 +65,7 @@ namespace ProgressAdventure.EntityManagement
         /// <summary>
         /// The position of the <see cref="Entity"/> in the world.
         /// </summary>
-        public (long x, long y) position;
+        public (long x, long y)? Position { get; private set; }
         /// <summary>
         /// The facing direction of the <see cref="Entity"/>.
         /// </summary>
@@ -148,6 +148,7 @@ namespace ProgressAdventure.EntityManagement
         /// <exception cref="ArgumentException">Thrown if the entity type is invalid.</exception>
         private Entity(
             EnumValue<EntityType> entityType,
+            (long x, long y)? position,
             string? name = null,
             int? baseMaxHp = null,
             int? currentHp = null,
@@ -158,7 +159,6 @@ namespace ProgressAdventure.EntityManagement
             int? currentTeam = null,
             List<EnumValue<Attribute>>? attributes = null,
             List<AItem>? drops = null,
-            (long x, long y)? position = null,
             Facing? facing = null,
             Dictionary<string, object?>? extraData = null,
             SplittableRandom? generationRandom = null
@@ -221,7 +221,7 @@ namespace ProgressAdventure.EntityManagement
             }
 
             this.drops = drops ?? LootFactory.GenerateLoot(properties.loot, generationRandom);
-            this.position = position ?? (0, 0);
+            Position = position;
             this.facing = facing ?? Facing.NORTH;
 
             this.extraData = [];
@@ -245,7 +245,6 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         /// <param name="entityType"><inheritdoc cref="type" path="//summary"/></param>
         /// <param name="name"><inheritdoc cref="name" path="//summary"/></param>
-        /// <param name="position"><inheritdoc cref="position" path="//summary"/></param>
         /// <param name="facing"><inheritdoc cref="facing" path="//summary"/></param>
         /// <param name="teamOverwrite">Overwrites the original team of the <see cref="Entity"/>.</param>
         /// <param name="generationRandom">The random generator to use to generate the entity's properties.</param>
@@ -253,7 +252,6 @@ namespace ProgressAdventure.EntityManagement
         public Entity(
             EnumValue<EntityType> entityType,
             string? name = null,
-            (long x, long y)? position = null,
             Facing? facing = null,
             int? teamOverwrite = null,
             Dictionary<string, object?>? extraData = null,
@@ -261,9 +259,9 @@ namespace ProgressAdventure.EntityManagement
         )
             :this(
                  entityType,
+                 position: null,
                  name,
                  originalTeam: teamOverwrite,
-                 position: position,
                  facing: facing,
                  extraData: extraData,
                  generationRandom: generationRandom
@@ -319,28 +317,194 @@ namespace ProgressAdventure.EntityManagement
         }
 
         /// <summary>
-        /// Modifies the position of the entity.
+        /// Modifies the world position of the entity.
         /// </summary>
         /// <param name="position">The position to move to.</param>
         /// <param name="updateWorld">Whether to update the tile, the entitiy is on.</param>
-        public virtual void SetPosition((long x, long y) position, bool? updateWorld = null)
+        public bool SetPosition((long x, long y) position, bool? updateWorld = null)
         {
-            var oldPosition = this.position;
-            this.position = position;
-            PACSingletons.Instance.Logger.Log(
-                $"{(type == EntityType.PLAYER ? "Player" : "Entity")} moved",
-                $"name: {FullName}, {oldPosition} -> {this.position}",
-                LogSeverity.DEBUG
-            );
-
-            if (updateWorld ?? EntityUtils.EntityPropertiesMap[type].updatesWorldWhenMoving)
+            bool success;
+            if (Position is null)
             {
-                World.TryGetTileAll(this.position, out var tile);
+                success = AddPosition(position);
+            }
+            else
+            {
+                success = MovePosition(position);
+            }
+
+            if (
+                Position is not null &&
+                (updateWorld ?? EntityUtils.EntityPropertiesMap[type].updatesWorldWhenMoving)
+            )
+            {
+                World.TryGetTileAll(Position.Value, out var tile);
                 if (type == EntityType.PLAYER)
                 {
                     tile.Visit();
                 }
             }
+            return success;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="Entity"/> to the given <see cref="PopulationManager"/>. 
+        /// </summary>
+        /// <param name="populationManager">The <see cref="PopulationManager"/> that the <see cref="Entity"/> should be added to.</param>
+        /// <returns>If the addition was successful.</returns>
+        public bool AddPosition(PopulationManager populationManager, bool log = true)
+        {
+            if (Position is not null)
+            {
+                return false;
+            }
+
+            Position = populationManager.absolutePosition;
+            if (!populationManager.AddEntity(this))
+            {
+                Position = null;
+                return false;
+            }
+
+            if (log)
+            {
+                PACSingletons.Instance.Logger.Log(
+                    $"{(type == EntityType.PLAYER ? "Player" : "Entity")} position added",
+                    $"name: {FullName}, {populationManager.absolutePosition}",
+                    LogSeverity.DEBUG
+                );
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Adds a world position to the <see cref="Entity"/>.
+        /// </summary>
+        /// <param name="absolutePosition">The position to set.</param>
+        /// <returns>If the addition was successful.</returns>
+        public bool AddPosition((long x, long y) absolutePosition, bool log = true)
+        {
+            if (Position is not null)
+            {
+                return false;
+            }
+
+            World.TryGetTileAll(absolutePosition, out var tile);
+            return AddPosition(tile.populationManager, log);
+        }
+
+        /// <summary>
+        /// Removes the <see cref="Entity"/> from the given <see cref="PopulationManager"/>. 
+        /// </summary>
+        /// <param name="populationManager">The <see cref="PopulationManager"/> that the <see cref="Entity"/> is in.</param>
+        /// <param name="log">Whether to log the action.</param>
+        /// <returns>If the removal was successful.</returns>
+        public bool RemovePosition(PopulationManager populationManager, bool log = true)
+        {
+            if (Position is null)
+            {
+                return false;
+            }
+
+            var oldPos = Position.Value;
+            Position = null;
+            if (!populationManager.RemoveEntity(this))
+            {
+                Position = oldPos;
+                return false;
+            }
+
+            if (log)
+            {
+                PACSingletons.Instance.Logger.Log(
+                    $"{(type == EntityType.PLAYER ? "Player" : "Entity")} position removed",
+                    $"name: {FullName}, old position: {oldPos}",
+                    LogSeverity.DEBUG
+                );
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Removes the <see cref="Entity"/>'s world position.
+        /// </summary>
+        /// <param name="log">Whether to log the action.</param>
+        /// <returns>If the removal was successful.</returns>
+        public bool RemovePosition(bool log = true)
+        {
+            if (
+                Position is null ||
+                World.FindTileAll(Position.Value)?.populationManager is not PopulationManager popMan
+            )
+            {
+                return false;
+            }
+            return RemovePosition(popMan, log);
+        }
+
+
+        /// <summary>
+        /// Moves the <see cref="Entity"/> from one <see cref="PopulationManager"/> to another.
+        /// </summary>
+        /// <param name="originPopulationManager">The <see cref="PopulationManager"/> to move the <see cref="Entity"/> from.</param>
+        /// <param name="destinationPopulationManager">The <see cref="PopulationManager"/> to move the <see cref="Entity"/> to.</param>
+        /// <returns>If the entity was successfuly moved.</returns>
+        public bool MovePosition(PopulationManager originPopulationManager, PopulationManager destinationPopulationManager)
+        {
+            if (
+                originPopulationManager == destinationPopulationManager ||
+                !RemovePosition(originPopulationManager, false)
+            )
+            {
+                return false;
+            }
+
+            if (!AddPosition(destinationPopulationManager, false))
+            {
+                AddPosition(originPopulationManager);
+                return false;
+            }
+
+            PACSingletons.Instance.Logger.Log(
+                $"{(type == EntityType.PLAYER ? "Player" : "Entity")} moved",
+                $"name: {FullName}, {originPopulationManager.absolutePosition} -> {destinationPopulationManager.absolutePosition}",
+                LogSeverity.DEBUG
+            );
+            return true;
+        }
+
+
+        /// <summary>
+        /// Moves the <see cref="Entity"/> to another position.
+        /// </summary>
+        /// <param name="destinationAbsolutePosition">The position to move the <see cref="Entity"/> to.</param>
+        /// <returns>If the entity was successfuly moved.</returns>
+        public bool MovePosition((long x, long y) destinationAbsolutePosition)
+        {
+            var oldPos = Position;
+            if (
+                Position == destinationAbsolutePosition ||
+                !RemovePosition(false)
+            )
+            {
+                return false;
+            }
+
+            if (
+                !AddPosition(destinationAbsolutePosition, false) &&
+                oldPos is not null
+            )
+            {
+                AddPosition(((long x, long y))oldPos);
+                return false;
+            }
+
+            PACSingletons.Instance.Logger.Log(
+                $"{(type == EntityType.PLAYER ? "Player" : "Entity")} moved",
+                $"name: {FullName}, {oldPos} -> {destinationAbsolutePosition}",
+                LogSeverity.DEBUG
+            );
+            return true;
         }
 
         /// <summary>
@@ -522,7 +686,7 @@ namespace ProgressAdventure.EntityManagement
                 $"Current team: {teamStr}\n" +
                 $"Drops: {dropsStr}\n" +
                 $"{(EntityUtils.EntityPropertiesMap[type].hasInventory ? $"{TryGetInventory()}\n" : "")}" +
-                $"Position: {position}\n" +
+                $"Position: {Position}\n" +
                 $"Rotation: {facing}";
             return entityStr;
         }
@@ -540,10 +704,10 @@ namespace ProgressAdventure.EntityManagement
         #endregion
 
         #region JsonConvert
-        static List<(Action<JsonDictionary> objectJsonCorrecter, string newFileVersion)> IJsonConvertable<Entity>.VersionCorrecters { get; } =
+        static List<(Action<JsonDictionary, (long absoluteX, long absoluteY)?> objectJsonCorrecter, string newFileVersion)> IJsonConvertableExtra<Entity, (long absoluteX, long absoluteY)?>.VersionCorrecters { get; } =
         [
             // 2.0 -> 2.0.1
-            (oldJson =>
+            ((oldJson, extraData) =>
             {
                 // player inventory items in dictionary
                 if (
@@ -556,13 +720,13 @@ namespace ProgressAdventure.EntityManagement
                 }
             }, "2.0.1"),
             // 2.1 -> 2.1.1
-            (oldJson =>
+            ((oldJson, extraData) =>
             {
                 // renamed speed to agility
                 JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "baseSpeed", "baseAgility");
             }, "2.1.1"),
             // 2.1.1 -> 2.2
-            (oldJson =>
+            ((oldJson, extraData) =>
             {
                 // snake case keys
                 JsonDataCorrecterUtils.RemapKeysIfExist(oldJson, new Dictionary<string, string> {
@@ -578,7 +742,7 @@ namespace ProgressAdventure.EntityManagement
                 });
             }, "2.2"),
             // 2.4 -> 2.4.1
-            (oldJson =>
+            ((oldJson, extraData) =>
             {
                 // namespaced type
                 JsonDataCorrecterUtils.TransformValue<Entity, string>(
@@ -587,19 +751,13 @@ namespace ProgressAdventure.EntityManagement
             }, "2.4.1"),
         ];
 
-        static bool IJsonConvertable<Entity>.FromJsonWithoutCorrection(
+        static bool IJsonConvertableExtra<Entity, (long absoluteX, long absoluteY)?>.FromJsonWithoutCorrection(
             JsonDictionary entityJson,
+            (long absoluteX, long absoluteY)? extraData,
             string fileVersion,
             [NotNullWhen(true)] ref Entity? entityObject
         )
         {
-            entityObject = null;
-            if (entityJson is null)
-            {
-                PACTools.LogJsonNullError<Entity>(nameof(Entity), null, true);
-                return false;
-            }
-
             if (
                 !PACTools.TryParseJsonValue<Entity, EnumValue<EntityType>>(
                     entityJson,
@@ -638,19 +796,10 @@ namespace ProgressAdventure.EntityManagement
                 },
                 out var drops);
 
-            (long x, long y)? position =
-                PACTools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.X_POSITION, out var xPosition) &&
-                PACTools.TryParseJsonValue<Entity, long>(entityJson, Constants.JsonKeys.Entity.Y_POSITION, out var yPosition) ?
-                (xPosition, yPosition) : null;
-            if (position is null)
-            {
-                PACTools.LogJsonParseError<Entity>(nameof(position));
-                success = false;
-            }
             success &= PACTools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
             // specific extra constructor data
-            var  extraData = new Dictionary<string, object?>();
+            var  extraConstData = new Dictionary<string, object?>();
             if (properties.hasInventory)
             {
                 success &= PACTools.TryParseJsonConvertableValue<Entity, Inventory>(
@@ -659,11 +808,12 @@ namespace ProgressAdventure.EntityManagement
                     Constants.JsonKeys.Entity.INVENTORY,
                     out var inventory
                 );
-                extraData[Constants.JsonKeys.Entity.INVENTORY] = inventory ?? new Inventory();
+                extraConstData[Constants.JsonKeys.Entity.INVENTORY] = inventory ?? new Inventory();
             }
 
             entityObject = new Entity(
                 entityType,
+                extraData,
                 name,
                 baseMaxHp,
                 currentHp,
@@ -674,9 +824,8 @@ namespace ProgressAdventure.EntityManagement
                 currentTeam,
                 attributes,
                 drops,
-                position,
                 facing,
-                extraData
+                extraConstData
             );
 
             entityObject.SetupStats(entityObject.CurrentHp);
@@ -705,8 +854,6 @@ namespace ProgressAdventure.EntityManagement
                 [Constants.JsonKeys.Entity.CURRENT_TEAM] = currentTeam,
                 [Constants.JsonKeys.Entity.ATTRIBUTES] = attributesProcessed,
                 [Constants.JsonKeys.Entity.DROPS] = dropsJson,
-                [Constants.JsonKeys.Entity.X_POSITION] = position.x,
-                [Constants.JsonKeys.Entity.Y_POSITION] = position.y,
                 [Constants.JsonKeys.Entity.FACING] = (int)facing,
             };
 
