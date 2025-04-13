@@ -1,5 +1,4 @@
 ﻿using PACommon;
-using PACommon.Enums;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
@@ -47,10 +46,16 @@ namespace ProgressAdventure
         /// <summary>
         /// Creates the currently loaded save.
         /// </summary>
-        public static void SaveGame()
+        /// <param name="threadManager">The <see cref="ThreadManager"/> to use to cancel the task.</param>
+        public static void SaveGame(ThreadManager? threadManager = null)
         {
+            if (threadManager?.IsCanceled == true)
+            {
+                return;
+            }
+
             PASingletons.Instance.Globals.Saving = true;
-            SaveManager.MakeSave();
+            SaveManager.MakeSave(threadManager: threadManager);
             PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
             PASingletons.Instance.Globals.Saving = false;
         }
@@ -80,11 +85,20 @@ namespace ProgressAdventure
             PACSingletons.Instance.Logger.Log("Game loop started");
             // TRHEADS
             // user actions
-            RunLoopingTaskWithErrorHandling(Constants.USER_ACTIONS_THREAD_NAME, UserActionsThreadFunction);
+            ThreadManager.CreateLoopingTaskWithErrorHandling(
+                Constants.USER_ACTIONS_THREAD_NAME,
+                UserActionsThreadFunction
+            )
+            .Run();
             // auto saver
             if (PASingletons.Instance.Settings.AutoSave)
             {
-                RunLoopingTaskWithErrorHandling(Constants.AUTO_SAVE_THREAD_NAME, AutoSaveThreadFunction);
+                ThreadManager.CreateLoopingTaskWithErrorHandling(
+                    Constants.AUTO_SAVE_THREAD_NAME,
+                    AutoSaveThreadFunction,
+                    Constants.AUTO_SAVE_INTERVAL
+                )
+                .Run();
             }
             // GAME
             SaveData.Instance.PlayerRef.Stats();
@@ -125,93 +139,60 @@ namespace ProgressAdventure
 
         #region Thread functions
         /// <summary>
-        /// Runs a function in a seperate thread, with error handling.
-        /// </summary>
-        /// <param name="threadName">The name of the new thread.</param>
-        /// <param name="threadFunction">The function to run in the thread.</param>
-        public static void RunTaskWithErrorHandling(string threadName, Action threadFunction)
-        {
-            Task.Run(() => {
-                Thread.CurrentThread.Name = threadName;
-                try
-                {
-                    threadFunction();
-                }
-                catch (Exception e)
-                {
-                    PACSingletons.Instance.Logger.Log("Thread crashed", e.ToString(), LogSeverity.FATAL);
-                    throw;
-                }
-            });
-        }
-
-        /// <summary>
-        /// Runs a looping function in a seperate thread, with error handling.
-        /// </summary>
-        /// <param name="threadName">The name of the new thread.</param>
-        /// <param name="threadFunction">The function to run in the thread. If it returns true, it ends the thread.</param>
-        /// <param name="loopDelay">The number of milliseconds to suspent the thread inbetween loops.</param>
-        public static void RunLoopingTaskWithErrorHandling(string threadName, Func<bool> threadFunction, int loopDelay = 0)
-        {
-            RunTaskWithErrorHandling(threadName, () => {
-                while (!threadFunction())
-                {
-                    if (loopDelay > 0)
-                    {
-                        Thread.Sleep(loopDelay);
-                    }
-                }
-            });
-        }
-
-        /// <summary>
         /// Function that runs in the auto saver thread.
         /// </summary>
         /// <returns>Whether the thread should exit.</returns>
-        public static bool AutoSaveThreadFunction()
+        public static bool AutoSaveThreadFunction(ThreadManager threadManager)
         {
-            Thread.Sleep(Constants.AUTO_SAVE_INTERVAL);
-            if (PASingletons.Instance.Globals.InGameLoop)
-            {
-                var saved = false;
-                while (!saved)
-                {
-                    if (PASingletons.Instance.Globals.InGameLoop)
-                    {
-                        if (!(
-                            PASingletons.Instance.Globals.Saving ||
-                            PASingletons.Instance.Globals.InFight ||
-                            PASingletons.Instance.Globals.Paused
-                        ))
-                        {
-                            PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
-                            SaveGame();
-                            saved = true;
-                        }
-                        else
-                        {
-                            Thread.Sleep(Constants.AUTO_SAVE_DELAY);
-                        }
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-            }
-            if (!PASingletons.Instance.Globals.InGameLoop)
+            if (
+                threadManager.IsCanceled ||
+                !PASingletons.Instance.Globals.InGameLoop
+            )
             {
                 return true;
             }
-            return false;
+
+            var saved = false;
+            while (!saved)
+            {
+                if (
+                    threadManager.IsCanceled ||
+                    !PASingletons.Instance.Globals.InGameLoop
+                )
+                {
+                    return true;
+                }
+
+                if (!(
+                    PASingletons.Instance.Globals.Saving ||
+                    PASingletons.Instance.Globals.InFight ||
+                    PASingletons.Instance.Globals.Paused
+                ))
+                {
+                    PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
+                    SaveGame(threadManager);
+                    saved = true;
+                }
+                else
+                {
+                    Thread.Sleep(Constants.AUTO_SAVE_DELAY);
+                }
+            }
+
+            return !PASingletons.Instance.Globals.InGameLoop;
         }
 
         /// <summary>
         /// Function that runs in the user actions thread.
         /// </summary>
         /// <returns>Whether the thread should exit.</returns>
-        public static bool UserActionsThreadFunction()
+        public static bool UserActionsThreadFunction(ThreadManager threadManager)
         {
+            if (threadManager.IsCanceled)
+            {
+                return true;
+            }
+
             if (
                 !PASingletons.Instance.Globals.InGameLoop ||
                 PASingletons.Instance.Globals.InFight ||
@@ -225,7 +206,20 @@ namespace ProgressAdventure
             var saveAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.SAVE) ?? throw new Exception($"Action key \"{ActionType.SAVE}\" not found");
             var statsAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.STATS) ?? throw new Exception($"Action key \"{ActionType.STATS}\" not found");
 
-            var key = Console.ReadKey(true);
+            ConsoleKeyInfo key;
+            while (true)
+            {
+                if (threadManager.IsCanceled)
+                {
+                    return true;
+                }
+
+                if (Console.KeyAvailable)
+                {
+                    key = Console.ReadKey(true);
+                    break;
+                }
+            }
 
             if (
                 !PASingletons.Instance.Globals.InGameLoop ||

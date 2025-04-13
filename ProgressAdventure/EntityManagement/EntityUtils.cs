@@ -630,8 +630,13 @@ namespace ProgressAdventure.EntityManagement
         {
             if (startingPosition is not null)
             {
-                entity.SetPosition(((long x, long y))startingPosition, updateWorld);
+                var success = entity.SetPosition(((long x, long y))startingPosition, updateWorld);
+                if (success)
+                {
+                    return false;
+                }
             }
+
             if (entity.Position is null)
             {
                 return false;
@@ -656,7 +661,11 @@ namespace ProgressAdventure.EntityManagement
                     newPos.y += yPosDif > 0 ? -1 : 1;
                 }
 
-                entity.SetPosition(newPos, updateWorld);
+                var success = entity.SetPosition(newPos, updateWorld);
+                if (!success)
+                {
+                    return false;
+                }
             }
 
             return true;

@@ -135,7 +135,7 @@ namespace ProgressAdventure.WorldManagement
             var chunkJson = Tools.LoadCompressedFileExpected<Chunk>(
                 GetChunkFilePath(chunkFileName, saveFolderName),
                 expected: expected,
-                extraFileInformation: $"x: {position.x}, y: {position.y}"
+                extraFileInformation: $"x: {Utils.FloorRound(position.x, Constants.CHUNK_SIZE)}, y: {Utils.FloorRound(position.y, Constants.CHUNK_SIZE)}"
             );
 
             if (chunkJson is null)

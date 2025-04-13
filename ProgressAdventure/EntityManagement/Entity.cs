@@ -309,11 +309,12 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         /// <param name="multiplierVector">The multiplier to move the entity by.</param>
         /// <param name="facing">If not null, it will move in that direction instead.</param>
-        public void Move((double x, double y)? multiplierVector = null, Facing? facing = null)
+        /// <returns>If the move was successful.</returns>
+        public bool Move((double x, double y)? multiplierVector = null, Facing? facing = null)
         {
             var moveRaw = EntityUtils.FacingToMovementVectorMap[facing ?? this.facing];
             var move = Utils.VectorMultiply(moveRaw, multiplierVector ?? (1, 1));
-            EntityUtils.EntityMover(this, ((long x, long y))move);
+            return EntityUtils.EntityMover(this, ((long x, long y))move);
         }
 
         /// <summary>
@@ -321,6 +322,7 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         /// <param name="position">The position to move to.</param>
         /// <param name="updateWorld">Whether to update the tile, the entitiy is on.</param>
+        /// <returns>If the entity position was successfuly set.</returns>
         public bool SetPosition((long x, long y) position, bool? updateWorld = null)
         {
             bool success;
@@ -334,6 +336,7 @@ namespace ProgressAdventure.EntityManagement
             }
 
             if (
+                success &&
                 Position is not null &&
                 (updateWorld ?? EntityUtils.EntityPropertiesMap[type].updatesWorldWhenMoving)
             )

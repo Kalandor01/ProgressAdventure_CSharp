@@ -166,7 +166,7 @@ namespace PACommon.SettingsManagement
                                 if (status != TextFieldValidatorStatus.VALID)
                                 {
                                     Value.Keys = keysBak;
-                                    keys = keysBak.ToList();
+                                    keys = [.. keysBak];
                                     if (status == TextFieldValidatorStatus.RETRY)
                                     {
                                         retry = true;
@@ -206,13 +206,13 @@ namespace PACommon.SettingsManagement
 
             // get displayed range
             int endIndex;
-            if (optionsUI.scrollSettings.maxElements == -1 || optionsUI.scrollSettings.maxElements >= optionsUI.elements.Count())
+            if (optionsUI.scrollSettings.maxElements == -1 || optionsUI.scrollSettings.maxElements >= optionsUI.elements.Count)
             {
-                endIndex = optionsUI.elements.Count();
+                endIndex = optionsUI.elements.Count;
             }
             else
             {
-                endIndex = Math.Clamp(optionsUI.startIndex + optionsUI.scrollSettings.maxElements, 0, optionsUI.elements.Count());
+                endIndex = Math.Clamp(optionsUI.startIndex + optionsUI.scrollSettings.maxElements, 0, optionsUI.elements.Count);
             }
 
             // lines after current object
@@ -236,7 +236,11 @@ namespace PACommon.SettingsManagement
                     txt.Append(element.ToString() + "\n");
                 }
             }
-            txt.Append(endIndex == optionsUI.elements.Count() ? optionsUI.scrollSettings.scrollIcon.bottomEndIndicator : optionsUI.scrollSettings.scrollIcon.bottomContinueIndicator);
+            txt.Append(
+                endIndex == optionsUI.elements.Count
+                    ? optionsUI.scrollSettings.scrollIcon.bottomEndIndicator
+                    : optionsUI.scrollSettings.scrollIcon.bottomContinueIndicator
+            );
             txt.Append('\n');
 
             return txt.ToString().Count(c => c == '\n') + 1;

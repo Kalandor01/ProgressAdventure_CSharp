@@ -73,14 +73,36 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         /// <param name="clearChunks">If the chunks dictionary should be cleared, after saving.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
-        public static void SaveAllChunksToFiles(string? saveFolderName = null, bool clearChunks = false, string? showProgressText = null)
+        /// <param name="threadManager">The <see cref="ThreadManager"/> to use to cancel the task.</param>
+        public static void SaveAllChunksToFiles(
+            string? saveFolderName = null,
+            bool clearChunks = false,
+            string? showProgressText = null,
+            ThreadManager? threadManager = null
+        )
         {
+            if (threadManager?.IsCanceled == true)
+            {
+                return;
+            }
+
             saveFolderName ??= SaveData.Instance.saveName;
             Dictionary<string, Chunk> chunkData;
 
             // clearing chunks
             if (clearChunks)
             {
+                KeyValuePair<string, Chunk>? playerRefChunkKV = null;
+                (long x, long y)? playerBasePos = null;
+                if (SaveData.Instance.PlayerRef.Position is not null)
+                {
+                    var (x, y) = SaveData.Instance.PlayerRef.Position.Value;
+                    playerBasePos = (
+                        Utils.FloorRound(x, Constants.CHUNK_SIZE),
+                        Utils.FloorRound(y, Constants.CHUNK_SIZE)
+                    );
+                }
+
                 chunkData = [];
                 if (showProgressText is not null)
                 {
@@ -89,8 +111,20 @@ namespace ProgressAdventure.WorldManagement
                     var chunkCount = (double)Chunks.Count;
                     for (var x = 0; x < Chunks.Count; x++)
                     {
-                        var chunk = Chunks.ElementAt(x).DeepCopy();
-                        chunkData.Add(chunk.Key, chunk.Value);
+                        if (threadManager?.IsCanceled == true)
+                        {
+                            loadingText.StopLoadingStandard();
+                            return;
+                        }
+
+                        var chunk = Chunks.ElementAt(x);
+                        if (playerBasePos is not null && playerBasePos == chunk.Value.basePosition)
+                        {
+                            playerRefChunkKV = chunk;
+                        }
+
+                        var chunkCopy = chunk.DeepCopy();
+                        chunkData.Add(chunkCopy.Key, chunkCopy.Value);
                         loadingText.Value = (x + 1) / chunkCount;
                     }
                     loadingText.StopLoadingStandard();
@@ -99,12 +133,28 @@ namespace ProgressAdventure.WorldManagement
                 {
                     foreach (var chunk in Chunks)
                     {
+                        if (threadManager?.IsCanceled == true)
+                        {
+                            return;
+                        }
+
+                        if (playerBasePos is not null && playerBasePos == chunk.Value.basePosition)
+                        {
+                            playerRefChunkKV = chunk;
+                        }
+
                         var chunkCopy = chunk.DeepCopy();
                         chunkData.Add(chunkCopy.Key, chunkCopy.Value);
                     }
                 }
 
                 Chunks.Clear();
+
+                // re-add player ref Chunk
+                if (playerRefChunkKV != null)
+                {
+                    Chunks.Add(playerRefChunkKV.Value.Key, playerRefChunkKV.Value.Value);
+                }
             }
             else
             {
@@ -119,6 +169,11 @@ namespace ProgressAdventure.WorldManagement
                 loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
+                    if (threadManager?.IsCanceled == true)
+                    {
+                        loadingText.StopLoadingStandard();
+                        return;
+                    }
                     chunkData.ElementAt(x).Value.SaveToFile(saveFolderName);
                     loadingText.Value = (x + 1) / chunkNum;
                 }
@@ -129,6 +184,10 @@ namespace ProgressAdventure.WorldManagement
             {
                 foreach (var chunk in chunkData)
                 {
+                    if (threadManager?.IsCanceled == true)
+                    {
+                        return;
+                    }
                     chunk.Value.SaveToFile(saveFolderName);
                 }
             }

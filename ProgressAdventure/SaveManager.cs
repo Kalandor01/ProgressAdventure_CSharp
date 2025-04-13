@@ -21,20 +21,37 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="clearChunks">Whether to clear all chunks from the world object, after saving.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
-        public static void MakeSave(bool clearChunks = true, string? showProgressText = null)
+        /// <param name="threadManager">The <see cref="ThreadManager"/> to use to cancel the task.</param>
+        public static void MakeSave(bool clearChunks = true, string? showProgressText = null, ThreadManager? threadManager = null)
         {
+            if (threadManager?.IsCanceled == true)
+            {
+                return;
+            }
+
             if (showProgressText is not null)
             {
                 Console.Write("|" + showProgressText + "\r");
             }
             // make backup
             var backupStatus = Tools.CreateBackup(SaveData.Instance.saveName, true);
+
             // DATA FILE
+            if (threadManager?.IsCanceled == true)
+            {
+                return;
+            }
             SaveDataFile();
+
             // CHUNKS/WORLD
+            if (threadManager?.IsCanceled == true)
+            {
+                return;
+            }
             Tools.RecreateChunksFolder();
             PACSingletons.Instance.Logger.Log("Saving chunks");
-            World.SaveAllChunksToFiles(null, clearChunks, showProgressText);
+            World.SaveAllChunksToFiles(null, clearChunks, showProgressText, threadManager);
+
             // remove backup
             if (backupStatus is not null)
             {

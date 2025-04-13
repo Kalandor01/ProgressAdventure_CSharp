@@ -31,7 +31,7 @@ namespace PACommon.SettingsManagement
             {
                 base.Keys = value.Distinct();
                 UpdateNames();
-                Conflicts = Keys.Select(k => false).ToList();
+                Conflicts = [.. Keys.Select(k => false)];
             }
         }
 
@@ -59,7 +59,7 @@ namespace PACommon.SettingsManagement
                 throw new ArgumentException("No keys in keys list!", nameof(keys));
             }
             ActionType = actionType;
-            Conflicts = Keys.Select(k => false).ToList();
+            Conflicts = [.. Keys.Select(k => false)];
             Keys = keys;
         }
         #endregion

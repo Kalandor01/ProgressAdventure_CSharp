@@ -6,6 +6,13 @@
     public class Globals
     {
         #region Private fields
+        private object _inGameLoopLock = new();
+        private object _inFightLock = new();
+        private object _exitingLock = new();
+        private object _savingLock = new();
+        private object _pausedLock = new();
+        private object _pausingLock = new();
+
         /// <summary>
         /// If the program is in a game (save file loaded).
         /// </summary>
@@ -34,17 +41,82 @@
 
         #region Public properties
         /// <inheritdoc cref="_inGameLoop"/>
-        public bool InGameLoop { get => _inGameLoop; set => _inGameLoop = value; }
+        public bool InGameLoop
+        {
+            get => _inGameLoop;
+            set
+            {
+                lock (_inGameLoopLock)
+                {
+                    _inGameLoop = value;
+                }
+            }
+        }
+
         /// <inheritdoc cref="_inFight"/>
-        public bool InFight { get => _inFight; set => _inFight = value; }
+        public bool InFight
+        {
+            get => _inFight;
+            set
+            {
+                lock (_inFightLock)
+                {
+                    _inFight = value;
+                }
+            }
+        }
+
         /// <inheritdoc cref="_exiting"/>
-        public bool Exiting { get => _exiting; set => _exiting = value; }
+        public bool Exiting
+        {
+            get => _exiting;
+            set
+            {
+                lock (_exitingLock)
+                {
+                    _exiting = value;
+                }
+            }
+        }
+
         /// <inheritdoc cref="_saving"/>
-        public bool Saving { get => _saving; set => _saving = value; }
+        public bool Saving
+        {
+            get => _saving;
+            set
+            {
+                lock (_savingLock)
+                {
+                    _saving = value;
+                }
+            }
+        }
+
         /// <inheritdoc cref="_paused"/>
-        public bool Paused { get => _paused; }
+        public bool Paused
+        {
+            get => _paused;
+            private set
+            {
+                lock (_pausedLock)
+                {
+                    _paused = value;
+                }
+            }
+        }
+
         /// <inheritdoc cref="_pausing"/>
-        public bool Pausing { get => _pausing; }
+        public bool Pausing
+        {
+            get => _pausing;
+            private set
+            {
+                lock (_pausingLock)
+                {
+                    _pausing = value;
+                }
+            }
+        }
         #endregion
 
         #region Private constructors
@@ -79,7 +151,7 @@
         /// <returns>True if the game shouldn't be paused (because it's exiting).</returns>
         public bool Pause()
         {
-            _pausing = true;
+            Pausing = true;
             while (!Paused)
             {
                 if (!InGameLoop || Exiting)
@@ -96,8 +168,8 @@
         /// </summary>
         public void Unpause()
         {
-            _pausing = false;
-            _paused = false;
+            Pausing = false;
+            Paused = false;
         }
 
         /// <summary>
@@ -107,8 +179,8 @@
         {
             if (Pausing)
             {
-                _paused = true;
-                _pausing = false;
+                Paused = true;
+                Pausing = false;
             }
             while (Paused)
             {

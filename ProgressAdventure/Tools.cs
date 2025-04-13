@@ -108,7 +108,7 @@ namespace ProgressAdventure
                 var fileJson = LoadCompressedFile(filePath, lineNum, extension, expected, tryOldDecoding);
                 if (fileJson is null)
                 {
-                    PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, true);
+                    PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, expected);
                     return null;
                 }
                 return fileJson;

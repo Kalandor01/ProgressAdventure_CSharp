@@ -43,7 +43,7 @@ namespace PAVisualizer
                     var diffs = WorldUtils.CalculatePopulationFitDifferences(noises);
                     if (diffs.Count == 0)
                     {
-                        return Constants.Colors.MAGENTA;
+                        return Constants.Colors.TRANSPARENT;
                     }
 
                     var minDiff = diffs.StableSort((n1, n2) => n1.Value > n2.Value ? 1 : (n1.Value == n2.Value ? 0 : -1)).First().Key;
@@ -52,9 +52,9 @@ namespace PAVisualizer
             }
             else
             {
-                var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<Type, Dictionary<EnumTreeValue<ContentType>, Type>>>(typeof(WorldUtils), "contentTypeMap");
+                var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>>>(typeof(WorldUtils), "contentTypeSubtypesMap");
                 var isTerrain = layer == VisibleTileLayer.Terrain;
-                var contentSubtypeMap = contentTypeMap[isTerrain ? typeof(TerrainContent) : typeof(StructureContent)];
+                var contentSubtypeMap = contentTypeMap[isTerrain ? ContentType._TERRAIN : ContentType._STRUCTURE];
 
                 colorGetterFunction = (noises) =>
                 {
@@ -64,7 +64,7 @@ namespace PAVisualizer
                     var subtype = contentSubtypeMap.First().Key;
                     foreach (var contentSubtype in contentSubtypeMap)
                     {
-                        if (contentSubtype.Value == contentType)
+                        if (contentSubtype.Value.matchingType == contentType)
                         {
                             subtype = contentSubtype.Key;
                         }
@@ -142,20 +142,15 @@ namespace PAVisualizer
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="exportPath">The path to export the image to.</param>
-        public static void MakeImageForLayer(BaseContentType layer, TileNoiseType noiseTypeXAxis, TileNoiseType noiseTypeYAxis, uint resolution, string exportPath)
+        public static void MakeImageForLayer(
+            VisibleTileLayer layer,
+            TileNoiseType noiseTypeXAxis,
+            TileNoiseType noiseTypeYAxis,
+            uint resolution,
+            string exportPath
+        )
         {
-            if (layer == BaseContentType.Terrain)
-            {
-                MakeImage(VisibleTileLayer.Terrain, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
-            }
-            else if (layer == BaseContentType.Structure)
-            {
-                MakeImage(VisibleTileLayer.Structure, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
-            }
-            else
-            {
-                MakeImage(VisibleTileLayer.Population, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
-            }
+            MakeImage(layer, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
         }
 
         private static (TextFieldValidatorStatus status, string? message) TextValidatorDelegate(string inputValue)
@@ -201,8 +196,8 @@ namespace PAVisualizer
             noiseTypeElements.Add(noiseTypeYSelectionElement);
             noiseTypeElements.Add(null);
 
-            var layerTypes = Enum.GetValues<BaseContentType>();
-            var layerSelectionElement = new PAChoice(layerTypes.Select(layer => layer.ToString().Capitalize()).ToList(), 0, "Layer: ");
+            var layerTypes = Enum.GetValues<VisibleTileLayer>();
+            var layerSelectionElement = new PAChoice([.. layerTypes.Select(layer => layer.ToString().Capitalize())], 0, "Layer: ");
             noiseTypeElements.Add(layerSelectionElement);
             noiseTypeElements.Add(null);
 
@@ -251,7 +246,7 @@ namespace PAVisualizer
         #region Pivate fields
         private static void GenerateImageCommand(
             PAChoice layerSelectionElement,
-            BaseContentType[] layers,
+            VisibleTileLayer[] layers,
             PAChoice noiseTypeXSelectionElement,
             PAChoice noiseTypeYSelectionElement,
             TileNoiseType[] noiseTypes,
@@ -274,7 +269,7 @@ namespace PAVisualizer
         }
 
         private static void GenerateAllImagesCommand(
-            BaseContentType[] layers,
+            VisibleTileLayer[] layers,
             TileNoiseType[] noiseTypes,
             TextField resolutionElement,
             string visualizedContentDistributionPath
