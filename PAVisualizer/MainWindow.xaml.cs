@@ -23,7 +23,9 @@ namespace PAVisualizer
     public partial class MainWindow : Window
     {
         #region Private fields
-        private static readonly double WORLD_MOVE_CONSTANT = 0.2;
+        private const double WORLD_MOVE_CONSTANT = -20;
+        private const double WORLD_ZOOM_IN_CONSTANT = 1.1;
+        private const double WORLD_ZOOM_OUT_CONSTANT = 1 / WORLD_ZOOM_IN_CONSTANT;
 
         private bool _selectedSave;
         private bool _isWorldVisible;
@@ -203,9 +205,12 @@ namespace PAVisualizer
             }
 
             var scrollUp = e.Delta > 0;
-            worldGridScale *= scrollUp ? 1.1 : 0.9;
-            worldGrid.RenderTransform = new ScaleTransform(worldGridScale, worldGridScale, center.x, center.y);
+            worldGridScale *= scrollUp ? WORLD_ZOOM_IN_CONSTANT : WORLD_ZOOM_OUT_CONSTANT;
 
+            var transformMatrix = new Matrix();
+            transformMatrix.Translate(center.x, center.y);
+            transformMatrix.Scale(worldGridScale, worldGridScale);
+            worldGrid.RenderTransform = new MatrixTransform(transformMatrix);
             UpdateViewTextboxes();
         }
 
@@ -225,8 +230,8 @@ namespace PAVisualizer
 
             var newCenter = center;
 
-            var scaleModifierMultiplier = (worldGridScale > 1 ? 1.0 : -1.0) / (Math.Abs(worldGridScale - 1) + 1);
-            var scaleModifier = WORLD_MOVE_CONSTANT * scaleModifierMultiplier;
+            //var scaleModifierMultiplier = (worldGridScale > 1 ? 1.0 : -1.0) / (Math.Abs(worldGridScale - 1) + 1);
+            var scaleModifier = WORLD_MOVE_CONSTANT;
 
             switch (key)
             {
@@ -247,9 +252,11 @@ namespace PAVisualizer
             }
 
             center = newCenter;
-            worldGrid.RenderTransform = new ScaleTransform(worldGridScale, worldGridScale);
-            worldGrid.RenderTransformOrigin = new Point(center.x, center.y);
 
+            var transformMatrix = new Matrix();
+            transformMatrix.Translate(center.x, center.y);
+            transformMatrix.Scale(worldGridScale, worldGridScale);
+            worldGrid.RenderTransform = new MatrixTransform(transformMatrix);
             UpdateViewTextboxes();
         }
 
@@ -267,15 +274,25 @@ namespace PAVisualizer
                 return;
             }
 
-            var worldWidth = corners.Value.maxX - corners.Value.minX;
+            var worldWidth = corners.Value.maxX - corners.Value.minX + 1;
+            var worldHeight = corners.Value.maxY - corners.Value.minY + 1;
+            var xOffset = center.x / WORLD_MOVE_CONSTANT;
+            var yOffset = center.y / WORLD_MOVE_CONSTANT;
+
             var totalTorenderedWorldSize = 1 / worldGridScale;
             var revealAreaWidth = worldWidth * totalTorenderedWorldSize;
+            var revealAreaHeight = worldHeight * totalTorenderedWorldSize;
+
+            var revealRadiusX = revealAreaWidth / 2;
+            var revealRadiusY = revealAreaHeight / 2;
+            var trueCenterX = corners.Value.minX + (worldWidth / 2);
+            var trueCenterY = corners.Value.minY + (worldHeight / 2);
 
             RevealArea((
-                (long)(revealAreaWidth + (-1 * center.x) * worldWidth),
-                (long)(revealAreaWidth + (center.y - 1) * worldWidth),
-                (long)(revealAreaWidth + (-1 * center.x + 1) * worldWidth),
-                (long)(revealAreaWidth + center.y * worldWidth)
+                (long)(trueCenterX + xOffset - revealRadiusX),
+                (long)(trueCenterY + yOffset - revealRadiusY),
+                (long)(trueCenterX + xOffset + revealRadiusX - 1),
+                (long)(trueCenterY + yOffset + revealRadiusY - 1)
             ));
             RenderWorldArea();
         }
@@ -395,7 +412,7 @@ namespace PAVisualizer
                 ClearWorldGrid();
 
                 // columns
-                for (long x = minX; x < maxX + 1; x++)
+                for (var x = minX; x < maxX + 1; x++)
                 {
                     var cd = new ColumnDefinition
                     {
@@ -405,7 +422,7 @@ namespace PAVisualizer
                 }
 
                 // rows
-                for (long y = minY; y < maxY + 1; y++)
+                for (var y = minY; y < maxY + 1; y++)
                 {
                     var rd = new RowDefinition
                     {
@@ -544,11 +561,11 @@ namespace PAVisualizer
                 return;
             }
 
-            for (long x = corners.minX; x < corners.maxX + 1; x++)
+            for (var x = corners.minX; x <= corners.maxX; x++)
             {
-                for (long y = corners.minY; y < corners.maxY + 1; y++)
+                for (var y = corners.minY; y <= corners.maxY; y++)
                 {
-                    World.TryGetChunk((x, y), out Chunk chunk);
+                    World.TryGetChunk((x, y), out var chunk);
                     chunk.TryGetTile((x, y), out _);
                 }
             }
