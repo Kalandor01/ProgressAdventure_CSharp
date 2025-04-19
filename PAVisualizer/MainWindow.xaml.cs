@@ -23,7 +23,6 @@ namespace PAVisualizer
     public partial class MainWindow : Window
     {
         #region Private fields
-        private const double WORLD_MOVE_CONSTANT = -20;
         private const double WORLD_ZOOM_IN_CONSTANT = 1.1;
         private const double WORLD_ZOOM_OUT_CONSTANT = 1 / WORLD_ZOOM_IN_CONSTANT;
 
@@ -226,26 +225,36 @@ namespace PAVisualizer
                 return;
             }
 
+            var corners = World.GetCorners();
+
+            if (corners is null)
+            {
+                return;
+            }
+
+            var worldWidth = corners.Value.maxX - corners.Value.minX + 1;
+            var worldHeight = corners.Value.maxY - corners.Value.minY + 1;
+
             var key = e.Key;
 
             var newCenter = center;
 
-            //var scaleModifierMultiplier = (worldGridScale > 1 ? 1.0 : -1.0) / (Math.Abs(worldGridScale - 1) + 1);
-            var scaleModifier = WORLD_MOVE_CONSTANT;
+            var moveModifierX = worldGrid.ActualWidth / worldWidth * -1;
+            var moveModifierY = worldGrid.ActualHeight / worldHeight * -1;
 
             switch (key)
             {
                 case Key.W:
-                    newCenter.y -= scaleModifier;
+                    newCenter.y -= moveModifierY;
                     break;
                 case Key.S:
-                    newCenter.y += scaleModifier;
+                    newCenter.y += moveModifierY;
                     break;
                 case Key.A:
-                    newCenter.x -= scaleModifier;
+                    newCenter.x -= moveModifierX;
                     break;
                 case Key.D:
-                    newCenter.x += scaleModifier;
+                    newCenter.x += moveModifierX;
                     break;
                 default:
                     return;
@@ -276,8 +285,10 @@ namespace PAVisualizer
 
             var worldWidth = corners.Value.maxX - corners.Value.minX + 1;
             var worldHeight = corners.Value.maxY - corners.Value.minY + 1;
-            var xOffset = center.x / WORLD_MOVE_CONSTANT;
-            var yOffset = center.y / WORLD_MOVE_CONSTANT;
+            var worldMoveAmountX = worldGrid.ActualWidth / worldWidth * -1;
+            var worldMoveAmountY = worldGrid.ActualHeight / worldHeight;
+            var xOffset = center.x / worldMoveAmountX;
+            var yOffset = center.y / worldMoveAmountY;
 
             var totalTorenderedWorldSize = 1 / worldGridScale;
             var revealAreaWidth = worldWidth * totalTorenderedWorldSize;
@@ -412,7 +423,7 @@ namespace PAVisualizer
                 ClearWorldGrid();
 
                 // columns
-                for (var x = minX; x < maxX + 1; x++)
+                for (var x = minX; x <= maxX; x++)
                 {
                     var cd = new ColumnDefinition
                     {
@@ -422,7 +433,7 @@ namespace PAVisualizer
                 }
 
                 // rows
-                for (var y = minY; y < maxY + 1; y++)
+                for (var y = minY; y <= maxY; y++)
                 {
                     var rd = new RowDefinition
                     {
@@ -496,15 +507,16 @@ namespace PAVisualizer
                     {
                         Children =
                         {
+                            new Label() { Content = $"Position: ({chunk.Value.basePosition.x + tileObj.relativePosition.x}, {chunk.Value.basePosition.y + tileObj.relativePosition.y})" },
                             new Label() { Content = $"Chunk seed: {PATools.SerializeRandom(chunk.Value.ChunkRandomGenerator)}" },
-                            new Label() { Content = $"Terrain: {tileObj.terrain.GetSubtypeName()} {extraTerrainData}" },
+                            new Label() { Content = $"Terrain: {tileObj.terrain.GetSubtypeName()} ({tileObj.terrain.Name}) {extraTerrainData}" },
                         }
                     };
 
                     if (tileObj.structure.subtype != ContentType.Structure.NONE)
                     {
                         var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
-                        tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} {extraStructureData}" });
+                        tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} ({tileObj.structure.Name}) {extraStructureData}" });
                     }
 
                     if (tileObj.populationManager.PopulationCount != 0)
@@ -526,7 +538,7 @@ namespace PAVisualizer
                     };
 
                     var column = xPos - minX;
-                    var row = worldGrid.RowDefinitions.Count - (yPos - minY);
+                    var row = worldGrid.RowDefinitions.Count - 1 - (yPos - minY);
 
                     Grid.SetColumn(content, (int)column);
                     Grid.SetRow(content, (int)row);

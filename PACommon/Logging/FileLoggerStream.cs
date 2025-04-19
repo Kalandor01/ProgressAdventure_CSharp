@@ -106,7 +106,7 @@ namespace PACommon.Logging
         public async Task WriteOutLogAsync(string text, bool newLine = false)
         {
             var currentDate = Utils.MakeDate(DateTime.Now);
-            Console.Write($"{(newLine ? "\n" : "")}{Path.Join(logsFolderPath, $"{currentDate}.{logsExt}")} -> {text}");
+            Console.WriteLine($"{(newLine ? "\n" : "")}{Path.Join(logsFolderPath, $"{currentDate}.{logsExt}")} -> {text}");
         }
 
         public async Task LogLoggingExceptionAsync(Exception exception)

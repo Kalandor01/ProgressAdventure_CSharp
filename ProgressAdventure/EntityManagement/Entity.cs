@@ -305,7 +305,7 @@ namespace ProgressAdventure.EntityManagement
         }
 
         /// <summary>
-        /// Moves the entity in the direction it's facing.
+        /// Gradualy moves the entity in the direction it's facing.
         /// </summary>
         /// <param name="multiplierVector">The multiplier to move the entity by.</param>
         /// <param name="facing">If not null, it will move in that direction instead.</param>
@@ -318,7 +318,7 @@ namespace ProgressAdventure.EntityManagement
         }
 
         /// <summary>
-        /// Modifies the world position of the entity.
+        /// Modifies (or adds) the world position of the entity.
         /// </summary>
         /// <param name="position">The position to move to.</param>
         /// <param name="updateWorld">Whether to update the tile, the entitiy is on.</param>
@@ -478,7 +478,7 @@ namespace ProgressAdventure.EntityManagement
 
 
         /// <summary>
-        /// Moves the <see cref="Entity"/> to another position.
+        /// Moves the <see cref="Entity"/> from it's current position to another position.
         /// </summary>
         /// <param name="destinationAbsolutePosition">The position to move the <see cref="Entity"/> to.</param>
         /// <returns>If the entity was successfuly moved.</returns>
