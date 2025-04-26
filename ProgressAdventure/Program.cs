@@ -168,7 +168,7 @@ namespace ProgressAdventure
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
             Console.WriteLine("Loading...");
-
+            
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
 

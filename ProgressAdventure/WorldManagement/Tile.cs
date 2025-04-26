@@ -188,7 +188,7 @@ namespace ProgressAdventure.WorldManagement
         {
             if (extraData.chunkRandom is null)
             {
-                PACTools.LogJsonTypeParseError<PopulationManager>("invalid extra data for this type", true);
+                PACTools.LogJsonTypeParseError<Tile>("invalid extra data for this type", true);
                 return false;
             }
 

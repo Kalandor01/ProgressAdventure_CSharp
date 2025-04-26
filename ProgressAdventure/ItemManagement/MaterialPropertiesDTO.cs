@@ -1,4 +1,6 @@
-﻿namespace ProgressAdventure.ItemManagement
+﻿using System.Text.Json.Serialization;
+
+namespace ProgressAdventure.ItemManagement
 {
     /// <summary>
     /// DTO used for storing the properties of a material.
@@ -9,6 +11,7 @@
         /// <summary>
         /// The density of the material in kg/m3.
         /// </summary>
+        [JsonPropertyName("density")]
         public readonly double density;
         #endregion
 
@@ -17,13 +20,14 @@
         /// <inheritdoc cref="MaterialPropertiesDTO"/>
         /// </summary>
         /// <param name="density"><inheritdoc cref="density" path="//summary"/></param>
+        [JsonConstructor]
         public MaterialPropertiesDTO(double density)
         {
-            this.density = density;
-            if (this.density < 0)
+            if (density < 0)
             {
-                this.density = 0;
+                throw new ArgumentException("Density must be bigger than 0.", nameof(density));
             }
+            this.density = density;
         }
         #endregion
     }

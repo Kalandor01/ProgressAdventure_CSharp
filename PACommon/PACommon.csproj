@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="ConsoleUI" Version="2.1.2" />
     <PackageReference Include="FileManager" Version="2.1.3" />
+    <PackageReference Include="NLua" Version="1.7.5" />
     <PackageReference Include="NPrng" Version="1.0.0.3" />
   </ItemGroup>
 

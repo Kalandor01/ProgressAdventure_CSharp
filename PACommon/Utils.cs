@@ -1,5 +1,6 @@
 ﻿using FileManager;
 using System.Collections;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -723,6 +724,14 @@ namespace PACommon
                 value >>= 8;
             }
             return arr;
+        }
+
+        /// <summary>
+        /// Gets the type of the class that called the method that this function was called in.
+        /// </summary>
+        public static Type? GetCallingClassType()
+        {
+            return new StackTrace(2, false).GetFrame(0)?.GetMethod()?.DeclaringType;
         }
         #endregion
 
