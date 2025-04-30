@@ -74,11 +74,11 @@ namespace ProgressAdventure
         {
             var success = true;
 
-            success &= PACTools.TryParseJsonValue<DisplaySaveData, string?>(objectJson, Constants.JsonKeys.SaveData.SAVE_VERSION, out var saveVersion);
-            success &= PACTools.TryParseJsonValue<DisplaySaveData, string?>(objectJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
-            success &= PACTools.TryParseJsonValue<DisplaySaveData, DateTime?>(objectJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
-            success &= PACTools.TryParseJsonValue<DisplaySaveData, TimeSpan?>(objectJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
-            success &= PACTools.TryParseJsonValue<DisplaySaveData, string?>(objectJson, Constants.JsonKeys.DisplaySaveData.PLAYER_NAME, out var playerName);
+            success &= PACTools.TryParseJsonValue<string?>(objectJson, Constants.JsonKeys.SaveData.SAVE_VERSION, out var saveVersion);
+            success &= PACTools.TryParseJsonValue<string?>(objectJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
+            success &= PACTools.TryParseJsonValue<DateTime?>(objectJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
+            success &= PACTools.TryParseJsonValue<TimeSpan?>(objectJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
+            success &= PACTools.TryParseJsonValue<string?>(objectJson, Constants.JsonKeys.DisplaySaveData.PLAYER_NAME, out var playerName);
 
             convertedObject = new DisplaySaveData(saveVersion, displayName, lastSave, playtime, playerName);
             return success;

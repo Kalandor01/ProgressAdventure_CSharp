@@ -144,7 +144,7 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<MaterialItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref MaterialItem? itemObject)
         {
             if (
-                !PACTools.TryParseJsonValue<MaterialItem, EnumValue<Material>>(
+                !PACTools.TryParseJsonValue<EnumValue<Material>>(
                     itemJson,
                     Constants.JsonKeys.AItem.MATERIAL,
                     out var material,
@@ -156,16 +156,16 @@ namespace ProgressAdventure.ItemManagement
             }
 
             var success = true;
-            if (!PACTools.TryParseJsonValue<MaterialItem, double>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount))
+            if (!PACTools.TryParseJsonValue<double>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount))
             {
-                PACTools.LogJsonError<MaterialItem>("defaulting to 1");
+                PACTools.LogJsonError("defaulting to 1");
                 itemAmount = 1;
                 success = false;
             }
 
             if (itemAmount <= 0)
             {
-                PACTools.LogJsonError<MaterialItem>("invalid item amount in item json (amount <= 0)", true);
+                PACTools.LogJsonError("invalid item amount in item json (amount <= 0)", true);
                 return false;
             }
 
@@ -175,7 +175,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                PACTools.LogJsonError<MaterialItem>($"failed to create an object, from json: {ex}", true);
+                PACTools.LogJsonError($"failed to create an object, from json: {ex}", true);
                 return false;
             }
 

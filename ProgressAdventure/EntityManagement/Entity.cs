@@ -762,7 +762,7 @@ namespace ProgressAdventure.EntityManagement
         )
         {
             if (
-                !PACTools.TryParseJsonValue<Entity, EnumValue<EntityType>>(
+                !PACTools.TryParseJsonValue<EnumValue<EntityType>>(
                     entityJson,
                     Constants.JsonKeys.Entity.TYPE,
                     out var entityType,
@@ -771,27 +771,27 @@ namespace ProgressAdventure.EntityManagement
                 !EntityUtils.EntityPropertiesMap.TryGetValue(entityType, out var properties)
             )
             {
-                PACTools.LogJsonError<Entity>("invalid entity type", true);
+                PACTools.LogJsonError("invalid entity type", true);
                 return false;
             }
 
             var success = true;
-            success &= PACTools.TryParseJsonValue<Entity, string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
-            success &= PACTools.TryParseJsonValue<Entity, int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
-            success &= PACTools.TryParseJsonListValue<Entity, EnumValue<Attribute>>(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
+            success &= PACTools.TryParseJsonValue<string?>(entityJson, Constants.JsonKeys.Entity.NAME, out var name);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.BASE_MAX_HP, out var baseMaxHp);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_HP, out var currentHp);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.BASE_ATTACK, out var baseAttack);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.BASE_DEFENCE, out var baseDefence);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.BASE_AGILITY, out var baseAgility);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.ORIGINAL_TEAM, out var originalTeam);
+            success &= PACTools.TryParseJsonValue<int?>(entityJson, Constants.JsonKeys.Entity.CURRENT_TEAM, out var currentTeam);
+            success &= PACTools.TryParseJsonListValue(entityJson, Constants.JsonKeys.Entity.ATTRIBUTES,
                 attribute => {
-                    var attributeSuccess = PACTools.TryParseValueForJsonParsing<Entity, EnumValue<Attribute>>(attribute, out var value, logParseWarnings: false);
+                    var attributeSuccess = PACTools.TryParseValueForJsonParsing<EnumValue<Attribute>>(attribute, out var value, logParseWarnings: false);
                     success &= attributeSuccess;
                     return (attributeSuccess, value);
                 },
                 out var attributes);
-            success &= PACTools.TryParseJsonListValue<Entity, AItem>(entityJson, Constants.JsonKeys.Entity.DROPS,
+            success &= PACTools.TryParseJsonListValue(entityJson, Constants.JsonKeys.Entity.DROPS,
                 dropJson => {
                     var dropSuccess = PACTools.TryFromJson(dropJson as JsonDictionary, fileVersion, out AItem? dropObject);
                     success &= dropSuccess;
@@ -799,13 +799,13 @@ namespace ProgressAdventure.EntityManagement
                 },
                 out var drops);
 
-            success &= PACTools.TryParseJsonValue<Entity, Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
+            success &= PACTools.TryParseJsonValue<Facing?>(entityJson, Constants.JsonKeys.Entity.FACING, out var facing);
 
             // specific extra constructor data
             var  extraConstData = new Dictionary<string, object?>();
             if (properties.hasInventory)
             {
-                success &= PACTools.TryParseJsonConvertableValue<Entity, Inventory>(
+                success &= PACTools.TryParseJsonConvertableValue<Inventory>(
                     entityJson,
                     fileVersion,
                     Constants.JsonKeys.Entity.INVENTORY,

@@ -234,7 +234,7 @@ namespace ProgressAdventure
             // 2.0.1 -> 2.0.2
             (oldJson => {
                 // saved entity types
-                if (PACTools.TryCastJsonAnyValue<SaveData, JsonDictionary>(oldJson, "player", out var playerDict, isStraigthCast: true))
+                if (PACTools.TryCastJsonAnyValue<JsonDictionary>(oldJson, "player", out var playerDict, isStraigthCast: true))
                 {
                     playerDict["type"] = "player";
                 }
@@ -303,15 +303,15 @@ namespace ProgressAdventure
         {
             var success = true;
 
-            success &= PACTools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.SAVE_NAME, out var saveName);
-            success &= PACTools.TryParseJsonValue<SaveData, string?>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
-            success &= PACTools.TryParseJsonValue<SaveData, DateTime?>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
-            success &= PACTools.TryParseJsonValue<SaveData, TimeSpan?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
-            success &= PACTools.TryParseJsonValueNullable<SaveData, long?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYER_POS_X, out var playerPosX);
-            success &= PACTools.TryParseJsonValueNullable<SaveData, long?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYER_POS_Y, out var playerPosY);
+            success &= PACTools.TryParseJsonValue<string?>(saveDataJson, Constants.JsonKeys.SaveData.SAVE_NAME, out var saveName);
+            success &= PACTools.TryParseJsonValue<string?>(saveDataJson, Constants.JsonKeys.SaveData.DISPLAY_NAME, out var displayName);
+            success &= PACTools.TryParseJsonValue<DateTime?>(saveDataJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
+            success &= PACTools.TryParseJsonValue<TimeSpan?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
+            success &= PACTools.TryParseJsonValueNullable<long?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYER_POS_X, out var playerPosX);
+            success &= PACTools.TryParseJsonValueNullable<long?>(saveDataJson, Constants.JsonKeys.SaveData.PLAYER_POS_Y, out var playerPosY);
             (long, long)? playerPos = playerPosX is not null && playerPosY is not null ? ((long)playerPosX, (long)playerPosY) : null;
-            success &= PACTools.TryParseJsonConvertableValue<SaveData, Entity, (long, long)?>(saveDataJson, null, fileVersion, Constants.JsonKeys.SaveData.PLAYER_REF, out var player);
-            success &= PACTools.TryParseJsonConvertableValue<SaveData, RandomStates>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.RANDOM_STATES, out _);
+            success &= PACTools.TryParseJsonConvertableValue<Entity, (long, long)?>(saveDataJson, null, fileVersion, Constants.JsonKeys.SaveData.PLAYER_REF, out var player);
+            success &= PACTools.TryParseJsonConvertableValue<RandomStates>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.RANDOM_STATES, out _);
 
             saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player, false);
             saveData._refrencePlayerPos = playerPos ?? (0, 0);

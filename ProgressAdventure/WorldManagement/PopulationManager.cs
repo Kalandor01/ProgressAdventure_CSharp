@@ -477,7 +477,7 @@ namespace ProgressAdventure.WorldManagement
             {
                 // namespaced subtype
                 if (
-                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "subtype", out var subtypeValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "subtype", out var subtypeValue, false) &&
                     !string.IsNullOrWhiteSpace(subtypeValue)
                 )
                 {
@@ -490,9 +490,9 @@ namespace ProgressAdventure.WorldManagement
                 // PopulationContent to PopulationManager
                 oldJson["loaded_entities"] = new JsonDictionary();
                 if (
-                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "subtype", out var subtypeValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "subtype", out var subtypeValue, false) &&
                     !string.IsNullOrWhiteSpace(subtypeValue) &&
-                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "amount", out var amount, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "amount", out var amount, false) &&
                     WorldUtils._legacyPopulationContentEntityTypeNameMap.TryGetValue(subtypeValue, out var entityType)
                 )
                 {
@@ -537,19 +537,19 @@ namespace ProgressAdventure.WorldManagement
         {
             if (extraData.chunkRandom is null)
             {
-                PACTools.LogJsonTypeParseError<PopulationManager>("invalid extra data for this type", true);
+                PACTools.LogJsonTypeParseError("invalid extra data for this type", true);
                 return false;
             }
 
             if (
-                !PACTools.TryCastJsonAnyValue<PopulationManager, JsonDictionary>(
+                !PACTools.TryCastJsonAnyValue<JsonDictionary>(
                     objectJson,
                     Constants.JsonKeys.PopulationManager.UNLOADED_ENTITIES,
                     out var unloadedEntitiesJson,
                     true,
                     true
                 ) ||
-                !PACTools.TryCastJsonAnyValue<PopulationManager, JsonDictionary>(
+                !PACTools.TryCastJsonAnyValue<JsonDictionary>(
                     objectJson,
                     Constants.JsonKeys.PopulationManager.LOADED_ENTITIES,
                     out var loadedEntitiesJson,
@@ -568,12 +568,12 @@ namespace ProgressAdventure.WorldManagement
             {
                 if (!EntityType.TryGetValue(unloadedEntityJson.Key, out var entityType))
                 {
-                    PACTools.LogJsonParseError<PopulationManager>(nameof(entityType), $"invalid entity type name: \"{unloadedEntityJson.Key}\"");
+                    PACTools.LogJsonParseError(nameof(entityType), $"invalid entity type name: \"{unloadedEntityJson.Key}\"");
                     success = false;
                     continue;
                 }
 
-                if (!PACTools.TryParseValueForJsonParsing<PopulationManager, int>(unloadedEntityJson.Value, out var unloadedCount))
+                if (!PACTools.TryParseValueForJsonParsing<int>(unloadedEntityJson.Value, out var unloadedCount))
                 {
                     success = false;
                     continue;
@@ -581,7 +581,7 @@ namespace ProgressAdventure.WorldManagement
 
                 if (unloadedCount < 1)
                 {
-                    PACTools.LogJsonParseError<PopulationManager>(nameof(unloadedCount), $"unloaded entity count for \"{unloadedEntityJson.Key}\" is too small: {unloadedCount}");
+                    PACTools.LogJsonParseError(nameof(unloadedCount), $"unloaded entity count for \"{unloadedEntityJson.Key}\" is too small: {unloadedCount}");
                     success = false;
                     continue;
                 }
@@ -594,18 +594,18 @@ namespace ProgressAdventure.WorldManagement
             {
                 if (!EntityType.TryGetValue(loadedEntityJson.Key, out var entityType))
                 {
-                    PACTools.LogJsonParseError<PopulationManager>(nameof(entityType), $"invalid entity type name: \"{loadedEntityJson.Key}\"");
+                    PACTools.LogJsonParseError(nameof(entityType), $"invalid entity type name: \"{loadedEntityJson.Key}\"");
                     success = false;
                     continue;
                 }
 
                 if (
-                    !PACTools.TryCastAnyValueForJsonParsing<PopulationManager, JsonArray>(
+                    !PACTools.TryCastAnyValueForJsonParsing<JsonArray>(
                         loadedEntityJson.Value,
                         out var loadedEntitiesJsonArray,
                         isStraigthCast: true
                     ) ||
-                    !PACTools.TryParseListValueForJsonParsing<PopulationManager, Entity>(
+                    !PACTools.TryParseListValueForJsonParsing(
                         loadedEntitiesJsonArray,
                         nameof(loadedEntitiesJsonArray),
                         entityJson =>

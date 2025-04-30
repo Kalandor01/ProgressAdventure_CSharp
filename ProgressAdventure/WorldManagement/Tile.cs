@@ -188,13 +188,13 @@ namespace ProgressAdventure.WorldManagement
         {
             if (extraData.chunkRandom is null)
             {
-                PACTools.LogJsonTypeParseError<Tile>("invalid extra data for this type", true);
+                PACTools.LogJsonTypeParseError("invalid extra data for this type", true);
                 return false;
             }
 
             if (!(
-                PACTools.TryParseJsonValue<Tile, long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
-                PACTools.TryParseJsonValue<Tile, long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)
+                PACTools.TryParseJsonValue<long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_X, out var xPos, isCritical: true) &&
+                PACTools.TryParseJsonValue<long>(objectJson, Constants.JsonKeys.Tile.RELATIVE_POSITION_Y, out var yPos, isCritical: true)
             ))
             {
                 return false;
@@ -204,12 +204,12 @@ namespace ProgressAdventure.WorldManagement
             var absoluteY = extraData.chunkPosition.y + yPos;
 
             var success = true;
-            success &= PACTools.TryParseJsonValue<Tile, int?>(objectJson, Constants.JsonKeys.Tile.VISITED, out var visited);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson, isStraigthCast: true);
+            success &= PACTools.TryParseJsonValue<int?>(objectJson, Constants.JsonKeys.Tile.VISITED, out var visited);
+            success &= PACTools.TryCastJsonAnyValue<JsonDictionary>(objectJson, Constants.JsonKeys.Tile.TERRAIN, out var terrainJson, isStraigthCast: true);
             success &= TerrainContent.FromJson(extraData.chunkRandom, terrainJson, fileVersion, out var terrain);
-            success &= PACTools.TryCastJsonAnyValue<Tile, JsonDictionary>(objectJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson, isStraigthCast: true);
+            success &= PACTools.TryCastJsonAnyValue<JsonDictionary>(objectJson, Constants.JsonKeys.Tile.STRUCTURE, out var structureJson, isStraigthCast: true);
             success &= StructureContent.FromJson(extraData.chunkRandom, structureJson, fileVersion, out var structure);
-            success &= PACTools.TryParseJsonConvertableValue<Tile, PopulationManager, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)>(
+            success &= PACTools.TryParseJsonConvertableValue<PopulationManager, (SplittableRandom chunkRandom, (long x, long y) chunkPosition)>(
                 objectJson,
                 (extraData.chunkRandom, (absoluteX, absoluteY)),
                 fileVersion,

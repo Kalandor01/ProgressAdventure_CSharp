@@ -226,9 +226,9 @@ namespace ProgressAdventure.WorldManagement.Content
             {
                 // namespaced type/subtype
                 if (
-                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "type", out var typeValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "type", out var typeValue, false) &&
                     !string.IsNullOrWhiteSpace(typeValue) &&
-                    PACTools.TryParseJsonValue<BaseContent, string>(oldJson, "subtype", out var subtypeValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "subtype", out var subtypeValue, false) &&
                     !string.IsNullOrWhiteSpace(subtypeValue)
                 )
                 {

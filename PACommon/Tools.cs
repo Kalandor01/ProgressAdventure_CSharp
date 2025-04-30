@@ -357,14 +357,65 @@ namespace PACommon
         #endregion
 
         #region Logger short
+        #region Internal versions
+        /// <summary>
+        /// Logs a json parsing error for a type parsing error.
+        /// </summary>
+        /// <param name="parsedClassType">The type that is being parsed.</param>
+        /// <param name="extraInfo">Some extra information about the error.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        private static void LogJsonTypeParseErrorInternal(Type? parsedClassType, string? extraInfo = null, bool isError = false)
+        {
+            var parsedClassTypeName = parsedClassType?.ToString() ?? "[UNKNOWN]";
+            LogJsonErrorBase($"couldn't parse {parsedClassTypeName} type to json value{(extraInfo is not null ? $", {extraInfo}" : "")}", "Json", isError);
+        }
+
         /// <summary>
         /// Logs a json parsing error for a custom error.
         /// </summary>
-        /// <param name="typeName">The name of the type, where the parsing failed.</param>
+        /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="message">The error message.</param>
         /// <param name="isError">If the error will result in the parsing function halting.</param>
-        public static void LogJsonErrorBase(string typeName, string message, bool isError = false)
+        private static void LogJsonErrorInternal(Type? callingClassType, string message, bool isError = false)
         {
+            var callingTypeName = callingClassType?.ToString() ?? "[UNKNOWN]";
+            LogJsonErrorBase(message, callingTypeName, isError);
+        }
+
+        /// <summary>
+        /// Logs a json parsing error for a null parameter error.
+        /// </summary>
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
+        /// <param name="extraInfo">Some extra information about the error.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        private static void LogJsonNullErrorInternal(Type? callingClassType, string parameterName, string? extraInfo = null, bool isError = false)
+        {
+            LogJsonErrorInternal(callingClassType, $"{parameterName} json is null{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+        }
+
+        /// <summary>
+        /// Logs a json parsing error for a parameter parsing error.
+        /// </summary>
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
+        /// <param name="extraInfo">Some extra information about the error.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        private static void LogJsonParseErrorInternal(Type? callingClassType, string parameterName, string? extraInfo = null, bool isError = false)
+        {
+            LogJsonErrorInternal(callingClassType, $"couldn't parse {parameterName}{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+        }
+        #endregion
+
+        /// <summary>
+        /// Logs a json parsing error for a custom error.
+        /// </summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="typeName">The name of the type, where the parsing failed. By default, the type name of the calling class.</param>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        public static void LogJsonErrorBase(string message, string? typeName = null, bool isError = false)
+        {
+            typeName ??= Utils.GetCallingClassType()?.ToString() ?? "[UNKNOWN]";
             var stackTrace = GetFromJsonCallStackString();
             PACSingletons.Instance.Logger.Log(
                 $"{typeName} parse {(isError ? "error" : "warning")}",
@@ -373,50 +424,61 @@ namespace PACommon
             );
         }
 
-        /// <summary>
-        /// Logs a json parsing error for a custom error.
-        /// </summary>
-        /// <typeparam name="T">The class that is being parsed.</typeparam>
-        /// <param name="message">The error message.</param>
-        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        /// <typeparam name="T">The type that is being parsed.</typeparam>
+        /// <inheritdoc cref="LogJsonErrorInternal(Type?, string, bool)"/>
         public static void LogJsonError<T>(string message, bool isError = false)
         {
-            LogJsonErrorBase(typeof(T).ToString(), message, isError);
+            LogJsonErrorInternal(typeof(T), message, isError);
         }
 
-        /// <summary>
-        /// Logs a json parsing error for a parameter parsing error.
-        /// </summary>
-        /// <typeparam name="T">The class that is being parsed.</typeparam>
-        /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
-        /// <param name="extraInfo">Some extra information about the error.</param>
-        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        /// <inheritdoc cref="LogJsonErrorInternal(Type?, string, bool)"/>
+        public static void LogJsonError(string message, bool isError = false)
+        {
+            var callingType = Utils.GetCallingClassType();
+            LogJsonErrorInternal(callingType, message, isError);
+        }
+
+        /// <typeparam name="T">The type that is being parsed.</typeparam>
+        /// <inheritdoc cref="LogJsonParseErrorInternal(Type?, string, string?, bool)"/>
         public static void LogJsonParseError<T>(string parameterName, string? extraInfo = null, bool isError = false)
         {
-            LogJsonError<T>($"couldn't parse {parameterName}{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+            LogJsonParseErrorInternal(typeof(T), parameterName, extraInfo, isError);
         }
 
-        /// <summary>
-        /// Logs a json parsing error for a type parsing error.
-        /// </summary>
+        /// <inheritdoc cref="LogJsonParseErrorInternal(Type?, string, string?, bool)"/>
+        public static void LogJsonParseError(string parameterName, string? extraInfo = null, bool isError = false)
+        {
+            var callingType = Utils.GetCallingClassType();
+            LogJsonParseErrorInternal(callingType, parameterName, extraInfo, isError);
+        }
+
+        /// <inheritdoc cref="LogJsonTypeParseErrorInternal(Type?, string?, bool)"/>
+        public static void LogJsonTypeParseError(string? extraInfo = null, bool isError = false)
+        {
+            var callingType = Utils.GetCallingClassType();
+            LogJsonTypeParseErrorInternal(callingType, extraInfo, isError);
+        }
+
         /// <typeparam name="T">The type that is being parsed.</typeparam>
-        /// <param name="extraInfo">Some extra information about the error.</param>
-        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        /// <inheritdoc cref="LogJsonTypeParseErrorInternal(Type?, string?, bool)"/>
         public static void LogJsonTypeParseError<T>(string? extraInfo = null, bool isError = false)
         {
-            LogJsonErrorBase("Json", $"couldn't parse {typeof(T)} type to json value{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+            var callingType = Utils.GetCallingClassType();
+            LogJsonTypeParseErrorInternal(callingType, extraInfo, isError);
         }
 
-        /// <summary>
-        /// Logs a json parsing error for a null parameter error.
-        /// </summary>
         /// <typeparam name="T">The class that is being parsed.</typeparam>
-        /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
-        /// <param name="extraInfo">Some extra information about the error.</param>
-        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, bool)"/>
         public static void LogJsonNullError<T>(string parameterName, string? extraInfo = null, bool isError = false)
         {
-            LogJsonError<T>($"{parameterName} json is null{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+            LogJsonNullErrorInternal(typeof(T), parameterName, extraInfo, isError);
+        }
+
+        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, bool)"/>
+        public static void LogJsonNullError(string parameterName, string? extraInfo = null, bool isError = false)
+        {
+            var callingType = Utils.GetCallingClassType();
+            LogJsonNullErrorInternal(callingType, parameterName, extraInfo, isError);
         }
 
         /// <summary>
@@ -464,83 +526,47 @@ namespace PACommon
         #endregion
 
         #region Json parse short
+        #region Internal varsions
+
         /// <summary>
-        /// Tries to parse a value to a json value, and logs a warning, if it can't pe parsed.<br/>
-        /// You should use an implicit cast from JsonObject wherever you can instead!<br/>
-        /// Usable types:<br/>
-        /// - bool<br/>
-        /// - string<br/>
-        /// - numbers<br/>
-        /// - enums<br/>
-        /// - <see cref="EnumValue{TEnum}"/><br/>
-        /// - <see cref="SplittableRandom"/><br/>
-        /// - array of JsonObjects
-        /// - dictionary of JsonObjects
-        /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
-        /// - null
+        /// Tries to cast a value of a specific type from a value, and logs a warning, if it isn't the expected type.
         /// </summary>
-        /// <typeparam name="T">The type to parse from.</typeparam>
-        public static JsonObject? ParseToJsonValue<T>(
-            T value,
-            bool logParseWarnings = true,
-            bool isCritical = true
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <param name="objectValue">The value to try to cast.</param>
+        /// <typeparam name="TRes">The expected type of the result.</typeparam>
+        /// <param name="parameterName">The name of the parameter to try to cast.</param>
+        /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        private static bool TryCastAnyValueForJsonParsingInternal<TRes>(
+            Type? callingClassType,
+            JsonObject? objectValue,
+            [NotNullWhen(true)] out TRes? value,
+            [CallerArgumentExpression(nameof(objectValue))] string? parameterName = null,
+            bool isCritical = false,
+            bool isStraigthCast = false
         )
         {
-            switch (value)
+            value = default;
+            var castableValue = isStraigthCast ? objectValue : objectValue?.Value;
+
+            if (castableValue is TRes resultValue)
             {
-                case null:
-                    return null;
-                case int tValue:
-                    return tValue;
-                case uint tValue:
-                    return tValue;
-                case long tValue:
-                    return tValue;
-                case ulong tValue:
-                    return tValue;
-                case bool tValue:
-                    return tValue;
-                case string tValue:
-                    return tValue;
-                case char tValue:
-                    return tValue;
-                case double tValue:
-                    return tValue;
-                case float tValue:
-                    return tValue;
-                case DateTime tValue:
-                    return tValue;
-                case TimeSpan tValue:
-                    return tValue;
-                case Guid tValue:
-                    return tValue;
-                case Enum tValue:
-                    return tValue;
-                case EnumValueBase tValue:
-                    return tValue;
-                case SplittableRandom tValue:
-                    return tValue;
-                case List<JsonObject?> tValue:
-                    return tValue;
-                case IEnumerable<JsonObject?> tValue:
-                    return tValue.ToList();
-                case Dictionary<string, JsonObject?> tValue:
-                    return tValue;
-                case IDictionary<string, JsonObject?> tValue:
-                    return tValue.ToDictionary();
+                value = resultValue;
+                return true;
             }
 
-            if (logParseWarnings)
-            {
-                LogJsonTypeParseError<T>(isError: isCritical);
-            }
-            return new JsonValue(value.ToString()!);
+            LogJsonErrorInternal(
+                callingClassType,
+                $"{parameterName ?? "parameter"} is not the expected type (\"{castableValue?.GetType().ToString() ?? "null"}\" instead of \"{typeof(TRes)}\")",
+                isCritical
+            );
+            return false;
         }
 
         /// <summary>
         /// Tries to get a value from a json dictionary, and logs a warning, if it doesn't exist or null.
         /// </summary>
-        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="objectJson">The json dictionary to parse the value from.</param>
         /// <param name="jsonKey">The key, to the value.</param>
         /// <param name="value">The returned value.</param>
@@ -549,7 +575,8 @@ namespace PACommon
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <param name="allowNull">Whether to allow null value.</param>
         /// <returns>If the value was sucessfuly parsed.</returns>
-        public static bool TryGetJsonObjectValue<T>(
+        private static bool TryGetJsonObjectValueInternal(
+            Type? callingClassType,
             JsonDictionary objectJson,
             string jsonKey,
             out JsonObject? value,
@@ -567,49 +594,22 @@ namespace PACommon
             }
             if (logParseWarnings)
             {
-                LogJsonNullError<T>(jsonKey, null, isCritical);
+                LogJsonNullErrorInternal(callingClassType, jsonKey, null, isCritical);
             }
-            return false;
-        }
-
-        /// <summary>
-        /// Tries to cast a value of a specific type from a value, and logs a warning, if it isn't the expected type.
-        /// </summary>
-        /// <param name="objectValue">The value to try to cast.</param>
-        /// <typeparam name="TRes">The expected type of the result.</typeparam>
-        /// <param name="parameterName">The name of the parameter to try to cast.</param>
-        /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        public static bool TryCastAnyValueForJsonParsing<T, TRes>(
-            JsonObject? objectValue,
-            [NotNullWhen(true)] out TRes? value,
-            [CallerArgumentExpression(nameof(objectValue))] string? parameterName = null,
-            bool isCritical = false,
-            bool isStraigthCast = false
-        )
-        {
-            value = default;
-            var castableValue = isStraigthCast ? objectValue : objectValue?.Value;
-
-            if (castableValue is TRes resultValue)
-            {
-                value = resultValue;
-                return true;
-            }
-
-            LogJsonError<T>($"{parameterName ?? "parameter"} is not the expected type (\"{castableValue?.GetType().ToString() ?? "null"}\" instead of \"{typeof(TRes)}\")", isCritical);
             return false;
         }
 
         /// <summary>
         /// Tries to get a value of a specific type from a json dictionary, and logs a warning, if it doesn't exist, or it can't be cast to the expected type.
         /// </summary>
+        /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="isStraigthCast">If it's just a regular cast of the JsonObject or the value of it.</param>
         /// <typeparam name="TRes">The expected type of the result.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         /// <param name="overrideNullability">The override of whether to accept a null value as valid.<br/>
         /// Should only be used for nullable string types or similar.</param>
-        public static bool TryCastJsonAnyValue<T, TRes>(
+        private static bool TryCastJsonAnyValueInternal<TRes>(
+            Type? callingClassType,
             JsonDictionary objectJson,
             string jsonKey,
             [NotNullWhen(true)] out TRes? value,
@@ -620,7 +620,14 @@ namespace PACommon
         {
             value = default;
             var isAllowNull = isStraigthCast && (overrideNullability ?? Nullable.GetUnderlyingType(typeof(TRes)) is not null);
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, isCritical: isCritical, allowNull: isAllowNull))
+            if (!TryGetJsonObjectValueInternal(
+                callingClassType,
+                objectJson,
+                jsonKey,
+                out var result,
+                isCritical: isCritical,
+                allowNull: isAllowNull
+            ))
             {
                 return false;
             }
@@ -630,7 +637,7 @@ namespace PACommon
                 return true;
             }
 
-            return TryCastAnyValueForJsonParsing<T, TRes>(result, out value, jsonKey, isCritical, isStraigthCast);
+            return TryCastAnyValueForJsonParsingInternal(callingClassType, result, out value, jsonKey, isCritical, isStraigthCast);
         }
 
         /// <summary>
@@ -646,8 +653,8 @@ namespace PACommon
         /// - any type that has a converter? and can convert from string representation to object<br/>
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
-        /// <typeparam name="T">The class that is being parsed.</typeparam>
         /// <typeparam name="TRes">The type to parse to.</typeparam>
+        /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="value">The value to parse.</param>
         /// <param name="parsedValue">The parsed value, or default if it wasn't successful.</param>
         /// <param name="logParseWarnings">Whether to log any parse warnings.</param>
@@ -656,7 +663,8 @@ namespace PACommon
         /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was successfuly parsed.</returns>
-        public static bool TryParseValueForJsonParsing<T, TRes>(
+        private static bool TryParseValueForJsonParsingInternal<TRes>(
+            Type? callingClassType,
             JsonObject? value,
             [NotNullWhen(true)] out TRes? parsedValue,
             [CallerArgumentExpression(nameof(value))] string? parameterName = null,
@@ -776,7 +784,7 @@ namespace PACommon
 
             if (logParseWarnings)
             {
-                LogJsonParseError<T>(parameterName ?? $"{parseType} type parameter", parameterExtraInfo, isCritical);
+                LogJsonParseErrorInternal(callingClassType, parameterName ?? $"{parseType} type parameter", parameterExtraInfo, isCritical);
             }
             return false;
         }
@@ -795,8 +803,10 @@ namespace PACommon
         /// - nullables (will only make the default value null instead of the default value for the type)
         /// </summary>
         /// <typeparam name="TRes">The type to parse to.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        public static bool TryParseJsonValue<T, TRes>(
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        private static bool TryParseJsonValueInternal<TRes>(
+            Type? callingClassType,
             JsonDictionary objectJson,
             string jsonKey,
             [NotNullWhen(true)] out TRes? value,
@@ -805,12 +815,12 @@ namespace PACommon
         )
         {
             value = default;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, logParseWarnings, isCritical))
+            if (!TryGetJsonObjectValueInternal(callingClassType, objectJson, jsonKey, out var result, logParseWarnings, isCritical))
             {
                 return false;
             }
 
-            return TryParseValueForJsonParsing<T, TRes>(result, out value, jsonKey, logParseWarnings, isCritical: isCritical);
+            return TryParseValueForJsonParsingInternal(callingClassType, result, out value, jsonKey, logParseWarnings, isCritical: isCritical);
         }
 
         /// <summary>
@@ -825,11 +835,13 @@ namespace PACommon
         /// - <see cref="EnumTreeValue{TEnum}"/><br/>
         /// - <see cref="SplittableRandom"/><br/>
         /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
-        /// - nullables (will only make the default value null instead of the default value for the type)
+        /// - nullables
         /// </summary>
         /// <typeparam name="TRes">The type to parse to.</typeparam>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        public static bool TryParseJsonValueNullable<T, TRes>(
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        private static bool TryParseJsonValueNullableInternal<TRes>(
+            Type? callingClassType,
             JsonDictionary objectJson,
             string jsonKey,
             out TRes? value,
@@ -838,7 +850,7 @@ namespace PACommon
         )
         {
             value = default;
-            if (!TryGetJsonObjectValue<T>(objectJson, jsonKey, out var result, logParseWarnings, isCritical, true))
+            if (!TryGetJsonObjectValueInternal(callingClassType, objectJson, jsonKey, out var result, logParseWarnings, isCritical, true))
             {
                 return false;
             }
@@ -848,17 +860,19 @@ namespace PACommon
                 return true;
             }
 
-            return TryParseValueForJsonParsing<T, TRes>(result, out value, jsonKey, logParseWarnings, isCritical: isCritical);
+            return TryParseValueForJsonParsingInternal(callingClassType, result, out value, jsonKey, logParseWarnings, isCritical: isCritical);
         }
 
         /// <summary>
         /// Tries to parse an IJsonConvertable value from a json dictionary, and logs a warning, if it can't pe parsed.
         /// </summary>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <typeparam name="TJc">The IJsonConvertable class to convert to.</typeparam>
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <returns>If the object was parsed without warnings.</returns>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        public static bool TryParseJsonConvertableValue<T, TJc>(
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        private static bool TryParseJsonConvertableValueInternal<TJc>(
+            Type? callingClassType,
             JsonDictionary objectJson,
             string fileVersion,
             string jsonKey,
@@ -868,7 +882,7 @@ namespace PACommon
             where TJc : IJsonConvertable<TJc>
         {
             value = default;
-            if (!TryCastJsonAnyValue<T, JsonDictionary>(objectJson, jsonKey, out var result, isCritical, true))
+            if (!TryCastJsonAnyValueInternal<JsonDictionary>(callingClassType, objectJson, jsonKey, out var result, isCritical, true))
             {
                 return false;
             }
@@ -876,7 +890,7 @@ namespace PACommon
             var success = TryFromJson(result, fileVersion, out value);
             if (value is null)
             {
-                LogJsonParseError<T>(jsonKey, null, isCritical);
+                LogJsonParseErrorInternal(callingClassType, jsonKey, null, isCritical);
             }
             return success;
         }
@@ -884,13 +898,16 @@ namespace PACommon
         /// <summary>
         /// Tries to parse an IJsonConvertableExtra value from a json dictionary, and logs a warning, if it can't pe parsed.
         /// </summary>
-        /// <param name="extraData">The extra data for the json parsing.</param>
-        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <typeparam name="TJc">The type of the IJsonConvertableExtra class to convert to.</typeparam>
         /// <typeparam name="TJe">The type of the extra data to pass into the IJsonConvertableExtra class.</typeparam>
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <param name="callingClassType">The type that is being parsed.</param>
+        /// <param name="extraData">The extra data for the json parsing.</param>
+        /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <returns>If the object was parsed without warnings.</returns>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        public static bool TryParseJsonConvertableValue<T, TJc, TJe>(
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        private static bool TryParseJsonConvertableValueInternal<TJc, TJe>(
+            Type? callingClassType,
             JsonDictionary objectJson,
             TJe extraData,
             string fileVersion,
@@ -901,7 +918,7 @@ namespace PACommon
             where TJc : IJsonConvertableExtra<TJc, TJe>
         {
             value = default;
-            if (!TryCastJsonAnyValue<T, JsonDictionary>(objectJson, jsonKey, out var result, isCritical, true))
+            if (!TryCastJsonAnyValueInternal<JsonDictionary>(callingClassType, objectJson, jsonKey, out var result, isCritical, true))
             {
                 return false;
             }
@@ -909,7 +926,7 @@ namespace PACommon
             var success = TryFromJsonExtra(result, extraData, fileVersion, out value);
             if (value is null)
             {
-                LogJsonParseError<T>(jsonKey, null, isCritical);
+                LogJsonParseErrorInternal(callingClassType, jsonKey, null, isCritical);
             }
             return success;
         }
@@ -919,13 +936,15 @@ namespace PACommon
         /// </summary>
         /// <typeparam name="TIn">The type of the values in the input list.</typeparam>
         /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
+        /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="listValue">The list to parse the values from.</param>
         /// <param name="listName">The name of the list.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
         /// <returns>If all values where succesfuly parsed.</returns>
-        public static bool TryParseListValueForJsonParsing<T, TIn, TRes>(
+        private static bool TryParseListValueForJsonParsingInternal<TIn, TRes>(
+            Type? callingClassType,
             IEnumerable<TIn> listValue,
             string listName,
             Func<TIn, (bool success, TRes? result)> parseFunction,
@@ -943,7 +962,7 @@ namespace PACommon
                 }
                 else
                 {
-                    LogJsonParseError<T>($"an element of the {listName} list");
+                    LogJsonParseErrorInternal(callingClassType, $"an element of the {listName} list");
                     allSuccess = false;
                 }
             }
@@ -951,34 +970,16 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Tries to parse a list value from another list, and logs a warning, if an element can't be parsed.
-        /// </summary>
-        /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
-        /// <param name="listValue">The list to parse the values from.</param>
-        /// <param name="listName">The name of the list.</param>
-        /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
-        /// If the success is false or result is null, it will not be added to the list.</param>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        /// <returns>If all values where succesfuly parsed.</returns>
-        public static bool TryParseListValueForJsonParsing<T, TRes>(
-            JsonArray listValue,
-            string listName,
-            Func<JsonObject?, (bool success, TRes? result)> parseFunction,
-            out List<TRes> value
-        )
-        {
-            return TryParseListValueForJsonParsing<T, JsonObject?, TRes>(listValue, listName, parseFunction, out value);
-        }
-
-        /// <summary>
         /// Tries to parse a list value from a json dictionary, and logs a warning, if it can't be parsed.
         /// </summary>
         /// <typeparam name="TRes">The type of the values in the result list.</typeparam>
+        /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="parseFunction">The function to use, to parse the elemets of the list to the correct type.<br/>
         /// If the success is false or result is null, it will not be added to the list.</param>
         /// <returns>If all values where succesfuly parsed.</returns>
-        /// <inheritdoc cref="TryGetJsonObjectValue{T}(JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
-        public static bool TryParseJsonListValue<T, TRes>(
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        private static bool TryParseJsonListValueInternal<TRes>(
+            Type? callingClassType,
             JsonDictionary objectJson,
             string jsonKey,
             Func<JsonObject?, (bool success, TRes? result)> parseFunction,
@@ -988,14 +989,359 @@ namespace PACommon
         {
             value = null;
             if (!(
-                TryCastJsonAnyValue<T, JsonArray>(objectJson, jsonKey, out var resultList, isCritical, true) &&
+                TryCastJsonAnyValueInternal<JsonArray>(callingClassType, objectJson, jsonKey, out var resultList, isCritical, true) &&
                 resultList is not null
             ))
             {
                 return false;
             }
 
-            return TryParseListValueForJsonParsing<T, TRes>(resultList, jsonKey, parseFunction, out value);
+            return TryParseListValueForJsonParsingInternal(callingClassType, resultList, jsonKey, parseFunction, out value);
+        }
+        #endregion
+
+        /// <summary>
+        /// Tries to parse a value to a json value, and logs a warning, if it can't pe parsed.<br/>
+        /// You should use an implicit cast from JsonObject wherever you can instead!<br/>
+        /// Usable types:<br/>
+        /// - bool<br/>
+        /// - string<br/>
+        /// - numbers<br/>
+        /// - enums<br/>
+        /// - <see cref="EnumValue{TEnum}"/><br/>
+        /// - <see cref="SplittableRandom"/><br/>
+        /// - array of JsonObjects
+        /// - dictionary of JsonObjects
+        /// - any type that has a converter? and can convert from string representation to object (has [type].TryParse()?)<br/>
+        /// - null
+        /// </summary>
+        /// <typeparam name="T">The type to parse from.</typeparam>
+        public static JsonObject? ParseToJsonValue<T>(
+            T value,
+            bool logParseWarnings = true,
+            bool isCritical = true
+        )
+        {
+            switch (value)
+            {
+                case null:
+                    return null;
+                case int tValue:
+                    return tValue;
+                case uint tValue:
+                    return tValue;
+                case long tValue:
+                    return tValue;
+                case ulong tValue:
+                    return tValue;
+                case bool tValue:
+                    return tValue;
+                case string tValue:
+                    return tValue;
+                case char tValue:
+                    return tValue;
+                case double tValue:
+                    return tValue;
+                case float tValue:
+                    return tValue;
+                case DateTime tValue:
+                    return tValue;
+                case TimeSpan tValue:
+                    return tValue;
+                case Guid tValue:
+                    return tValue;
+                case Enum tValue:
+                    return tValue;
+                case EnumValueBase tValue:
+                    return tValue;
+                case SplittableRandom tValue:
+                    return tValue;
+                case List<JsonObject?> tValue:
+                    return tValue;
+                case IEnumerable<JsonObject?> tValue:
+                    return tValue.ToList();
+                case Dictionary<string, JsonObject?> tValue:
+                    return tValue;
+                case IDictionary<string, JsonObject?> tValue:
+                    return tValue.ToDictionary();
+            }
+
+            if (logParseWarnings)
+            {
+                LogJsonTypeParseError<T>(isError: isCritical);
+            }
+            return new JsonValue(value.ToString()!);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        public static bool TryGetJsonObjectValue<T>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            out JsonObject? value,
+            bool logParseWarnings = true,
+            bool isCritical = false,
+            bool allowNull = false
+        )
+        {
+            return TryGetJsonObjectValueInternal(typeof(T), objectJson, jsonKey, out value, logParseWarnings, isCritical, allowNull);
+        }
+
+        /// <inheritdoc cref="TryCastAnyValueForJsonParsingInternal{TRes}(Type, JsonObject, out TRes, string, bool, bool)"/>
+        public static bool TryCastAnyValueForJsonParsing<T, TRes>(
+            JsonObject? objectValue,
+            [NotNullWhen(true)] out TRes? value,
+            [CallerArgumentExpression(nameof(objectValue))] string? parameterName = null,
+            bool isCritical = false,
+            bool isStraigthCast = false
+        )
+        {
+            return TryCastAnyValueForJsonParsingInternal(typeof(T), objectValue, out value, parameterName, isCritical, isStraigthCast);
+        }
+
+        /// <inheritdoc cref="TryCastAnyValueForJsonParsingInternal{TRes}(Type, JsonObject, out TRes, string, bool, bool)"/>
+        public static bool TryCastAnyValueForJsonParsing<TRes>(
+            JsonObject? objectValue,
+            [NotNullWhen(true)] out TRes? value,
+            [CallerArgumentExpression(nameof(objectValue))] string? parameterName = null,
+            bool isCritical = false,
+            bool isStraigthCast = false
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryCastAnyValueForJsonParsingInternal(callingType, objectValue, out value, parameterName, isCritical, isStraigthCast);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryCastJsonAnyValueInternal{TRes}(Type, JsonDictionary, string, out TRes, bool, bool, bool?)"/>
+        public static bool TryCastJsonAnyValue<T, TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            [NotNullWhen(true)] out TRes? value,
+            bool isCritical = false,
+            bool isStraigthCast = false,
+            bool? overrideNullability = null
+        )
+        {
+            return TryCastJsonAnyValueInternal(typeof(T), objectJson, jsonKey, out value, isCritical, isStraigthCast, overrideNullability);
+        }
+
+        /// <inheritdoc cref="TryCastJsonAnyValueInternal{TRes}(Type, JsonDictionary, string, out TRes, bool, bool, bool?)"/>
+        public static bool TryCastJsonAnyValue<TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            [NotNullWhen(true)] out TRes? value,
+            bool isCritical = false,
+            bool isStraigthCast = false,
+            bool? overrideNullability = null
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryCastJsonAnyValueInternal(callingType, objectJson, jsonKey, out value, isCritical, isStraigthCast, overrideNullability);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryParseValueForJsonParsingInternal{TRes}(Type, JsonObject, out TRes, string?, bool, string?, bool)"/>
+        public static bool TryParseValueForJsonParsing<T, TRes>(
+            JsonObject? value,
+            [NotNullWhen(true)] out TRes? parsedValue,
+            [CallerArgumentExpression(nameof(value))] string? parameterName = null,
+            bool logParseWarnings = true,
+            string? parameterExtraInfo = null,
+            bool isCritical = false
+        )
+        {
+            return TryParseValueForJsonParsingInternal(
+                typeof(T),
+                value,
+                out parsedValue,
+                parameterName,
+                logParseWarnings,
+                parameterExtraInfo,
+                isCritical
+            );
+        }
+
+        /// <inheritdoc cref="TryParseValueForJsonParsingInternal{TRes}(Type, JsonObject, out TRes, string?, bool, string?, bool)"/>
+        public static bool TryParseValueForJsonParsing<TRes>(
+            JsonObject? value,
+            [NotNullWhen(true)] out TRes? parsedValue,
+            [CallerArgumentExpression(nameof(value))] string? parameterName = null,
+            bool logParseWarnings = true,
+            string? parameterExtraInfo = null,
+            bool isCritical = false
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseValueForJsonParsingInternal(
+                callingType,
+                value,
+                out parsedValue,
+                parameterName,
+                logParseWarnings,
+                parameterExtraInfo,
+                isCritical
+            );
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryParseJsonValueInternal{TRes}(Type?, JsonDictionary, string, out TRes, bool, bool)"/>
+        public static bool TryParseJsonValue<T, TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            [NotNullWhen(true)] out TRes? value,
+            bool logParseWarnings = true,
+            bool isCritical = false
+        )
+        {
+            return TryParseJsonValueInternal(typeof(T), objectJson, jsonKey, out value, logParseWarnings, isCritical);
+        }
+
+        /// <inheritdoc cref="TryParseJsonValueInternal{TRes}(Type?, JsonDictionary, string, out TRes, bool, bool)"/>
+        public static bool TryParseJsonValue<TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            [NotNullWhen(true)] out TRes? value,
+            bool logParseWarnings = true,
+            bool isCritical = false
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseJsonValueInternal(callingType, objectJson, jsonKey, out value, logParseWarnings, isCritical);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryParseJsonValueNullableInternal{TRes}(Type?, JsonDictionary, string, out TRes, bool, bool)"/>
+        public static bool TryParseJsonValueNullable<T, TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            out TRes? value,
+            bool logParseWarnings = true,
+            bool isCritical = false
+        )
+        {
+            return TryParseJsonValueNullableInternal(typeof(T), objectJson, jsonKey, out value, logParseWarnings, isCritical);
+        }
+
+        /// <inheritdoc cref="TryParseJsonValueNullableInternal{TRes}(Type?, JsonDictionary, string, out TRes, bool, bool)"/>
+        public static bool TryParseJsonValueNullable<TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            out TRes? value,
+            bool logParseWarnings = true,
+            bool isCritical = false
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseJsonValueNullableInternal(callingType, objectJson, jsonKey, out value, logParseWarnings, isCritical);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryParseJsonConvertableValueInternal{TJc}(Type?, JsonDictionary, string, string, out TJc, bool)"/>
+        public static bool TryParseJsonConvertableValue<T, TJc>(
+            JsonDictionary objectJson,
+            string fileVersion,
+            string jsonKey,
+            [NotNullWhen(true)] out TJc? value,
+            bool isCritical = false
+        )
+            where TJc : IJsonConvertable<TJc>
+        {
+            return TryParseJsonConvertableValueInternal(typeof(T), objectJson, fileVersion, jsonKey, out value, isCritical);
+        }
+
+        /// <inheritdoc cref="TryParseJsonConvertableValueInternal{TJc}(Type?, JsonDictionary, string, string, out TJc, bool)"/>
+        public static bool TryParseJsonConvertableValue<TJc>(
+            JsonDictionary objectJson,
+            string fileVersion,
+            string jsonKey,
+            [NotNullWhen(true)] out TJc? value,
+            bool isCritical = false
+        )
+            where TJc : IJsonConvertable<TJc>
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseJsonConvertableValueInternal(callingType, objectJson, fileVersion, jsonKey, out value, isCritical);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        public static bool TryParseJsonConvertableValue<T, TJc, TJe>(
+            JsonDictionary objectJson,
+            TJe extraData,
+            string fileVersion,
+            string jsonKey,
+            [NotNullWhen(true)] out TJc? value,
+            bool isCritical = false
+        )
+            where TJc : IJsonConvertableExtra<TJc, TJe>
+        {
+            return TryParseJsonConvertableValueInternal(typeof(T), objectJson, extraData, fileVersion, jsonKey, out value, isCritical);
+        }
+
+        /// <inheritdoc cref="TryGetJsonObjectValueInternal(Type?, JsonDictionary, string, out JsonObject?, bool, bool, bool)"/>
+        public static bool TryParseJsonConvertableValue<TJc, TJe>(
+            JsonDictionary objectJson,
+            TJe extraData,
+            string fileVersion,
+            string jsonKey,
+            [NotNullWhen(true)] out TJc? value,
+            bool isCritical = false
+        )
+            where TJc : IJsonConvertableExtra<TJc, TJe>
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseJsonConvertableValueInternal(callingType, objectJson, extraData, fileVersion, jsonKey, out value, isCritical);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryParseListValueForJsonParsingInternal{TIn, TRes}(Type, IEnumerable{TIn}, string, Func{TIn, ValueTuple{bool, TRes}}, out List{TRes})"/>
+        public static bool TryParseListValueForJsonParsing<T, TIn, TRes>(
+            IEnumerable<TIn> listValue,
+            string listName,
+            Func<TIn, (bool success, TRes? result)> parseFunction,
+            out List<TRes> value
+        )
+        {
+            return TryParseListValueForJsonParsingInternal(typeof(T), listValue, listName, parseFunction, out value);
+        }
+
+        /// <inheritdoc cref="TryParseListValueForJsonParsingInternal{TIn, TRes}(Type, IEnumerable{TIn}, string, Func{TIn, ValueTuple{bool, TRes}}, out List{TRes})"/>
+        public static bool TryParseListValueForJsonParsing<TIn, TRes>(
+            IEnumerable<TIn> listValue,
+            string listName,
+            Func<TIn, (bool success, TRes? result)> parseFunction,
+            out List<TRes> value
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseListValueForJsonParsingInternal(callingType, listValue, listName, parseFunction, out value);
+        }
+
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="TryParseJsonListValueInternal{TRes}(Type?, JsonDictionary, string, Func{JsonObject?, ValueTuple{bool, TRes}}, out List{TRes}?, bool)"/>
+        public static bool TryParseJsonListValue<T, TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            Func<JsonObject?, (bool success, TRes? result)> parseFunction,
+            [NotNullWhen(true)] out List<TRes>? value,
+            bool isCritical = false
+        )
+        {
+            return TryParseJsonListValueInternal(typeof(T), objectJson, jsonKey, parseFunction, out value, isCritical);
+        }
+
+        /// <inheritdoc cref="TryParseJsonListValueInternal{TRes}(Type?, JsonDictionary, string, Func{JsonObject?, ValueTuple{bool, TRes}}, out List{TRes}?, bool)"/>
+        public static bool TryParseJsonListValue<TRes>(
+            JsonDictionary objectJson,
+            string jsonKey,
+            Func<JsonObject?, (bool success, TRes? result)> parseFunction,
+            [NotNullWhen(true)] out List<TRes>? value,
+            bool isCritical = false
+        )
+        {
+            var callingType = Utils.GetCallingClassType();
+            return TryParseJsonListValueInternal(callingType, objectJson, jsonKey, parseFunction, out value, isCritical);
         }
         #endregion
         #endregion

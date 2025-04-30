@@ -184,9 +184,9 @@ namespace ProgressAdventure.ItemManagement
             {
                 // namespaced type/material
                 if (
-                    PACTools.TryParseJsonValue<AItem, string>(oldJson, "type", out var typeValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "type", out var typeValue, false) &&
                     !string.IsNullOrWhiteSpace(typeValue) &&
-                    PACTools.TryParseJsonValue<AItem, string>(oldJson, "material", out var materialValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "material", out var materialValue, false) &&
                     !string.IsNullOrWhiteSpace(materialValue)
                 )
                 {
@@ -212,18 +212,18 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<CompoundItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref CompoundItem? itemObject)
         {
             if (!(
-                PACTools.TryCastJsonAnyValue<CompoundItem, string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
+                PACTools.TryCastJsonAnyValue<string>(itemJson, Constants.JsonKeys.AItem.TYPE, out var typeName, true) &&
                 ItemUtils.TryParseItemType(typeName, out var itemType)
             ))
             {
-                PACTools.LogJsonError<CompoundItem>($"unknown item type: \"{typeName}\"", true);
+                PACTools.LogJsonError($"unknown item type: \"{typeName}\"", true);
                 return false;
             }
 
             var success = true;
             // "ItemUtils._legacyCompoundtemMap" has the parts in the 2.2 json format, so I bump the version, so it doesn't try to correct the json twice.
             var partsFileVersion = Utils.IsUpToDate("2.2", fileVersion) ? fileVersion : "2.2";
-            success &= PACTools.TryParseJsonListValue<CompoundItem, AItem>(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
+            success &= PACTools.TryParseJsonListValue(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
                 partJson => {
                     success &= PACTools.TryFromJson(partJson as JsonDictionary, partsFileVersion, out AItem? part);
                     return (part is not null, part);
@@ -234,16 +234,16 @@ namespace ProgressAdventure.ItemManagement
                 return false;
             }
 
-            if (!PACTools.TryParseJsonValue<CompoundItem, double>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount))
+            if (!PACTools.TryParseJsonValue<double>(itemJson, Constants.JsonKeys.AItem.AMOUNT, out var itemAmount))
             {
-                PACTools.LogJsonError<CompoundItem>("item amount is null, defaulting to 1");
+                PACTools.LogJsonError("item amount is null, defaulting to 1");
                 itemAmount = 1;
                 success = false;
             }
 
             if (itemAmount <= 0)
             {
-                PACTools.LogJsonError<CompoundItem>("invalid item amount in item json (amount <= 0)", true);
+                PACTools.LogJsonError("invalid item amount in item json (amount <= 0)", true);
                 return false;
             }
 
@@ -253,7 +253,7 @@ namespace ProgressAdventure.ItemManagement
             }
             catch (Exception ex)
             {
-                PACTools.LogJsonError<CompoundItem>($"failed to create an object, from json: {ex}", true);
+                PACTools.LogJsonError($"failed to create an object, from json: {ex}", true);
                 return false;
             }
 

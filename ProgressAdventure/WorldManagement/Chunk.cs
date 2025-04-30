@@ -151,7 +151,7 @@ namespace ProgressAdventure.WorldManagement
             );
             if (fileVersion is null)
             {
-                PACTools.LogJsonParseError<Chunk>(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");
+                PACTools.LogJsonParseError(Constants.JsonKeys.Chunk.FILE_VERSION, $"assuming minimum, chunk file name: {chunkFileName}");
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
@@ -305,19 +305,20 @@ namespace ProgressAdventure.WorldManagement
 
             // position
             if (!(
-                PACTools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_X, out var posX, isCritical: true) &&
-                PACTools.TryParseJsonValue<Chunk, long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_Y, out var posY, isCritical: true)
+                PACTools.TryParseJsonValue<long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_X, out var posX, isCritical: true) &&
+                PACTools.TryParseJsonValue<long>(chunkJson, Constants.JsonKeys.Chunk.POSITION_Y, out var posY, isCritical: true)
             ))
             {
                 return false;
             }
             (long x, long y) position = (posX, posY);
 
-            success &= PACTools.TryParseJsonValue<Chunk, SplittableRandom?>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
+            success &= PACTools.TryParseJsonValue<SplittableRandom?>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
             chunkRandom ??= GetChunkRandom(position);
             var chunkPos = (Utils.FloorRound(position.x, Constants.CHUNK_SIZE), Utils.FloorRound(position.y, Constants.CHUNK_SIZE));
 
-            if (!PACTools.TryParseJsonListValue<Chunk, KeyValuePair<string, Tile>>(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson => {
+            if (!PACTools.TryParseJsonListValue(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson =>
+            {
                 if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, isStraigthCast: true))
                 {
                     success = false;

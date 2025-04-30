@@ -108,20 +108,20 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (actionKeyJson.Count == 0)
             {
-                PACTools.LogJsonError<ActionKey>($"{nameof(actionKeyJson)} is empty", true);
+                PACTools.LogJsonError($"{nameof(actionKeyJson)} is empty", true);
                 return false;
             }
 
             var actionJson = actionKeyJson.First();
 
             if (!(
-                PACTools.TryParseValueForJsonParsing<ActionKey, EnumValue<ActionType>>(
+                PACTools.TryParseValueForJsonParsing<EnumValue<ActionType>>(
                     new JsonValue(actionJson.Key),
                     out var actionType,
                     parameterExtraInfo: $"action type: {actionJson.Key}",
                     isCritical: true
                 ) &&
-                PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonArray>(
+                PACTools.TryCastAnyValueForJsonParsing<JsonArray>(
                     actionJson.Value, out var actionKeyList, isCritical: true, isStraigthCast: true
                 )
             ))
@@ -130,14 +130,15 @@ namespace ProgressAdventure.SettingsManagement
             }
 
             var success = true;
-            var allSuccess = PACTools.TryParseListValueForJsonParsing<ActionKey, ConsoleKeyInfo>(actionKeyList, nameof(actionKeyList), actionKeyJsonValue => {
+            var allSuccess = PACTools.TryParseListValueForJsonParsing(actionKeyList, nameof(actionKeyList), actionKeyJsonValue =>
+            {
                 if (
-                    PACTools.TryCastAnyValueForJsonParsing<ActionKey, JsonDictionary>(
+                    PACTools.TryCastAnyValueForJsonParsing<JsonDictionary>(
                         actionKeyJsonValue, out var actionKeyJson, isStraigthCast: true
                     ) &&
-                    PACTools.TryParseJsonValue<ActionKey, ConsoleKey>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY, out var keyEnum) &&
-                    PACTools.TryParseJsonValue<ActionKey, char>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY_CHAR, out var keyChar) &&
-                    PACTools.TryParseJsonValue<ActionKey, int>(actionKeyJson, Constants.JsonKeys.ActionKey.MODIFIERS, out var keyModifiers)
+                    PACTools.TryParseJsonValue<ConsoleKey>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY, out var keyEnum) &&
+                    PACTools.TryParseJsonValue<char>(actionKeyJson, Constants.JsonKeys.ActionKey.KEY_CHAR, out var keyChar) &&
+                    PACTools.TryParseJsonValue<int>(actionKeyJson, Constants.JsonKeys.ActionKey.MODIFIERS, out var keyModifiers)
                     )
                 {
                     var alt = Utils.GetBit(keyModifiers, 0);

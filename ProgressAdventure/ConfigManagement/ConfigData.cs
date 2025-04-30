@@ -64,32 +64,32 @@ namespace ProgressAdventure.ConfigManagement
         {
             if (string.IsNullOrWhiteSpace(folderName))
             {
-                PACommon.Tools.LogJsonTypeParseError<ConfigData>("invalid extra data for this type", true);
+                PACommon.Tools.LogJsonTypeParseError("invalid extra data for this type", true);
                 return false;
             }
 
             if (
-                !PACommon.Tools.TryParseJsonValue<ConfigData, string>(configJson, Constants.JsonKeys.ConfigData.NAMESPACE, out var namespaceName, isCritical: true) ||
+                !PACommon.Tools.TryParseJsonValue<string>(configJson, Constants.JsonKeys.ConfigData.NAMESPACE, out var namespaceName, isCritical: true) ||
                 !ConfigUtils.NamespaceRegex().IsMatch(namespaceName)
             )
             {
-                PACommon.Tools.LogJsonParseError<ConfigData>(nameof(namespaceName), $"invalid namespace name: \"{namespaceName}\"", true);
+                PACommon.Tools.LogJsonParseError(nameof(namespaceName), $"invalid namespace name: \"{namespaceName}\"", true);
                 return false;
             }
 
             if (
-                !PACommon.Tools.TryParseJsonValue<ConfigData, string>(configJson, Constants.JsonKeys.ConfigData.VERSION, out var version, isCritical: true) ||
-                !PACommon.Tools.TryParseJsonListValue<ConfigData, string>(configJson, Constants.JsonKeys.ConfigData.DEPENDENCIES,
+                !PACommon.Tools.TryParseJsonValue<string>(configJson, Constants.JsonKeys.ConfigData.VERSION, out var version, isCritical: true) ||
+                !PACommon.Tools.TryParseJsonListValue(configJson, Constants.JsonKeys.ConfigData.DEPENDENCIES,
                     dependency => {
                         if (
-                            PACommon.Tools.TryParseValueForJsonParsing<ConfigData, string>(dependency, out var value) &&
+                            PACommon.Tools.TryParseValueForJsonParsing<string>(dependency, out var value) &&
                             ConfigUtils.NamespaceRegex().IsMatch(value)
                         )
                         {
                             return (true, value);
                         }
 
-                        PACommon.Tools.LogJsonParseError<ConfigData>(nameof(namespaceName), $"invalid dependency name: \"{value}\" for namespace \"{namespaceName}\"", true);
+                        PACommon.Tools.LogJsonParseError(nameof(namespaceName), $"invalid dependency name: \"{value}\" for namespace \"{namespaceName}\"", true);
                         return (false, null);
                     },
                     out var dependencies, true
@@ -150,7 +150,7 @@ namespace ProgressAdventure.ConfigManagement
             }
             else
             {
-                PACommon.Tools.LogJsonParseError<ConfigData>(nameof(configVersion), "assuming minimum config version");
+                PACommon.Tools.LogJsonParseError(nameof(configVersion), "assuming minimum config version");
             }
 
             return PACommon.Tools.TryFromJsonExtra(

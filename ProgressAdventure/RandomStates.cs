@@ -255,12 +255,12 @@ namespace ProgressAdventure
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null;
 
             var success = true;
-            success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MAIN_RANDOM, out var mainRandom);
-            success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.WORLD_RANDOM, out var worldRandom);
-            success &= PACTools.TryParseJsonValue<RandomStates, SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MISC_RANDOM, out var miscRandom);
+            success &= PACTools.TryParseJsonValue<SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MAIN_RANDOM, out var mainRandom);
+            success &= PACTools.TryParseJsonValue<SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.WORLD_RANDOM, out var worldRandom);
+            success &= PACTools.TryParseJsonValue<SplittableRandom?>(randomStatesJson, Constants.JsonKeys.RandomStates.MISC_RANDOM, out var miscRandom);
 
             if (
-                PACTools.TryCastJsonAnyValue<RandomStates, JsonDictionary>(
+                PACTools.TryCastJsonAnyValue<JsonDictionary>(
                     randomStatesJson,
                     Constants.JsonKeys.RandomStates.TILE_TYPE_NOISE_SEEDS,
                     out var tileTypeNoiseSeedsJson,
@@ -276,8 +276,8 @@ namespace ProgressAdventure
                 success = false;
             }
 
-            success &= PACTools.TryParseJsonValue<RandomStates, double?>(randomStatesJson, Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER, out var chunkSeedModifier);
-            success &= PACTools.TryParseJsonValue<RandomStates, string?>(randomStatesJson, Constants.JsonKeys.RandomStates.SEED_STRING, out var seedString);
+            success &= PACTools.TryParseJsonValue<double?>(randomStatesJson, Constants.JsonKeys.RandomStates.CHUNK_SEED_MODIFIER, out var chunkSeedModifier);
+            success &= PACTools.TryParseJsonValue<string?>(randomStatesJson, Constants.JsonKeys.RandomStates.SEED_STRING, out var seedString);
 
             randomStates = Initialize(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier, seedString);
             return success;

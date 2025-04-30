@@ -219,7 +219,7 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // item material
-                if (!PACTools.TryParseJsonValue<AItem, string>(oldJson, "type", out var typeValue, false))
+                if (!PACTools.TryParseJsonValue<string>(oldJson, "type", out var typeValue, false))
                 {
                     return;
                 }
@@ -247,9 +247,9 @@ namespace ProgressAdventure.ItemManagement
             {
                 // namespaced type/material
                 if (
-                    PACTools.TryParseJsonValue<AItem, string>(oldJson, "type", out var typeValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "type", out var typeValue, false) &&
                     !string.IsNullOrWhiteSpace(typeValue) &&
-                    PACTools.TryParseJsonValue<AItem, string>(oldJson, "material", out var materialValue, false) &&
+                    PACTools.TryParseJsonValue<string>(oldJson, "material", out var materialValue, false) &&
                     !string.IsNullOrWhiteSpace(materialValue)
                 )
                 {
@@ -277,11 +277,11 @@ namespace ProgressAdventure.ItemManagement
         static bool IJsonConvertable<AItem>.FromJsonWithoutCorrection(JsonDictionary itemJson, string fileVersion, [NotNullWhen(true)] ref AItem? itemObject)
         {
             if (!(
-                PACTools.TryParseJsonValue<AItem, string?>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, isCritical: true) &&
+                PACTools.TryParseJsonValue<string?>(itemJson, Constants.JsonKeys.Entity.TYPE, out var typeName, isCritical: true) &&
                 ItemUtils.TryParseItemType(typeName, out var itemType)
             ))
             {
-                PACTools.LogJsonError<AItem>($"unknown item type: \"{typeName}\"", true);
+                PACTools.LogJsonError($"unknown item type: \"{typeName}\"", true);
                 return false;
             }
 

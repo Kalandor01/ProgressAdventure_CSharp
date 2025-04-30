@@ -30,16 +30,16 @@ namespace ProgressAdventure.ConfigManagement
             var namespaceName = jsonDataRow.Key;
             if (!ConfigUtils.NamespaceRegex().IsMatch(namespaceName))
             {
-                PACommon.Tools.LogJsonParseError<ConfigLoadingData>("namespace", "namespace can only be lowercase characters, numbers and \"_\"");
+                PACommon.Tools.LogJsonParseError("namespace", "namespace can only be lowercase characters, numbers and \"_\"");
                 return null;
             }
 
             if (
                 jsonDataRow.Value is not JsonDictionary jsonData ||
-                !PACommon.Tools.TryParseJsonValue<ConfigLoadingData, bool>(jsonData, "enabled", out var enabled, false, true)
+                !PACommon.Tools.TryParseJsonValue<bool>(jsonData, "enabled", out var enabled, false, true)
             )
             {
-                PACommon.Tools.LogJsonParseError<ConfigLoadingData>("enabled", "defaulting to true");
+                PACommon.Tools.LogJsonParseError("enabled", "defaulting to true");
                 enabled = true;
             }
 
