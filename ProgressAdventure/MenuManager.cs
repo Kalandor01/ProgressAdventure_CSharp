@@ -21,11 +21,6 @@ namespace ProgressAdventure
     {
         #region Private fields
         /// <summary>
-        /// The action list for <c>OptionsUI</c> and <c>UIList</c>.
-        /// </summary>
-        private static List<ActionKey> _actionList;
-
-        /// <summary>
         /// The current list of saves data.<br/>
         /// SHOULD NOT BE MODIFIED MANUALY!
         /// </summary>
@@ -39,19 +34,16 @@ namespace ProgressAdventure
 
         #region Private Properties
         /// <summary>
-        /// <inheritdoc cref="_actionList"/>
+        /// The action list for <see cref="OptionsUI"/> and <see cref="UIList"/>.
         /// </summary>
         private static List<ActionKey> ActionList
         {
             get
             {
-                _actionList ??= PASingletons.Instance.Settings.Keybinds.KeybindList.ToList();
-                return _actionList;
+                field ??= [.. PASingletons.Instance.Settings.Keybinds.KeybindList];
+                return field;
             }
-            set
-            {
-                _actionList = value;
-            }
+            set;
         }
 
         /// <summary>
@@ -59,10 +51,7 @@ namespace ProgressAdventure
         /// </summary>
         private static List<(string saveName, string displayText)> SavesData
         {
-            get
-            {
-                return _savesData ??= SaveManager.GetSavesData();
-            }
+            get => _savesData ??= SaveManager.GetSavesData();
         }
         #endregion
 
@@ -676,7 +665,7 @@ namespace ProgressAdventure
         /// </summary>
         public static void MainMenu()
         {
-            ActionList = PASingletons.Instance.Settings.Keybinds.KeybindList.ToList();
+            ActionList = [.. PASingletons.Instance.Settings.Keybinds.KeybindList];
 
             var (answers, actions) = GetMainMenuLists();
 
@@ -769,6 +758,24 @@ namespace ProgressAdventure
         {
             Tools.CreateBackup(selectedSaveName);
             Utils.PressKey($"Backed up \"{selectedSaveName}\" save file!");
+
+            return SavesData.Count != 0 ? null : -1;
+        }
+
+        /// <summary>
+        /// Action, called when a copy save button is pressed.
+        /// </summary>
+        /// <param name="loadSaveUI">The saves menu <see cref="OptionsUI"/>.</param>
+        /// <param name="selectedSaveName">The name of the save to regenerate.</param>
+        private static object? CopySaveAction(OptionsUI loadSaveUI, string selectedSaveName)
+        {
+            var copyName = Tools.CopySave(selectedSaveName);
+            if (copyName is not null)
+            {
+                Utils.PressKey($"Copied \"{selectedSaveName}\" to \"{copyName}\"!");
+
+                UpdateSavesMenuLists(loadSaveUI);
+            }
 
             return SavesData.Count != 0 ? null : -1;
         }
@@ -922,6 +929,7 @@ namespace ProgressAdventure
                     new(new UIAction(LoadSaveAction, savesMenuUI, saveName), " Load ", "[Load]"),
                     new(new UIAction(RenameSaveAction, savesMenuUI, saveName), " Rename ", "[Rename]"),
                     new(new UIAction(BackupSaveAction, saveName), " Backup ", "[Backup]"),
+                    new(new UIAction(CopySaveAction, savesMenuUI, saveName), " Copy ", "[Copy]"),
                     new(new UIAction(RegenerateSaveAction, savesMenuUI, saveName), " Regenerate ", "[Regenerate]"),
                     new(new UIAction(DeleteSaveAction, savesMenuUI, saveName), " Delete ", "[Delete]"),
                     ], " ", preValue: displayText + "\n", multiline: true));

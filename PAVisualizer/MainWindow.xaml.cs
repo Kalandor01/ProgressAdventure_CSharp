@@ -536,6 +536,7 @@ namespace PAVisualizer
                             Content = tooltipContent,
                         }
                     };
+                    content.MouseLeftButtonDown += (s, e) => OnWorldTileClick(tileObj);
 
                     var column = xPos - minX;
                     var row = worldGrid.RowDefinitions.Count - 1 - (yPos - minY);
@@ -548,6 +549,12 @@ namespace PAVisualizer
 
             IsWorldVisible = true;
             TileCountsNeedToBeRefreshed = false;
+        }
+
+        private void OnWorldTileClick(Tile tile)
+        {
+            var tileInfo = new TileInfoWindow(tile);
+            tileInfo.ShowDialog();
         }
 
         private void UpdateViewTextboxes()

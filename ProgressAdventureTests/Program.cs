@@ -26,6 +26,8 @@ namespace ProgressAdventureTests
         /// </summary>
         static void MainFunction()
         {
+            //PATools.LoadDefaultConfigs();
+            PATools.ReloadConfigs();
             //Tools.RunAllTests();
             //Tools.CreateNewTestSaveFromPrevious("2.5");
             TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest, Tools.DisposeTest);

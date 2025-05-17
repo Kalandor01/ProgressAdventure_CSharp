@@ -268,17 +268,42 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Copies the save folder, if it exists.
+        /// </summary>
+        /// <param name="saveFolderName">The name of the save folder.</param>
+        /// <returns>The name of the copied save folder, or null it the copy failed.</returns>
+        public static string? CopySave(string saveFolderName)
+        {
+            var saveFolderPath = GetSaveFolderPath(saveFolderName);
+            if (!Directory.Exists(saveFolderPath))
+            {
+                return null;
+            }
+
+            var copySaveName = CorrectSaveName(saveFolderName);
+            var copySavePath = GetSaveFolderPath(copySaveName);
+
+            Utils.CopyDirectory(saveFolderPath, copySavePath);
+            PACSingletons.Instance.Logger.Log("Copied save", $"save name: {saveFolderName} -> {copySaveName}");
+            return copySaveName;
+        }
+
+        /// <summary>
         /// Deletes the save folder, if it exists.
         /// </summary>
         /// <param name="saveFolderName">The name of the save folder.</param>
-        public static void DeleteSave(string saveFolderName)
+        /// <returns>If the save folder was deleted.</returns>
+        public static bool DeleteSave(string saveFolderName)
         {
             var saveFolderPath = GetSaveFolderPath(saveFolderName);
-            if (Directory.Exists(saveFolderPath))
+            if (!Directory.Exists(saveFolderPath))
             {
-                Directory.Delete(saveFolderPath, true);
-                PACSingletons.Instance.Logger.Log("Deleted save", $"save name: {saveFolderName}");
+                return false;
             }
+
+            Directory.Delete(saveFolderPath, true);
+            PACSingletons.Instance.Logger.Log("Deleted save", $"save name: {saveFolderName}");
+            return true;
         }
 
         /// <summary>

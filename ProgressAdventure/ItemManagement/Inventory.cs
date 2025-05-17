@@ -225,7 +225,7 @@ namespace ProgressAdventure.ItemManagement
             success = PACTools.TryParseJsonListValue(inventoryJson, Constants.JsonKeys.Inventory.ITEMS,
                 itemJson =>
                 {
-                    var parseSuccess = PACTools.TryFromJson(itemJson as JsonDictionary, fileVersion, out AItem? itemObject);
+                    var parseSuccess = PACTools.TryFromJson<AItem>(itemJson as JsonDictionary, fileVersion, out var itemObject);
                     success &= parseSuccess;
                     return (parseSuccess, itemObject);
                 },

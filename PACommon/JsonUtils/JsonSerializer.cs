@@ -92,7 +92,7 @@ namespace PACommon.JsonUtils
                 var jsonValue = DeserializeJsonElement(property.Value);
                 jsonDict.Add(property.Name, jsonValue);
             }
-            return new JsonDictionary(jsonDict);
+            return [.. jsonDict];
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace PACommon.JsonUtils
             {
                 jsonList.Add(DeserializeJsonElement(element));
             }
-            return new JsonArray(jsonList);
+            return [.. jsonList];
         }
 
         private static Dictionary<string, object?>? SerializeJsonDictionary(JsonDictionary? jsonObject)

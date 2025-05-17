@@ -225,7 +225,7 @@ namespace ProgressAdventure.ItemManagement
             var partsFileVersion = Utils.IsUpToDate("2.2", fileVersion) ? fileVersion : "2.2";
             success &= PACTools.TryParseJsonListValue(itemJson, Constants.JsonKeys.CompoundItem.PARTS,
                 partJson => {
-                    success &= PACTools.TryFromJson(partJson as JsonDictionary, partsFileVersion, out AItem? part);
+                    success &= PACTools.TryFromJson<AItem>(partJson as JsonDictionary, partsFileVersion, out var part);
                     return (part is not null, part);
                 },
                 out var parts, true);

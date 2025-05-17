@@ -202,7 +202,9 @@ namespace ProgressAdventure.WorldManagement
                     }
                     break;
                 }
-                entitiesToGenerate[nextType.Key] = Math.Min(nextType.Value, amount - sumAmount);
+                var generateAmount = Math.Min(nextType.Value, amount - sumAmount);
+                sumAmount += generateAmount;
+                entitiesToGenerate[nextType.Key] = generateAmount;
                 if (sumAmount >= amount)
                 {
                     break;

@@ -3,16 +3,36 @@ using System.Diagnostics;
 
 namespace PACommon.JsonUtils
 {
+    /// <summary>
+    /// A class representing a json array.
+    /// </summary>
     [DebuggerDisplay("Length = {Value.Count}")]
     public class JsonArray : JsonObject<List<JsonObject?>>, IList<JsonObject?>
     {
         #region Constructors
+        /// <summary>
+        /// <inheritdoc cref="JsonArray" path="//summary"/>
+        /// </summary>
+        /// <param name="value">The starting value of the array.</param>
         public JsonArray(List<JsonObject?> value)
             : base(JsonObjectType.Array, value)
         {
 
         }
 
+        /// <summary>
+        /// <inheritdoc cref="JsonArray" path="//summary"/>
+        /// </summary>
+        /// <param name="enumValue">The starting value of the array.</param>
+        public JsonArray(IEnumerable<JsonObject?> enumValue)
+            : base(JsonObjectType.Array, [.. enumValue])
+        {
+
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="JsonArray" path="//summary"/>
+        /// </summary>
         public JsonArray()
             : this([])
         {

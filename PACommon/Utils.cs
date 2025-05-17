@@ -139,6 +139,12 @@ namespace PACommon
         /// </summary>
         public static bool TryEnableAnsiCodes()
         {
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                return true;
+            }
+            
+            var h = Environment.OSVersion.Platform;
             var handle = GetStdHandle(STD_OUTPUT_HANDLE);
             GetConsoleMode(handle, out var mode);
             mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
@@ -157,13 +163,13 @@ namespace PACommon
             var txt = new StringBuilder();
             if (foregroundColor is not null)
             {
-                txt.Append($"\u001b[38;2;{foregroundColor.Value.r};{foregroundColor.Value.g};{foregroundColor.Value.b}m");
+                txt.Append($"\e[38;2;{foregroundColor.Value.r};{foregroundColor.Value.g};{foregroundColor.Value.b}m");
             }
             if (backgroundColor is not null)
             {
-                txt.Append($"\u001b[48;2;{backgroundColor.Value.r};{backgroundColor.Value.g};{backgroundColor.Value.b}m");
+                txt.Append($"\e[48;2;{backgroundColor.Value.r};{backgroundColor.Value.g};{backgroundColor.Value.b}m");
             }
-            return txt.Append($"{text}\u001b[0m").ToString();
+            return txt.Append($"{text}\e[0m").ToString();
         }
 
         /// <inheritdoc cref="ConsoleUI.Utils.MoveCursor(ValueTuple{int, int})"/>
@@ -732,6 +738,40 @@ namespace PACommon
         public static Type? GetCallingClassType()
         {
             return new StackTrace(2, false).GetFrame(0)?.GetMethod()?.DeclaringType;
+        }
+
+        /// <summary>
+        /// Recursively copies a directory, and it's subdirectories.
+        /// </summary>
+        /// <param name="source">The source directory.</param>
+        /// <param name="target">The destination directory.</param>
+        public static void CopyDirectory(DirectoryInfo source, DirectoryInfo target)
+        {
+            Directory.CreateDirectory(target.FullName);
+
+            foreach (var file in source.GetFiles())
+            {
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+            }
+
+            foreach (var diSourceSubDir in source.GetDirectories())
+            {
+                var nextTargetSubDir = target.CreateSubdirectory(diSourceSubDir.Name);
+                CopyDirectory(diSourceSubDir, nextTargetSubDir);
+            }
+        }
+
+        /// <summary>
+        /// Recursively copies a directory, and it's subdirectories.
+        /// </summary>
+        /// <param name="sourceDirectory">The path of the source directory.</param>
+        /// <param name="targetDirectory">The path of the destination directory.</param>
+        public static void CopyDirectory(string sourceDirectory, string targetDirectory)
+        {
+            var diSource = new DirectoryInfo(sourceDirectory);
+            var diTarget = new DirectoryInfo(targetDirectory);
+
+            CopyDirectory(diSource, diTarget);
         }
         #endregion
 
