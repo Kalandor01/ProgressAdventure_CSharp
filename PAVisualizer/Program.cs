@@ -124,6 +124,7 @@ namespace PAVisualizer
                         new AdvancedEnumConverter<EntityType>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
+                        new AIngredientDTOConverter(),
                         new ConsoleKeyInfoConverter(),
                     ],
                     PAConstants.CONFIGS_FOLDER_PATH,

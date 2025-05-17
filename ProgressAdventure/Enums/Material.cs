@@ -28,5 +28,6 @@ namespace ProgressAdventure.Enums
         public static readonly EnumValue<Material> HEALING_LIQUID = AddValue(ConfigUtils.MakeNamespacedString(nameof(HEALING_LIQUID).ToLower()));
         public static readonly EnumValue<Material> FLINT = AddValue(ConfigUtils.MakeNamespacedString(nameof(FLINT).ToLower()));
         public static readonly EnumValue<Material> SILK = AddValue(ConfigUtils.MakeNamespacedString(nameof(SILK).ToLower()));
+        public static readonly EnumValue<Material> WATER = AddValue(ConfigUtils.MakeNamespacedString(nameof(WATER).ToLower()));
     }
 }

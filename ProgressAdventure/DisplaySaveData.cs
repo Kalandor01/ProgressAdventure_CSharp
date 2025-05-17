@@ -1,4 +1,7 @@
-﻿using PACommon.JsonUtils;
+﻿using PACommon.Enums;
+using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
@@ -15,16 +18,25 @@ namespace ProgressAdventure
         public readonly DateTime? lastSave;
         public readonly TimeSpan? playtime;
         public readonly string? playerName;
+        public readonly ReadOnlyCollection<LoadedConfigData>? lastLoadedConfigs;
         #endregion
 
         #region Public constructors
-        private DisplaySaveData(string? saveVersion, string? displaySaveName, DateTime? lastSave, TimeSpan? playtime, string? playerName)
+        private DisplaySaveData(
+            string? saveVersion,
+            string? displaySaveName,
+            DateTime? lastSave,
+            TimeSpan? playtime,
+            string? playerName,
+            List<LoadedConfigData>? lastLoadedConfigs
+        )
         {
             this.saveVersion = saveVersion;
             this.displaySaveName = displaySaveName;
             this.lastSave = lastSave;
             this.playtime = playtime;
             this.playerName = playerName;
+            this.lastLoadedConfigs = lastLoadedConfigs?.AsReadOnly();
         }
         #endregion
 
@@ -41,6 +53,11 @@ namespace ProgressAdventure
                     ["lastSave"] = "last_save",
                 });
             }, "2.2"),
+            // 2.5.1 -> 2.6
+            (oldJson => {
+                // last loaded configs
+                oldJson["last_loaded_configs"] = new JsonArray();
+            }, "2.6"),
         ];
 
         public JsonDictionary ToJson()
@@ -52,6 +69,7 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = lastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = playtime,
                 [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = playerName,
+                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(lastLoadedConfigs.Select(c => c.ToJson())),
             };
         }
 
@@ -67,6 +85,7 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = saveData.LastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = saveData.GetPlaytime(),
                 [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = saveData.PlayerRef.name,
+                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(saveData.LastLoadedConfigs.Select(c => c.ToJson())),
             };
         }
 
@@ -79,8 +98,18 @@ namespace ProgressAdventure
             success &= PACTools.TryParseJsonValue<DateTime?>(objectJson, Constants.JsonKeys.SaveData.LAST_SAVE, out var lastSave);
             success &= PACTools.TryParseJsonValue<TimeSpan?>(objectJson, Constants.JsonKeys.SaveData.PLAYTIME, out var playtime);
             success &= PACTools.TryParseJsonValue<string?>(objectJson, Constants.JsonKeys.DisplaySaveData.PLAYER_NAME, out var playerName);
+            success &= PACTools.TryParseJsonListValue(
+                objectJson,
+                Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS,
+                configJson =>
+                {
+                    success &= PACTools.TryFromJson<LoadedConfigData>(configJson as JsonDictionary, fileVersion, out var config);
+                    return (config is not null, config);
+                },
+                out var lastLoadedConfigs
+            );
 
-            convertedObject = new DisplaySaveData(saveVersion, displayName, lastSave, playtime, playerName);
+            convertedObject = new DisplaySaveData(saveVersion, displayName, lastSave, playtime, playerName, lastLoadedConfigs);
             return success;
         }
         #endregion

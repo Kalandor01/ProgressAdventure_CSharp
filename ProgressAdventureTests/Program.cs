@@ -69,6 +69,7 @@ namespace ProgressAdventureTests
                         new AdvancedEnumConverter<Material>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
+                        new AIngredientDTOConverter(),
                         new ConsoleKeyInfoConverter(),
                     ],
                     PAConstants.CONFIGS_FOLDER_PATH,

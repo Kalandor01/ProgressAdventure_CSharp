@@ -261,6 +261,79 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
+        /// Checks if the ItemUtils, item deffinitions are correct.
+        /// </summary>
+        public static TestResultDTO? ItemUtilsItemDeffinitionsCheck()
+        {
+            var checkedDictionary = ItemUtils.DeffinitionItemRecipes;
+
+            var errorMessages = new List<string>();
+            Console.WriteLine();
+            foreach (var deffinitions in checkedDictionary)
+            {
+                if (deffinitions.Value is null)
+                {
+                    errorMessages.Add($"The deffinitions list at item type \"{deffinitions.Key}\" is null.");
+                    continue;
+                }
+                if (deffinitions.Value.Count == 0)
+                {
+                    errorMessages.Add($"The deffinitions list at item type \"{deffinitions.Key}\" is empty.");
+                    continue;
+                }
+                if (!ItemUtils.CompoundItemAttributes.TryGetValue(deffinitions.Key, out var compoundItem))
+                {
+                    errorMessages.Add($"There is no compound item attribute for the item type \"{deffinitions.Key}\".");
+                    continue;
+                }
+
+                var prop = compoundItem.properties;
+                double? maxVolume = null;
+                if (
+                    prop.dimensionX is not null &&
+                    prop.dimensionY is not null &&
+                    prop.dimensionZ is not null
+                )
+                {
+                    maxVolume = prop.dimensionX * prop.dimensionY * prop.dimensionZ;
+                }
+
+                foreach (var deffinition in deffinitions.Value)
+                {
+                    if (deffinition is null)
+                    {
+                        errorMessages.Add($"A deffinition in the deffinitions list at item type \"{deffinitions.Key}\" is null.");
+                        continue;
+                    }
+
+                    var isClose = false;
+                    if (
+                        maxVolume is not null &&
+                        deffinition.volume > maxVolume
+                    )
+                    {
+                        isClose = true;
+                        var diff = deffinition.volume - maxVolume;
+                        if (maxVolume / 1e15 < diff)
+                        {
+                            errorMessages.Add($"A deffinition in the deffinitions list at item type \"{deffinitions.Key}\" has a bigger volume than it's dimensions would allow: {maxVolume} (+{diff}).");
+                            continue;
+                        }
+                    }
+                    Console.WriteLine($"\t{(isClose ? " !!!" : "")} \"{deffinitions.Key}\" Diff: {(maxVolume is null ? "[VARIABLE]" : $"{maxVolume} ({deffinition.volume - maxVolume})")}");
+                }
+            }
+
+            Console.Write("Results...");
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Checks if the ItemUtils, compound item attributes dictionary contains all required keys and correct values.
         /// </summary>
         public static TestResultDTO? ItemUtilsItemRecipesDictionaryCheck()
@@ -275,6 +348,17 @@ namespace ProgressAdventureTests
                     errorMessages.Add($"The recipes list at item type \"{itemRecipes.Key}\" is null.");
                     continue;
                 }
+                if (itemRecipes.Value.Count == 0)
+                {
+                    errorMessages.Add($"The recipes list at item type \"{itemRecipes.Key}\" is empty.");
+                    continue;
+                }
+                if (!ItemUtils.CompoundItemAttributes.TryGetValue(itemRecipes.Key, out var compoundItem))
+                {
+                    errorMessages.Add($"There is no compound item attribute for the item type \"{itemRecipes.Key}\".");
+                    continue;
+                }
+
                 foreach (var itemRecipe in itemRecipes.Value)
                 {
                     if (itemRecipe is null)
@@ -283,7 +367,7 @@ namespace ProgressAdventureTests
                         continue;
                     }
                     if (
-                        ItemUtils.CompoundItemAttributes[itemRecipes.Key].unit == ItemAmountUnit.AMOUNT &&
+                        compoundItem.unit == ItemAmountUnit.AMOUNT &&
                         itemRecipe.resultAmount % 1 != 0
                     )
                     {

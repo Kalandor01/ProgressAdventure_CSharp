@@ -15,7 +15,8 @@ namespace ProgressAdventure.Enums
         {
             var w = Weapon.CLUB;
             var d = Defence.HELMET;
-            var m = Misc.ROD;
+            var f = Form.DUST;
+            var m = Misc.MATERIAL;
         }
 
         public static readonly EnumTreeValue<ItemType> _WEAPON = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Weapon).ToLower()));
@@ -38,6 +39,23 @@ namespace ProgressAdventure.Enums
             public static readonly EnumTreeValue<ItemType> BOOTS = AddValue(_DEFENCE, nameof(BOOTS).ToLower());
         }
 
+        public static readonly EnumTreeValue<ItemType> _FORM = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Form).ToLower()));
+        public static class Form
+        {
+            public static readonly EnumTreeValue<ItemType> CHUNK = AddValue(_FORM, nameof(CHUNK).ToLower());
+            public static readonly EnumTreeValue<ItemType> BLOCK = AddValue(_FORM, nameof(BLOCK).ToLower());
+            public static readonly EnumTreeValue<ItemType> BIT = AddValue(_FORM, nameof(BIT).ToLower());
+            public static readonly EnumTreeValue<ItemType> CHIPS = AddValue(_FORM, nameof(CHIPS).ToLower());
+            public static readonly EnumTreeValue<ItemType> DUST = AddValue(_FORM, nameof(DUST).ToLower());
+            public static readonly EnumTreeValue<ItemType> PIECE = AddValue(_FORM, nameof(PIECE).ToLower());
+
+            public static readonly EnumTreeValue<ItemType> PLANK = AddValue(_FORM, nameof(PLANK).ToLower());
+            public static readonly EnumTreeValue<ItemType> ROD = AddValue(_FORM, nameof(ROD).ToLower());
+            public static readonly EnumTreeValue<ItemType> SHEET = AddValue(_FORM, nameof(SHEET).ToLower());
+            public static readonly EnumTreeValue<ItemType> BRICK = AddValue(_FORM, nameof(BRICK).ToLower());
+            public static readonly EnumTreeValue<ItemType> THREAD = AddValue(_FORM, nameof(THREAD).ToLower());
+        }
+
         public static readonly EnumTreeValue<ItemType> _MISC = AddValue(null, ConfigUtils.MakeNamespacedString(nameof(Misc).ToLower()));
         public static class Misc
         {
@@ -48,7 +66,6 @@ namespace ProgressAdventure.Enums
             public static readonly EnumTreeValue<ItemType> SWORD_HILT = AddValue(_MISC, nameof(SWORD_HILT).ToLower());
             public static readonly EnumTreeValue<ItemType> SWORD_BLADE = AddValue(_MISC, nameof(SWORD_BLADE).ToLower());
             public static readonly EnumTreeValue<ItemType> ARROW_TIP = AddValue(_MISC, nameof(ARROW_TIP).ToLower());
-            public static readonly EnumTreeValue<ItemType> ROD = AddValue(_MISC, nameof(ROD).ToLower());
         }
     }
 }

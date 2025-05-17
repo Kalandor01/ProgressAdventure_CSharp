@@ -196,6 +196,7 @@ namespace ProgressAdventure
                 public const string PLAYER_POS_Y = "player_pos_y";
                 public const string PLAYER_REF = "player_ref";
                 public const string RANDOM_STATES = "random_states";
+                public const string LAST_LOADED_CONFIGS = "last_loaded_configs";
             }
             #endregion
 
@@ -404,11 +405,30 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v8";
+        public const string CONFIG_VERSION = "v9";
         /// <summary>
         /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
         /// </summary>
         public const string CONFIG_REMOVE_BEGGINING = "-";
+        #endregion
+
+        #region Items
+        /// <summary>
+        /// The amount of digits to round an item's amount to, to counteract bad float math.
+        /// </summary>
+        public const int ITEM_AMOUNT_ROUNDING_DIGITS = 4;
+        /// <summary>
+        /// The limit to whether to display the item amount normaly, or in a scientific notation. The limit surpassed if amount > 10^x or amount < 10^-x.
+        /// </summary>
+        public const int ITEM_AMOUNT_SCIENTIFIC_FORMAT_DIGITS = 4;
+        /// <summary>
+        /// 0 kelvin in °C.
+        /// </summary>
+        public const double ZERO_KELVIN_IN_C = -273.15;
+        /// <summary>
+        /// The standard room temperature.
+        /// </summary>
+        public const double ROOM_TEMPERATURE = 21;
         #endregion
 
         #region Other
@@ -435,7 +455,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current save version.
         /// </summary>
-        public const string SAVE_VERSION = "2.5.1";
+        public const string SAVE_VERSION = "2.6";
         /// <summary>
         /// The division to use in tile noises.
         /// </summary>
@@ -444,14 +464,6 @@ namespace ProgressAdventure
         /// In a fight, if no one took damage in X turns, the fight automaticaly ends.
         /// </summary>
         public const int FIGHT_GIVE_UP_TURN_NUMBER = 20;
-        /// <summary>
-        /// The amount of digits to round an item's amount to, to counteract bad float math.
-        /// </summary>
-        public const int ITEM_AMOUNT_ROUNDING_DIGITS = 4;
-        /// <summary>
-        /// The limit to whether to display the item amount normaly, or in a scientific notation. The limit surpassed if amount > 10^x or amount < 10^-x.
-        /// </summary>
-        public const int ITEM_AMOUNT_SCIENTIFIC_FORMAT_DIGITS = 4;
         /// <summary>
         /// The save folder name to use, if the SaveData singleton was initialized from the Instance property.
         /// </summary>

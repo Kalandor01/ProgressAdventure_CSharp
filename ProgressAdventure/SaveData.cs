@@ -1,5 +1,6 @@
 ﻿using PACommon;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
@@ -78,6 +79,11 @@ namespace ProgressAdventure
             }
             private set => _playerRef = value;
         }
+
+        /// <summary>
+        /// The list of the configs that were loaded the last time the save was loaded.
+        /// </summary>
+        public List<LoadedConfigData> LastLoadedConfigs { get; private set; }
         #endregion
 
         #region Private constructors

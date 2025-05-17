@@ -11,7 +11,7 @@ namespace ProgressAdventure.ItemManagement
         /// The list of items required to complete the recipe.
         /// </summary>
         [JsonPropertyName("ingredients")]
-        public readonly List<IngredientDTO> ingredients;
+        public readonly List<AIngredientDTO> ingredients;
         /// <summary>
         /// The amount of items that get created when completing this recipe.
         /// </summary>
@@ -24,7 +24,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="ingredients"><inheritdoc cref="ingredients" path="//summary"/></param>
         /// <param name="resultAmount"><inheritdoc cref="resultAmount" path="//summary"/></param>
         [JsonConstructor]
-        public RecipeDTO(List<IngredientDTO> ingredients, double resultAmount = 1)
+        public RecipeDTO(List<AIngredientDTO> ingredients, double resultAmount = 1)
         {
             if (ingredients.Count == 0)
             {

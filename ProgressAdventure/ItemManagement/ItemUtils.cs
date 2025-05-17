@@ -262,6 +262,7 @@ namespace ProgressAdventure.ItemManagement
             Material.HEALING_LIQUID,
             Material.FLINT,
             Material.SILK,
+            Material.WATER,
         ];
 
         /// <summary>
@@ -281,6 +282,18 @@ namespace ProgressAdventure.ItemManagement
             ItemType.Defence.CHESTPLATE,
             ItemType.Defence.PANTS,
             ItemType.Defence.BOOTS,
+            //form
+            ItemType.Form.CHUNK,
+            ItemType.Form.BLOCK,
+            ItemType.Form.BIT,
+            ItemType.Form.CHIPS,
+            ItemType.Form.DUST,
+            ItemType.Form.PIECE,
+            ItemType.Form.PLANK,
+            ItemType.Form.ROD,
+            ItemType.Form.SHEET,
+            ItemType.Form.BRICK,
+            ItemType.Form.THREAD,
             //misc
             MATERIAL_ITEM_TYPE,
             ItemType.Misc.BOTTLE,
@@ -289,7 +302,6 @@ namespace ProgressAdventure.ItemManagement
             ItemType.Misc.SWORD_BLADE,
             ItemType.Misc.SWORD_HILT,
             ItemType.Misc.ARROW_TIP,
-            ItemType.Misc.ROD,
         ];
 
         /// <summary>
@@ -298,26 +310,37 @@ namespace ProgressAdventure.ItemManagement
         private static readonly Dictionary<EnumTreeValue<ItemType>, CompoundItemAttributesDTO> _defaultCompoundItemAttributes = new()
         {
             //weapons
-            [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD),
-            [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW),
-            [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW),
-            [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO("*/0MC/* club with */1ML/*"),
+            [ItemType.Weapon.SWORD] = new CompoundItemAttributesDTO(ItemType.Weapon.SWORD, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO("*/0MC/* club with */1ML/*", new CompoundItemPropertiesDTO(999, 999, 999)),
             //defence
-            [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD),
-            [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET),
-            [ItemType.Defence.CHESTPLATE] = new CompoundItemAttributesDTO(ItemType.Defence.CHESTPLATE),
-            [ItemType.Defence.PANTS] = new CompoundItemAttributesDTO(ItemType.Defence.PANTS),
-            [ItemType.Defence.BOOTS] = new CompoundItemAttributesDTO(ItemType.Defence.BOOTS),
+            [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Defence.CHESTPLATE] = new CompoundItemAttributesDTO(ItemType.Defence.CHESTPLATE, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Defence.PANTS] = new CompoundItemAttributesDTO(ItemType.Defence.PANTS, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Defence.BOOTS] = new CompoundItemAttributesDTO(ItemType.Defence.BOOTS, new CompoundItemPropertiesDTO(999, 999, 999)),
+            //form
+            [ItemType.Form.CHUNK] = new CompoundItemAttributesDTO(ItemType.Form.CHUNK, new CompoundItemPropertiesDTO(Math.Pow(10, 1.0 / 3), Math.Pow(10, 1.0 / 3), Math.Pow(10, 1.0 / 3))),
+            [ItemType.Form.BLOCK] = new CompoundItemAttributesDTO(ItemType.Form.BLOCK, new CompoundItemPropertiesDTO(1, 1, 1)),
+            [ItemType.Form.BIT] = new CompoundItemAttributesDTO(ItemType.Form.BIT, new CompoundItemPropertiesDTO(Math.Pow(0.1, 1.0/3), Math.Pow(0.1, 1.0 / 3), Math.Pow(0.1, 1.0 / 3))),
+            [ItemType.Form.CHIPS] = new CompoundItemAttributesDTO(ItemType.Form.CHIPS, new CompoundItemPropertiesDTO(1e-2, 1e-2, 1e-2), ItemAmountUnit.KG),
+            [ItemType.Form.DUST] = new CompoundItemAttributesDTO(ItemType.Form.DUST, new CompoundItemPropertiesDTO(1e-3, 1e-3, 1e-3), ItemAmountUnit.KG),
+            [ItemType.Form.PIECE] = new CompoundItemAttributesDTO($"*/0MC/*", new CompoundItemPropertiesDTO(null, null, null)),
+            [ItemType.Form.PLANK] = new CompoundItemAttributesDTO(ItemType.Form.PLANK, new CompoundItemPropertiesDTO(0.03, 0.15, 1)),
+            [ItemType.Form.ROD] = new CompoundItemAttributesDTO(ItemType.Form.ROD, new CompoundItemPropertiesDTO(4e-2, 4e-2, 1)),
+            [ItemType.Form.SHEET] = new CompoundItemAttributesDTO(ItemType.Form.SHEET, new CompoundItemPropertiesDTO(1, 1, 1e-3)),
+            [ItemType.Form.BRICK] = new CompoundItemAttributesDTO(ItemType.Form.BRICK, new CompoundItemPropertiesDTO(0.11, 0.22, 0.075)),
+            [ItemType.Form.THREAD] = new CompoundItemAttributesDTO(ItemType.Form.THREAD, new CompoundItemPropertiesDTO(1e-3, 1e-3, 1)),
             //misc
-            [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, ItemAmountUnit.KG),
-            [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE),
-            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO("*/0MC/* bottle of */1MC/*"),
-            [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN),
-            [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE),
-            [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT),
-            [ItemType.Misc.ARROW_TIP] = new CompoundItemAttributesDTO(ItemType.Misc.ARROW_TIP),
-            [ItemType.Misc.ROD] = new CompoundItemAttributesDTO(ItemType.Misc.ROD),
+            [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, new CompoundItemPropertiesDTO(null, null, null), ItemAmountUnit.KG),
+            [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO("*/0MC/* bottle of */1MC/*", new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN, new CompoundItemPropertiesDTO(25e-3, 25e-3, 2e-3)),
+            [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT, new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Misc.ARROW_TIP] = new CompoundItemAttributesDTO(ItemType.Misc.ARROW_TIP, new CompoundItemPropertiesDTO(999, 999, 999)),
         };
 
         /// <summary>
@@ -325,27 +348,86 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         private static readonly Dictionary<EnumValue<Material>, MaterialItemAttributesDTO> _defaultMaterialItemAttributes = new()
         {
-            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS, new MaterialPropertiesDTO(8730)),
-            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH, new MaterialPropertiesDTO(1550)),
-            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER, new MaterialPropertiesDTO(8960)),
-            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS, new MaterialPropertiesDTO(2500)),
-            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD, new MaterialPropertiesDTO(19300)),
-            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON, new MaterialPropertiesDTO(7875)),
-            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER, new MaterialPropertiesDTO(800)),
-            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH, new MaterialPropertiesDTO(1000)),
-            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER, new MaterialPropertiesDTO(10490)),
-            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL, new MaterialPropertiesDTO(7900)),
-            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE, new MaterialPropertiesDTO(2650)),
-            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH, new MaterialPropertiesDTO(2900)),
-            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD, new MaterialPropertiesDTO(600)),
-            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL, new MaterialPropertiesDTO(1241)),
-            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, new MaterialPropertiesDTO(1015), ItemAmountUnit.L),
-            [Material.FLINT] = new MaterialItemAttributesDTO(Material.FLINT, new MaterialPropertiesDTO(2596)),
-            [Material.SILK] = new MaterialItemAttributesDTO(Material.SILK, new MaterialPropertiesDTO(1400)),
+            [Material.BRASS] = new MaterialItemAttributesDTO(Material.BRASS, new MaterialPropertiesDTO(8730, 930, 1035)),
+            [Material.CLOTH] = new MaterialItemAttributesDTO(Material.CLOTH, new MaterialPropertiesDTO(1550, 210, 400, true)),
+            [Material.COPPER] = new MaterialItemAttributesDTO(Material.COPPER, new MaterialPropertiesDTO(8960, 1084, 2562)),
+            [Material.GLASS] = new MaterialItemAttributesDTO(Material.GLASS, new MaterialPropertiesDTO(2500, 1500, 2230)),
+            [Material.GOLD] = new MaterialItemAttributesDTO(Material.GOLD, new MaterialPropertiesDTO(19300, 1064, 2856)),
+            [Material.IRON] = new MaterialItemAttributesDTO(Material.IRON, new MaterialPropertiesDTO(7875, 1538, 2861)),
+            [Material.LEATHER] = new MaterialItemAttributesDTO(Material.LEATHER, new MaterialPropertiesDTO(800, 170, 212, true)),
+            [Material.ROTTEN_FLESH] = new MaterialItemAttributesDTO(Material.ROTTEN_FLESH, new MaterialPropertiesDTO(1000, 72, 620, true)),
+            [Material.SILVER] = new MaterialItemAttributesDTO(Material.SILVER, new MaterialPropertiesDTO(10490, 962, 2162)),
+            [Material.STEEL] = new MaterialItemAttributesDTO(Material.STEEL, new MaterialPropertiesDTO(7900, 1400, 3000)),
+            [Material.STONE] = new MaterialItemAttributesDTO(Material.STONE, new MaterialPropertiesDTO(2650, 1250, 2700)),
+            [Material.TEETH] = new MaterialItemAttributesDTO(Material.TEETH, new MaterialPropertiesDTO(2900, 1000, 1200, true)),
+            [Material.WOOD] = new MaterialItemAttributesDTO(Material.WOOD, new MaterialPropertiesDTO(600, 250, 400, true)),
+            [Material.WOOL] = new MaterialItemAttributesDTO(Material.WOOL, new MaterialPropertiesDTO(1241, 200, 580, true)),
+            [Material.HEALING_LIQUID] = new MaterialItemAttributesDTO(Material.HEALING_LIQUID, new MaterialPropertiesDTO(1015, -2, 101), ItemAmountUnit.L),
+            [Material.FLINT] = new MaterialItemAttributesDTO(Material.FLINT, new MaterialPropertiesDTO(2596, 1710, 2230)),
+            [Material.SILK] = new MaterialItemAttributesDTO(Material.SILK, new MaterialPropertiesDTO(1400, 175, 300, true)),
+            [Material.WATER] = new MaterialItemAttributesDTO(Material.WATER, new MaterialPropertiesDTO(997, 0, 100)),
             // TODO: diferent density per state
             // M    : SOLID, LIQUID, GAS
             // WATER: 920, 1000, 3 kg/m^3
+            // TODO: melting and burnig are more complex, latent heat from state changes
         };
+
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="DeffinitionItemRecipes"/>.
+        /// </summary>
+        private static Dictionary<EnumTreeValue<ItemType>, List<ItemDeffinitionDTO>> _defaultDeffinitionItemRecipes;
+        private static void LoadDefaultDeffinitionItemRecipes()
+        {
+            _defaultDeffinitionItemRecipes ??= new()
+            {
+                [ItemType.Form.CHUNK] =
+                [
+                    new(10),
+                ],
+                [ItemType.Form.BLOCK] =
+                [
+                    new(1),
+                ],
+                [ItemType.Form.BIT] =
+                [
+                    new(0.1),
+                ],
+                [ItemType.Form.CHIPS] =
+                [
+                    new(1e-6),
+                ],
+                [ItemType.Form.DUST] =
+                [
+                    new(1e-9),
+                ],
+
+                [ItemType.Form.PLANK] =
+                [
+                    new(0.0045),
+                ],
+                [ItemType.Form.ROD] =
+                [
+                    new(4e-4 * double.Pi),
+                ],
+                [ItemType.Form.SHEET] =
+                [
+                    new(1e-3),
+                ],
+                [ItemType.Form.BRICK] =
+                [
+                    new(1.815e-3),
+                ],
+                [ItemType.Form.THREAD] =
+                [
+                    new(2.5e-7 * double.Pi),
+                ],
+
+                [ItemType.Form.PIECE] =
+                [
+                    new(Material.TEETH, /*(cube)(9 * 9 * 7) + ((piramid)((9 * 8 * 13) / 3) -> 312+ -> 320) = 887 mm3*/ 8.87e-7),
+                ],
+            };
+        }
 
         /// <summary>
         /// The default value for the config used for the value of <see cref="ItemRecipes"/>.
@@ -358,57 +440,57 @@ namespace ProgressAdventure.ItemManagement
                 // weapon
                 [ItemType.Weapon.SWORD] =
                 [
-                    new([new(ItemType.Misc.SWORD_BLADE, 1), new(ItemType.Misc.SWORD_HILT, 1)]),
+                    new([new IngredientDTO(ItemType.Misc.SWORD_BLADE, 1), new IngredientDTO(ItemType.Misc.SWORD_HILT, 1)]),
                 ],
                 [ItemType.Weapon.BOW] =
                 [
-                    new([new(ItemType.Misc.ROD, 1), new(ItemType.Misc.ROD, 1)]),
+                    new([new IngredientDTO(ItemType.Form.ROD, 1), new IngredientDTO(ItemType.Form.ROD, 1)]),
                 ],
                 [ItemType.Weapon.ARROW] =
                 [
-                    new([new(ItemType.Misc.ARROW_TIP, 1), new(ItemType.Misc.ROD, 1)]),
+                    new([new IngredientDTO(ItemType.Misc.ARROW_TIP, 1), new IngredientDTO(ItemType.Form.ROD, 1)]),
                 ],
                 [ItemType.Weapon.CLUB] =
                 [
-                    new([new(0.5, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(0.5, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Weapon.CLUB_WITH_TEETH] =
                 [
-                    new([new(ItemType.Weapon.CLUB, 1), new(Material.TEETH, 1, ItemAmountUnit.KG)]),
+                    new([new IngredientDTO(ItemType.Weapon.CLUB, 1), new IngredientDTO(ItemType.Form.PIECE, Material.TEETH, 50)]),
                 ],
                 // defence
                 [ItemType.Defence.SHIELD] =
                 [
-                    new([new(0.6, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(0.6, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.HELMET] =
                 [
-                    new([new(0.5, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(0.5, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.CHESTPLATE] =
                 [
-                    new([new(0.9, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(0.9, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.PANTS] =
                 [
-                    new([new(0.7, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(0.7, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Defence.BOOTS] =
                 [
-                    new([new(0.4, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(0.4, ItemAmountUnit.M3)]),
                 ],
                 // misc
                 [ItemType.Misc.FILLED_BOTTLE] =
                 [
-                    new([new(ItemType.Misc.BOTTLE, 1), new(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L)]),
+                    new([new IngredientDTO(ItemType.Misc.BOTTLE, 1), new NonSolidIngredientDTO(Material.HEALING_LIQUID, 0.5, ItemAmountUnit.L)]),
                 ],
                 [ItemType.Misc.BOTTLE] =
                 [
-                    new([new(6e-4, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(6e-4, ItemAmountUnit.M3)]),
                 ],
                 [ItemType.Misc.COIN] =
                 [
-                    new([new(7e-6, ItemAmountUnit.M3)]),
+                    new([new NonSolidIngredientDTO(6.125e-7 * double.Pi, ItemAmountUnit.M3)]),
                 ],
             };
         }
@@ -426,6 +508,11 @@ namespace ProgressAdventure.ItemManagement
         public static Dictionary<EnumValue<Material>, MaterialItemAttributesDTO> MaterialItemAttributes { get; private set; }
 
         /// <summary>
+        /// The dictionary pairing up item types, to their deffinition recipes, if a recipe exists for that item type.
+        /// </summary>
+        public static Dictionary<EnumTreeValue<ItemType>, List<ItemDeffinitionDTO>> DeffinitionItemRecipes { get; private set; }
+
+        /// <summary>
         /// The dictionary pairing up item types, to their recipes, if a recipe exists for that item type.
         /// </summary>
         public static Dictionary<EnumTreeValue<ItemType>, List<RecipeDTO>> ItemRecipes { get; private set; }
@@ -440,6 +527,7 @@ namespace ProgressAdventure.ItemManagement
 
             LoadDefaultConfigs1();
 
+            LoadDefaultDeffinitionItemRecipes();
             LoadDefaultItemRecipes();
 
             LoadDefaultConfigs2();
@@ -524,6 +612,27 @@ namespace ProgressAdventure.ItemManagement
         private static (
             string configName,
             Func<EnumTreeValue<ItemType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataDeffinitionItemRecipes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "deffinition_item_recipes");
+            static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
+            if (!isWriteConfig)
+            {
+                return (basePath, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultItemRecipes,
+                    KeySerializer
+                );
+            return default;
+        }
+
+        private static (
+            string configName,
+            Func<EnumTreeValue<ItemType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataItemRecipes(bool isWriteConfig)
         {
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes");
@@ -553,6 +662,7 @@ namespace ProgressAdventure.ItemManagement
 
         public static void LoadDefaultConfigs2()
         {
+            DeffinitionItemRecipes = _defaultDeffinitionItemRecipes;
             ItemRecipes = _defaultItemRecipes;
         }
 
@@ -574,6 +684,7 @@ namespace ProgressAdventure.ItemManagement
             WriteDefaultConfigOrGetReloadDataItemTypes(true);
             WriteDefaultConfigOrGetReloadDataCompoundItemAttributes(true);
             WriteDefaultConfigOrGetReloadDataMaterialItemAttributes(true);
+            WriteDefaultConfigOrGetReloadDataDeffinitionItemRecipes(true);
             WriteDefaultConfigOrGetReloadDataItemRecipes(true);
         }
 
@@ -631,6 +742,18 @@ namespace ProgressAdventure.ItemManagement
             int? showProgressIndentation
         )
         {
+            var deffinitionItemRecipesData = WriteDefaultConfigOrGetReloadDataDeffinitionItemRecipes(false);
+            DeffinitionItemRecipes = ConfigUtils.ReloadConfigsAggregateDict(
+                deffinitionItemRecipesData.configName,
+                namespaceFolders,
+                _defaultDeffinitionItemRecipes,
+                deffinitionItemRecipesData.serializeKeys,
+                key => ParseItemType(ConfigUtils.GetNameapacedString(key))
+                    ?? throw new ArgumentNullException($"Unknown item type name in \"{deffinitionItemRecipesData.configName}\" config: \"{key}\"", "item type"),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
+
             var itemRecipesData = WriteDefaultConfigOrGetReloadDataItemRecipes(false);
             ItemRecipes = ConfigUtils.ReloadConfigsAggregateDict(
                 itemRecipesData.configName,
