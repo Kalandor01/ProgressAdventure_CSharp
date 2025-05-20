@@ -11,12 +11,36 @@ namespace ProgressAdventure.ConfigManagement
     /// </summary>
     public static partial class ConfigUtils
     {
+        /// <summary>
+        /// The currently loading namespaces.
+        /// </summary>
         private static List<string>? _loadingNamespaces;
+
+        /// <summary>
+        /// <inheritdoc cref="_loadingNamespaces" path="//summary"/>
+        /// </summary>
         public static ReadOnlyCollection<string>? LoadingNamespaces
         {
             get => _loadingNamespaces?.AsReadOnly();
         }
+
+        /// <summary>
+        /// The name of the currently loading namespace.
+        /// </summary>
         public static string? CurrentlyLoadingNamespace { get; private set; }
+
+        /// <summary>
+        /// The list of currently enabled configs. (needs to be manualy updated using <see cref="UpdateEnabledConfigDatas(out bool)"/>)
+        /// </summary>
+        private static List<ConfigData>? _enabledConfigDatas;
+
+        /// <summary>
+        /// <inheritdoc cref="_enabledConfigDatas" path="//summary"/>
+        /// </summary>
+        public static ReadOnlyCollection<ConfigData> EnabledConfigDatas
+        {
+            get => _enabledConfigDatas?.AsReadOnly() ?? UpdateEnabledConfigDatas(out _);
+        }
 
         #region Public functions
         #region Reload config functions
@@ -410,11 +434,10 @@ namespace ProgressAdventure.ConfigManagement
         public static List<ConfigData> GetValidConfigDatas(string? expectedVersion = Constants.CONFIG_VERSION)
         {
             PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER_PATH, "configs");
-            return Directory.GetDirectories(Constants.CONFIGS_FOLDER_PATH)
+            return [.. Directory.GetDirectories(Constants.CONFIGS_FOLDER_PATH)
                 .Select(folder => ConfigData.DeserializeFromFile(Path.GetFileName(folder)))
                 .Where(cd => cd is not null && (expectedVersion is null || expectedVersion == cd.Version))
-                .Cast<ConfigData>()
-                .ToList();
+                .Cast<ConfigData>()];
         }
 
         /// <summary>
@@ -424,7 +447,7 @@ namespace ProgressAdventure.ConfigManagement
         /// If null, it doesn't care about the versions.</param>
         public static List<string> GetValidNamespaceFolders(string? expectedVersion = Constants.CONFIG_VERSION)
         {
-            return GetValidConfigDatas(expectedVersion).Select(cd => cd.FolderName).ToList();
+            return [.. GetValidConfigDatas(expectedVersion).Select(cd => cd.FolderName)];
         }
 
         /// <summary>
@@ -664,6 +687,22 @@ namespace ProgressAdventure.ConfigManagement
                 }
             }
             return invalids;
+        }
+
+        /// <summary>
+        /// Gets and updates the list of currently enabled config datas.
+        /// </summary>
+        /// <param name="vanillaInvalid">If the vanilla config is valid/needed to be recreated.</param>
+        public static ReadOnlyCollection<ConfigData> UpdateEnabledConfigDatas(out bool vanillaInvalid)
+        {
+            vanillaInvalid = TryGetLoadingOrderAndCorrect(out var loadingOrder);
+            var configDatas = GetValidConfigDatas(null);
+            var datas = loadingOrder
+                .Where(lo => lo.Enabled)
+                .Select(lo => configDatas.First(cd => cd.Namespace == lo.Namespace))
+                .ToList();
+            _enabledConfigDatas = datas;
+            return datas.AsReadOnly();
         }
         #endregion
 

@@ -114,12 +114,14 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Same as <see cref="LoadJsonFile(string, int, string, bool)"/>, but base64 decodes + unzips the file.
+        /// Same as <see cref="LoadJsonFile(string, int?, string, bool)"/>, but base64 decodes + unzips the file.
         /// </summary>
         /// <param name="filePath">The path and the name of the file without the extension, that will be loaded.</param>
         /// <param name="extension">The extension of the file that will be loaded.</param>
         /// <param name="lineNum">The line, that you want go get back (starting from 0).</param>
         /// <param name="expected">If the file is expected to exist.</param>
+        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
+        /// <exception cref="InvalidDataException">Exeption thrown, if the file couldn't be decompressed.</exception>
         public static JsonDictionary? LoadCompressedFile(string filePath, string extension, int lineNum = 0, bool expected = true)
         {
             return DecodeSaveAny(1, filePath, null, extension, lineNum, expected);
@@ -134,7 +136,8 @@ namespace PACommon
         /// <param name="seed">The seed for decoding the file.</param>
         /// <param name="extension">The extension of the file that will be decoded.</param>
         /// <param name="expected">If the file is expected to exist.</param>
-        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decode.</exception>
+        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Exeption thrown, if the file was malformed and couldn't be decoded.</exception>
         public static JsonDictionary? DecodeFileShort(string filePath, long seed, string extension, int lineNum = 0, bool expected = true)
         {
             return DecodeSaveAny(2, filePath, seed, extension, lineNum, expected);
@@ -1411,6 +1414,8 @@ namespace PACommon
         /// <param name="extension">The extension of the file that will be decoded.</param>
         /// <param name="expected">If the file is expected to exist.</param>
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
+        /// <exception cref="InvalidDataException">Exeption thrown, if the zip + base64 encoded file couldn't be decompressed.</exception>
+        /// <exception cref="Exception">Exeption thrown, if the <see cref="FileConversion"/> encoded file was malformed and/or couldn't be decoded.</exception>
         private static JsonDictionary? DecodeSaveAny(
             ushort type,
             string filePath,
@@ -1454,9 +1459,13 @@ namespace PACommon
                     loadedLine = FileConversion.DecodeFile((long)seed!, filePath, extension, (lineNum ?? 0) + 1, Constants.ENCODING).Last();
                 }
             }
-            catch (FormatException)
+            catch (Exception ex)
             {
-                PACSingletons.Instance.Logger.Log("Decode error", $"file name: {safeFilePath}.{extension}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log(
+                    "Decode error",
+                    $"file name: {safeFilePath}.{extension}, exception: {ex.Message}",
+                    LogSeverity.ERROR
+                );
                 throw;
             }
 

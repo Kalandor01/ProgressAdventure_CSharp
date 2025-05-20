@@ -1,5 +1,4 @@
-﻿using PACommon.Enums;
-using PACommon.JsonUtils;
+﻿using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -69,7 +68,9 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = lastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = playtime,
                 [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = playerName,
-                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(lastLoadedConfigs.Select(c => c.ToJson())),
+                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(
+                    ConfigUtils.EnabledConfigDatas.Select(c => new LoadedConfigData(c.Namespace, c.Version).ToJson())
+                ),
             };
         }
 
@@ -85,7 +86,9 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = saveData.LastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = saveData.GetPlaytime(),
                 [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = saveData.PlayerRef.name,
-                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(saveData.LastLoadedConfigs.Select(c => c.ToJson())),
+                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(
+                    ConfigUtils.EnabledConfigDatas.Select(c => new LoadedConfigData(c.Namespace, c.Version).ToJson())
+                ),
             };
         }
 

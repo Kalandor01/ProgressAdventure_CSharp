@@ -76,7 +76,12 @@ namespace ProgressAdventure
             // player
             var player = new Entity(EntityType.PLAYER, playerName);
             // load to class
-            SaveData.Initialize(saveName, string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName, null, null, player, false);
+            SaveData.Initialize(
+                saveName,
+                string.IsNullOrWhiteSpace(displaySaveName) ? saveName : displaySaveName,
+                player: player,
+                initialiseRandomGenerators: false
+            );
             World.Initialize();
             var playerResolveForce =SaveData.Instance.PlayerRef;
         }
@@ -386,7 +391,10 @@ namespace ProgressAdventure
                 {
                     data = Tools.LoadCompressedFile(Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA), 0);
                 }
-                catch (FormatException) { }
+                catch (Exception)
+                {
+
+                }
                 datas.Add((folder, data));
             }
             return datas;

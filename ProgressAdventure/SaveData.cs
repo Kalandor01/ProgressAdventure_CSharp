@@ -4,6 +4,7 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
@@ -81,9 +82,9 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// The list of the configs that were loaded the last time the save was loaded.
+        /// The list of the configs that were enabled the last time the save was saved to file.
         /// </summary>
-        public List<LoadedConfigData> LastLoadedConfigs { get; private set; }
+        public ReadOnlyCollection<LoadedConfigData> LastLoadedConfigs { get; private set; }
         #endregion
 
         #region Private constructors
@@ -95,6 +96,7 @@ namespace ProgressAdventure
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
         /// <param name="player"><inheritdoc cref="PlayerRef" path="//summary"/></param>
+        /// <param name="lastLoadedConfigs"><inheritdoc cref="LastLoadedConfigs" path="//summary"/></param>
         /// <param name="initialiseRandomGenerators">Whether to initialize the RandomStates object as well.</param>
         private SaveData(
             string saveName,
@@ -102,6 +104,7 @@ namespace ProgressAdventure
             DateTime? lastSave = null,
             TimeSpan? playtime = null,
             Entity? player = null,
+            List<LoadedConfigData>? lastLoadedConfigs = null,
             bool initialiseRandomGenerators = true
         )
         {
@@ -117,6 +120,7 @@ namespace ProgressAdventure
             }
 
             PlayerRef = player is null || player.type != EntityType.PLAYER ? new Entity(EntityType.PLAYER) : player;
+            LastLoadedConfigs = lastLoadedConfigs?.AsReadOnly() ?? new ReadOnlyCollection<LoadedConfigData>([]);
         }
         #endregion
 
@@ -129,6 +133,7 @@ namespace ProgressAdventure
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
         /// <param name="player"><inheritdoc cref="PlayerRef" path="//summary"/></param>
+        /// <param name="lastLoadedConfigs"><inheritdoc cref="LastLoadedConfigs" path="//summary"/></param>
         /// <param name="initialiseRandomGenerators">Whether to initialize the RandomStates object as well.</param>
         public static SaveData Initialize(
             string saveName,
@@ -136,10 +141,19 @@ namespace ProgressAdventure
             DateTime? lastSave = null,
             TimeSpan? playtime = null,
             Entity? player = null,
+            List<LoadedConfigData>? lastLoadedConfigs = null,
             bool initialiseRandomGenerators = true
         )
         {
-            _instance = new SaveData(saveName, displaySaveName, lastSave, playtime, player, initialiseRandomGenerators);
+            _instance = new SaveData(
+                saveName,
+                displaySaveName,
+                lastSave,
+                playtime,
+                player,
+                lastLoadedConfigs,
+                initialiseRandomGenerators
+            );
             PACSingletons.Instance.Logger.Log($"{nameof(SaveData)} initialized");
             return _instance;
         }
@@ -283,6 +297,11 @@ namespace ProgressAdventure
                     oldJson["player_pos_y"] = yPos;
                 }
             }, "2.5.1"),
+            // 2.5.1 -> 2.6
+            (oldJson => {
+                // last loaded configs
+                oldJson["last_loaded_configs"] = new JsonArray();
+            }, "2.6"),
         ];
 
         public JsonDictionary ToJson()
@@ -298,6 +317,9 @@ namespace ProgressAdventure
                 [Constants.JsonKeys.SaveData.PLAYER_POS_Y] = PlayerRef.Position?.y,
                 [Constants.JsonKeys.SaveData.PLAYER_REF] = PlayerRef.ToJson(),
                 [Constants.JsonKeys.SaveData.RANDOM_STATES] = RandomStates.Instance.ToJson(),
+                [Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS] = new JsonArray(
+                    ConfigUtils.EnabledConfigDatas.Select(c => new LoadedConfigData(c.Namespace, c.Version).ToJson())
+                ),
             };
         }
 
@@ -318,8 +340,26 @@ namespace ProgressAdventure
             (long, long)? playerPos = playerPosX is not null && playerPosY is not null ? ((long)playerPosX, (long)playerPosY) : null;
             success &= PACTools.TryParseJsonConvertableValue<Entity, (long, long)?>(saveDataJson, null, fileVersion, Constants.JsonKeys.SaveData.PLAYER_REF, out var player);
             success &= PACTools.TryParseJsonConvertableValue<RandomStates>(saveDataJson, fileVersion, Constants.JsonKeys.SaveData.RANDOM_STATES, out _);
+            success &= PACTools.TryParseJsonListValue(
+                saveDataJson,
+                Constants.JsonKeys.SaveData.LAST_LOADED_CONFIGS,
+                configJson =>
+                {
+                    success &= PACTools.TryFromJson<LoadedConfigData>(configJson as JsonDictionary, fileVersion, out var config);
+                    return (config is not null, config);
+                },
+                out var lastLoadedConfigs
+            );
 
-            saveData = Initialize(saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME, displayName, lastSave, playtime, player, false);
+            saveData = Initialize(
+                saveName ?? Constants.DEFAULT_SAVE_DATA_SAVE_NAME,
+                displayName,
+                lastSave,
+                playtime,
+                player,
+                lastLoadedConfigs,
+                false
+            );
             saveData._refrencePlayerPos = playerPos ?? (0, 0);
             return success;
         }

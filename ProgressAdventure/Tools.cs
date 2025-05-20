@@ -43,6 +43,9 @@ namespace ProgressAdventure
 
         /// <inheritdoc cref="PACTools.LoadCompressedFile(string, string, int, bool)"/>
         /// <param name="tryOldDecoding">Whether to try to use <see cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>, if the newer decoding doesn't work.</param>
+        /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
+        /// <exception cref="InvalidDataException">Exeption thrown, if the file couldn't be decompressed.</exception>
+        /// <exception cref="Exception">Exeption thrown, if the file was malformed and/or couldn't be decoded.</exception>
         public static JsonDictionary? LoadCompressedFile(
             string filePath,
             int lineNum = 0,
@@ -116,6 +119,11 @@ namespace ProgressAdventure
             catch (FormatException)
             {
                 PACTools.LogJsonParseError<T>(objectTypeName, $"json couldn't be parsed from file{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
+                return null;
+            }
+            catch (Exception)
+            {
+                PACTools.LogJsonParseError<T>(objectTypeName, $"file was malformed{(extraFileInformation is null ? "" : $", {extraFileInformation}")}", true);
                 return null;
             }
         }
@@ -400,11 +408,7 @@ namespace ProgressAdventure
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
         public static void ReloadConfigs(int? showProgressIndentation = null)
         {
-            var vanillaInvalid = ConfigUtils.TryGetLoadingOrderAndCorrect(out var loadingOrder);
-            var configDatas = ConfigUtils.GetValidConfigDatas(null);
-            var namespaces = loadingOrder
-                .Where(lo => lo.Enabled)
-                .Select(lo => configDatas.First(cd => cd.Namespace == lo.Namespace))
+            var namespaces = ConfigUtils.UpdateEnabledConfigDatas(out var vanillaInvalid)
                 .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
 
