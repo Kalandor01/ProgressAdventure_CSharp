@@ -198,10 +198,11 @@ namespace ProgressAdventure.WorldManagement
         /// <see cref="Chunk.FromFile(ValueTuple{long, long}, out Chunk?, string?, bool)"/>, but if it finds the chunk, it adds it to the chunks dictionary.
         /// </summary>
         /// <param name="position">The position of the <see cref="Chunk"/>.</param>
+        /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
         /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
-        public static Chunk? FindChunkInFolder((long x, long y) position, string? saveFolderName = null)
+        public static Chunk? FindChunkInFolder((long x, long y) position, out bool isFileInvalid, string? saveFolderName = null)
         {
-            Chunk.FromFile(position, out var chunk, saveFolderName, false);
+            Chunk.FromFile(position, out var chunk, out isFileInvalid, saveFolderName, false);
             if (chunk is not null)
             {
                 Chunks.Add(GetChunkDictName(position), chunk);
@@ -214,11 +215,17 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="position">The position of the chunk.</param>
         /// <param name="chunk">The chunk that was fould or created.</param>
+        /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         /// <returns>If the <see cref="Chunk"/> file was found.</returns>
-        public static bool TryGetChunkFromFolder((long x, long y) position, out Chunk chunk, string? saveFolderName = null)
+        public static bool TryGetChunkFromFolder(
+            (long x, long y) position,
+            out Chunk chunk,
+            out bool isFileInvalid,
+            string? saveFolderName = null
+        )
         {
-            var chunkTemp = FindChunkInFolder(position, saveFolderName);
+            var chunkTemp = FindChunkInFolder(position, out isFileInvalid, saveFolderName);
             chunk = chunkTemp ?? GenerateChunk(position);
             return chunkTemp is not null;
         }
@@ -229,7 +236,10 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
         /// <param name="checkOldExtension">Whether to check the pre 2.3 file extension.</param>
         /// <returns>The list of chunk positions.</returns>
-        public static List<(long x , long y)> GetChunkFilesFromFolder(string? saveFolderName = null, bool checkOldExtension = true)
+        public static List<(long x , long y)> GetChunkFilesFromFolder(
+            string? saveFolderName = null,
+            bool checkOldExtension = true
+        )
         {
             saveFolderName ??= SaveData.Instance.saveName;
             Tools.RecreateChunksFolder(saveFolderName);
@@ -241,10 +251,13 @@ namespace ProgressAdventure.WorldManagement
             foreach (var chunkFilePath in chunkFilePaths)
             {
                 var chunkFileName = Path.GetFileName(chunkFilePath);
-                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName) : null;
+                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName).ToLower() : null;
                 if (!(
                     chunkFileName is not null &&
-                    (chunkExtension == $".{Constants.SAVE_EXT}" || chunkExtension == $".{Constants.OLD_SAVE_EXT}") &&
+                    (
+                        chunkExtension == $".{Constants.SAVE_EXT}" ||
+                        (checkOldExtension && chunkExtension == $".{Constants.OLD_SAVE_EXT}")
+                    ) &&
                     chunkFileName.StartsWith($"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}")
                 ))
                 {
@@ -271,25 +284,46 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Loads all chunks from a save file.
         /// </summary>
+        /// <param name="corruptedChunks">The list of corrupted chunk positions.</param>
         /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         /// <param name="checkOldExtension">Whether to check the pre 2.3 file extension.</param>
-        public static void LoadAllChunksFromFolder(string? saveFolderName = null, string? showProgressText = null, bool checkOldExtension = true)
+        /// <returns>Returns the total number of loaded chunk files.</returns>
+        public static int LoadAllChunksFromFolder(
+            out List<(long x, long y)> corruptedChunks,
+            string? saveFolderName = null,
+            string? showProgressText = null,
+            bool checkOldExtension = true
+        )
         {
+            var chunksNum = 0;
+
+            void AddChunkIfNotLoaded((long x, long y) chunkPos, List<(long x, long y)> corruptedChunks)
+            {
+                if (!Chunks.ContainsKey(GetChunkDictName(chunkPos)))
+                {
+                    FindChunkInFolder(chunkPos, out var isFileInvalid, saveFolderName);
+                    chunksNum++;
+                    if (isFileInvalid)
+                    {
+                        corruptedChunks.Add(chunkPos);
+                    }
+                }
+            }
+
+
+            corruptedChunks = [];
             var existingChunks = GetChunkFilesFromFolder(saveFolderName, checkOldExtension);
             // load chunks
             if (showProgressText is not null)
             {
                 var loadingText = PACTools.GetStandardLoadingText(showProgressText);
                 loadingText.Display();
-                double chunkNum = existingChunks.Count;
+                var chunkNum = existingChunks.Count;
                 for (var x = 0; x < chunkNum; x++)
                 {
-                    if (!Chunks.ContainsKey(GetChunkDictName(existingChunks[x])))
-                    {
-                        FindChunkInFolder(existingChunks[x], saveFolderName);
-                    }
-                    loadingText.Value = (x + 1) / chunkNum;
+                    AddChunkIfNotLoaded(existingChunks[x], corruptedChunks);
+                    loadingText.Value = (x + 1) / (double)chunkNum;
                 }
                 loadingText.StopLoadingStandard();
             }
@@ -297,13 +331,11 @@ namespace ProgressAdventure.WorldManagement
             {
                 foreach (var chunkPos in existingChunks)
                 {
-                    if (!Chunks.ContainsKey(GetChunkDictName(chunkPos)))
-                    {
-                        FindChunkInFolder(chunkPos, saveFolderName);
-                    }
+                    AddChunkIfNotLoaded(chunkPos, corruptedChunks);
                 }
             }
             PACSingletons.Instance.Logger.Log("Loaded all chunks from file", $"save folder name: {saveFolderName}");
+            return chunksNum;
         }
 
         /// <summary>
@@ -314,7 +346,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         public static Chunk? FindChunkAll((long x, long y) position, string? saveFolderName = null)
         {
-            return FindChunk(position) ?? FindChunkInFolder(position, saveFolderName);
+            return FindChunk(position) ?? FindChunkInFolder(position, out var isFileInvalid, saveFolderName);
         }
 
         /// <summary>
@@ -342,7 +374,7 @@ namespace ProgressAdventure.WorldManagement
             var chunkTemp = FindChunk(position);
             if (chunkTemp is null)
             {
-                res = TryGetChunkFromFolder(position, out var chunkTemp2, saveFolderName);
+                res = TryGetChunkFromFolder(position, out var chunkTemp2, out var isFileInvalid, saveFolderName);
                 chunkTemp = chunkTemp2;
             }
             chunk = chunkTemp;
@@ -384,13 +416,13 @@ namespace ProgressAdventure.WorldManagement
         {
             if (showProgressText is not null)
             {
-                double chunkNum = Chunks.Count;
+                var chunkNum = Chunks.Count;
                 var loadingText = PACTools.GetStandardLoadingText(showProgressText);
                 loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
                     Chunks.ElementAt(x).Value.FillChunk();
-                    loadingText.Value = (x + 1) / chunkNum;
+                    loadingText.Value = (x + 1) / (double)chunkNum;
                 }
                 loadingText.StopLoadingStandard();
             }
@@ -522,6 +554,7 @@ namespace ProgressAdventure.WorldManagement
                 if (
                     Tools.LoadCompressedFileExpected<Chunk>(
                         Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
+                        out var isFileInvalid,
                         expected: true,
                         extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"
                     ) is not JsonDictionary chunkJson

@@ -652,7 +652,25 @@ namespace ProgressAdventure
             SaveManager.LoadSave(saveName, false, makeBackup);
             Console.WriteLine("DONE!");
             PACSingletons.Instance.Logger.Log("Loading all chunks from file", $"save name: {saveName}");
-            World.LoadAllChunksFromFolder(showProgressText: "\tLoading world...");
+            World.LoadAllChunksFromFolder(out var corruptedChunks, showProgressText: "\tLoading world...");
+            if (corruptedChunks.Count > 0)
+            {
+                var corruptedChunksDisplay = corruptedChunks
+                    .Take(10)
+                    .Select(p => Chunk.GetChunkFileName(p))
+                    .ToList();
+
+                var corruptChunksTxt = 
+                    $"Some chunks are corrupted:\n\t{
+                        string.Join("\n\t", corruptedChunksDisplay)
+                    }{
+                        (corruptedChunks.Count > 10 ? "\n\t..." : "")
+                    }\n\nDo you want to continue?";
+                if (!AskYesNoUIQuestion(corruptChunksTxt, false))
+                {
+                    return;
+                }
+            }
             Console.Write("\tDeleting...");
             Tools.DeleteSave(saveName);
             Console.WriteLine("DONE!");

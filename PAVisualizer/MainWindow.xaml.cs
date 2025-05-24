@@ -135,7 +135,7 @@ namespace PAVisualizer
             }
 
             saveName = saveStrings.Value.saveFolderName;
-            World.LoadAllChunksFromFolder(saveName, "Loading chunks...");
+            World.LoadAllChunksFromFolder(out _, saveName, "Loading chunks...");
 
             SelectedSave = true;
             lastWorldChange = DateTime.Now;

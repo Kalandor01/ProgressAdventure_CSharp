@@ -147,7 +147,11 @@ namespace ProgressAdventureTests
             PATools.DeleteSave(saveVersion);
             ZipFile.ExtractToDirectory(Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{saveVersion}.{PAConstants.BACKUP_EXT}"), PATools.GetSaveFolderPath(saveVersion));
             SaveManager.LoadSave(saveVersion, false, false);
-            World.LoadAllChunksFromFolder(null, "Loading...");
+            World.LoadAllChunksFromFolder(out var corruptedChunks, null, "Loading...");
+            if (corruptedChunks.Count > 0)
+            {
+                Console.WriteLine($"FOUND {corruptedChunks.Count} CORRUPTED CHUNK FILES WHILE LOADING FOR NEW TEST SAVE!");
+            }
             SaveManager.MakeSave(showProgressText: "Saving...");
             var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{PAConstants.SAVE_VERSION}.{PAConstants.BACKUP_EXT}");
             File.Delete(testBackupFilePath);

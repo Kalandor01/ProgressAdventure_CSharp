@@ -93,11 +93,13 @@ namespace ProgressAdventure
         /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
         /// </summary>
         /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type that is being loaded from the file.</typeparam>
+        /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
         /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
         /// <param name="tryOldDecoding">Whether to try to use <see cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>, if the newer decoding doesn't work.</param>
         public static JsonDictionary? LoadCompressedFileExpected<T>(
             string filePath,
+            out bool isFileInvalid,
             int lineNum = 0,
             string extension = SAVE_EXT,
             bool expected = true,
@@ -105,10 +107,12 @@ namespace ProgressAdventure
             bool tryOldDecoding = true
         )
         {
+            isFileInvalid = true;
             var objectTypeName = typeof(T).Name;
             try
             {
                 var fileJson = LoadCompressedFile(filePath, lineNum, extension, expected, tryOldDecoding);
+                isFileInvalid = false;
                 if (fileJson is null)
                 {
                     PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, expected);

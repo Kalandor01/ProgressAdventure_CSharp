@@ -1042,6 +1042,7 @@ namespace ProgressAdventureTests
             // list of classes that implement "IJsonConvertable<T>"!
             var testObjects = new List<IJsonReadable>
             {
+                new LoadedConfigData("test_namespace", "v123"),
                 new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
                 new Inventory(),
                 new MaterialItem(Material.FLINT),
@@ -1347,7 +1348,7 @@ namespace ProgressAdventureTests
             foreach (var chunkFilePath in chunkFilePaths)
             {
                 var chunkFileName = Path.GetFileName(chunkFilePath);
-                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName) : null;
+                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName).ToLower() : null;
                 if (
                     chunkFileName is not null &&
                     (chunkExtension == $".{PAConstants.SAVE_EXT}" || chunkExtension == $".{PAConstants.OLD_SAVE_EXT}") &&
@@ -1378,7 +1379,7 @@ namespace ProgressAdventureTests
                 loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
-                    success &= Chunk.FromFile(existingChunks[x], out var _, saveFolderName, true);
+                    success &= Chunk.FromFile(existingChunks[x], out _, out _, saveFolderName, true);
                     if (!success)
                     {
                         loadingText.StopLoading("DONE!");
@@ -1392,7 +1393,7 @@ namespace ProgressAdventureTests
             {
                 foreach (var chunkPos in existingChunks)
                 {
-                    success &= Chunk.FromFile(chunkPos, out var _, saveFolderName, true);
+                    success &= Chunk.FromFile(chunkPos, out _, out _, saveFolderName, true);
                     if (!success)
                     {
                         return chunkPos;
@@ -1502,7 +1503,7 @@ namespace ProgressAdventureTests
             var success = SaveManager.LoadSave(saveName, false, false);
             if (!success)
             {
-                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save loading failed.");
+                return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save file loading failed.");
             }
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
             if (wrongChunk != null)

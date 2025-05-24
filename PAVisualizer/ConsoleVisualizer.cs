@@ -223,7 +223,7 @@ namespace PAVisualizer
             // get chunks data
             PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
             PACTools.RecreateFolder(Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName));
-            World.LoadAllChunksFromFolder(showProgressText: "Getting chunk data...");
+            World.LoadAllChunksFromFolder(out _, showProgressText: "Getting chunk data...");
 
             // make rectangle
             if (MenuManager.AskYesNoUIQuestion($"Do you want to generates the rest of the chunks in a way that makes the world rectangle shaped?", false))
