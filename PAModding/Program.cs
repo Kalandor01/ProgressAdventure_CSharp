@@ -87,7 +87,7 @@ namespace PAModding
 
             Console.WriteLine("Reloading configs...");
             Tools.ReloadConfigs(1);
-            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
+            PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 

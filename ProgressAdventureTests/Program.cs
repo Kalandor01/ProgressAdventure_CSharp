@@ -98,7 +98,7 @@ namespace ProgressAdventureTests
             PATools.ReloadConfigs();
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
             {
-                PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
+                PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
             }
             PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);
         }

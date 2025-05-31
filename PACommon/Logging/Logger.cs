@@ -58,7 +58,7 @@ namespace PACommon.Logging
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     lock (_threadLock)
                     {

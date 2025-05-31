@@ -101,84 +101,80 @@ namespace PACommon.SettingsManagement
         /// <inheritdoc cref="BaseUI.HandleAction"/>
         protected override object HandleActionProtected(UIKeyPressedEventArgs args)
         {
-            if (args.pressedKey.Equals(args.keybinds.ElementAt((int)Key.ENTER)))
+            if (!args.pressedKey.Equals(args.keybinds.ElementAt((int)Key.ENTER)))
             {
-                if (args.optionsUI == null || !args.optionsUI.elements.Any(element => element == this))
-                {
-                    Console.WriteLine(preText);
-                    var keys = new List<ConsoleKeyInfo>();
-                    for (int x = 0; x < keyNum; x++)
-                    {
-                        var pressedKey = Console.ReadKey();
-                        keys.Add(pressedKey);
-                        Console.Write(KeybindUtils.GetKeyName(pressedKey));
-                        if (x < keyNum - 1)
-                        {
-                            Console.Write(", ");
-                        }
-                    }
-                    Value.Keys = keys;
-                }
-                else
-                {
-                    var xOffset = GetCurrentLineCharCountBeforeValue(args.optionsUI.cursorIcon);
-                    var yOffset = GetLineNumberAfterTextFieldValue(args.optionsUI);
-                    Utils.MoveCursor((xOffset, yOffset));
-
-                    var keys = new List<ConsoleKeyInfo>();
-
-                    for (int x = 0; x < keyNum; x++)
-                    {
-                        bool retry;
-                        do
-                        {
-                            retry = false;
-                            var newValue = ReadInput(args.optionsUI.cursorIcon, keys);
-                            if (validatorFunction is null)
-                            {
-                                keys.Add(newValue);
-                                Value.Keys = keys;
-                            }
-                            else
-                            {
-                                var keysBak = Value.Keys.DeepCopy();
-                                keys.Add(newValue);
-                                Value.Keys = keys;
-                                var (status, message) = validatorFunction(newValue, this);
-                                if (message != null)
-                                {
-                                    (int preMessageLeft, int preMessageTop) = Console.GetCursorPosition();
-                                    Console.Write("\u001b[0K" + message);
-                                    Console.ReadKey(true);
-                                    Console.SetCursorPosition(preMessageLeft, preMessageTop);
-                                    Console.Write("\u001b[0K");
-                                    var (Left, Top) = Console.GetCursorPosition();
-                                    if (multiline)
-                                    {
-                                        Console.Write(postValue.Replace("\n", args.optionsUI.cursorIcon.sIconR + "\n" + args.optionsUI.cursorIcon.sIcon));
-                                    }
-                                    else
-                                    {
-                                        Console.Write(postValue);
-                                    }
-                                    Console.SetCursorPosition(Left, Top);
-                                }
-                                if (status != TextFieldValidatorStatus.VALID)
-                                {
-                                    Value.Keys = keysBak;
-                                    keys = [.. keysBak];
-                                    if (status == TextFieldValidatorStatus.RETRY)
-                                    {
-                                        retry = true;
-                                    }
-                                }
-                            }
-                        }
-                        while (retry);
-                    }
-                }
-
                 return true;
+            }
+
+            var keys = new List<ConsoleKeyInfo>();
+            if (args.optionsUI is null || !args.optionsUI.elements.Any(element => element == this))
+            {
+                Console.WriteLine(preText);
+                for (int x = 0; x < keyNum; x++)
+                {
+                    var pressedKey = Console.ReadKey();
+                    keys.Add(pressedKey);
+                    Console.Write(KeybindUtils.GetKeyName(pressedKey));
+                    if (x < keyNum - 1)
+                    {
+                        Console.Write(", ");
+                    }
+                }
+                Value.Keys = keys;
+                return true;
+            }
+
+            var xOffset = GetCurrentLineCharCountBeforeValue(args.optionsUI.cursorIcon);
+            var yOffset = GetLineNumberAfterTextFieldValue(args.optionsUI);
+            Utils.MoveCursor((xOffset, yOffset));
+
+            for (var x = 0; x < keyNum; x++)
+            {
+                bool retry;
+                do
+                {
+                    retry = false;
+                    var newValue = ReadInput(args.optionsUI.cursorIcon, keys);
+                    if (validatorFunction is null)
+                    {
+                        keys.Add(newValue);
+                        Value.Keys = keys;
+                        continue;
+                    }
+
+                    var keysBak = Value.Keys.DeepCopy();
+                    keys.Add(newValue);
+                    Value.Keys = keys;
+                    var (status, message) = validatorFunction(newValue, this);
+                    if (message is not null)
+                    {
+                        var (preMessageLeft, preMessageTop) = Console.GetCursorPosition();
+                        Console.Write("\u001b[0K" + message);
+                        Console.ReadKey(true);
+                        Console.SetCursorPosition(preMessageLeft, preMessageTop);
+                        Console.Write("\u001b[0K");
+                        var (left, top) = Console.GetCursorPosition();
+                        Console.Write(
+                            multiline
+                                ? postValue.Replace("\n", args.optionsUI.cursorIcon.sIconR + "\n" + args.optionsUI.cursorIcon.sIcon)
+                                : postValue
+                        );
+                        Console.SetCursorPosition(left, top);
+                    }
+
+                    if (status == TextFieldValidatorStatus.VALID)
+                    {
+                        continue;
+                    }
+
+                    Value.Keys = keysBak;
+                    keys = [.. keysBak];
+                    if (status == TextFieldValidatorStatus.RETRY)
+                    {
+                        retry = true;
+                    }
+                }
+                while (retry);
             }
             return true;
         }
@@ -194,26 +190,17 @@ namespace PACommon.SettingsManagement
             var txt = new StringBuilder();
 
             // current object's line
-            if (multiline)
-            {
-                txt.Append(postValue.Replace("\n", optionsUI.cursorIcon.sIconR + "\n" + optionsUI.cursorIcon.sIcon));
-            }
-            else
-            {
-                txt.Append(postValue);
-            }
+            txt.Append(
+                multiline
+                    ? postValue.Replace("\n", optionsUI.cursorIcon.sIconR + "\n" + optionsUI.cursorIcon.sIcon)
+                    : postValue
+            );
             txt.Append(optionsUI.cursorIcon.sIconR);
 
             // get displayed range
-            int endIndex;
-            if (optionsUI.scrollSettings.maxElements == -1 || optionsUI.scrollSettings.maxElements >= optionsUI.elements.Count)
-            {
-                endIndex = optionsUI.elements.Count;
-            }
-            else
-            {
-                endIndex = Math.Clamp(optionsUI.startIndex + optionsUI.scrollSettings.maxElements, 0, optionsUI.elements.Count);
-            }
+            var endIndex = optionsUI.scrollSettings.maxElements != -1 && optionsUI.scrollSettings.maxElements < optionsUI.elements.Count
+                ? Math.Clamp(optionsUI.startIndex + optionsUI.scrollSettings.maxElements, 0, optionsUI.elements.Count)
+                : optionsUI.elements.Count;
 
             // lines after current object
             for (var x = optionsUI.selected + 1; x < endIndex; x++)
@@ -254,14 +241,9 @@ namespace PACommon.SettingsManagement
         {
             var lineText = new StringBuilder();
             lineText.Append(cursorIcon.sIcon);
-            if (multiline)
-            {
-                lineText.Append(preText.Replace("\n", cursorIcon.sIconR + "\n" + cursorIcon.sIcon));
-            }
-            else
-            {
-                lineText.Append(preText);
-            }
+            lineText.Append(
+                multiline ? preText.Replace("\n", cursorIcon.sIconR + "\n" + cursorIcon.sIcon) : preText
+            );
             var lastLine = lineText.ToString().Split("\n").Last();
             return lengthAsDisplayLength ? Utils.GetDisplayLen(lastLine) : lastLine.Length;
         }
@@ -274,27 +256,22 @@ namespace PACommon.SettingsManagement
         private ConsoleKeyInfo ReadInput(CursorIcon cursorIcon, List<ConsoleKeyInfo> keys)
         {
             Console.Write("\u001b[0K");
-            var preValuePos = Console.GetCursorPosition();
+            var (prewLeft, prewTop) = Console.GetCursorPosition();
 
             foreach (var key in keys)
             {
                 Console.Write(KeybindUtils.GetKeyName(key) + ", ");
             }
 
-            var (Left, Top) = Console.GetCursorPosition();
-            if (multiline)
-            {
-                Console.Write(postValue.Replace("\n", cursorIcon.sIconR + "\n" + cursorIcon.sIcon));
-            }
-            else
-            {
-                Console.Write(postValue);
-            }
+            var (left, top) = Console.GetCursorPosition();
+            Console.Write(
+                multiline ? postValue.Replace("\n", cursorIcon.sIconR + "\n" + cursorIcon.sIcon) : postValue
+            );
             Console.Write(cursorIcon.sIconR);
 
-            Console.SetCursorPosition(Left, Top);
+            Console.SetCursorPosition(left, top);
             var pressedKey = Console.ReadKey(true);
-            Console.SetCursorPosition(preValuePos.Left, preValuePos.Top);
+            Console.SetCursorPosition(prewLeft, prewTop);
             return pressedKey;
         }
         #endregion

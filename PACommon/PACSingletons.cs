@@ -28,7 +28,7 @@ namespace PACommon
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     lock (_threadLock)
                     {
@@ -52,7 +52,7 @@ namespace PACommon
         /// <summary>
         /// The configuration manager.
         /// </summary>
-        public AConfigManager ConfigManager { get; private set; }
+        public IConfigManager ConfigManager { get; private set; }
         #endregion
 
         #region Private Constructors
@@ -65,7 +65,7 @@ namespace PACommon
         private PACSingletons(
             ILogger logger,
             IJsonDataCorrecter jsonDataCorrecter,
-            AConfigManager configManager
+            IConfigManager configManager
         )
         {
             Logger = logger;
@@ -85,7 +85,7 @@ namespace PACommon
         public static PACSingletons Initialize(
             ILogger? logger = null,
             IJsonDataCorrecter? jsonDataCorrecter = null,
-            AConfigManager? configManager = null,
+            IConfigManager? configManager = null,
             bool logInitialization = true
         )
         {
@@ -96,9 +96,9 @@ namespace PACommon
             );
             if (logInitialization)
             {
-                _instance.Logger.Log($"{nameof(Logging.Logger)} initialized", newLine: true);
-                _instance.Logger.Log($"{nameof(JsonUtils.JsonDataCorrecter)} initialized");
-                _instance.Logger.Log($"{nameof(AConfigManager)} initialized");
+                _instance.Logger.Log($"{nameof(ILogger)} initialized", newLine: true);
+                _instance.Logger.Log($"{nameof(IJsonDataCorrecter)} initialized");
+                _instance.Logger.Log($"{nameof(IConfigManager)} initialized");
                 _instance.Logger.Log($"{nameof(PACSingletons)} initialized");
             }
             return _instance;
@@ -107,6 +107,7 @@ namespace PACommon
         public void Dispose()
         {
             _instance?.Logger.Dispose();
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

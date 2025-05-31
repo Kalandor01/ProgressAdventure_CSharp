@@ -11,46 +11,26 @@ namespace ProgressAdventure.SettingsManagement
     /// <summary>
     /// Object for managing the data in the settings file.
     /// </summary>
-    public class Settings
+    public class Settings : ISettings
     {
         #region Private Fields
-        /// <summary>
-        /// If the game should auto save.
-        /// </summary>
+        /// <inheritdoc cref="AutoSave"/>
         private bool _autoSave;
-        /// <summary>
-        /// The minimum level of logs, that will be recorded.
-        /// </summary>
+        /// <inheritdoc cref="LoggingLevel"/>
         private LogSeverity _loggingLevel;
-        /// <summary>
-        /// The keybinds object to use, for the app.
-        /// </summary>
+        /// <inheritdoc cref="Keybinds"/>
         private Keybinds _keybinds;
-        /// <summary>
-        /// If the user should be asked for confirmation, when trying to delete a save file.
-        /// </summary>
+        /// <inheritdoc cref="AskDeleteSave"/>
         private bool _askDeleteSave;
-        /// <summary>
-        /// If the user should be asked for confirmation, when trying to regenerate a save file.
-        /// </summary>
+        /// <inheritdoc cref="AskRegenerateSave"/>
         private bool _askRegenerateSave;
-        /// <summary>
-        /// The default action for backing up save files.<br/>
-        /// -1: ask user<br/>
-        /// 0: never backup<br/>
-        /// 1: always backup
-        /// </summary>
+        /// <inheritdoc cref="DefBackupAction"/>
         private int _defBackupAction;
-        /// <summary>
-        /// Whether to enable colored text on the terminal.
-        /// </summary>
+        /// <inheritdoc cref="EnableColoredText"/>
         private bool _enableColoredText;
         #endregion
 
         #region Public properties
-        /// <summary>
-        /// <inheritdoc cref="_autoSave" path="//summary"/>
-        /// </summary>
         public bool AutoSave
         {
             get => _autoSave;
@@ -60,9 +40,7 @@ namespace ProgressAdventure.SettingsManagement
                 _autoSave = GetAutoSave();
             }
         }
-        /// <summary>
-        /// <inheritdoc cref="_loggingLevel" path="//summary"/>
-        /// </summary>
+
         public LogSeverity LoggingLevel
         {
             get => _loggingLevel;
@@ -75,9 +53,7 @@ namespace ProgressAdventure.SettingsManagement
                 PACSingletons.Instance.Logger.LoggingLevel = LoggingLevel;
             }
         }
-        /// <summary>
-        /// <inheritdoc cref="_keybinds" path="//summary"/>
-        /// </summary>
+
         public Keybinds Keybinds
         {
             get => _keybinds;
@@ -87,9 +63,7 @@ namespace ProgressAdventure.SettingsManagement
                 _keybinds = GetKeybins();
             }
         }
-        /// <summary>
-        /// <inheritdoc cref="_askDeleteSave" path="//summary"/>
-        /// </summary>
+
         public bool AskDeleteSave
         {
             get => _askDeleteSave;
@@ -99,9 +73,7 @@ namespace ProgressAdventure.SettingsManagement
                 _askDeleteSave = GetAskDeleteSave();
             }
         }
-        /// <summary>
-        /// <inheritdoc cref="_askRegenerateSave" path="//summary"/>
-        /// </summary>
+
         public bool AskRegenerateSave
         {
             get => _askRegenerateSave;
@@ -111,9 +83,7 @@ namespace ProgressAdventure.SettingsManagement
                 _askRegenerateSave = GetAskRegenerateSave();
             }
         }
-        /// <summary>
-        /// <inheritdoc cref="_defBackupAction" path="//summary"/>
-        /// </summary>
+
         public int DefBackupAction
         {
             get => _defBackupAction;
@@ -123,9 +93,7 @@ namespace ProgressAdventure.SettingsManagement
                 _defBackupAction = GetDefBackupAction();
             }
         }
-        /// <summary>
-        /// <inheritdoc cref="_enableColoredText" path="//summary"/>
-        /// </summary>
+
         public bool EnableColoredText
         {
             get => _enableColoredText;
@@ -170,18 +138,12 @@ namespace ProgressAdventure.SettingsManagement
         #endregion
 
         #region Public functions
-        /// <summary>
-        /// Returns the value of the <c>autoSave</c> from the setting file.
-        /// </summary>
-        public static bool GetAutoSave()
+        public bool GetAutoSave()
         {
             return (bool)GetFromSettingAsType(SettingsKey.AUTO_SAVE);
         }
 
-        /// <summary>
-        /// Returns the value of the <c>keybinds</c> from the setting file.
-        /// </summary>
-        public static LogSeverity GetLoggingLevel()
+        public LogSeverity GetLoggingLevel()
         {
             if (
                 !TryGetFromSettingAsType(SettingsKey.LOGGING_LEVEL, out var logLevel) ||
@@ -194,10 +156,7 @@ namespace ProgressAdventure.SettingsManagement
             return severity;
         }
 
-        /// <summary>
-        /// Returns the value of the <c>keybinds</c> from the setting file.
-        /// </summary>
-        public static Keybinds GetKeybins()
+        public Keybinds GetKeybins()
         {
             var keybindsDict = SettingsManager(SettingsKey.KEYBINDS);
             Keybinds? keybinds = null;
@@ -224,34 +183,22 @@ namespace ProgressAdventure.SettingsManagement
             return keybinds!;
         }
 
-        /// <summary>
-        /// Returns the value of the <c>askDeleteSave</c> from the setting file.
-        /// </summary>
-        public static bool GetAskDeleteSave()
+        public bool GetAskDeleteSave()
         {
             return (bool)GetFromSettingAsType(SettingsKey.ASK_DELETE_SAVE);
         }
 
-        /// <summary>
-        /// Returns the value of the <c>askRegenerateSave</c> from the setting file.
-        /// </summary>
-        public static bool GetAskRegenerateSave()
+        public bool GetAskRegenerateSave()
         {
             return (bool)GetFromSettingAsType(SettingsKey.ASK_REGENERATE_SAVE);
         }
 
-        /// <summary>
-        /// Returns the value of the <c>defBackupAction</c> from the setting file.
-        /// </summary>
-        public static int GetDefBackupAction()
+        public int GetDefBackupAction()
         {
             return (int)(long)GetFromSettingAsType(SettingsKey.DEF_BACKUP_ACTION);
         }
 
-        /// <summary>
-        /// Returns the value of the <c>enableColoredText</c> from the setting file.
-        /// </summary>
-        public static bool GetEnableColoredText()
+        public bool GetEnableColoredText()
         {
             return (bool)GetFromSettingAsType(SettingsKey.ENABLE_COLORED_TEXT);
         }

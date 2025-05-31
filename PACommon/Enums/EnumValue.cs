@@ -23,7 +23,6 @@
         public override bool Equals(object? obj)
         {
             if (
-                obj == null ||
                 obj is not EnumValue<TEnum> enumValue ||
                 enumValue.Name != Name
             )

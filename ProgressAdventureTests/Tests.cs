@@ -1506,7 +1506,7 @@ namespace ProgressAdventureTests
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save file loading failed.");
             }
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
-            if (wrongChunk != null)
+            if (wrongChunk is not null)
             {
                 return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
             }

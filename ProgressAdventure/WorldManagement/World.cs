@@ -151,7 +151,7 @@ namespace ProgressAdventure.WorldManagement
                 Chunks.Clear();
 
                 // re-add player ref Chunk
-                if (playerRefChunkKV != null)
+                if (playerRefChunkKV is not null)
                 {
                     Chunks.Add(playerRefChunkKV.Value.Key, playerRefChunkKV.Value.Value);
                 }

@@ -80,7 +80,7 @@ namespace PACommon.Extensions
                 throw new UINoSelectablesExeption();
             }
 
-            if (keybinds == null || keybinds.Count() < 6)
+            if (keybinds is null || keybinds.Count() < 6)
             {
                 keybinds = CUIUtils.GetDefaultKeybinds();
             }

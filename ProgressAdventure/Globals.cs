@@ -3,117 +3,86 @@
     /// <summary>
     /// Object for storing global variables.
     /// </summary>
-    public class Globals
+    public class Globals : IGlobals
     {
         #region Private fields
-        private object _inGameLoopLock = new();
-        private object _inFightLock = new();
-        private object _exitingLock = new();
-        private object _savingLock = new();
-        private object _pausedLock = new();
-        private object _pausingLock = new();
-
-        /// <summary>
-        /// If the program is in a game (save file loaded).
-        /// </summary>
-        private bool _inGameLoop;
-        /// <summary>
-        /// If a fight is currently happening.
-        /// </summary>
-        private bool _inFight;
-        /// <summary>
-        /// If the program is currently exiting a save file.
-        /// </summary>
-        private bool _exiting;
-        /// <summary>
-        /// If the program is currently saving a save file.
-        /// </summary>
-        private bool _saving;
-        /// <summary>
-        /// If the game is paused.
-        /// </summary>
-        private bool _paused;
-        /// <summary>
-        /// If the game is playing, but trying to pause.
-        /// </summary>
-        private bool _pausing;
+        private readonly object _inGameLoopLock = new();
+        private readonly object _inFightLock = new();
+        private readonly object _exitingLock = new();
+        private readonly object _savingLock = new();
+        private readonly object _pausedLock = new();
+        private readonly object _pausingLock = new();
         #endregion
 
         #region Public properties
-        /// <inheritdoc cref="_inGameLoop"/>
         public bool InGameLoop
         {
-            get => _inGameLoop;
+            get;
             set
             {
                 lock (_inGameLoopLock)
                 {
-                    _inGameLoop = value;
+                    field = value;
                 }
             }
         }
 
-        /// <inheritdoc cref="_inFight"/>
         public bool InFight
         {
-            get => _inFight;
+            get;
             set
             {
                 lock (_inFightLock)
                 {
-                    _inFight = value;
+                    field = value;
                 }
             }
         }
 
-        /// <inheritdoc cref="_exiting"/>
         public bool Exiting
         {
-            get => _exiting;
+            get;
             set
             {
                 lock (_exitingLock)
                 {
-                    _exiting = value;
+                    field = value;
                 }
             }
         }
 
-        /// <inheritdoc cref="_saving"/>
         public bool Saving
         {
-            get => _saving;
+            get;
             set
             {
                 lock (_savingLock)
                 {
-                    _saving = value;
+                    field = value;
                 }
             }
         }
 
-        /// <inheritdoc cref="_paused"/>
         public bool Paused
         {
-            get => _paused;
+            get;
             private set
             {
                 lock (_pausedLock)
                 {
-                    _paused = value;
+                    field = value;
                 }
             }
         }
 
-        /// <inheritdoc cref="_pausing"/>
         public bool Pausing
         {
-            get => _pausing;
+            get;
             private set
             {
                 lock (_pausingLock)
                 {
-                    _pausing = value;
+                    field = value;
                 }
             }
         }
@@ -123,11 +92,11 @@
         /// <summary>
         /// <inheritdoc cref="Globals" path="//summary"/>
         /// </summary>
-        /// <param name="inGameLoop"><inheritdoc cref="_inGameLoop" path="//summary"/></param>
-        /// <param name="inFight"><inheritdoc cref="_inFight" path="//summary"/></param>
-        /// <param name="exiting"><inheritdoc cref="_exiting" path="//summary"/></param>
-        /// <param name="saving"><inheritdoc cref="_saving" path="//summary"/></param>
-        /// <param name="paused"><inheritdoc cref="_paused" path="//summary"/></param>
+        /// <param name="inGameLoop"><inheritdoc cref="InGameLoop" path="//summary"/></param>
+        /// <param name="inFight"><inheritdoc cref="InFight" path="//summary"/></param>
+        /// <param name="exiting"><inheritdoc cref="Exiting" path="//summary"/></param>
+        /// <param name="saving"><inheritdoc cref="Saving" path="//summary"/></param>
+        /// <param name="paused"><inheritdoc cref="Paused" path="//summary"/></param>
         public Globals(
             bool inGameLoop = false,
             bool inFight = false,
@@ -136,19 +105,16 @@
             bool paused = false
         )
         {
-            _inGameLoop = inGameLoop;
-            _inFight = inFight;
-            _exiting = exiting;
-            _saving = saving;
-            _paused = paused;
+            InGameLoop = inGameLoop;
+            InFight = inFight;
+            Exiting = exiting;
+            Saving = saving;
+            Paused = paused;
+            Pausing = false;
         }
         #endregion
 
         #region Public methods
-        /// <summary>
-        /// Pauses the game.
-        /// </summary>
-        /// <returns>True if the game shouldn't be paused (because it's exiting).</returns>
         public bool Pause()
         {
             Pausing = true;
@@ -163,18 +129,12 @@
             return false;
         }
 
-        /// <summary>
-        /// Unpauses the game.
-        /// </summary>
         public void Unpause()
         {
             Pausing = false;
             Paused = false;
         }
 
-        /// <summary>
-        /// Pauses the thread while the game is paused.
-        /// </summary>
         public void PauseLock()
         {
             if (Pausing)

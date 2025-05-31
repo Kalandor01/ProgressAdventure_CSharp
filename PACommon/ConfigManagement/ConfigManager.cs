@@ -27,7 +27,7 @@ namespace PACommon.ConfigManagement
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     lock (_threadLock)
                     {

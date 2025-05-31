@@ -126,13 +126,13 @@ namespace PACommon
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr GetStdHandle(int nStdHandle);
+        private static extern IntPtr GetStdHandle(int nStdHandle);
 
         [DllImport("kernel32.dll")]
-        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
         [DllImport("kernel32.dll")]
-        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
         /// <summary>
         /// Tries to enable ANSI codes, so they work for the terminal outside of the debug console.
@@ -666,7 +666,7 @@ namespace PACommon
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 var type = assembly.GetType(typeName);
-                if (type != null)
+                if (type is not null)
                 {
                     return type;
                 }

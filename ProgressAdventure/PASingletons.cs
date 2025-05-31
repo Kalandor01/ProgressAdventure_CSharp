@@ -27,7 +27,7 @@ namespace ProgressAdventure
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     lock (_threadLock)
                     {
@@ -41,12 +41,12 @@ namespace ProgressAdventure
         /// <summary>
         /// <inheritdoc cref="ProgressAdventure.Globals"/>
         /// </summary>
-        public Globals Globals { get; private set; }
+        public IGlobals Globals { get; private set; }
 
         /// <summary>
         /// <inheritdoc cref="SettingsManagement.Settings"/>
         /// </summary>
-        public Settings Settings { get; private set; }
+        public ISettings Settings { get; private set; }
         #endregion
 
         #region Private Constructors
@@ -56,8 +56,8 @@ namespace ProgressAdventure
         /// <param name="globals"><inheritdoc cref="Globals" path="//summary"/></param>
         /// <param name="globals"><inheritdoc cref="Globals" path="//summary"/></param>
         private PASingletons(
-            Globals globals,
-            Settings settings
+            IGlobals globals,
+            ISettings settings
         )
         {
             Globals = globals;
@@ -73,8 +73,8 @@ namespace ProgressAdventure
         /// <param name="settings"><inheritdoc cref="Settings" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
         public static PASingletons Initialize(
-            Globals? globals = null,
-            Settings? settings = null,
+            IGlobals? globals = null,
+            ISettings? settings = null,
             bool logInitialization = true
         )
         {
@@ -84,8 +84,8 @@ namespace ProgressAdventure
             );
             if (logInitialization)
             {
-                PACSingletons.Instance.Logger.Log($"{nameof(ProgressAdventure.Globals)} initialized");
-                PACSingletons.Instance.Logger.Log($"{nameof(SettingsManagement.Settings)} initialized");
+                PACSingletons.Instance.Logger.Log($"{nameof(IGlobals)} initialized");
+                PACSingletons.Instance.Logger.Log($"{nameof(ISettings)} initialized");
                 PACSingletons.Instance.Logger.Log($"{nameof(PASingletons)} initialized");
             }
             return _instance;
@@ -93,7 +93,7 @@ namespace ProgressAdventure
 
         public void Dispose()
         {
-            
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

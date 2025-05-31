@@ -219,7 +219,7 @@ namespace ProgressAdventure
             Console.WriteLine("Reloading configs...");
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
             Tools.ReloadConfigs(1);
-            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
+            PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 

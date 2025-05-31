@@ -3,9 +3,9 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
-using ProgressAdventure.Extensions;
 
 namespace ProgressAdventure
 {
@@ -64,7 +64,7 @@ namespace ProgressAdventure
         {
             get
             {
-                if (_instance == null)
+                if (_instance is null)
                 {
                     lock (_threadLock)
                     {

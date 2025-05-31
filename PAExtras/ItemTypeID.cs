@@ -90,13 +90,12 @@ namespace PAExtras
 
             foreach (var nestedType in type.GetNestedTypes())
             {
-                string? asNestedType = ToString(nestedType);
-                if (asNestedType != null)
+                var asNestedType = ToString(nestedType);
+                if (asNestedType is not null)
                 {
                     return asNestedType;
                 }
             }
-
             return null;
         }
         #endregion
