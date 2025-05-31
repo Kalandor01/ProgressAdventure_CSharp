@@ -116,7 +116,7 @@ namespace ProgressAdventureTests
             KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
             PATools.ReloadConfigs();
-            PASingletons.Instance.Settings.Keybinds = Settings.GetKeybins();
+            PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
         }
 
         /// <summary>
