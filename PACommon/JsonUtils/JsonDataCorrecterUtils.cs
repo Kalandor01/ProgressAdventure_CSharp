@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace PACommon.JsonUtils
+﻿namespace PACommon.JsonUtils
 {
     /// <summary>
     /// Provides tools for correcting json data.
@@ -66,7 +64,10 @@ namespace PACommon.JsonUtils
         /// <param name="jsonData">The json data to correct.</param>
         /// <param name="valuesMap">A map of what values to set to witch key.</param>
         /// <param name="onlyIfKeyExists">Whether to set a value even if the key doesn't exist.</param>
-        public static void SetMultipleValues(JsonDictionary jsonData, Dictionary<string, JsonObject?> valuesMap, bool onlyIfKeyExists = false)
+        public static void SetMultipleValues(
+            JsonDictionary jsonData,
+            Dictionary<string, JsonObject?> valuesMap, bool onlyIfKeyExists = false
+        )
         {
             foreach (var item in valuesMap)
             {

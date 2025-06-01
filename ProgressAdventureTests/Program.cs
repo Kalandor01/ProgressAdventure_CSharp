@@ -4,7 +4,6 @@ using PACommon.ConfigManagement.JsonConverters;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using PACommon.Logging;
-using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
@@ -92,7 +91,6 @@ namespace ProgressAdventureTests
                     new Globals(),
                     new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
                 );
-                KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
             }
 
             PATools.ReloadConfigs();

@@ -7,7 +7,6 @@ using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.Logging;
-using PACommon.SettingsManagement;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
@@ -46,7 +45,7 @@ namespace PAVisualizer
         {
             var saveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}";
             var oldSaveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.OLD_SAVE_EXT}";
-            string? folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog([
+            var folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog([
                 (saveDataFileName, $"Data file ({saveDataFileName})"),
                 (oldSaveDataFileName, $"Old data file ({oldSaveDataFileName})")
             ]))?.folderPath;
@@ -145,8 +144,6 @@ namespace PAVisualizer
                 new Globals(),
                 new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
-
-            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
             Console.WriteLine("Reloading configs...");
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???

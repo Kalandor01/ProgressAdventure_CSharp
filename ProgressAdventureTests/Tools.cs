@@ -1,6 +1,5 @@
 ﻿using PACommon;
 using PACommon.Enums;
-using PACommon.SettingsManagement;
 using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.SettingsManagement;
@@ -113,7 +112,6 @@ namespace ProgressAdventureTests
                 new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
             PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
-            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
             PATools.ReloadConfigs();
             PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
@@ -125,7 +123,6 @@ namespace ProgressAdventureTests
         internal static void DisposeTest()
         {
             PASingletons.Instance.Dispose();
-            KeybindUtils.colorEnabled = true;
             PASingletons.Instance.Settings.LoggingLevel = LogSeverity.DEBUG;
         }
 

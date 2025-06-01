@@ -7,7 +7,6 @@ using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.Logging;
-using PACommon.SettingsManagement;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Exceptions;
@@ -213,8 +212,6 @@ namespace ProgressAdventure
                 new Globals(),
                 new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
-
-            KeybindUtils.colorEnabled = PASingletons.Instance.Settings.EnableColoredText;
 
             Console.WriteLine("Reloading configs...");
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???

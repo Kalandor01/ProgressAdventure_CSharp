@@ -314,7 +314,10 @@ namespace ProgressAdventure
         {
             static string KeybindValueDisplay(KeyField<EnumValue<ActionType>> keyField, string icons, OptionsUI? optionsUI = null)
             {
-                return string.Join(", ", KeybindUtils.GetColoredNames(keyField.Value));
+                return string.Join(
+                    ", ",
+                    KeybindUtils.GetColoredNames(keyField.Value, PASingletons.Instance.Settings.EnableColoredText)
+                );
             }
 
 

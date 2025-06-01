@@ -125,15 +125,6 @@ namespace PACommon
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll")]
-        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
-
-        [DllImport("kernel32.dll")]
-        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
         /// <summary>
         /// Tries to enable ANSI codes, so they work for the terminal outside of the debug console.
         /// </summary>
@@ -144,11 +135,10 @@ namespace PACommon
                 return true;
             }
             
-            var h = Environment.OSVersion.Platform;
-            var handle = GetStdHandle(STD_OUTPUT_HANDLE);
-            GetConsoleMode(handle, out var mode);
+            var handle = NativeMethods.GetStdHandle(STD_OUTPUT_HANDLE);
+            NativeMethods.GetConsoleMode(handle, out var mode);
             mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            return SetConsoleMode(handle, mode);
+            return NativeMethods.SetConsoleMode(handle, mode);
         }
 
         /// <summary>
@@ -643,9 +633,14 @@ namespace PACommon
         /// </summary>
         /// <param name="filters">A list of filters. A filter limits the type of files that can appear in the window.</param>
         /// <param name="windowTitle">The title of the window.</param>
-        public static string? OpenFileDialog(IEnumerable<(string regex, string displayName)>? filters = null, string windowTitle = "Select file...")
+        public static string? OpenFileDialog(
+            IEnumerable<(string regex, string displayName)>? filters = null,
+            string windowTitle = "Select file..."
+        )
         {
-            var filter = filters is not null ? string.Join("", filters.Select(filter => $"{filter.displayName}\0{filter.regex}\0")) : "";
+            var filter = filters is not null
+                ? string.Join("", filters.Select(filter => $"{filter.displayName}\0{filter.regex}\0"))
+                : "";
             var ofn = new OpenFileName();
             ofn.lStructSize = Marshal.SizeOf(ofn);
             ofn.lpstrFilter = filter;
@@ -654,7 +649,7 @@ namespace PACommon
             ofn.lpstrFileTitle = new string(new char[64]);
             ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
             ofn.lpstrTitle = windowTitle;
-            return GetOpenFileName(ref ofn) ? ofn.lpstrFile : null;
+            return NativeMethods.GetOpenFileName(ref ofn) ? ofn.lpstrFile : null;
         }
 
         /// <summary>
@@ -815,9 +810,6 @@ namespace PACommon
             }
             return value;
         }
-
-        [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool GetOpenFileName(ref OpenFileName ofn);
         #endregion
     }
 }

@@ -38,13 +38,9 @@
         };
         #endregion
 
-        #region Public Fields
-        public static bool colorEnabled = true;
-        #endregion
-
         #region Public functions
         /// <summary>
-        /// Returns the string representation of the key, that the <c>ConsoleKeyInfo</c> represents.
+        /// Returns the string representation of the key, that the <see cref="ConsoleKeyInfo"/> represents.
         /// </summary>
         /// <param name="key">The key.</param>
         public static string GetKeyName(ConsoleKeyInfo key)
@@ -93,14 +89,19 @@
         /// <summary>
         /// Returns the colored version of the key names, depending on if it conflicts.
         /// </summary>
-        /// <param name="actionKey">The <c>ActionKey</c> to get the names from.</param>
-        public static List<string> GetColoredNames<T>(AActionKey<T> actionKey)
+        /// <param name="actionKey">The <see cref="AActionKey{T}"/> to get the names from.</param>
+        /// <param name="isColored">If the text is styled red if the key conflicts with another key.</param>
+        public static List<string> GetColoredNames<T>(AActionKey<T> actionKey, bool isColored)
             where T : notnull
         {
             var names = new List<string>();
-            for (int x = 0; x < actionKey.Keys.Count(); x++)
+            for (var x = 0; x < actionKey.Keys.Count(); x++)
             {
-                names.Add(colorEnabled ? Utils.StylizedText(actionKey.Names[x], actionKey.Conflicts[x] ? Constants.Colors.RED : null) : actionKey.Names[x]);
+                names.Add(
+                    isColored
+                        ? Utils.StylizedText(actionKey.Names[x], actionKey.Conflicts[x] ? Constants.Colors.RED : null)
+                        : actionKey.Names[x]
+                );
             }
             return names;
         }
