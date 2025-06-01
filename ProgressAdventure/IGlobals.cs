@@ -3,7 +3,7 @@
     /// <summary>
     /// Interface for storing global variables.
     /// </summary>
-    public interface IGlobals
+    public interface IGlobals : IDisposable
     {
         #region Public properties
         /// <summary>

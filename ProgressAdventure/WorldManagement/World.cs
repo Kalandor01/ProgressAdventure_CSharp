@@ -86,7 +86,7 @@ namespace ProgressAdventure.WorldManagement
                 return;
             }
 
-            saveFolderName ??= SaveData.Instance.saveName;
+            saveFolderName ??= SaveData.Instance.SaveName;
             Dictionary<string, Chunk> chunkData;
 
             // clearing chunks
@@ -241,7 +241,7 @@ namespace ProgressAdventure.WorldManagement
             bool checkOldExtension = true
         )
         {
-            saveFolderName ??= SaveData.Instance.saveName;
+            saveFolderName ??= SaveData.Instance.SaveName;
             Tools.RecreateChunksFolder(saveFolderName);
 
             // get existing files
@@ -531,7 +531,7 @@ namespace ProgressAdventure.WorldManagement
 
             // setup
             PACSingletons.Instance.Logger.Log("Recalculating chunk file sizes", $"chunk size: {oldChunkSize} -> {newChunkSize}");
-            saveFolderName ??= SaveData.Instance.saveName;
+            saveFolderName ??= SaveData.Instance.SaveName;
             var chunkSizeChangeFolderName = $"chunk_sizes_from_{oldChunkSize}_to_{Constants.CHUNK_SIZE}";
             var saveFolderPath = Tools.GetSaveFolderPath(saveFolderName);
             var chunkSizeChangeFolderPath = Path.Join(saveFolderPath, chunkSizeChangeFolderName);

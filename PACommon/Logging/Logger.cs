@@ -22,17 +22,9 @@ namespace PACommon.Logging
         /// </summary>
         private bool _defaultWriteOut = false;
         /// <summary>
-        /// <inheritdoc cref="LoggingEnabled" path="//summary"/>
-        /// </summary>
-        private bool _isLoggingEnabled = true;
-        /// <summary>
         /// <inheritdoc cref="LoggingLevel" path="//summary"/>
         /// </summary>
         private LogSeverity _loggingLevel = LogSeverity.DEBUG;
-        /// <summary>
-        /// <inheritdoc cref="ForceLogInterval" path="//summary"/>
-        /// </summary>
-        private TimeSpan _forceLogInterval = new(0, 0, 5);
 
         /// <summary>
         /// The logger stream to use to write logs.
@@ -60,10 +52,10 @@ namespace PACommon.Logging
             {
                 if (_instance is null)
                 {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize(new FileLoggerStream(Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER)));
-                    }
+                    _instance ??= Initialize(
+                        new FileLoggerStream(Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER)),
+                        onlyIfUninitialized: true
+                    );
                 }
                 return _instance;
             }
@@ -71,10 +63,7 @@ namespace PACommon.Logging
 
         public bool DefaultWriteOut
         {
-            get
-            {
-                return _defaultWriteOut;
-            }
+            get => _defaultWriteOut;
             set
             {
                 if (_defaultWriteOut != value)
@@ -87,26 +76,15 @@ namespace PACommon.Logging
 
         public bool LogMS { get; set; }
 
-        public bool LoggingEnabled
-        {
-            get => _isLoggingEnabled;
-            private set => _isLoggingEnabled = value;
-        }
+        public bool LoggingEnabled { get; private set; }
 
         public LogSeverity LoggingLevel
         {
             get => _loggingLevel;
-            set
-            {
-                ChangeLoggingLevel(value);
-            }
+            set => ChangeLoggingLevel(value);
         }
 
-        public TimeSpan ForceLogInterval
-        {
-            get => _forceLogInterval;
-            set => _forceLogInterval = value;
-        }
+        public TimeSpan ForceLogInterval { get; set; }
         #endregion
 
         #region Private Constructors
@@ -115,9 +93,9 @@ namespace PACommon.Logging
         /// </summary>
         /// <param name="loggerStream"><inheritdoc cref="loggerStream" path="//summary"/></param>
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
-        /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
-        /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
-        /// <param name="forceLogInterval"><inheritdoc cref="_forceLogInterval" path="//summary"/></param>
+        /// <param name="defaultWriteOut"><inheritdoc cref="DefaultWriteOut" path="//summary"/></param>
+        /// <param name="loggingLevel"><inheritdoc cref="LoggingLevel" path="//summary"/></param>
+        /// <param name="forceLogInterval"><inheritdoc cref="ForceLogInterval" path="//summary"/></param>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="DirectoryNotFoundException"></exception>
         private Logger(
@@ -131,9 +109,9 @@ namespace PACommon.Logging
             this.loggerStream = loggerStream;
             LogMS = logMilliseconds;
             _defaultWriteOut = defaultWriteOut;
-            _isLoggingEnabled = loggingLevel != LogSeverity.DISABLED;
+            LoggingEnabled = loggingLevel != LogSeverity.DISABLED;
             _loggingLevel = loggingLevel;
-            _forceLogInterval = forceLogInterval ?? new TimeSpan(0, 0, 5);
+            ForceLogInterval = forceLogInterval ?? new TimeSpan(0, 0, 5);
             _logMessageBuffer = [];
             _lastLogTime = DateTime.Now;
         }
@@ -149,21 +127,32 @@ namespace PACommon.Logging
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
         /// <param name="forceLogInterval"><inheritdoc cref="_forceLogInterval" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the <c>Logger</c> was initialized.</param>
+        /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static Logger Initialize(
             ILoggerStream loggerStream,
             bool logMilliseconds = Constants.DEFAULT_LOG_MS,
             bool defaultWriteOut = false,
             LogSeverity loggingLevel = LogSeverity.DEBUG,
             TimeSpan? forceLogInterval = null,
-            bool logInitialization = true
+            bool logInitialization = true,
+            bool onlyIfUninitialized = false
         )
         {
-            _instance = new Logger(loggerStream, logMilliseconds, defaultWriteOut, loggingLevel, forceLogInterval);
-            if (logInitialization)
+            lock (_threadLock)
             {
-                _instance.Log($"{nameof(Logger)} initialized", newLine: true);
+                if (onlyIfUninitialized && _instance is not null)
+                {
+                    return _instance;
+                }
+
+                _instance?.Dispose();
+                _instance = new Logger(loggerStream, logMilliseconds, defaultWriteOut, loggingLevel, forceLogInterval);
+                if (logInitialization)
+                {
+                    _instance.Log($"{nameof(Logger)} initialized", newLine: true);
+                }
+                return _instance;
             }
-            return _instance;
         }
         #endregion
 
@@ -321,6 +310,7 @@ namespace PACommon.Logging
         public void Dispose()
         {
             loggerStream.LogTextAsync(_logMessageBuffer).Wait();
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

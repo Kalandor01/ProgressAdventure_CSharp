@@ -3,7 +3,7 @@
     /// <summary>
     /// Interface containing utils to convert json data for <c>IJsonConvertable</c> objects to different versions.
     /// </summary>
-    public interface IJsonDataCorrecter
+    public interface IJsonDataCorrecter : IDisposable
     {
         #region Public methods
         /// <summary>

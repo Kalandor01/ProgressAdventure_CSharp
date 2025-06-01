@@ -30,10 +30,7 @@ namespace PACommon
             {
                 if (_instance is null)
                 {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize();
-                    }
+                    _instance ??= Initialize(onlyIfUninitialized: true);
                 }
                 return _instance;
             }
@@ -82,30 +79,43 @@ namespace PACommon
         /// <param name="jsonDataCorrecter"><inheritdoc cref="JsonDataCorrecter" path="//summary"/></param>
         /// <param name="configManager"><inheritdoc cref="ConfigManager" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
+        /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static PACSingletons Initialize(
             ILogger? logger = null,
             IJsonDataCorrecter? jsonDataCorrecter = null,
             IConfigManager? configManager = null,
-            bool logInitialization = true
+            bool logInitialization = true,
+            bool onlyIfUninitialized = false
         )
         {
-            _instance = new PACSingletons(
-                logger ?? Logging.Logger.Instance,
-                jsonDataCorrecter ?? JsonUtils.JsonDataCorrecter.Instance,
-                configManager ?? ConfigManagement.ConfigManager.Instance
-            );
-            if (logInitialization)
+            lock (_threadLock)
             {
-                _instance.Logger.Log($"{nameof(ILogger)} initialized", newLine: true);
-                _instance.Logger.Log($"{nameof(IJsonDataCorrecter)} initialized");
-                _instance.Logger.Log($"{nameof(IConfigManager)} initialized");
-                _instance.Logger.Log($"{nameof(PACSingletons)} initialized");
+                if (onlyIfUninitialized && _instance is not null)
+                {
+                    return _instance;
+                }
+
+                _instance?.Dispose();
+                _instance = new PACSingletons(
+                    logger ?? Logging.Logger.Instance,
+                    jsonDataCorrecter ?? JsonUtils.JsonDataCorrecter.Instance,
+                    configManager ?? ConfigManagement.ConfigManager.Instance
+                );
+                if (logInitialization)
+                {
+                    _instance.Logger.Log($"{nameof(ILogger)} initialized", newLine: true);
+                    _instance.Logger.Log($"{nameof(IJsonDataCorrecter)} initialized");
+                    _instance.Logger.Log($"{nameof(IConfigManager)} initialized");
+                    _instance.Logger.Log($"{nameof(PACSingletons)} initialized");
+                }
+                return _instance;
             }
-            return _instance;
         }
 
         public void Dispose()
         {
+            _instance?.ConfigManager?.Dispose();
+            _instance?.JsonDataCorrecter?.Dispose();
             _instance?.Logger.Dispose();
             GC.SuppressFinalize(this);
         }

@@ -224,8 +224,8 @@ namespace PAVisualizer
         public static string GetDisplayGeneralSaveData()
         {
             var txt = new StringBuilder();
-            txt.AppendLine($"Save name: {SaveData.Instance.saveName}");
-            txt.AppendLine($"Display save name: {SaveData.Instance.displaySaveName}");
+            txt.AppendLine($"Save name: {SaveData.Instance.SaveName}");
+            txt.AppendLine($"Display save name: {SaveData.Instance.DisplaySaveName}");
             txt.AppendLine($"Last saved: {Utils.MakeDate(SaveData.Instance.LastSave, ".")} {Utils.MakeTime(SaveData.Instance.LastSave)}");
             txt.AppendLine($"\nPlayer:\n{SaveData.Instance.PlayerRef}");
             txt.AppendLine($"\nMain seed: {PATools.SerializeRandom(RandomStates.Instance.MainRandom)}");

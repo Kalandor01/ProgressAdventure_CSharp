@@ -5,7 +5,7 @@ namespace ProgressAdventure.SettingsManagement
     /// <summary>
     /// Interface for managing the data in the settings file.
     /// </summary>
-    public interface ISettings
+    public interface ISettings : IDisposable
     {
         #region Public properties
         /// <summary>

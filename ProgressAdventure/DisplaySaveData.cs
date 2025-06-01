@@ -82,7 +82,7 @@ namespace ProgressAdventure
             return new JsonDictionary
             {
                 [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
-                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = saveData.displaySaveName,
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = saveData.DisplaySaveName,
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = saveData.LastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = saveData.GetPlaytime(),
                 [Constants.JsonKeys.DisplaySaveData.PLAYER_NAME] = saveData.PlayerRef.name,

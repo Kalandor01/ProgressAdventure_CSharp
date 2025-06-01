@@ -31,7 +31,6 @@ namespace PACommon.ConfigManagement
         /// <param name="converters">The list of json serializers to use when converting to/from specific types.</param>
         /// <param name="configsFolderPath"><inheritdoc cref="_configsFolderPath" path="//summary"/></param>
         /// <param name="configExtension"><inheritdoc cref="_configExtension" path="//summary"/></param>
-        /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="configsFolderParrentPath"/> doesn't exist.</exception>
         protected AConfigManager(
             JsonConverter[]? converters = null,
             string? configsFolderPath = null,
@@ -60,6 +59,11 @@ namespace PACommon.ConfigManagement
         #endregion
 
         #region Public functions
+        public virtual void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
         public string GetConfigFilePath(string configName)
         {
             Tools.RecreateFolder(_configsFolderPath, "configs");

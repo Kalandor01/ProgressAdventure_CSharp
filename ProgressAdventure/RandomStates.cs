@@ -12,36 +12,15 @@ namespace ProgressAdventure
     /// <summary>
     /// Class for managing random number generators, used in save files.
     /// </summary>
-    public class RandomStates : IJsonConvertable<RandomStates>
+    public class RandomStates : IRandomStates<RandomStates>
     {
         #region Public properties
-        /// <summary>
-        /// The main random generator.
-        /// </summary>
         public SplittableRandom MainRandom { get; private set; }
-        /// <summary>
-        /// The world random generator.
-        /// </summary>
         public SplittableRandom WorldRandom { get; private set; }
-        /// <summary>
-        /// The misc random generator.
-        /// </summary>
         public SplittableRandom MiscRandom { get; private set; }
-        /// <summary>
-        /// The tile type noise generator seeds.
-        /// </summary>
         public Dictionary<TileNoiseType, ulong> TileTypeNoiseSeeds { get; private set; }
-        /// <summary>
-        /// The modifier used when creating a chunk random generator.
-        /// </summary>
         public Dictionary<TileNoiseType, PerlinNoise> TileTypeNoiseGenerators { get; private set; }
-        /// <summary>
-        /// The modifier used when creating a chunk random generator.
-        /// </summary>
         public double ChunkSeedModifier { get; private set; }
-        /// <summary>
-        /// The seed string that can be used to get the same seed again.
-        /// </summary>
         public string SeedString { get; private set; }
         #endregion
 
@@ -66,10 +45,7 @@ namespace ProgressAdventure
             {
                 if (_instance is null)
                 {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize();
-                    }
+                    _instance ??= Initialize(onlyIfUninitialized: true);
                 }
                 return _instance;
             }
@@ -116,25 +92,42 @@ namespace ProgressAdventure
         /// <param name="tileTypeNoiseSeeds"><inheritdoc cref="TileTypeNoiseSeeds" path="//summary"/></param>
         /// <param name="chunkSeedModifier"><inheritdoc cref="ChunkSeedModifier" path="//summary"/></param>
         /// <param name="seedString"><inheritdoc cref="SeedString" path="//summary"/></param>
+        /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
+        /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static RandomStates Initialize(
             SplittableRandom? mainRandom = null,
             SplittableRandom? worldRandom = null,
             SplittableRandom? miscRandom = null,
             Dictionary<TileNoiseType, ulong>? tileTypeNoiseSeeds = null,
             double? chunkSeedModifier = null,
-            string? seedString = null
+            string? seedString = null,
+            bool logInitialization = true,
+            bool onlyIfUninitialized = false
         )
         {
-            _instance = new RandomStates(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier, seedString);
-            PACSingletons.Instance.Logger.Log($"{nameof(RandomStates)} initialized");
-            return _instance;
+            lock (_threadLock)
+            {
+                if (onlyIfUninitialized && _instance is not null)
+                {
+                    return _instance;
+                }
+
+                _instance?.Dispose();
+                _instance = new RandomStates(mainRandom, worldRandom, miscRandom, tileTypeNoiseSeeds, chunkSeedModifier, seedString);
+                if (logInitialization)
+                {
+                    PACSingletons.Instance.Logger.Log($"{nameof(RandomStates)} initialized");
+                }
+                return _instance;
+            }
         }
 
-        /// <summary>
-        /// Recalculates ALL seeds for perlin noise generators.
-        /// </summary>
-        /// <param name="parrentRandom">The random generator to use, to generate the noise seeds.</param>
-        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(SplittableRandom parrentRandom)
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
+        public Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(SplittableRandom parrentRandom)
         {
             return new Dictionary<TileNoiseType, ulong>
             {
@@ -146,12 +139,7 @@ namespace ProgressAdventure
             };
         }
 
-        /// <summary>
-        /// Recalculates seeds for perlin noise generators that are missing from the partial tile type seed dictionary.
-        /// </summary>
-        /// <param name="partialTileTypeNoiseDict">A dictionary that might not contain noise seeds for all tile types.</param>
-        /// <param name="parrentRandom">The random generator to use, to generate the missing noise seeds.</param>
-        public static Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(Dictionary<TileNoiseType, ulong> partialTileTypeNoiseDict, SplittableRandom parrentRandom)
+        public Dictionary<TileNoiseType, ulong> RecalculateTileTypeNoiseSeeds(Dictionary<TileNoiseType, ulong> partialTileTypeNoiseDict, SplittableRandom parrentRandom)
         {
             foreach (TileNoiseType noiseType in Enum.GetValues(typeof(TileNoiseType)))
             {
@@ -163,9 +151,6 @@ namespace ProgressAdventure
             return partialTileTypeNoiseDict;
         }
 
-        /// <summary>
-        /// Recalculates the perlin noise generators.
-        /// </summary>
         public void RecalculateNoiseGenerators()
         {
             TileTypeNoiseGenerators = new Dictionary<TileNoiseType, PerlinNoise>

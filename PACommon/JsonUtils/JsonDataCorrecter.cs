@@ -42,10 +42,7 @@ namespace PACommon.JsonUtils
             {
                 if (_instance is null)
                 {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize("1.0", false);
-                    }
+                    _instance ??= Initialize("1.0", false, onlyIfUninitialized: true);
                 }
                 return _instance;
             }
@@ -88,19 +85,31 @@ namespace PACommon.JsonUtils
         /// <param name="defaultSaveVersion"><inheritdoc cref="defaultSaveVersion" path="//summary"/></param>
         /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
         /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object type names that use that save version as their current save version.</param>
+        /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
+        /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static JsonDataCorrecter Initialize(
             string defaultSaveVersion,
             bool orderCorrecters = false,
             IDictionary<string, IList<Type>>? specialObjectsBySaveVersion = null,
-            bool logInitialization = true
+            bool logInitialization = true,
+            bool onlyIfUninitialized = false
         )
         {
-            _instance = new JsonDataCorrecter(defaultSaveVersion, orderCorrecters, specialObjectsBySaveVersion);
-            if (logInitialization)
+            lock (_threadLock)
             {
-                PACSingletons.Instance.Logger.Log($"{nameof(JsonDataCorrecter)} initialized");
+                if (onlyIfUninitialized && _instance is not null)
+                {
+                    return _instance;
+                }
+
+                _instance?.Dispose();
+                _instance = new JsonDataCorrecter(defaultSaveVersion, orderCorrecters, specialObjectsBySaveVersion);
+                if (logInitialization)
+                {
+                    PACSingletons.Instance.Logger.Log($"{nameof(JsonDataCorrecter)} initialized");
+                }
+                return _instance;
             }
-            return _instance;
         }
         #endregion
 
@@ -141,6 +150,11 @@ namespace PACommon.JsonUtils
         #endregion
 
         #region Public methods
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
         public void CorrectJsonData(
             string objectName,
             JsonDictionary objectJson,

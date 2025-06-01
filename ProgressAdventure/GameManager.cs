@@ -18,7 +18,7 @@ namespace ProgressAdventure
         {
             SaveManager.CreateSaveData();
             SaveManager.MakeSave();
-            PACSingletons.Instance.Logger.Log("Created save", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
+            PACSingletons.Instance.Logger.Log("Created save", $"save name: \"{SaveData.Instance.SaveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
             GameLoop();
         }
 
@@ -56,7 +56,7 @@ namespace ProgressAdventure
 
             PASingletons.Instance.Globals.Saving = true;
             SaveManager.MakeSave(threadManager: threadManager);
-            PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
+            PACSingletons.Instance.Logger.Log("Game saved", $"save name: \"{SaveData.Instance.SaveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\"");
             PASingletons.Instance.Globals.Saving = false;
         }
 
@@ -66,7 +66,7 @@ namespace ProgressAdventure
         /// <param name="save">Whether to save the game.</param>
         public static void ExitGame(bool save = true)
         {
-            PACSingletons.Instance.Logger.Log("Exiting game", $"save name: {SaveData.Instance.saveName}");
+            PACSingletons.Instance.Logger.Log("Exiting game", $"save name: {SaveData.Instance.SaveName}");
             PASingletons.Instance.Globals.Exiting = true;
             if (save)
             {
@@ -169,7 +169,7 @@ namespace ProgressAdventure
                     PASingletons.Instance.Globals.Paused
                 ))
                 {
-                    PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.saveName}");
+                    PACSingletons.Instance.Logger.Log("Beginning auto save", $"save name: {SaveData.Instance.SaveName}");
                     SaveGame(threadManager);
                     saved = true;
                 }
@@ -249,7 +249,7 @@ namespace ProgressAdventure
                 }
 
                 Console.WriteLine("SAVING...");
-                PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.saveName}");
+                PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.SaveName}");
                 SaveGame();
                 Console.WriteLine("SAVED!");
 

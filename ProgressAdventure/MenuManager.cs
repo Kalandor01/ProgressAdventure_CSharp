@@ -268,7 +268,7 @@ namespace ProgressAdventure
                 return null;
             }
 
-            PACSingletons.Instance.Logger.Log("Beginning manual exit", $"save name: {SaveData.Instance.saveName}");
+            PACSingletons.Instance.Logger.Log("Beginning manual exit", $"save name: {SaveData.Instance.SaveName}");
             GameManager.ExitGame(false);
             return -1;
         }
@@ -283,7 +283,7 @@ namespace ProgressAdventure
                 return null;
             }
 
-            PACSingletons.Instance.Logger.Log("Beginning manual save and exit", $"save name: {SaveData.Instance.saveName}");
+            PACSingletons.Instance.Logger.Log("Beginning manual save and exit", $"save name: {SaveData.Instance.SaveName}");
             GameManager.ExitGame();
             return -1;
         }
@@ -760,7 +760,7 @@ namespace ProgressAdventure
             }
 
             SaveManager.LoadSave(selectedSaveName, false, backupSave);
-            SaveData.Instance.displaySaveName = newName;
+            SaveData.Instance.DisplaySaveName = newName;
             SaveManager.MakeSave();
             Utils.PressKey($"Renamed \"{selectedSaveName}\" save file to \"{newName}\"!");
 

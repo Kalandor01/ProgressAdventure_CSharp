@@ -202,12 +202,12 @@ namespace PAVisualizer
             // display
             var txt = new StringBuilder();
             txt.AppendLine($"---------------------------------------------------------------------------------------------------------------");
-            txt.AppendLine($"EXPORTED DATA FROM \"{SaveData.Instance.saveName}\"");
+            txt.AppendLine($"EXPORTED DATA FROM \"{SaveData.Instance.SaveName}\"");
             txt.AppendLine($"Loaded {PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}:");
             txt.AppendLine(VisualizerTools.GetDisplayGeneralSaveData());
             txt.Append("\n---------------------------------------------------------------------------------------------------------------");
             Utils.PressKey(txt.ToString());
-            if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.Instance.saveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
+            if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.Instance.SaveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
             {
                 PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
                 PACTools.RecreateFolder(Path.Join(Constants.VISUALIZED_SAVES_DATA_FOLDER_PATH, visualizedSaveFolderName));
@@ -215,7 +215,7 @@ namespace PAVisualizer
             }
 
 
-            if (!MenuManager.AskYesNoUIQuestion($"Do you want export the world data from \"{SaveData.Instance.saveName}\" into an image at \"{displayVisualizedSavePath}\"?"))
+            if (!MenuManager.AskYesNoUIQuestion($"Do you want export the world data from \"{SaveData.Instance.SaveName}\" into an image at \"{displayVisualizedSavePath}\"?"))
             {
                 return;
             }

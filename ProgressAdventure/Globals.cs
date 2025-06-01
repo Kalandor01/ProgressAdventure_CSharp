@@ -147,6 +147,11 @@
                 Thread.Sleep(Constants.GLOBALS_PAUSED_CHECK_FREQUENCY);
             }
         }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
         #endregion
     }
 }

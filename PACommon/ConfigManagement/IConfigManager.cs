@@ -5,7 +5,7 @@ namespace PACommon.ConfigManagement
     /// <summary>
     /// Interface for reading config files, to loading config dictionaries.
     /// </summary>
-    public interface IConfigManager
+    public interface IConfigManager : IDisposable
     {
         #region Public functions
         /// <summary>

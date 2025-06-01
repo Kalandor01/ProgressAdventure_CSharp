@@ -138,6 +138,11 @@ namespace ProgressAdventure.SettingsManagement
         #endregion
 
         #region Public functions
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+
         public bool GetAutoSave()
         {
             return (bool)GetFromSettingAsType(SettingsKey.AUTO_SAVE);

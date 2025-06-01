@@ -34,7 +34,7 @@ namespace ProgressAdventure
                 Console.Write("|" + showProgressText + "\r");
             }
             // make backup
-            var backupStatus = Tools.CreateBackup(SaveData.Instance.saveName, true);
+            var backupStatus = Tools.CreateBackup(SaveData.Instance.SaveName, true);
 
             // DATA FILE
             if (threadManager?.IsCanceled == true)
@@ -173,7 +173,7 @@ namespace ProgressAdventure
             data[Constants.JsonKeys.SaveData.SAVE_NAME] = new JsonValue(saveName);
             success &= PACTools.TryFromJson<SaveData>(data, fileVersion, out _);
             World.Initialize();
-            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.saveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
+            PACSingletons.Instance.Logger.Log("Game data loaded", $"save name: \"{SaveData.Instance.SaveName}\", player name: \"{SaveData.Instance.PlayerRef.FullName}\", last saved: {Utils.MakeDate(SaveData.Instance.LastSave)} {Utils.MakeTime(SaveData.Instance.LastSave)}, playtime: {SaveData.Instance.Playtime}");
             return success;
         }
 

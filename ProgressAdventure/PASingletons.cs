@@ -29,10 +29,7 @@ namespace ProgressAdventure
             {
                 if (_instance is null)
                 {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize();
-                    }
+                    _instance ??= Initialize(onlyIfUninitialized: true);
                 }
                 return _instance;
             }
@@ -72,27 +69,40 @@ namespace ProgressAdventure
         /// <param name="globals"><inheritdoc cref="Globals" path="//summary"/></param>
         /// <param name="settings"><inheritdoc cref="Settings" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
+        /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static PASingletons Initialize(
             IGlobals? globals = null,
             ISettings? settings = null,
-            bool logInitialization = true
+            bool logInitialization = true,
+            bool onlyIfUninitialized = false
         )
         {
-            _instance = new PASingletons(
-                globals ?? new Globals(),
-                settings ?? new Settings()
-            );
-            if (logInitialization)
+            lock (_threadLock)
             {
-                PACSingletons.Instance.Logger.Log($"{nameof(IGlobals)} initialized");
-                PACSingletons.Instance.Logger.Log($"{nameof(ISettings)} initialized");
-                PACSingletons.Instance.Logger.Log($"{nameof(PASingletons)} initialized");
+                if (onlyIfUninitialized && _instance is not null)
+                {
+                    return _instance;
+                }
+
+                _instance?.Dispose();
+                _instance = new PASingletons(
+                    globals ?? new Globals(),
+                    settings ?? new Settings()
+                );
+                if (logInitialization)
+                {
+                    PACSingletons.Instance.Logger.Log($"{nameof(IGlobals)} initialized");
+                    PACSingletons.Instance.Logger.Log($"{nameof(ISettings)} initialized");
+                    PACSingletons.Instance.Logger.Log($"{nameof(PASingletons)} initialized");
+                }
+                return _instance;
             }
-            return _instance;
         }
 
         public void Dispose()
         {
+            _instance?.Globals.Dispose();
+            _instance?.Settings.Dispose();
             GC.SuppressFinalize(this);
         }
         #endregion

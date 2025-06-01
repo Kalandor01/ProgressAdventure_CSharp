@@ -10,19 +10,8 @@ using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure
 {
-    public class SaveData : IJsonConvertable<SaveData>
+    public class SaveData : ISaveData<SaveData>, IDisposable
     {
-        #region Public fields
-        /// <summary>
-        /// The name of the save folder.
-        /// </summary>
-        public string saveName;
-        /// <summary>
-        /// The save name to display.
-        /// </summary>
-        public string displaySaveName;
-        #endregion
-
         #region Private fields
         /// <summary>
         /// Object used for locking the thread while the singleton gets created.
@@ -44,33 +33,20 @@ namespace ProgressAdventure
             {
                 if (_instance is null)
                 {
-                    lock (_threadLock)
-                    {
-                        _instance ??= Initialize(Constants.DEFAULT_SAVE_DATA_SAVE_NAME);
-                    }
+                    _instance ??= Initialize(Constants.DEFAULT_SAVE_DATA_SAVE_NAME, onlyIfUninitialized: true);
                 }
                 return _instance;
             }
         }
 
-        /// <summary>
-        /// The last time, the save file was saved.
-        /// </summary>
+        public string SaveName { get; set; }
+        public string DisplaySaveName { get; set; }
         public DateTime LastSave { get; private set; }
-        /// <summary>
-        /// The last time, the save file was loaded.
-        /// </summary>
         public DateTime LastLoad { get; private set; }
-        /// <summary>
-        /// The last time, the save file was saved.
-        /// </summary>
         public TimeSpan Playtime { get; private set; }
 
         private (long x, long y)? _refrencePlayerPos;
         private Entity _playerRef;
-        /// <summary>
-        /// A refrence to the player object.
-        /// </summary>
         public Entity PlayerRef
         {
             get
@@ -81,9 +57,6 @@ namespace ProgressAdventure
             private set => _playerRef = value;
         }
 
-        /// <summary>
-        /// The list of the configs that were enabled the last time the save was saved to file.
-        /// </summary>
         public ReadOnlyCollection<LoadedConfigData> LastLoadedConfigs { get; private set; }
         #endregion
 
@@ -91,8 +64,8 @@ namespace ProgressAdventure
         /// <summary>
         /// <inheritdoc cref="SaveData" path="//summary"/>
         /// </summary>
-        /// <param name="saveName"><inheritdoc cref="saveName" path="//summary"/></param>
-        /// <param name="displaySaveName"><inheritdoc cref="displaySaveName" path="//summary"/></param>
+        /// <param name="saveName"><inheritdoc cref="SaveName" path="//summary"/></param>
+        /// <param name="displaySaveName"><inheritdoc cref="DisplaySaveName" path="//summary"/></param>
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
         /// <param name="player"><inheritdoc cref="PlayerRef" path="//summary"/></param>
@@ -108,8 +81,8 @@ namespace ProgressAdventure
             bool initialiseRandomGenerators = true
         )
         {
-            this.saveName = saveName;
-            this.displaySaveName = displaySaveName ?? saveName;
+            this.SaveName = saveName;
+            this.DisplaySaveName = displaySaveName ?? saveName;
             LastSave = lastSave ?? DateTime.Now;
             LastLoad = DateTime.Now;
             Playtime = playtime ?? TimeSpan.Zero;
@@ -128,8 +101,8 @@ namespace ProgressAdventure
         /// <summary>
         /// Initializes the object's values.
         /// </summary>
-        /// <param name="saveName"><inheritdoc cref="saveName" path="//summary"/></param>
-        /// <param name="displaySaveName"><inheritdoc cref="displaySaveName" path="//summary"/></param>
+        /// <param name="saveName"><inheritdoc cref="SaveName" path="//summary"/></param>
+        /// <param name="displaySaveName"><inheritdoc cref="DisplaySaveName" path="//summary"/></param>
         /// <param name="lastSave"><inheritdoc cref="LastSave" path="//summary"/></param>
         /// <param name="playtime"><inheritdoc cref="Playtime" path="//summary"/></param>
         /// <param name="player"><inheritdoc cref="PlayerRef" path="//summary"/></param>
@@ -142,27 +115,46 @@ namespace ProgressAdventure
             TimeSpan? playtime = null,
             Entity? player = null,
             List<LoadedConfigData>? lastLoadedConfigs = null,
-            bool initialiseRandomGenerators = true
+            bool initialiseRandomGenerators = true,
+            bool logInitialization = true,
+            bool onlyIfUninitialized = false
         )
         {
-            _instance = new SaveData(
-                saveName,
-                displaySaveName,
-                lastSave,
-                playtime,
-                player,
-                lastLoadedConfigs,
-                initialiseRandomGenerators
-            );
-            PACSingletons.Instance.Logger.Log($"{nameof(SaveData)} initialized");
-            return _instance;
+            lock (_threadLock)
+            {
+                if (onlyIfUninitialized && _instance is not null)
+                {
+                    return _instance;
+                }
+
+                _instance?.Dispose();
+                _instance = new SaveData(
+                    saveName,
+                    displaySaveName,
+                    lastSave,
+                    playtime,
+                    player,
+                    lastLoadedConfigs,
+                    initialiseRandomGenerators
+                );
+                if (logInitialization)
+                {
+                    PACSingletons.Instance.Logger.Log($"{nameof(SaveData)} initialized");
+                }
+                return _instance;
+            }
         }
         #endregion
 
-        #region Public functions
+        #region Public methods
         public TimeSpan GetPlaytime()
         {
             return Playtime + DateTime.Now.Subtract(LastLoad);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
         }
         #endregion
 
@@ -309,8 +301,8 @@ namespace ProgressAdventure
             return new JsonDictionary
             {
                 [Constants.JsonKeys.SaveData.SAVE_VERSION] = Constants.SAVE_VERSION,
-                [Constants.JsonKeys.SaveData.SAVE_NAME] = saveName,
-                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = displaySaveName,
+                [Constants.JsonKeys.SaveData.SAVE_NAME] = SaveName,
+                [Constants.JsonKeys.SaveData.DISPLAY_NAME] = DisplaySaveName,
                 [Constants.JsonKeys.SaveData.LAST_SAVE] = LastSave,
                 [Constants.JsonKeys.SaveData.PLAYTIME] = GetPlaytime(),
                 [Constants.JsonKeys.SaveData.PLAYER_POS_X] = PlayerRef.Position?.x,
