@@ -139,7 +139,7 @@ namespace ProgressAdventure
                 throw new FileNotFoundException("Not a valid save folder", saveName);
             }
 
-            var data = Tools.LoadCompressedFile(dataFilePath, 1);
+            var data = Tools.LoadCompressedOrFMFile(dataFilePath, 1);
 
             if (data is null)
             {
@@ -191,18 +191,18 @@ namespace ProgressAdventure
             var datasProcessed = new List<(string saveName, string displayText)>();
             foreach (var data in datas)
             {
-                if (data.data is null)
+                var folderName = data.folderName;
+                if (data.data is not JsonDictionary jsonData)
                 {
                     PACSingletons.Instance.Logger.Log("Decode error", $"save name: {data.folderName}", LogSeverity.ERROR);
-                    Utils.PressKey($"\"{data.folderName}\" is corrupted!");
+                    Utils.PressKey($"\"{folderName}\" is corrupted!");
+                    continue;
                 }
-                else
+
+                var formatedData = ProcessSaveDisplayData(folderName, jsonData);
+                if (formatedData is not null)
                 {
-                    var processedData = ProcessSaveDisplayData(data);
-                    if (processedData is not null)
-                    {
-                        datasProcessed.Add(((string saveName, string displayText))processedData);
-                    }
+                    datasProcessed.Add((folderName, formatedData));
                 }
             }
             return datasProcessed;
@@ -288,23 +288,15 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Formats the json display data from a save file, into a displayable string.
+        /// Turns the json display data from a save file, into a formated string.
         /// </summary>
-        /// <param name="data">The save folder's name, and the data extracted from the data file's diplay data.</param>
-        public static (string saveName, string displayText)? ProcessSaveDisplayData((string folderName, JsonDictionary? jsonData) data)
+        /// <param name="folderName">The save folder's name</param>
+        /// <param name="dataJson">The data extracted from the data file's display data.</param>
+        public static string? ProcessSaveDisplayData(string folderName, JsonDictionary dataJson)
         {
-            var folderName = data.folderName;
-            var dataJson = data.jsonData;
-
             try
             {
-                if (dataJson is null)
-                {
-                    PACSingletons.Instance.Logger.Log("Save display data parse error", $"no data in save file: {folderName}", LogSeverity.ERROR);
-                    throw new ArgumentException("No data in save file.");
-                }
-
-                string? fileVersion = GetSaveVersion<DisplaySaveData>(
+                var fileVersion = GetSaveVersion<DisplaySaveData>(
                     dataJson,
                     Constants.JsonKeys.SaveData.OLD_SAVE_VERSION,
                     Constants.JsonKeys.SaveData.SAVE_VERSION,
@@ -316,7 +308,7 @@ namespace ProgressAdventure
                     fileVersion = Constants.OLDEST_SAVE_VERSION;
                 }
 
-                PACTools.TryFromJson(dataJson, fileVersion, out DisplaySaveData? displaySaveData);
+                var success = PACTools.TryFromJson<DisplaySaveData>(dataJson, fileVersion, out var displaySaveData);
                 if (displaySaveData is null)
                 {
                     throw new ArgumentNullException(nameof(displaySaveData), "Somehow the DisplaySaveData is null after being converted from json.");
@@ -338,7 +330,9 @@ namespace ProgressAdventure
                 displayText.Append($"Playtime: {playtime}");
                 displayText.Append(Tools.StylizedText($" v.{displayFileVersion}", isNewestVersion ? Constants.Colors.GREEN : Constants.Colors.RED));
 
-                return (folderName, displayText.ToString());
+                //TODO: last loaded configs comparison!
+
+                return displayText.ToString();
             }
             catch (Exception ex)
             {
@@ -386,15 +380,8 @@ namespace ProgressAdventure
             var datas = new List<(string folderName, JsonDictionary? data)>();
             foreach (var folder in folders)
             {
-                JsonDictionary? data = null;
-                try
-                {
-                    data = Tools.LoadCompressedFile(Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA), 0);
-                }
-                catch (Exception)
-                {
-
-                }
+                var filePath = Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA);
+                var data = Tools.LoadFileExpected<DisplaySaveData>(filePath, out var isFileInvalid, 0);
                 datas.Add((folder, data));
             }
             return datas;

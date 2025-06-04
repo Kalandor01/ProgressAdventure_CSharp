@@ -552,7 +552,7 @@ namespace ProgressAdventure.WorldManagement
                 var chunkFileName = Chunk.GetChunkFileName(chunkPosition, oldChunkSize);
 
                 if (
-                    Tools.LoadCompressedFileExpected<Chunk>(
+                    Tools.LoadFileExpected<Chunk>(
                         Chunk.GetChunkFilePath(chunkFileName, saveFolderName),
                         out var isFileInvalid,
                         expected: true,

@@ -140,7 +140,7 @@ namespace ProgressAdventure.WorldManagement
             var chunkFileName = GetChunkFileName(position);
             chunk = null;
 
-            var chunkJson = Tools.LoadCompressedFileExpected<Chunk>(
+            var chunkJson = Tools.LoadFileExpected<Chunk>(
                 GetChunkFilePath(chunkFileName, saveFolderName),
                 out isFileInvalid,
                 expected: expected,

@@ -46,7 +46,7 @@ namespace ProgressAdventure
         /// <exception cref="FormatException">Exeption thrown, if the file couldn't be decoded.</exception>
         /// <exception cref="InvalidDataException">Exeption thrown, if the file couldn't be decompressed.</exception>
         /// <exception cref="Exception">Exeption thrown, if the file was malformed and/or couldn't be decoded.</exception>
-        public static JsonDictionary? LoadCompressedFile(
+        public static JsonDictionary? LoadCompressedOrFMFile(
             string filePath,
             int lineNum = 0,
             string extension = SAVE_EXT,
@@ -97,7 +97,7 @@ namespace ProgressAdventure
         /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
         /// <param name="extraFileInformation">Extra information about the file to display in the log, if the file/folder can't be found.</param>
         /// <param name="tryOldDecoding">Whether to try to use <see cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>, if the newer decoding doesn't work.</param>
-        public static JsonDictionary? LoadCompressedFileExpected<T>(
+        public static JsonDictionary? LoadFileExpected<T>(
             string filePath,
             out bool isFileInvalid,
             int lineNum = 0,
@@ -111,7 +111,7 @@ namespace ProgressAdventure
             var objectTypeName = typeof(T).Name;
             try
             {
-                var fileJson = LoadCompressedFile(filePath, lineNum, extension, expected, tryOldDecoding);
+                var fileJson = LoadCompressedOrFMFile(filePath, lineNum, extension, expected, tryOldDecoding);
                 isFileInvalid = false;
                 if (fileJson is null)
                 {
