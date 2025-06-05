@@ -1,6 +1,7 @@
 ﻿using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
@@ -330,7 +331,14 @@ namespace ProgressAdventure
                 displayText.Append($"Playtime: {playtime}");
                 displayText.Append(Tools.StylizedText($" v.{displayFileVersion}", isNewestVersion ? Constants.Colors.GREEN : Constants.Colors.RED));
 
+                var diffs = ConfigUtils.GetConfigDiff(displaySaveData.lastLoadedConfigs);
+
                 //TODO: last loaded configs comparison!
+                if (folderName == "config test")
+                {
+                    Console.WriteLine(diffs);
+                }
+
 
                 return displayText.ToString();
             }

@@ -704,6 +704,77 @@ namespace ProgressAdventure.ConfigManagement
             _enabledConfigDatas = datas;
             return datas.AsReadOnly();
         }
+
+        /// <summary>
+        /// Gets the difference between a list of <see cref="LoadedConfigData"/>s and the currently loaded configs.
+        /// </summary>
+        public static ConfigDiff GetConfigDiff(IList<LoadedConfigData>? lastLoadedConfigs)
+        {
+            var currentlyLoadedConfigs = EnabledConfigDatas;
+            if (lastLoadedConfigs is null || lastLoadedConfigs.Count == 0)
+            {
+                return new ConfigDiff
+                {
+                    added = [.. currentlyLoadedConfigs],
+                    removed = [],
+                    versionChanged = [],
+                    orderChanged = [],
+                };
+            }
+
+            if (currentlyLoadedConfigs.Count == 0)
+            {
+                return new ConfigDiff
+                {
+                    added = [],
+                    removed = [.. lastLoadedConfigs],
+                    versionChanged = [],
+                    orderChanged = [],
+                };
+            }
+
+            var added = currentlyLoadedConfigs.ToList();
+            var removed = new List<LoadedConfigData>();
+            var versionChange = new List<(ConfigData config, string oldVersion)>();
+            var orderChange = new List<(ConfigData config, int oldIndex, int newIndex)>();
+
+            var prewIndex = -1;
+            var index = -1;
+            var prewConfig = currentlyLoadedConfigs[0];
+            foreach (var configData in lastLoadedConfigs)
+            {
+                index++;
+                var foundConfig = currentlyLoadedConfigs.FirstOrDefault(cc => configData.Namespace == cc.Namespace);
+                if (foundConfig is null)
+                {
+                    removed.Add(configData);
+                    continue;
+                }
+
+                added.Remove(foundConfig);
+                if (foundConfig.Version != configData.Version)
+                {
+                    versionChange.Add((foundConfig, configData.Version));
+                }
+
+                var newIndex = currentlyLoadedConfigs.IndexOf(foundConfig);
+                if (prewIndex >= newIndex)
+                {
+                    orderChange.Add((prewConfig, index, newIndex));
+                }
+
+                prewIndex = newIndex;
+                prewConfig = foundConfig;
+            }
+
+            return new ConfigDiff
+            {
+                added = [.. added],
+                removed = [.. removed],
+                versionChanged = [.. versionChange],
+                orderChanged = [.. orderChange],
+            };
+        }
         #endregion
 
         #region Namespacing functions
