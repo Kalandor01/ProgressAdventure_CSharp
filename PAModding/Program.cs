@@ -50,7 +50,7 @@ namespace PAModding
                     Constants.ORDER_JSON_CORRECTERS,
                     new Dictionary<string, IList<Type>>
                     {
-                        [Constants.CONFIG_VERSION] = [typeof(ConfigData)],
+                        [Constants.CONFIG_FORMAT_VERSION] = [typeof(ConfigData)],
                     },
                     false
                 ),

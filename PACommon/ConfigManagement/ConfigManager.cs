@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace PACommon.ConfigManagement
 {
     /// <summary>
-    /// Class for reading config files, for loading config dictionaries.
+    /// Class for reading/writing config files, for managing config dictionaries.
     /// </summary>
     public class ConfigManager : AConfigManager
     {

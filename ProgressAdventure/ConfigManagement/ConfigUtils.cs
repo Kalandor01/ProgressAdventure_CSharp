@@ -431,12 +431,12 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <param name="expectedVersion">The expected version of the config namespaces.<br/>
         /// If null, it doesn't care about the versions.</param>
-        public static List<ConfigData> GetValidConfigDatas(string? expectedVersion = Constants.CONFIG_VERSION)
+        public static List<ConfigData> GetValidConfigDatas(string? expectedVersion = Constants.CONFIG_FORMAT_VERSION)
         {
             PACommon.Tools.RecreateFolder(Constants.CONFIGS_FOLDER_PATH, "configs");
             return [.. Directory.GetDirectories(Constants.CONFIGS_FOLDER_PATH)
                 .Select(folder => ConfigData.DeserializeFromFile(Path.GetFileName(folder)))
-                .Where(cd => cd is not null && (expectedVersion is null || expectedVersion == cd.Version))
+                .Where(cd => cd is not null && (expectedVersion is null || expectedVersion == cd.Format))
                 .Cast<ConfigData>()];
         }
 
@@ -445,7 +445,7 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <param name="expectedVersion">The expected version of the config namespaces.<br/>
         /// If null, it doesn't care about the versions.</param>
-        public static List<string> GetValidNamespaceFolders(string? expectedVersion = Constants.CONFIG_VERSION)
+        public static List<string> GetValidNamespaceFolders(string? expectedVersion = Constants.CONFIG_FORMAT_VERSION)
         {
             return [.. GetValidConfigDatas(expectedVersion).Select(cd => cd.FolderName)];
         }
@@ -482,7 +482,7 @@ namespace ProgressAdventure.ConfigManagement
             var configLoadingDatas = new List<ConfigLoadingData>();
             foreach (var configLoadingDataJson in loadingOrder)
             {
-                var configLoadingData = ConfigLoadingData.FromJson(configLoadingDataJson);
+                var success = ConfigLoadingData.FromJson(configLoadingDataJson, out var configLoadingData);
                 if (
                     configLoadingData is not null &&
                     (configData is null || configData.Any(cd => cd.Namespace == configLoadingData.Namespace))
@@ -560,14 +560,14 @@ namespace ProgressAdventure.ConfigManagement
 
             var vanillaIsInvalid = false;
             var vanillaConfigData = configDatas.FirstOrDefault(cd => cd.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE);
-            if (vanillaConfigData?.Version != Constants.CONFIG_VERSION)
+            if (vanillaConfigData?.Format != Constants.CONFIG_FORMAT_VERSION)
             {
                 var paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
                 vanillaIsInvalid = true;
-                new ConfigData(paNspace, paNspace, Constants.CONFIG_VERSION).SerializeToFile();
+                new ConfigData(paNspace, paNspace, Constants.CONFIG_FORMAT_VERSION, Constants.VANILLA_CONFIG_VERSION).SerializeToFile();
                 if (vanillaConfigData is null)
                 {
-                    configDatas.Add(new ConfigData(paNspace, paNspace, ""));
+                    configDatas.Add(new ConfigData(paNspace, paNspace, "", ""));
                 }
             }
 

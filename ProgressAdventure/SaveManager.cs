@@ -6,8 +6,10 @@ using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
+using static System.Net.Mime.MediaTypeNames;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
@@ -120,16 +122,23 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Loads a save file into the <c>SaveData</c> object.
+        /// Loads a save file into the <see cref="SaveData"/> object.
         /// </summary>
         /// <param name="saveName">The name of the save folder.</param>
-        /// <param name="backupChoice">If the user can choose, whether to backup the save.</param>
-        /// <param name="automaticBackup">If the save folder should be backed up. (only applies if <c>backupChoice</c> is false)</param>
+        /// <param name="automaticBackup">If the save folder should be backed up without user choice.<br/>
+        /// null to ask the user, and true/false to always/never back up.</param>
         /// <param name="savesFolderPath">The path to the saves folder. By default, the current saves folder.</param>
+        /// <param name="configDiff">The config diff of the save (probably from <see cref="DisplaySaveData"/>).<br/>
+        /// (only matters if <paramref name="automaticBackup"/> is null)</param>
         /// <exception cref="FileNotFoundException">Thrown, if the save file doesn't exist.</exception>
         /// <exception cref="FileLoadException">Thrown, if the save file doesn't have a save version.</exception>
         /// <returns>If the file was loaded without json load warnings.</returns>
-        public static bool LoadSave(string saveName, bool backupChoice = true, bool automaticBackup = true, string? savesFolderPath = null)
+        public static bool LoadSave(
+            string saveName,
+            bool? automaticBackup = null,
+            string? savesFolderPath = null,
+            ConfigDiff? configDiff = null
+        )
         {
             var saveFolderPath = savesFolderPath is not null ? Path.Join(savesFolderPath, saveName) : Tools.GetSaveFolderPath(saveName);
             var dataFilePath = Path.Join(saveFolderPath, Constants.SAVE_FILE_NAME_DATA);
@@ -162,12 +171,28 @@ namespace ProgressAdventure
                 throw new FileLoadException("Unknown save version", saveName);
             }
 
-            if (BackupSaveIfAppropriate(fileVersion, saveName, backupChoice, automaticBackup))
+            if (fileVersion != Constants.SAVE_VERSION)
+            {
+                PACSingletons.Instance.Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
+            }
+
+            if (!Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion))
             {
                 PACSingletons.Instance.Logger.Log("Save version is too old", $"save version is older than the oldest recognised version number, {Constants.OLDEST_SAVE_VERSION} -> {fileVersion}", LogSeverity.ERROR);
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
                 success = false;
             }
+
+            if (configDiff is ConfigDiff cd && !cd.IsEmpty)
+            {
+                PACSingletons.Instance.Logger.Log(
+                    "Trying to load save with an different config layout",
+                    $"added: {cd.added.Length}, removed: {cd.removed.Length}, version changed: {cd.versionChanged.Length}, order changed: {cd.orderChanged.Length}",
+                    LogSeverity.WARN
+                );
+            }
+
+            BackupSaveIfAppropriate(fileVersion, saveName, automaticBackup, configDiff);
 
             // LOADING
             PACSingletons.Instance.Logger.Log("Preparing game data");
@@ -193,14 +218,13 @@ namespace ProgressAdventure
             foreach (var data in datas)
             {
                 var folderName = data.folderName;
-                if (data.data is not JsonDictionary jsonData)
+                if (data.data is not DisplaySaveData displayData)
                 {
-                    PACSingletons.Instance.Logger.Log("Decode error", $"save name: {data.folderName}", LogSeverity.ERROR);
                     Utils.PressKey($"\"{folderName}\" is corrupted!");
                     continue;
                 }
 
-                var formatedData = ProcessSaveDisplayData(folderName, jsonData);
+                var formatedData = ProcessSaveDisplayData(folderName, displayData);
                 if (formatedData is not null)
                 {
                     datasProcessed.Add((folderName, formatedData));
@@ -254,67 +278,156 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="fileVersion">The file version extracted from the json.</param>
         /// <param name="saveName">The name of the save folder.</param>
-        /// <param name="backupChoice">If the user can choose, whether to backup the save.</param>
-        /// <param name="automaticBackup">If the save folder should be backed up. (only applies if <paramref name="backupChoice"/> is false)</param>
-        /// <returns>If the save version is older than the oldest recognized save version.</returns>
-        private static bool BackupSaveIfAppropriate(string fileVersion, string saveName, bool backupChoice, bool automaticBackup)
+        /// <param name="automaticBackup">If the save folder should be backed up without user choice.<br/>
+        /// null to ask the user, and true/false to always/never back up.</param>
+        /// <param name="configDiff">The config diff of the save (probably from <see cref="DisplaySaveData"/>).<br/>
+        /// (only matters if <paramref name="automaticBackup"/> is null)</param>
+        private static void BackupSaveIfAppropriate(
+            string fileVersion,
+            string saveName,
+            bool? automaticBackup,
+            ConfigDiff? configDiff = null
+        )
         {
-            if (!backupChoice && automaticBackup)
-            {
-                Tools.CreateBackup(saveName);
-                return !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion);
-            }
-
-            if (
-                !backupChoice ||
-                fileVersion == Constants.SAVE_VERSION
+            static void ConfigDiffDisplayHelper(
+                string categoryName,
+                StringBuilder txt,
+                IEnumerable<string> changeList,
+                (byte, byte, byte) color
             )
             {
-                return false;
+                var diffText = $"\t{categoryName}:\n\t\t-{string.Join("\n\t\t-", changeList)}";
+                txt.Append(Tools.StylizedText(diffText, color));
+                txt.Append('\n');
             }
 
-            var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
-            PACSingletons.Instance.Logger.Log("Trying to load save with an incorrect version", $"{fileVersion} -> {Constants.SAVE_VERSION}", LogSeverity.WARN);
-            var createBackup = MenuManager.AskYesNoUIQuestion(
-                $"\"{saveName}\" is {(isOlder ? "an older" : "a newer")} version than what it should be! Do you want to backup the save before loading it?",
-                keybinds: PASingletons.Instance.Settings.Keybinds
-            );
 
-            if (createBackup)
+
+            if (automaticBackup is bool mustBackup)
             {
-                Tools.CreateBackup(saveName);
+                if (mustBackup)
+                {
+                    Tools.CreateBackup(saveName);
+                }
+                return;
             }
 
-            return isOlder && !Utils.IsUpToDate(Constants.OLDEST_SAVE_VERSION, fileVersion);
+            var versionDiff = fileVersion != Constants.SAVE_VERSION;
+            var isConfigDiff = configDiff is ConfigDiff cd && !cd.IsEmpty;
+            if (!versionDiff && !isConfigDiff)
+            {
+                return;
+            }
+
+            if (versionDiff)
+            {
+                var isOlder = !Utils.IsUpToDate(Constants.SAVE_VERSION, fileVersion);
+                var createBackup = MenuManager.AskYesNoUIQuestion(
+                    $"\"{saveName}\" is {(isOlder ? "an older" : "a newer")} version than what it should be! Do you want to backup the save before loading it?",
+                    keybinds: PASingletons.Instance.Settings.Keybinds
+                );
+
+                if (createBackup)
+                {
+                    Tools.CreateBackup(saveName);
+                    return;
+                }
+            }
+
+            if (isConfigDiff)
+            {
+                var diff = (ConfigDiff)configDiff!;
+
+                var txt = new StringBuilder($"\"{saveName}\" has a different config layout than the last time it was saved:\n");
+                if (diff.added.Length > 0)
+                {
+                    ConfigDiffDisplayHelper("added configs", txt, diff.added.Select(c => c.FolderName), Constants.Colors.RED);
+                }
+                if (diff.removed.Length > 0)
+                {
+                    ConfigDiffDisplayHelper("removed namespaces", txt, diff.removed.Select(c => c.Namespace), Constants.Colors.RED);
+                }
+                if (diff.versionChanged.Length > 0)
+                {
+                    ConfigDiffDisplayHelper(
+                        "version changed",
+                        txt,
+                        diff.versionChanged.Select(c => $"{c.config.FolderName}: {c.oldVersion} -> {c.config.Version}"),
+                        Constants.Colors.WARNING
+                    );
+                }
+                if (diff.orderChanged.Length > 0)
+                {
+                    ConfigDiffDisplayHelper(
+                        "order changed",
+                        txt,
+                        diff.orderChanged.Select(c => $"{c.config.FolderName}: {c.oldIndex + 1} -> {c.newIndex + 1}"),
+                        Constants.Colors.WARNING
+                    );
+                }
+                txt.Append("Do you want to backup the save before loading it?");
+                
+                var createBackup = MenuManager.AskYesNoUIQuestion(
+                    txt.ToString(),
+                    keybinds: PASingletons.Instance.Settings.Keybinds
+                );
+
+                if (createBackup)
+                {
+                    Tools.CreateBackup(saveName);
+                    return;
+                }
+            }
         }
 
         /// <summary>
-        /// Turns the json display data from a save file, into a formated string.
+        /// Gets the display data from a save folder.
+        /// </summary>
+        /// <param name="saveFolder">The name of a save folder.</param>
+        /// <param name="displaySaveData">The parsed display data</param>
+        /// <returns>If the display data was returned without parsing warnings.</returns>
+        public static bool GetDisplayDataFromSaveFolder(string saveFolder, [NotNullWhen(true)] out DisplaySaveData? displaySaveData)
+        {
+            displaySaveData = null;
+            var filePath = Path.Join(Tools.GetSaveFolderPath(saveFolder), Constants.SAVE_FILE_NAME_DATA);
+            var dataJson = Tools.LoadFileExpected<DisplaySaveData>(filePath, out var isFileInvalid, 0);
+
+            if (dataJson is null)
+            {
+                PACSingletons.Instance.Logger.Log("Decode error", $"save name: {saveFolder}", LogSeverity.ERROR);
+                return false;
+            }
+
+            var fileVersion = GetSaveVersion<DisplaySaveData>(
+                dataJson,
+                Constants.JsonKeys.SaveData.OLD_SAVE_VERSION,
+                Constants.JsonKeys.SaveData.SAVE_VERSION,
+                saveFolder
+            );
+            if (fileVersion is null)
+            {
+                PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {saveFolder}", LogSeverity.ERROR);
+                fileVersion = Constants.OLDEST_SAVE_VERSION;
+            }
+
+            var success = PACTools.TryFromJson(dataJson, fileVersion, out displaySaveData);
+            if (displaySaveData is null)
+            {
+                PACTools.LogJsonParseError<DisplaySaveData>(nameof(displaySaveData), $"somehow the display save data is null after being converted from json.", true);
+                return false;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Turns the display data into a formated string.
         /// </summary>
         /// <param name="folderName">The save folder's name</param>
-        /// <param name="dataJson">The data extracted from the data file's display data.</param>
-        public static string? ProcessSaveDisplayData(string folderName, JsonDictionary dataJson)
+        /// <param name="displaySaveData">The display save data.</param>
+        public static string? ProcessSaveDisplayData(string folderName, DisplaySaveData displaySaveData)
         {
             try
             {
-                var fileVersion = GetSaveVersion<DisplaySaveData>(
-                    dataJson,
-                    Constants.JsonKeys.SaveData.OLD_SAVE_VERSION,
-                    Constants.JsonKeys.SaveData.SAVE_VERSION,
-                    folderName
-                );
-                if (fileVersion is null)
-                {
-                    PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {folderName}", LogSeverity.ERROR);
-                    fileVersion = Constants.OLDEST_SAVE_VERSION;
-                }
-
-                var success = PACTools.TryFromJson<DisplaySaveData>(dataJson, fileVersion, out var displaySaveData);
-                if (displaySaveData is null)
-                {
-                    throw new ArgumentNullException(nameof(displaySaveData), "Somehow the DisplaySaveData is null after being converted from json.");
-                }
-
                 var displayText = new StringBuilder();
 
                 // display name
@@ -333,12 +446,28 @@ namespace ProgressAdventure
 
                 var diffs = ConfigUtils.GetConfigDiff(displaySaveData.lastLoadedConfigs);
 
-                //TODO: last loaded configs comparison!
-                if (folderName == "config test")
+                var configDiffMessages = new List<string>();
+                if (diffs.added.Length > 0)
                 {
-                    Console.WriteLine(diffs);
+                    configDiffMessages.Add(Tools.StylizedText($"added({diffs.added.Length})", Constants.Colors.RED));
+                }
+                if (diffs.removed.Length > 0)
+                {
+                    configDiffMessages.Add(Tools.StylizedText($"removed({diffs.removed.Length})", Constants.Colors.RED));
+                }
+                if (diffs.versionChanged.Length > 0)
+                {
+                    configDiffMessages.Add(Tools.StylizedText($"version changed({diffs.versionChanged.Length})", Constants.Colors.WARNING));
+                }
+                if (diffs.orderChanged.Length > 0)
+                {
+                    configDiffMessages.Add(Tools.StylizedText($"order changed({diffs.orderChanged.Length})", Constants.Colors.WARNING));
                 }
 
+                if (configDiffMessages.Count > 0)
+                {
+                    displayText.Append("\nconfigs: " + string.Join(", ", configDiffMessages));
+                }
 
                 return displayText.ToString();
             }
@@ -382,15 +511,14 @@ namespace ProgressAdventure
         /// Gets the display data from all save files in the saves folder.
         /// </summary>
         /// <param name="folders">A list of valid save folders.</param>
-        /// <returns>A list of tuples, containing the folder name, and the data in it. The data will be null, if the folder wasn't readable.</returns>
-        private static List<(string folderName, JsonDictionary? data)> GetFoldersDisplayData(IEnumerable<string> folders)
+        /// <returns>A list of tuples, containing the folder name, and the display data in it. The data will be null, if the display data wasn't parsable.</returns>
+        private static List<(string folderName, DisplaySaveData? data)> GetFoldersDisplayData(IEnumerable<string> folders)
         {
-            var datas = new List<(string folderName, JsonDictionary? data)>();
+            var datas = new List<(string folderName, DisplaySaveData? data)>();
             foreach (var folder in folders)
             {
-                var filePath = Path.Join(Tools.GetSaveFolderPath(folder), Constants.SAVE_FILE_NAME_DATA);
-                var data = Tools.LoadFileExpected<DisplaySaveData>(filePath, out var isFileInvalid, 0);
-                datas.Add((folder, data));
+                var success = GetDisplayDataFromSaveFolder(folder, out var displaySaveData);
+                datas.Add((folder, displaySaveData));
             }
             return datas;
         }

@@ -1,4 +1,5 @@
 ﻿using PACommon;
+using PAConstants = ProgressAdventure.Constants;
 
 namespace PAExtras
 {
@@ -14,9 +15,13 @@ namespace PAExtras
             //SaveImporter.ImportSave("new save_1");
             //SaveImporter.ImportSave("save2_1");
             //SaveImporter.ImportSave("test");
-            SaveImporter.ImportSave("all items + world");
+            //SaveImporter.ImportSave("all items + world");
 
-            //Tools.EncodeSaveFile("data", Path.Join(PAConstants.SAVES_FOLDER_PATH, "test save"));
+            var success = Tools.ZipSaveFile(
+                "data",
+                Path.Join(PAConstants.SAVES_FOLDER_PATH,
+                "config test"
+            ));
 
 
 

@@ -56,29 +56,62 @@ namespace PAExtras
         /// <summary>
         /// Encodes a json file into a .savc format, and returns if it succeded.
         /// </summary>
-        /// <param name="saveFolderName"></param>
+        /// <param name="saveFileName"></param>
         /// <param name="savesFolderPath"></param>
         /// <param name="saveSeed"></param>
         /// <param name="saveExtension"></param>
-        public static bool EncodeSaveFile(string saveFolderName, string? savesFolderPath = null, long? saveSeed = null, string? saveExtension = null)
+        public static bool EncodeSaveFile(string saveFileName, string? savesFolderPath = null, long? saveSeed = null, string? saveExtension = null)
         {
             savesFolderPath ??= PAConstants.SAVES_FOLDER_PATH;
             saveSeed ??= PAConstants.OLD_SAVE_SEED;
+            saveExtension ??= PAConstants.OLD_SAVE_EXT;
+
+            List<string> saveData;
+            try
+            {
+                using var f = File.OpenText(Path.Join(savesFolderPath, saveFileName) + ".decoded.json");
+                saveData = [.. f.ReadToEnd().Split("\n")];
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine($"encode save file: FILE {saveFileName} NOT FOUND!");
+                return false;
+            }
+
+            FileConversion.EncodeFile(saveData, (long)saveSeed, Path.Join(savesFolderPath, saveFileName), saveExtension, Constants.FILE_ENCODING_VERSION);
+            return true;
+        }
+
+        /// <summary>
+        /// Encodes a json file into a .sav format, and returns if it succeded.
+        /// </summary>
+        /// <param name="saveFileName"></param>
+        /// <param name="savesFolderPath"></param>
+        /// <param name="saveExtension"></param>
+        public static bool ZipSaveFile(string saveFileName, string? savesFolderPath = null, string? saveExtension = null)
+        {
+            savesFolderPath ??= PAConstants.SAVES_FOLDER_PATH;
             saveExtension ??= PAConstants.SAVE_EXT;
 
             List<string> saveData;
             try
             {
-                using var f = File.OpenText(Path.Join(savesFolderPath, saveFolderName) + ".decoded.json");
+                using var f = File.OpenText(Path.Join(savesFolderPath, saveFileName) + ".sav.decoded");
                 saveData = [.. f.ReadToEnd().Split("\n")];
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine($"encode save file: FILE {saveFolderName} NOT FOUND!");
+                Console.WriteLine($"zip save file: FILE {saveFileName} NOT FOUND!");
                 return false;
             }
 
-            FileConversion.EncodeFile(saveData, (long)saveSeed, Path.Join(savesFolderPath, saveFolderName), saveExtension, Constants.FILE_ENCODING_VERSION);
+            var filePath = Path.Join(savesFolderPath, saveFileName);
+            var encodedLines = new List<string>();
+            foreach (var line in saveData)
+            {
+                encodedLines.Add(Convert.ToBase64String(PACUtils.Zip(line)));
+            }
+            File.WriteAllLines($"{filePath}.{saveExtension}", encodedLines, PACConstants.ENCODING);
             return true;
         }
 
@@ -97,7 +130,7 @@ namespace PAExtras
         {
             savesFolderPath ??= PAConstants.SAVES_FOLDER_PATH;
             saveSeed ??= PAConstants.OLD_SAVE_SEED;
-            saveExtension ??= PAConstants.SAVE_EXT;
+            saveExtension ??= PAConstants.OLD_SAVE_EXT;
 
             newSaveFolderName ??= saveFolderName;
             newSavesFolderPath ??= savesFolderPath;

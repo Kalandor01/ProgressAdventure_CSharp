@@ -9,7 +9,13 @@ namespace ProgressAdventure.ConfigManagement
         public (ConfigData config, string oldVersion)[] versionChanged;
         public (ConfigData config, int oldIndex, int newIndex)[] orderChanged;
 
-        public override string? ToString()
+        public readonly bool IsEmpty =>
+            added.Length == 0 &&
+            removed.Length == 0 &&
+            versionChanged.Length == 0 &&
+            orderChanged.Length == 0;
+
+        public override readonly string? ToString()
         {
             var txt = new StringBuilder();
             if (added.Length > 0)

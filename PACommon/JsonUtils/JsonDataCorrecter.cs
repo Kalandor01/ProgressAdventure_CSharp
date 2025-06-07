@@ -4,7 +4,7 @@ using PACommon.Extensions;
 namespace PACommon.JsonUtils
 {
     /// <summary>
-    /// Object containing utils to convert json data for <c>IJsonConvertable</c> objects to different versions.
+    /// Object containing utils to convert json data for <see cref="IJsonConvertable{TSelf}"/> and <see cref="IJsonConvertableExtra{TSelf, TE}"/> objects to different versions.
     /// </summary>
     public class JsonDataCorrecter : IJsonDataCorrecter
     {
@@ -55,7 +55,7 @@ namespace PACommon.JsonUtils
         /// </summary>
         /// <param name="defaultSaveVersion"><inheritdoc cref="defaultSaveVersion" path="//summary"/></param>
         /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
-        /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object type names that use that save version as their current save version.</param>
+        /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object types that use that save version as their current save version.</param>
         /// <exception cref="ArgumentException"></exception>
         private JsonDataCorrecter(
             string defaultSaveVersion,
@@ -72,9 +72,9 @@ namespace PACommon.JsonUtils
             saveVersionExceptions = specialObjectsBySaveVersion is null
                 ? []
                 : specialObjectsBySaveVersion.SelectMany(
-                    versionEx => versionEx.Value.Select(type => (type, versionEx.Key))
+                    versionEx => versionEx.Value.Select(type => (type, saveVersion:versionEx.Key))
                 )
-                .ToDictionary(item => item.type.FullName!, item => item.Key);
+                .ToDictionary(item => item.type.FullName!, item => item.saveVersion);
         }
         #endregion
 
@@ -84,7 +84,7 @@ namespace PACommon.JsonUtils
         /// </summary>
         /// <param name="defaultSaveVersion"><inheritdoc cref="defaultSaveVersion" path="//summary"/></param>
         /// <param name="orderCorrecters"><inheritdoc cref="orderCorrecters" path="//summary"/></param>
-        /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object type names that use that save version as their current save version.</param>
+        /// <param name="specialObjectsBySaveVersion">The dictionary pairing special save versions with a list of object types that use that save version as their current save version.</param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
         /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static JsonDataCorrecter Initialize(

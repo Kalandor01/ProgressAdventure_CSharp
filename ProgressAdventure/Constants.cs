@@ -178,6 +178,7 @@ namespace ProgressAdventure
             public static class ConfigData
             {
                 public const string NAMESPACE = "namespace";
+                public const string FORMAT = "format";
                 public const string VERSION = "version";
                 public const string DEPENDENCIES = "dependencies";
             }
@@ -399,13 +400,17 @@ namespace ProgressAdventure
         /// </summary>
         public const char NAMESPACE_SEPARATOR_CHAR = ':';
         /// <summary>
-        /// The oldest recognised config version.
+        /// The oldest recognised config format.
         /// </summary>
-        public const string OLDEST_CONFIG_VERSION = "v1";
+        public const string OLDEST_CONFIG_FORMAT_VERSION = "v1";
+        /// <summary>
+        /// The current config format.
+        /// </summary>
+        public const string CONFIG_FORMAT_VERSION = "v9";
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string CONFIG_VERSION = "v9";
+        public const string VANILLA_CONFIG_VERSION = "1.9";
         /// <summary>
         /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
         /// </summary>

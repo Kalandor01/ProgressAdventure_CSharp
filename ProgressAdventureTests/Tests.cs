@@ -1051,7 +1051,8 @@ namespace ProgressAdventureTests
                 new Chunk((1, 1)),
                 RandomStates.Initialize(),
                 SaveData.Initialize("test", initialiseRandomGenerators: false),
-                PACTools.FromJson<DisplaySaveData>(DisplaySaveData.ToJsonFromSaveData(SaveData.Instance), PAConstants.SAVE_VERSION) ?? throw new ArgumentNullException(nameof(DisplaySaveData), $"{nameof(DisplaySaveData)} from json should not be null."),
+                PACTools.FromJson<DisplaySaveData>(DisplaySaveData.ToJsonFromSaveData(SaveData.Instance), PAConstants.SAVE_VERSION)
+                ?? throw new ArgumentNullException(nameof(DisplaySaveData), $"{nameof(DisplaySaveData)} from json should not be null."),
             };
 
             RandomStates.Initialize();
@@ -1131,7 +1132,7 @@ namespace ProgressAdventureTests
             var testObjects = new List<(IJsonReadable obj, object? extraData)>
             {
                 (
-                    new ConfigData(testConfigFolderName, "test_namespace", "v123", ["pa", "test_depend"]),
+                    new ConfigData(testConfigFolderName, "test_namespace", "v123", "1.57", ["pa", "test_depend"]),
                     testConfigFolderName
                 ),
                 (
@@ -1195,6 +1196,19 @@ namespace ProgressAdventureTests
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
 
+
+            Dictionary<string, string> currentVersion;
+            try
+            {
+                currentVersion = (Dictionary<string, string>)PACSingletons.Instance.JsonDataCorrecter.GetType()
+                    .GetField("saveVersionExceptions", BindingFlags.NonPublic | BindingFlags.Instance)!
+                    .GetValue(PACSingletons.Instance.JsonDataCorrecter)!;
+            }
+            catch (Exception ex)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(EntityUtils)}: " + ex);
+            }
+
             //to/from json
             var errorMessages2 = new List<string>();
             foreach (var (testObject, extraData) in testObjects)
@@ -1214,7 +1228,10 @@ namespace ProgressAdventureTests
 
                 var objJson = testObject.ToJson();
                 var method = genericConvertableType?.GetMethod("FromJson", BindingFlags.Static | BindingFlags.Public);
-                var parameters = new object?[] { objJson, extraData, PAConstants.SAVE_VERSION, null };
+                var saveVersion = currentVersion.TryGetValue(testObject.GetType().FullName!, out var version)
+                    ? version
+                    : PAConstants.SAVE_VERSION;
+                var parameters = new object?[] { objJson, extraData, saveVersion, null };
 
                 try
                 {
@@ -1500,7 +1517,7 @@ namespace ProgressAdventureTests
             var saveName = Path.GetFileNameWithoutExtension(zipPath);
             PATools.DeleteSave(saveName);
             ZipFile.ExtractToDirectory(zipPath, Path.Join(PAConstants.SAVES_FOLDER_PATH, saveName));
-            var success = SaveManager.LoadSave(saveName, false, false);
+            var success = SaveManager.LoadSave(saveName, false);
             if (!success)
             {
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save file loading failed.");

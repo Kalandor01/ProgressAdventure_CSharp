@@ -6,12 +6,12 @@ namespace PACommon.JsonUtils
     /// Interface for classes that can be converted to and from json, with some extra data.
     /// </summary>
     /// <typeparam name="TSelf">The type that implements the interface.</typeparam>
-    /// <typeparam name="TE">The extra data.</typeparam>
-    public interface IJsonConvertableExtra<TSelf, TE> : IJsonReadable
-        where TSelf : IJsonConvertableExtra<TSelf, TE>
+    /// <typeparam name="TExtra">The extra data.</typeparam>
+    public interface IJsonConvertableExtra<TSelf, TExtra> : IJsonReadable
+        where TSelf : IJsonConvertableExtra<TSelf, TExtra>
     {
         #region Protected properties
-        protected static virtual List<(Action<JsonDictionary, TE> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = [];
+        protected static virtual List<(Action<JsonDictionary, TExtra> objectJsonCorrecter, string newFileVersion)> VersionCorrecters { get; } = [];
         #endregion
 
         #region Public functions
@@ -25,7 +25,7 @@ namespace PACommon.JsonUtils
         /// <returns>If the conversion was succesfull without any warnings.</returns>
         public static virtual bool FromJson(
             JsonDictionary? objectJson,
-            TE extraData,
+            TExtra extraData,
             string fileVersion,
             [NotNullWhen(true)] out TSelf? convertedObject
         )
@@ -37,7 +37,7 @@ namespace PACommon.JsonUtils
                 return false;
             }
 
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TSelf, TE>(objectJson, extraData, TSelf.VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<TSelf, TExtra>(objectJson, extraData, TSelf.VersionCorrecters, fileVersion);
 
             return TSelf.FromJsonWithoutCorrection(objectJson, extraData, fileVersion, ref convertedObject);
         }
@@ -45,7 +45,7 @@ namespace PACommon.JsonUtils
 
         #region Protected abstract functions
         /// <summary>
-        /// FromJson(), but without correcting the json data first.
+        /// <see cref="FromJson(JsonDictionary?, TExtra, string, out TSelf?)"/>, but without correcting the json data first.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="extraData">The extra data.</param>
@@ -54,7 +54,7 @@ namespace PACommon.JsonUtils
         /// <returns>If the conversion was succesfull without any warnings.</returns>
         public abstract static bool FromJsonWithoutCorrection(
             JsonDictionary objectJson,
-            TE extraData,
+            TExtra extraData,
             string fileVersion,
             [NotNullWhen(true)] ref TSelf? convertedObject
         );

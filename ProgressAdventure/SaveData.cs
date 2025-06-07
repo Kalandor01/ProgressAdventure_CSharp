@@ -81,8 +81,8 @@ namespace ProgressAdventure
             bool initialiseRandomGenerators = true
         )
         {
-            this.SaveName = saveName;
-            this.DisplaySaveName = displaySaveName ?? saveName;
+            SaveName = saveName;
+            DisplaySaveName = displaySaveName ?? saveName;
             LastSave = lastSave ?? DateTime.Now;
             LastLoad = DateTime.Now;
             Playtime = playtime ?? TimeSpan.Zero;

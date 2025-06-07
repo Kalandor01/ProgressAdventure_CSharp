@@ -123,7 +123,7 @@ namespace PAVisualizer
 
             try
             {
-                SaveManager.LoadSave(saveStrings.Value.saveFolderName, false, false, saveStrings.Value.saveFolderPath);
+                SaveManager.LoadSave(saveStrings.Value.saveFolderName, false, saveStrings.Value.saveFolderPath);
             }
             catch (Exception ex)
             {

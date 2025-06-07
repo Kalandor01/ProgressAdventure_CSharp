@@ -311,7 +311,7 @@ namespace PACommon
             var version = currentVersion.Split(".");
             var minVersion = minimumVersion.Split(".");
 
-            for (int x = 0; x < version.Length; x++)
+            for (var x = 0; x < version.Length; x++)
             {
                 // min v. shorter
                 if (minVersion.Length < (x + 1))
@@ -326,8 +326,8 @@ namespace PACommon
 
                 // both numbers
                 if (
-                    int.TryParse(version[x], out int versionInt) &&
-                    int.TryParse(minVersion[x], out int minVersionInt
+                    int.TryParse(version[x], out var versionInt) &&
+                    int.TryParse(minVersion[x], out var minVersionInt
                 )
                 )
                 {
@@ -345,8 +345,8 @@ namespace PACommon
                         return true;
                     }
 
-                    var isVersionPartPieceInt = GetFirstCharOrInt(ref versionPart, out string versionPartResult);
-                    var isMinVersionPartPieceInt = GetFirstCharOrInt(ref minVersionPart, out string minVersionPartResult);
+                    var isVersionPartPieceInt = GetFirstCharOrInt(ref versionPart, out var versionPartResult);
+                    var isMinVersionPartPieceInt = GetFirstCharOrInt(ref minVersionPart, out var minVersionPartResult);
 
                     if (versionPartResult == minVersionPartResult)
                     {

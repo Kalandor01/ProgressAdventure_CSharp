@@ -3,11 +3,26 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ProgressAdventure.ConfigManagement
 {
+    /// <summary>
+    /// Class for storing data about a previously loaded config.
+    /// </summary>
     public class LoadedConfigData : IJsonConvertable<LoadedConfigData>
     {
+        /// <summary>
+        /// The namespace of the previously loaded config.
+        /// </summary>
         public readonly string Namespace;
+        /// <summary>
+        /// The version of the previously loaded config.
+        /// </summary>
         public readonly string Version;
 
+        /// <summary>
+        /// <inheritdoc cref="LoadedConfigData" path="//summary"/>
+        /// </summary>
+        /// <param name="namespace"><inheritdoc cref="Namespace" path="//summary"/></param>
+        /// <param name="version"><inheritdoc cref="Version" path="//summary"/></param>
+        /// <exception cref="ArgumentException">Thrown if the namespace if invalid.</exception>
         public LoadedConfigData(string @namespace, string version)
         {
             Namespace = ConfigUtils.NamespaceRegex().IsMatch(@namespace)

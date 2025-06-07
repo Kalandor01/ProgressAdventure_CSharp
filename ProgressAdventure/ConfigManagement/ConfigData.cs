@@ -5,14 +5,42 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ProgressAdventure.ConfigManagement
 {
+    /// <summary>
+    /// Class for storing the data in a config's data file.
+    /// </summary>
     public class ConfigData : IJsonConvertableExtra<ConfigData, string>
     {
+        /// <summary>
+        /// The name of the folder that the config is located in the configs folder.
+        /// </summary>
         public readonly string FolderName;
+        /// <summary>
+        /// The unique namespace of the config.
+        /// </summary>
         public readonly string Namespace;
+        /// <summary>
+        /// The format version of the config.
+        /// </summary>
+        public readonly string Format;
+        /// <summary>
+        /// The version number of the config.
+        /// </summary>
         public readonly string Version;
+        /// <summary>
+        /// The list of config namespaces that this config depends on.
+        /// </summary>
         public readonly ReadOnlyCollection<string> Dependencies;
 
-        public ConfigData(string configFolderName, string @namespace, string version, IList<string> dependencies)
+        /// <summary>
+        /// <inheritdoc cref="ConfigData" path="//summary"/>
+        /// </summary>
+        /// <param name="configFolderName"><inheritdoc cref="FolderName" path="//summary"/></param>
+        /// <param name="namespace"><inheritdoc cref="Namespace" path="//summary"/></param>
+        /// <param name="format"><inheritdoc cref="Format" path="//summary"/></param>
+        /// <param name="version"><inheritdoc cref="Version" path="//summary"/></param>
+        /// <param name="dependencies"><inheritdoc cref="Dependencies" path="//summary"/></param>
+        /// <exception cref="ArgumentException">If the namespace is invaid, or the config folder name is empty.</exception>
+        public ConfigData(string configFolderName, string @namespace, string format, string version, IList<string> dependencies)
         {
             if (string.IsNullOrWhiteSpace(configFolderName))
             {
@@ -23,16 +51,24 @@ namespace ProgressAdventure.ConfigManagement
             Namespace = ConfigUtils.NamespaceRegex().IsMatch(@namespace)
                 ? @namespace
                 : throw new ArgumentException("Invalid namespace name", nameof(@namespace));
+            Format = format;
             Version = version;
             Dependencies = dependencies.AsReadOnly();
         }
 
-        public ConfigData(string configFolderName, string @namespace, string version)
-            : this(configFolderName, @namespace, version, []) { }
+        /// <summary>
+        /// <inheritdoc cref="ConfigData" path="//summary"/>
+        /// </summary>
+        /// <param name="configFolderName"><inheritdoc cref="FolderName" path="//summary"/></param>
+        /// <param name="namespace"><inheritdoc cref="Namespace" path="//summary"/></param>
+        /// <param name="format"><inheritdoc cref="Format" path="//summary"/></param>
+        /// <param name="version"><inheritdoc cref="Version" path="//summary"/></param>
+        public ConfigData(string configFolderName, string @namespace, string format, string version)
+            : this(configFolderName, @namespace, format, version, []) { }
 
         public override string? ToString()
         {
-            return $"\"{FolderName}\"({Namespace}): {Version}";
+            return $"\"{FolderName}\"({Namespace}): {Format}-{Version}";
         }
 
         #region JsonConvert
@@ -43,6 +79,20 @@ namespace ProgressAdventure.ConfigManagement
             {
                 oldJson["dependencies"] = new JsonArray();
             }, "v3"),
+            // v8 -> v9
+            ((oldJson, folderName) =>
+            {
+                // format and version split
+                JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "version", "format");
+                oldJson["version"] = "1." +
+                (
+                    oldJson.TryGetValue("format", out var formatJson) &&
+                    formatJson?.ToString() is string format &&
+                    format.Length > 1
+                        ? format[1..]
+                        : "0"
+                );
+            }, "v9"),
         ];
 
         public JsonDictionary ToJson()
@@ -50,6 +100,7 @@ namespace ProgressAdventure.ConfigManagement
             return new JsonDictionary
             {
                 [Constants.JsonKeys.ConfigData.NAMESPACE] = Namespace,
+                [Constants.JsonKeys.ConfigData.FORMAT] = Format,
                 [Constants.JsonKeys.ConfigData.VERSION] = Version,
                 [Constants.JsonKeys.ConfigData.DEPENDENCIES] = Dependencies.Select(dep => (JsonObject?)dep).ToList(),
             };
@@ -78,6 +129,7 @@ namespace ProgressAdventure.ConfigManagement
             }
 
             if (
+                !PACommon.Tools.TryParseJsonValue<string>(configJson, Constants.JsonKeys.ConfigData.FORMAT, out var format, isCritical: true) ||
                 !PACommon.Tools.TryParseJsonValue<string>(configJson, Constants.JsonKeys.ConfigData.VERSION, out var version, isCritical: true) ||
                 !PACommon.Tools.TryParseJsonListValue(configJson, Constants.JsonKeys.ConfigData.DEPENDENCIES,
                     dependency => {
@@ -99,7 +151,7 @@ namespace ProgressAdventure.ConfigManagement
                 return false;
             }
 
-            convertedObject = new ConfigData(folderName, namespaceName, version, dependencies);
+            convertedObject = new ConfigData(folderName, namespaceName, format, version, dependencies);
             return true;
         }
         #endregion
@@ -140,23 +192,33 @@ namespace ProgressAdventure.ConfigManagement
                 return null;
             }
 
-            var configVersion = Constants.OLDEST_CONFIG_VERSION;
+            var configFormat = Constants.OLDEST_CONFIG_FORMAT_VERSION;
             if (
-                configJson?.TryGetValue(Constants.JsonKeys.ConfigData.VERSION, out var configVersionJs) == true &&
-                configVersionJs?.ToString() is string configVersionStr
+                configJson is not null &&
+                configJson.TryGetValue(Constants.JsonKeys.ConfigData.FORMAT, out var configFormatJs) &&
+                configFormatJs?.ToString() is string configFormatStr
             )
             {
-                configVersion = configVersionStr;
+                configFormat = configFormatStr;
+            }
+            else if (
+                configJson is not null &&
+                !configJson.ContainsKey(Constants.JsonKeys.ConfigData.FORMAT) &&
+                configJson.TryGetValue(Constants.JsonKeys.ConfigData.VERSION, out var configOldFormatJs) &&
+                configOldFormatJs?.ToString() is string configOldFormatStr
+            )
+            {
+                configFormat = configOldFormatStr;
             }
             else
             {
-                PACommon.Tools.LogJsonParseError(nameof(configVersion), "assuming minimum config version");
+                PACommon.Tools.LogJsonParseError(nameof(configFormat), "assuming minimum config format");
             }
 
             return PACommon.Tools.TryFromJsonExtra(
                 configJson,
                 configFolderName,
-                configVersion,
+                configFormat,
                 out ConfigData? configData
             ) ? configData : null;
         }

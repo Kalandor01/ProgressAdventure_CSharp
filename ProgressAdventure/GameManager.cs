@@ -1,4 +1,5 @@
 ﻿using PACommon;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
@@ -25,11 +26,24 @@ namespace ProgressAdventure
         /// <summary>
         /// Loads an existing save.
         /// </summary>
-        public static void LoadSave(string saveName)
+        /// <param name="saveName">The name of the save file to load.</param>
+        /// <param name="configDiff">The config diff between the now and the last time this save was loaded.</param>
+        /// <param name="loadConfigDiffIfNull">Whether to load the <see cref="ConfigDiff"/> if <paramref name="configDiff"/> is null, by getting it from the <see cref="DisplaySaveData"/>.</param>
+        public static void LoadSave(string saveName, ConfigDiff? configDiff = null, bool loadConfigDiffIfNull = true)
         {
-            var backupChoice = PASingletons.Instance.Settings.DefBackupAction == -1;
-            var automaticBackup = PASingletons.Instance.Settings.DefBackupAction == 1;
-            SaveManager.LoadSave(saveName, backupChoice, automaticBackup);
+            if (configDiff is null && loadConfigDiffIfNull)
+            {
+                var success = SaveManager.GetDisplayDataFromSaveFolder(saveName, out var displaySaveData);
+                configDiff = ConfigUtils.GetConfigDiff(displaySaveData?.lastLoadedConfigs);
+            }
+
+            bool? automaticBackup = PASingletons.Instance.Settings.DefBackupAction switch
+            {
+                -1 => null,
+                1 => true,
+                _ => false,
+            };
+            SaveManager.LoadSave(saveName, automaticBackup, configDiff: configDiff);
             GameLoop();
         }
 

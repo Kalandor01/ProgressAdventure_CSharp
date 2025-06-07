@@ -191,7 +191,7 @@ namespace PAVisualizer
             // load
             try
             {
-                SaveManager.LoadSave(saveName, false, false, savesFolderPath);
+                SaveManager.LoadSave(saveName, false, savesFolderPath);
             }
             catch (Exception e)
             {

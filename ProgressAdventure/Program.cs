@@ -178,7 +178,7 @@ namespace ProgressAdventure
                     Constants.ORDER_JSON_CORRECTERS,
                     new Dictionary<string, IList<Type>>
                     {
-                        [Constants.CONFIG_VERSION] = [typeof(ConfigData)],
+                        [Constants.CONFIG_FORMAT_VERSION] = [typeof(ConfigData)],
                     },
                     false
                 ),
@@ -279,7 +279,7 @@ namespace ProgressAdventure
             bool exitGame;
             do
             {
-                RestartException? restartException = null;
+                Exception? restartException = null;
                 exitGame = true;
                 try
                 {
@@ -292,9 +292,9 @@ namespace ProgressAdventure
                 }
                 catch (Exception ie)
                 {
-                    if (ie.InnerException is RestartException re)
+                    if (ie.InnerException is RestartException)
                     {
-                        restartException = re;
+                        restartException = ie;
                     }
                     else
                     {

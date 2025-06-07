@@ -38,7 +38,7 @@ namespace PACommon.JsonUtils
 
         #region Protected abstract functions
         /// <summary>
-        /// FromJson(), but without correcting the json data first.
+        /// <see cref="FromJson(JsonDictionary?, string, out TSelf?)"/>, but without correcting the json data first.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>

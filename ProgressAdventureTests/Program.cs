@@ -56,7 +56,7 @@ namespace ProgressAdventureTests
                     PAConstants.ORDER_JSON_CORRECTERS,
                     new Dictionary<string, IList<Type>>
                     {
-                        [PAConstants.CONFIG_VERSION] = [typeof(ConfigData)],
+                        [PAConstants.CONFIG_FORMAT_VERSION] = [typeof(ConfigData)],
                     },
                     false
                 ),

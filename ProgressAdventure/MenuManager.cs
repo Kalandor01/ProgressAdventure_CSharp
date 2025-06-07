@@ -518,9 +518,9 @@ namespace ProgressAdventure
                     ],
                     " ",
                     preValue: $"\"{config.FolderName}\" {Tools.StylizedText(
-                            config.Version,
-                            config.Version == Constants.CONFIG_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED
-                        )} ({loadedConfig.Namespace}): ",
+                            config.Format,
+                            config.Format == Constants.CONFIG_FORMAT_VERSION ? Constants.Colors.GREEN : Constants.Colors.RED
+                        )} {config.Version} ({loadedConfig.Namespace}): ",
                     modifyList: true
                 );
                 configsElements.Add(configManagerUIElement);
@@ -652,7 +652,7 @@ namespace ProgressAdventure
             Console.WriteLine($"Regenerating \"{saveName}\":");
             PACSingletons.Instance.Logger.Log("Regenerating save file", $"save name: {saveName}");
             Console.Write("\tLoading...");
-            SaveManager.LoadSave(saveName, false, makeBackup);
+            SaveManager.LoadSave(saveName, makeBackup);
             Console.WriteLine("DONE!");
             PACSingletons.Instance.Logger.Log("Loading all chunks from file", $"save name: {saveName}");
             World.LoadAllChunksFromFolder(out var corruptedChunks, showProgressText: "\tLoading world...");
@@ -762,7 +762,7 @@ namespace ProgressAdventure
                 return SavesData.Count != 0 ? null : -1;
             }
 
-            SaveManager.LoadSave(selectedSaveName, false, backupSave);
+            SaveManager.LoadSave(selectedSaveName, backupSave);
             SaveData.Instance.DisplaySaveName = newName;
             SaveManager.MakeSave();
             Utils.PressKey($"Renamed \"{selectedSaveName}\" save file to \"{newName}\"!");
@@ -893,47 +893,6 @@ namespace ProgressAdventure
         private static void UpdateSavesData()
         {
             _savesData = SaveManager.GetSavesData();
-        }
-
-        /// <summary>
-        /// Returns the answers and actions lists, used in the delete saves menu.
-        /// </summary>
-        private static (List<string?> answers, List<UIAction?> actions) GetDeleteSavesMenuLists()
-        {
-            UpdateSavesData();
-
-            var answers = new List<string?>();
-            var actions = new List<UIAction?>();
-
-            foreach (var (saveName, displayText) in SavesData)
-            {
-                answers.Add(displayText);
-                answers.Add(null);
-
-                actions.Add(new UIAction(DeleteSaveAction, saveName));
-            }
-
-            answers.Add("Back");
-
-            return (answers, actions);
-        }
-
-        /// <summary>
-        /// Returns the delete saves menu.
-        /// </summary>
-        private static UIList GetDeleteSavesMenu()
-        {
-            var (answers, actions) = GetDeleteSavesMenuLists();
-            return new UIList(
-                answers,
-                " Delete mode!",
-                Constants.DELETE_CURSOR_ICONS,
-                true,
-                true,
-                actions,
-                true,
-                true
-            );
         }
 
         /// <summary>
