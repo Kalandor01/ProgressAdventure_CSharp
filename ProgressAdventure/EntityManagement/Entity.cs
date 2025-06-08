@@ -231,7 +231,7 @@ namespace ProgressAdventure.EntityManagement
             }
 
             // specific constructors
-            if (type == EntityType.PLAYER)
+            if (type == EntityUtils.PlayerEntityType)
             {
                 SpecificConstructorPlayer(this, extraData, generationRandom);
             }
@@ -342,7 +342,7 @@ namespace ProgressAdventure.EntityManagement
             )
             {
                 World.TryGetTileAll(Position.Value, out var tile);
-                if (type == EntityType.PLAYER)
+                if (type == EntityUtils.PlayerEntityType)
                 {
                     tile.Visit();
                 }
@@ -372,7 +372,7 @@ namespace ProgressAdventure.EntityManagement
             if (log)
             {
                 PACSingletons.Instance.Logger.Log(
-                    $"{(type == EntityType.PLAYER ? "Player" : "Entity")} position added",
+                    $"{(type == EntityUtils.PlayerEntityType ? "Player" : "Entity")} position added",
                     $"name: {FullName}, {populationManager.absolutePosition}",
                     LogSeverity.DEBUG
                 );
@@ -420,7 +420,7 @@ namespace ProgressAdventure.EntityManagement
             if (log)
             {
                 PACSingletons.Instance.Logger.Log(
-                    $"{(type == EntityType.PLAYER ? "Player" : "Entity")} position removed",
+                    $"{(type == EntityUtils.PlayerEntityType ? "Player" : "Entity")} position removed",
                     $"name: {FullName}, old position: {oldPos}",
                     LogSeverity.DEBUG
                 );
@@ -469,7 +469,7 @@ namespace ProgressAdventure.EntityManagement
             }
 
             PACSingletons.Instance.Logger.Log(
-                $"{(type == EntityType.PLAYER ? "Player" : "Entity")} moved",
+                $"{(type == EntityUtils.PlayerEntityType ? "Player" : "Entity")} moved",
                 $"name: {FullName}, {originPopulationManager.absolutePosition} -> {destinationPopulationManager.absolutePosition}",
                 LogSeverity.DEBUG
             );
@@ -503,7 +503,7 @@ namespace ProgressAdventure.EntityManagement
             }
 
             PACSingletons.Instance.Logger.Log(
-                $"{(type == EntityType.PLAYER ? "Player" : "Entity")} moved",
+                $"{(type == EntityUtils.PlayerEntityType ? "Player" : "Entity")} moved",
                 $"name: {FullName}, {oldPos} -> {destinationAbsolutePosition}",
                 LogSeverity.DEBUG
             );
@@ -576,7 +576,7 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         public string GetFullNameWithSpecies()
         {
-            return FullName + (type != EntityType.PLAYER ? $" ({EntityUtils.EntityPropertiesMap[type].displayName})" : "");
+            return FullName + (type != EntityUtils.PlayerEntityType ? $" ({EntityUtils.EntityPropertiesMap[type].displayName})" : "");
         }
 
         #region Entity type specific methods
@@ -673,7 +673,7 @@ namespace ProgressAdventure.EntityManagement
         #region Public overrides
         public override string ToString()
         {
-            var typeLine = type != EntityType.PLAYER ? $"\nSpecies: {EntityUtils.EntityPropertiesMap[type].displayName}" : "";
+            var typeLine = type != EntityUtils.PlayerEntityType ? $"\nSpecies: {EntityUtils.EntityPropertiesMap[type].displayName}" : "";
             var attributesStr = string.Join(", ", attributes);
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();

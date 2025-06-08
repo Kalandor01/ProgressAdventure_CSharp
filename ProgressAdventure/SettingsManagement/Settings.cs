@@ -61,6 +61,15 @@ namespace ProgressAdventure.SettingsManagement
             {
                 SettingsManager(SettingsKey.KEYBINDS, value);
                 _keybinds = GetKeybins();
+                var kbCount = _keybinds.KeybindList.Count();
+                if (kbCount > 0 && kbCount < 6)
+                {
+                    PACSingletons.Instance.Logger.Log(
+                        "Too few keybinds",
+                        $"there are less than 6 keybinds ({kbCount}), so if {nameof(ConsoleUI.UIList)} or {nameof(ConsoleUI.OptionsUI)} is called, these keybinds will be ignored.",
+                        LogSeverity.WARN
+                    );
+                }
             }
         }
 

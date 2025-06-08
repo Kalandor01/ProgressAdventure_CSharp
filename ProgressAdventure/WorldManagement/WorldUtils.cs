@@ -618,7 +618,10 @@ namespace ProgressAdventure.WorldManagement
         {
             foreach (var key in noiseValues.Keys)
             {
-                noiseValues[key] += TileNoiseOffsets[key];
+                if (TileNoiseOffsets.TryGetValue(key, out var offset))
+                {
+                    noiseValues[key] += offset;
+                }
             }
         }
 

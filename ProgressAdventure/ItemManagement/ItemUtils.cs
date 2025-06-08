@@ -652,7 +652,7 @@ namespace ProgressAdventure.ItemManagement
         }
         #endregion
 
-        public static void LoadDefaultConfigs1()
+        private static void LoadDefaultConfigs1()
         {
             Tools.LoadDefultAdvancedEnum(_defaultMaterials);
             Tools.LoadDefultAdvancedEnumTree(_defaultItemTypes);
@@ -660,7 +660,7 @@ namespace ProgressAdventure.ItemManagement
             MaterialItemAttributes = _defaultMaterialItemAttributes;
         }
 
-        public static void LoadDefaultConfigs2()
+        private static void LoadDefaultConfigs2()
         {
             DeffinitionItemRecipes = _defaultDeffinitionItemRecipes;
             ItemRecipes = _defaultItemRecipes;

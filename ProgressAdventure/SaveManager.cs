@@ -77,7 +77,7 @@ namespace ProgressAdventure
             // random generators
             RandomStates.Initialize(seedString is not null ? NPrngExtensionsPA.GetRandomFromString(seedString, out _) : null);
             // player
-            var player = new Entity(EntityType.PLAYER, playerName);
+            var player = new Entity(EntityUtils.PlayerEntityType, playerName);
             // load to class
             SaveData.Initialize(
                 saveName,
@@ -86,7 +86,8 @@ namespace ProgressAdventure
                 initialiseRandomGenerators: false
             );
             World.Initialize();
-            var playerResolveForce =SaveData.Instance.PlayerRef;
+            //explicitly resolve player
+            _ = SaveData.Instance.PlayerRef;
         }
 
         /// <summary>

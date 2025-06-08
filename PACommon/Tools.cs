@@ -729,7 +729,10 @@ namespace PACommon
                         return true;
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+
+                }
             }
             else if (
                 actualType.BaseType == typeof(EnumTreeValueBase) &&
@@ -759,7 +762,10 @@ namespace PACommon
                         return true;
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+
+                }
             }
             else
             {

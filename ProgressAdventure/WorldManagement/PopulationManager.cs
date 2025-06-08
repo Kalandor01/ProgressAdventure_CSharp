@@ -149,7 +149,7 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public List<Entity> GetPlayers()
         {
-            return loadedEntities.TryGetValue(EntityType.PLAYER, out var playerList) ? [.. playerList] : [];
+            return loadedEntities.TryGetValue(EntityUtils.PlayerEntityType, out var playerList) ? [.. playerList] : [];
         }
 
         /// <summary>

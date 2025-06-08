@@ -14,7 +14,26 @@ namespace ProgressAdventure.EntityManagement
     /// </summary>
     public static class EntityUtils
     {
+        #region Properties
+        public static EnumValue<EntityType> PlayerEntityType { get; private set; }
+        #endregion
+
         #region Default config values
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="FacingToMovementVectorMap"/>.
+        /// </summary>
+        private static readonly Dictionary<Facing, (int x, int y)> _defaultFacingToMovementVectorMap = new()
+        {
+            [Facing.NORTH] = (0, 1),
+            [Facing.SOUTH] = (0, -1),
+            [Facing.WEST] = (-1, 0),
+            [Facing.EAST] = (1, 0),
+            [Facing.NORTH_WEST] = (-1, 1),
+            [Facing.NORTH_EAST] = (1, 1),
+            [Facing.SOUTH_WEST] = (-1, -1),
+            [Facing.SOUTH_EAST] = (1, -1),
+        };
+
         /// <summary>
         /// The default value for the config used for the values of <see cref="EntityType"/>.
         /// </summary>
@@ -49,126 +68,6 @@ namespace ProgressAdventure.EntityManagement
         ];
 
         /// <summary>
-        /// The default value for the config used for the value of <see cref="EntityTypeMap"/>.
-        /// </summary>
-        public static readonly Dictionary<EnumValue<EntityType>, EntityPropertiesDTO> _defaultEntityPropertiesMap = new()
-        {
-            [EntityType.PLAYER] = new EntityPropertiesDTO(
-                "You",
-                new(20, 6, 6),
-                new(10, 3, 3),
-                new(10, 3, 3),
-                new(10, 9, 10),
-                [],
-                0, 0,
-                [],
-                true,
-                true
-            ),
-            [EntityType.DEMON] = new EntityPropertiesDTO(
-                "Demon",
-                new(25, 6, 6),
-                new(15, 3, 3),
-                new(12, 3, 3),
-                new(12, 9, 10),
-                [],
-                0, 0,
-                [],
-                true
-            ),
-            [EntityType.DWARF] = new EntityPropertiesDTO(
-                "Dwarf",
-                new(15, 6, 6),
-                new(12, 3, 3),
-                new(15, 3, 3),
-                new(7, 6, 10),
-                [],
-                0, 0,
-                [],
-                true
-            ),
-            [EntityType.ELF] = new EntityPropertiesDTO(
-                "Elf",
-                new(22, 6, 6),
-                new(10, 3, 3),
-                new(8, 3, 3),
-                new(15, 9, 10),
-                [],
-                0, 0,
-                [],
-                true
-            ),
-            [EntityType.HUMAN] = new EntityPropertiesDTO(
-                "Human",
-                new(20, 6, 6),
-                new(10, 3, 3),
-                new(10, 3, 3),
-                new(10, 9, 10),
-                [],
-                0, 0,
-                [],
-                true
-            ),
-            [EntityType.CAVEMAN] = new EntityPropertiesDTO(
-                "Caveman",
-                7, 7, 7, 7,
-                loot: [
-                    new(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
-                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.15, 3, 0, 1),
-                    new(ItemType.Misc.COIN, Material.COPPER, 0.35, 3, 0, 4),
-                ]
-            ),
-            [EntityType.GHOUL] = new EntityPropertiesDTO(
-                "Ghoul",
-                11, 9, 9, 9,
-                loot: [
-                    new(ItemType.Weapon.SWORD, Material.STONE, 0.2),
-                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.ROTTEN_FLESH, 0.55, 3, 0, 1),
-                    new(ItemType.Misc.COIN, Material.COPPER, 0.4, 4, 0, 5),
-                ]
-            ),
-            [EntityType.TROLL] = new EntityPropertiesDTO(
-                "Troll",
-                13, 11, 11, 5,
-                loot: [
-                    new(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
-                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.25, 2, 1, 3),
-                    new(ItemUtils.MATERIAL_ITEM_TYPE, Material.TEETH, 0.35, 2, 1, 5),
-                    new(ItemType.Misc.COIN, Material.SILVER, 0.3, 3, 1, 3),
-                ]
-            ),
-            [EntityType.DRAGON] = new EntityPropertiesDTO(
-                "Dragon",
-                100, 50, 50, 20,
-                10, 20,
-                GetDefaultAttributeChancesPositiveOnly(),
-                -1, 0,
-                [
-                    new(ItemType.Misc.COIN, Material.GOLD, 0.8, 10, 1, 10),
-                    new(ItemType.Misc.COIN, Material.SILVER, 0.9, 8, 5, 15),
-                    new(ItemType.Misc.COIN, Material.COPPER, 1, 5, 10, 20),
-                    new(ItemType.Weapon.SWORD, Material.STEEL, 1, 10, 0, 1),
-                    new(ItemType.Defence.SHIELD, Material.WOOD, 1, 5, 0, 1),
-                ]
-            ),
-        };
-
-        /// <summary>
-        /// The default value for the config used for the value of <see cref="FacingToMovementVectorMap"/>.
-        /// </summary>
-        private static readonly Dictionary<Facing, (int x, int y)> _defaultFacingToMovementVectorMap = new()
-        {
-            [Facing.NORTH] = (0, 1),
-            [Facing.SOUTH] = (0, -1),
-            [Facing.WEST] = (-1, 0),
-            [Facing.EAST] = (1, 0),
-            [Facing.NORTH_WEST] = (-1, 1),
-            [Facing.NORTH_EAST] = (1, 1),
-            [Facing.SOUTH_WEST] = (-1, -1),
-            [Facing.SOUTH_EAST] = (1, -1),
-        };
-
-        /// <summary>
         /// The default value for the config used for the value of <see cref="AttributeStatChangeMap"/>.
         /// </summary>
         private static readonly Dictionary<EnumValue<Attribute>, (double maxHp, double attack, double defence, double agility)> _defaultAttributeStatChangeMap = new()
@@ -184,6 +83,115 @@ namespace ProgressAdventure.EntityManagement
             [Attribute.AGILE] = (1, 1, 1, 2),
             [Attribute.SLOW] = (1, 1, 1, 0.5),
         };
+
+        /// <summary>
+        /// The default value for the config used for the value of <see cref="EntityPropertiesMap"/>.
+        /// </summary>
+        private static Dictionary<EnumValue<EntityType>, EntityPropertiesDTO> _defaultEntityPropertiesMap;
+        private static void LoadDefaultEntityPropertiesMap()
+        {
+            _defaultEntityPropertiesMap ??= new()
+            {
+                [EntityType.PLAYER] = new EntityPropertiesDTO(
+                    "You",
+                    new(20, 6, 6),
+                    new(10, 3, 3),
+                    new(10, 3, 3),
+                    new(10, 9, 10),
+                    [],
+                    0, 0,
+                    [],
+                    true,
+                    true
+                ),
+                [EntityType.DEMON] = new EntityPropertiesDTO(
+                    "Demon",
+                    new(25, 6, 6),
+                    new(15, 3, 3),
+                    new(12, 3, 3),
+                    new(12, 9, 10),
+                    [],
+                    0, 0,
+                    [],
+                    true
+                ),
+                [EntityType.DWARF] = new EntityPropertiesDTO(
+                    "Dwarf",
+                    new(15, 6, 6),
+                    new(12, 3, 3),
+                    new(15, 3, 3),
+                    new(7, 6, 10),
+                    [],
+                    0, 0,
+                    [],
+                    true
+                ),
+                [EntityType.ELF] = new EntityPropertiesDTO(
+                    "Elf",
+                    new(22, 6, 6),
+                    new(10, 3, 3),
+                    new(8, 3, 3),
+                    new(15, 9, 10),
+                    [],
+                    0, 0,
+                    [],
+                    true
+                ),
+                [EntityType.HUMAN] = new EntityPropertiesDTO(
+                    "Human",
+                    new(20, 6, 6),
+                    new(10, 3, 3),
+                    new(10, 3, 3),
+                    new(10, 9, 10),
+                    [],
+                    0, 0,
+                    [],
+                    true
+                ),
+                [EntityType.CAVEMAN] = new EntityPropertiesDTO(
+                    "Caveman",
+                    7, 7, 7, 7,
+                    loot: [
+                        new(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
+                        new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.15, 3, 0, 1),
+                        new(ItemType.Misc.COIN, Material.COPPER, 0.35, 3, 0, 4),
+                    ]
+                ),
+                [EntityType.GHOUL] = new EntityPropertiesDTO(
+                    "Ghoul",
+                    11, 9, 9, 9,
+                    loot: [
+                        new(ItemType.Weapon.SWORD, Material.STONE, 0.2),
+                        new(ItemUtils.MATERIAL_ITEM_TYPE, Material.ROTTEN_FLESH, 0.55, 3, 0, 1),
+                        new(ItemType.Misc.COIN, Material.COPPER, 0.4, 4, 0, 5),
+                    ]
+                ),
+                [EntityType.TROLL] = new EntityPropertiesDTO(
+                    "Troll",
+                    13, 11, 11, 5,
+                    loot: [
+                        new(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
+                        new(ItemUtils.MATERIAL_ITEM_TYPE, Material.CLOTH, 0.25, 2, 1, 3),
+                        new(ItemUtils.MATERIAL_ITEM_TYPE, Material.TEETH, 0.35, 2, 1, 5),
+                        new(ItemType.Misc.COIN, Material.SILVER, 0.3, 3, 1, 3),
+                    ]
+                ),
+                [EntityType.DRAGON] = new EntityPropertiesDTO(
+                    "Dragon",
+                    100, 50, 50, 20,
+                    10, 20,
+                    GetDefaultAttributeChancesPositiveOnly(),
+                    -1, 0,
+                    [
+                        new(ItemType.Misc.COIN, Material.GOLD, 0.8, 10, 1, 10),
+                        new(ItemType.Misc.COIN, Material.SILVER, 0.9, 8, 5, 15),
+                        new(ItemType.Misc.COIN, Material.COPPER, 1, 5, 10, 20),
+                        new(ItemType.Weapon.SWORD, Material.STEEL, 1, 10, 0, 1),
+                        new(ItemType.Defence.SHIELD, Material.WOOD, 1, 5, 0, 1),
+                    ]
+                ),
+            };
+        }
         #endregion
 
         #region Config dictionaries
@@ -206,7 +214,11 @@ namespace ProgressAdventure.EntityManagement
         #region Constructors
         static EntityUtils()
         {
-            LoadDefaultConfigs();
+            LoadDefaultConfigs1();
+
+            LoadDefaultEntityPropertiesMap();
+
+            LoadDefaultConfigs2();
         }
         #endregion
 
@@ -326,15 +338,58 @@ namespace ProgressAdventure.EntityManagement
         #endregion
 
         /// <summary>
+        /// Tries to set the <see cref="PlayerEntityType"/> property to a type that can be a player.
+        /// </summary>
+        /// <exception cref="KeyNotFoundException">Thrown if no player type can be found.</exception>
+        private static void UpdatePlayerEntityType()
+        {
+            if (
+                EntityType.TryGetValue(EntityType.PLAYER.Name, out var playerType) &&
+                EntityPropertiesMap.TryGetValue(playerType, out var playerAttributes) &&
+                playerAttributes.updatesWorldWhenMoving &&
+                playerAttributes.hasInventory
+            )
+            {
+                PlayerEntityType = playerType;
+                return;
+            }
+
+            if (
+                EntityType.GetValues().FirstOrDefault(e =>
+                    EntityPropertiesMap.TryGetValue(e, out var entityAttributes) &&
+                    entityAttributes.updatesWorldWhenMoving &&
+                    entityAttributes.hasInventory
+                ) is EnumValue<EntityType> foundPlayerType
+            )
+            {
+                PlayerEntityType = foundPlayerType;
+                return;
+            }
+
+            throw new KeyNotFoundException("No entiy type found that can be used as a player type!");
+        }
+
+        private static void LoadDefaultConfigs1()
+        {
+            Tools.LoadDefultAdvancedEnum(_defaultEntityTypes);
+            Tools.LoadDefultAdvancedEnum(_defaultAttributes);
+            FacingToMovementVectorMap = _defaultFacingToMovementVectorMap;
+            AttributeStatChangeMap = _defaultAttributeStatChangeMap;
+        }
+
+        private static void LoadDefaultConfigs2()
+        {
+            EntityPropertiesMap = _defaultEntityPropertiesMap;
+            UpdatePlayerEntityType();
+        }
+
+        /// <summary>
         /// Resets all variables that come from configs.
         /// </summary>
         public static void LoadDefaultConfigs()
         {
-            Tools.LoadDefultAdvancedEnum(_defaultEntityTypes);
-            Tools.LoadDefultAdvancedEnum(_defaultAttributes);
-            EntityPropertiesMap = _defaultEntityPropertiesMap;
-            FacingToMovementVectorMap = _defaultFacingToMovementVectorMap;
-            AttributeStatChangeMap = _defaultAttributeStatChangeMap;
+            LoadDefaultConfigs1();
+            LoadDefaultConfigs2();
         }
 
         /// <summary>
@@ -382,17 +437,6 @@ namespace ProgressAdventure.EntityManagement
                 true
             );
 
-            var entityPropertiesMapData = WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(false);
-            EntityPropertiesMap = ConfigUtils.ReloadConfigsAggregateDict(
-                entityPropertiesMapData.configName,
-                namespaceFolders,
-                _defaultEntityPropertiesMap,
-                entityPropertiesMapData.serializeKeys,
-                key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
-                isVanillaInvalid,
-                showProgressIndentation
-            );
-
             var facingToMovementVectorMapData = WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(false);
             FacingToMovementVectorMap = ConfigUtils.ReloadConfigsAggregateDict(
                 facingToMovementVectorMapData.configName,
@@ -418,6 +462,18 @@ namespace ProgressAdventure.EntityManagement
                 isVanillaInvalid,
                 showProgressIndentation
             );
+
+            var entityPropertiesMapData = WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(false);
+            EntityPropertiesMap = ConfigUtils.ReloadConfigsAggregateDict(
+                entityPropertiesMapData.configName,
+                namespaceFolders,
+                _defaultEntityPropertiesMap,
+                entityPropertiesMapData.serializeKeys,
+                key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
+                isVanillaInvalid,
+                showProgressIndentation
+            );
+            UpdatePlayerEntityType();
         }
         #endregion
 
@@ -898,7 +954,9 @@ namespace ProgressAdventure.EntityManagement
         /// Filters out invalid teams from the teams list, and returns which team the player is in.
         /// </summary>
         /// <param name="teamsRaw">The teams of entities.</param>
-        private static (Dictionary<string, List<Entity>> teams, string? playerTeam, Entity? player) PrepareTeams(Dictionary<string, List<Entity>> teamsRaw)
+        private static (Dictionary<string, List<Entity>> teams, string? playerTeam, Entity? player) PrepareTeams(
+            Dictionary<string, List<Entity>> teamsRaw
+        )
         {
             string? playerTeam = null;
             Entity? player = null;
@@ -917,7 +975,7 @@ namespace ProgressAdventure.EntityManagement
                     if (entity.CurrentHp > 0)
                     {
                         entityList.Add(entity);
-                        if (entity.type == EntityType.PLAYER)
+                        if (entity.type == EntityUtils.PlayerEntityType)
                         {
                             playerTeam = team.Key;
                             player = entity;

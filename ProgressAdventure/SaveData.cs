@@ -92,7 +92,7 @@ namespace ProgressAdventure
                 RandomStates.Initialize();
             }
 
-            PlayerRef = player is null || player.type != EntityType.PLAYER ? new Entity(EntityType.PLAYER) : player;
+            PlayerRef = player is null || player.type != EntityUtils.PlayerEntityType ? new Entity(EntityUtils.PlayerEntityType) : player;
             LastLoadedConfigs = lastLoadedConfigs?.AsReadOnly() ?? new ReadOnlyCollection<LoadedConfigData>([]);
         }
         #endregion
@@ -187,7 +187,7 @@ namespace ProgressAdventure
                 return;
             }
 
-            var playerCount = playerTilePopMan.GetEntityCount(EntityType.PLAYER, out var ulPlayers);
+            var playerCount = playerTilePopMan.GetEntityCount(EntityUtils.PlayerEntityType, out var ulPlayers);
             if (playerCount <= 0)
             {
                 _playerRef.AddPosition(playerTilePopMan);
@@ -200,7 +200,7 @@ namespace ProgressAdventure
             {
                 if (ulPlayers > 0)
                 {
-                    _playerRef = playerTilePopMan.LoadEntities(EntityType.PLAYER, 1).First();
+                    _playerRef = playerTilePopMan.LoadEntities(EntityUtils.PlayerEntityType, 1).First();
                     _refrencePlayerPos = null;
                     return;
                 }

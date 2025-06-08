@@ -416,9 +416,15 @@ namespace ProgressAdventure
                 .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
 
+            // call static consturcors in order to load default config values
+            var sc = SettingsUtils.SettingValueTypeMap;
+            var ic = ItemUtils.MATERIAL_ITEM_TYPE;
+            var ec = EntityUtils.FacingToMovementVectorMap;
+            var wc = WorldUtils.noStructureDifferenceLimit;
+
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
-            EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
+            EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             WorldUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
 
             PACSingletons.Instance.Logger.Log("All configs reloaded");
