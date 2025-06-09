@@ -564,14 +564,26 @@ namespace ProgressAdventureTests
             // get all classes that directly implement BaseContent directly
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
 
-            var requiredKeys = ContentType.GetValues(null);
-            IDictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>> checkedDictionary;
-            IDictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> checkedDictionary2;
+            var requiredKeys1 = TerrainType.GetValues();
+            var requiredKeys2 = StructureType.GetValues();
+
+            var terrainType = typeof(TerrainContent);
+            var structureType = typeof(StructureContent);
+            var unfilteredClassObjs1 = paAssembly.GetTypes().Where(terrainType.IsAssignableFrom);
+            var requiredTypeClassess1 = unfilteredClassObjs1.Where(type => !type.IsAbstract && !type.IsInterface).ToList();
+            var unfilteredClassObjs2 = paAssembly.GetTypes().Where(structureType.IsAssignableFrom);
+            var requiredTypeClassess2 = unfilteredClassObjs2.Where(type => !type.IsAbstract && !type.IsInterface).ToList();
+
+            var foundTypeClasses1 = new List<Type>();
+            var foundTypeClasses2 = new List<Type>();
+
+            IDictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO> checkedDictionary1;
+            IDictionary<EnumValue<StructureType>, ContentTypePropertiesDTO> checkedDictionary2;
 
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>>>(typeof(WorldUtils), "contentTypeSubtypesMap");
-                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "BaseContentTypeMap");
+                checkedDictionary1 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "TerrainTypeMap");
+                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<StructureType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "StructureTypeMap");
             }
             catch (Exception ex)
             {
@@ -579,68 +591,69 @@ namespace ProgressAdventureTests
             }
 
             var errorMessages = new List<string>();
-            foreach (var key in requiredKeys)
+            foreach (var key in requiredKeys1)
             {
-                if (!checkedDictionary2.TryGetValue(key, out var baseProps))
+                if (!checkedDictionary1.TryGetValue(key, out var props))
                 {
-                    errorMessages.Add($"The dictionary2 doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The terrain dictionary doesn't contain a value for \"{key}\".");
                     continue;
                 }
 
-                if (baseProps is null)
+                if (props is null)
                 {
-                    errorMessages.Add($"The value of the dictionary2 at \"{key}\" is null.");
+                    errorMessages.Add($"The value of the terrain dictionary at \"{key}\" is null.");
                     continue;
                 }
 
-                if (!checkedDictionary.TryGetValue(key, out var subTypeProps))
+                if (string.IsNullOrWhiteSpace(props.displayName))
                 {
-                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    errorMessages.Add($"The display name of the value of the terrain dictionary at \"{key}\" is an empty.");
+                }
+
+                if (!requiredTypeClassess1.Contains(props.matchingType))
+                {
+                    errorMessages.Add($"The match type of the value of the terrain dictionary at \"{key}\" is invalid.");
                     continue;
                 }
 
-                if (subTypeProps is null)
+                if (foundTypeClasses1.Contains(props.matchingType))
                 {
-                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
+                    errorMessages.Add($"The match type of the value of the terrain dictionary at \"{key}\" was already used.");
+                    continue;
+                }
+                foundTypeClasses1.Add(props.matchingType);
+            }
+            foreach (var key in requiredKeys2)
+            {
+                if (!checkedDictionary2.TryGetValue(key, out var props))
+                {
+                    errorMessages.Add($"The structure dictionary doesn't contain a value for \"{key}\".");
                     continue;
                 }
 
-                var unfilteredSubTypes = paAssembly.GetTypes().Where(baseProps.matchingType.IsAssignableFrom);
-                var filteredSubTypes = unfilteredSubTypes.Where(type => !type.IsAbstract && !type.IsInterface);
-
-                var requiredValues = filteredSubTypes.ToList();
-                var requiredSubkeys = ContentType.GetValues(key);
-                var existingSubKeys = new List<EnumTreeValue<ContentType>>();
-                
-                foreach (var subValue in requiredValues)
+                if (props is null)
                 {
-                    if (!subTypeProps.Any(subProp => subProp.Value.matchingType == subValue))
-                    {
-                        errorMessages.Add($"The sub-dictionary doesn't contain a key for \"{subValue}\".");
-                        continue;
-                    }
-
-                    var subKey = subTypeProps.FirstOrDefault(x => x.Value.matchingType == subValue).Key;
-                    if (!ContentType.TryGetValue(subKey.FullName, out _))
-                    {
-                        errorMessages.Add($"The sub-dictionary key at value \"{subValue}\" is not a valid ContentType.");
-                        continue;
-                    }
-
-                    if (!requiredSubkeys.Any(rSubKey => rSubKey == subKey))
-                    {
-                        errorMessages.Add($"The sub-dictionary key \"{subKey}\" is not a subKey for the key \"{key}\".");
-                        continue;
-                    }
-
-                    if (existingSubKeys.Contains(subKey))
-                    {
-                        errorMessages.Add($"The sub-dictionary already contains the key \"{subKey}\", associated with \"{subValue}\".");
-                        continue;
-                    }
-
-                    existingSubKeys.Add(subKey);
+                    errorMessages.Add($"The value of the structure dictionary at \"{key}\" is null.");
+                    continue;
                 }
+
+                if (string.IsNullOrWhiteSpace(props.displayName))
+                {
+                    errorMessages.Add($"The display name of the value of the structure dictionary at \"{key}\" is an empty.");
+                }
+
+                if (!requiredTypeClassess2.Contains(props.matchingType))
+                {
+                    errorMessages.Add($"The match type of the value of the structure dictionary at \"{key}\" is invalid.");
+                    continue;
+                }
+
+                if (foundTypeClasses2.Contains(props.matchingType))
+                {
+                    errorMessages.Add($"The match type of the value of the structure dictionary at \"{key}\" was already used.");
+                    continue;
+                }
+                foundTypeClasses2.Add(props.matchingType);
             }
             if (errorMessages.Count != 0)
             {
@@ -655,65 +668,37 @@ namespace ProgressAdventureTests
         /// </summary>
         public static TestResultDTO? WorldUtilsContentTypePropertyMapDictionaryCheck()
         {
-            // get all classes that directly implement BaseContent directly
-            var baseContentType = typeof(BaseContent);
             var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
-            var unfilteredTypes = paAssembly.GetTypes().Where(baseContentType.IsAssignableFrom);
-            var filteredTypes = unfilteredTypes.Where(type => type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType);
 
-            var requiredKeys = filteredTypes.ToList();
-            IDictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> checkedDictionary;
+            // get all classes that directly implement BaseContent directly
+            var baseContentType1 = typeof(TerrainContent);
+            var huh = paAssembly.GetTypes().Where(t => t.BaseType == baseContentType1);
+            var filteredTypes1 = paAssembly.GetTypes()
+                .Where(type => !type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType1);
+            var baseContentType2 = typeof(StructureContent);
+            var filteredTypes2 = paAssembly.GetTypes()
+                .Where(type => !type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType2);
 
+            var requiredKeys1 = filteredTypes1.ToList();
+            var requiredKeys2 = filteredTypes2.ToList();
+
+            IDictionary<Type, Dictionary<TileNoiseType, double>> checkedDictionary1;
+            IDictionary<Type, Dictionary<TileNoiseType, double>> checkedDictionary2;
             try
             {
-                checkedDictionary = Utils.GetInternalFieldFromStaticClass<IDictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>>>(typeof(WorldUtils), "contentTypePropertyMap");
+                checkedDictionary1 = Utils.GetInternalPropertyFromStaticClass<IDictionary<Type, Dictionary<TileNoiseType, double>>>(typeof(WorldUtils), "TerrainTypePropertyMap");
+                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<Type, Dictionary<TileNoiseType, double>>>(typeof(WorldUtils), "StructureTypePropertyMap");
             }
             catch (Exception ex)
             {
                 return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
-            var errorMessages = new List<string>();
-            foreach (var key in requiredKeys)
+            if (WorldUtilsContentTypePropertyMapDictionaryCheckPrivate(requiredKeys1, checkedDictionary1) is TestResultDTO result1)
             {
-                if (!checkedDictionary.TryGetValue(key, out Dictionary<Type, Dictionary<TileNoiseType, double>>? value))
-                {
-                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
-                }
-
-                if (value is null)
-                {
-                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
-                    continue;
-                }
-
-                var unfilteredSubTypes = paAssembly.GetTypes().Where(key.IsAssignableFrom);
-                var filteredSubTypes = unfilteredSubTypes.Where(type => !type.IsAbstract && !type.IsInterface);
-
-                var requiredSubKeys = filteredSubTypes.ToList();
-
-                foreach (var subKey in requiredSubKeys)
-                {
-                    if (!value.TryGetValue(subKey, out Dictionary<TileNoiseType, double>? subValue))
-                    {
-                        errorMessages.Add($"The sub-dictionary doesn't contain a value for \"{subKey}\".");
-                        continue;
-                    }
-
-                    if (subValue is null)
-                    {
-                        errorMessages.Add($"The value of the sub-dictionary at \"{subKey}\" is null.");
-                        continue;
-                    }
-                }
+                return result1;
             }
-            if (errorMessages.Count != 0)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
-            }
-
-            return null;
+            return WorldUtilsContentTypePropertyMapDictionaryCheckPrivate(requiredKeys2, checkedDictionary2);
         }
         #endregion
         #endregion
@@ -1528,6 +1513,35 @@ namespace ProgressAdventureTests
                 return new TestResultDTO(LogSeverity.FAIL, $"chunk loading failed in \"{saveName}\" save at chunk (x: {wrongChunk.Value.x}, y: {wrongChunk.Value.y}).");
             }
             PATools.DeleteSave(saveName);
+            return null;
+        }
+
+        private static TestResultDTO? WorldUtilsContentTypePropertyMapDictionaryCheckPrivate(
+            List<Type> requiredKeys,
+            IDictionary<Type, Dictionary<TileNoiseType, double>> checkedDictionary
+        )
+        {
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var errorMessages = new List<string>();
+            foreach (var key in requiredKeys)
+            {
+                if (!checkedDictionary.TryGetValue(key, out var value))
+                {
+                    errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
+                    continue;
+                }
+
+                if (value is null)
+                {
+                    errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
+                    continue;
+                }
+            }
+            if (errorMessages.Count != 0)
+            {
+                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
+            }
+
             return null;
         }
         #endregion

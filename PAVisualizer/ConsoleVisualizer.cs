@@ -5,7 +5,6 @@ using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
-using ProgressAdventure.WorldManagement.Content;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -27,7 +26,11 @@ namespace PAVisualizer
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
-        public static (Dictionary<EnumTreeValue<ContentType>, long> contentTypeCounts, Dictionary<EnumValue<EntityType>, long> enttyTypeCounts) CreateWorldLayerImage(
+        public static (
+                Dictionary<EnumValue<TerrainType>, long> terrainTypeCounts,
+                Dictionary<EnumValue<StructureType>, long> structureTypeCounts,
+                Dictionary<EnumValue<EntityType>, long> enttyTypeCounts
+            ) CreateWorldLayerImage(
             VisibleTileLayer layer,
             out Bitmap image,
             double opacityMultiplier = 1
@@ -35,8 +38,8 @@ namespace PAVisualizer
         {
             (int x, int y) tileSize = (1, 1);
 
-
-            var tileTypeCounts = new Dictionary<EnumTreeValue<ContentType>, long>();
+            var terrainTypeCounts = new Dictionary<EnumValue<TerrainType>, long>();
+            var structureTypeCounts = new Dictionary<EnumValue<StructureType>, long>();
             var entityTypeCounts = new Dictionary<EnumValue<EntityType>, long>();
 
             var worldCorners = World.GetCorners();
@@ -44,7 +47,7 @@ namespace PAVisualizer
             if (worldCorners is null)
             {
                 image = new Bitmap(1, 1);
-                return (tileTypeCounts, entityTypeCounts);
+                return (terrainTypeCounts, structureTypeCounts, entityTypeCounts);
             }
 
             var (minX, minY, maxX, maxY) = worldCorners.Value;
@@ -63,7 +66,31 @@ namespace PAVisualizer
                     var startX = x * tileSize.x;
                     var startY = size.y - y * tileSize.y - 1;
                     // find type
-                    if (layer == VisibleTileLayer.Population)
+                    if (layer == VisibleTileLayer.Terrain)
+                    {
+                        var type = tile.terrain.type;
+                        if (terrainTypeCounts.TryGetValue(type, out long value))
+                        {
+                            terrainTypeCounts[type] = ++value;
+                        }
+                        else
+                        {
+                            terrainTypeCounts[type] = 1;
+                        }
+                    }
+                    else if (layer == VisibleTileLayer.Structure)
+                    {
+                        var type = tile.structure.type;
+                        if (structureTypeCounts.TryGetValue(type, out long value))
+                        {
+                            structureTypeCounts[type] = ++value;
+                        }
+                        else
+                        {
+                            structureTypeCounts[type] = 1;
+                        }
+                    }
+                    else if (layer == VisibleTileLayer.Population)
                     {
                         foreach (var (type, amount) in VisualizerTools.GetPopulationCounts(tile.populationManager))
                         {
@@ -75,18 +102,6 @@ namespace PAVisualizer
                             {
                                 entityTypeCounts[type] = amount;
                             }
-                        }
-                    }
-                    else
-                    {
-                        var subtype = VisualizerTools.GetLayerSubtype(tile, (BaseContentType)layer);
-                        if (tileTypeCounts.TryGetValue(subtype, out long value))
-                        {
-                            tileTypeCounts[subtype] = value + 1;
-                        }
-                        else
-                        {
-                            tileTypeCounts[subtype] = 1;
                         }
                     }
                     var color = VisualizerTools.GetLayerContentColor(tile, layer).MultiplyOpacity(opacityMultiplier);
@@ -102,7 +117,7 @@ namespace PAVisualizer
                     }
                 }
             }
-            return (tileTypeCounts, entityTypeCounts);
+            return (terrainTypeCounts, structureTypeCounts, entityTypeCounts);
         }
 
         /// <summary>
@@ -111,14 +126,19 @@ namespace PAVisualizer
         /// <param name="layers">The layers to show.</param>
         /// <param name="image">The created image</param>
         /// <returns>The tile count for all tile types, for each layer.</returns>
-        public static (Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>> tileTypeCounts, Dictionary<EnumValue<EntityType>, long> entityTypeCounts) CreateCombinedImage(
+        public static (
+                Dictionary<EnumValue<TerrainType>, long> terrainTypeCounts,
+                Dictionary<EnumValue<StructureType>, long> structureTypeCounts,
+                Dictionary<EnumValue<EntityType>, long> entityTypeCounts
+            ) CreateCombinedImage(
             List<VisibleTileLayer> layers,
             out Bitmap? image
         )
         {
             image = null;
 
-            var contentCounts = new Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>>();
+            var terrainCounts = new Dictionary<EnumValue<TerrainType>, long>();
+            var structureCounts = new Dictionary<EnumValue<StructureType>, long>();
             var entityCounts = new Dictionary<EnumValue<EntityType>, long>();
 
             foreach (var layer in Enum.GetValues<VisibleTileLayer>())
@@ -128,19 +148,25 @@ namespace PAVisualizer
                     continue;
                 }
 
-                var (contentTileTypeCounts, entityTypeCounts) = CreateWorldLayerImage(
+                var (terrainTypeCounts, structureTypeCounts, entityTypeCounts) = CreateWorldLayerImage(
                     layer,
                     out var layerImage,
                     VisualizerTools.GetLayerOpacity(layers, layer)
                 );
 
-                if (layer == VisibleTileLayer.Population)
+                switch (layer)
                 {
-                    entityCounts = entityTypeCounts;
-                }
-                else
-                {
-                    contentCounts.Add((BaseContentType)layer, contentTileTypeCounts);
+                    case VisibleTileLayer.Terrain:
+                        terrainCounts = terrainTypeCounts;
+                        break;
+                    case VisibleTileLayer.Structure:
+                        structureCounts = structureTypeCounts;
+                        break;
+                    case VisibleTileLayer.Population:
+                        entityCounts = entityTypeCounts;
+                        break;
+                    default:
+                        throw new InvalidOperationException("Invalid layer type");
                 }
 
                 if (image is null)
@@ -151,7 +177,7 @@ namespace PAVisualizer
                 VisualizerTools.CombineImages(ref image, layerImage);
             }
 
-            return (contentCounts, entityCounts);
+            return (terrainCounts, structureCounts, entityCounts);
         }
 
         /// <summary>
@@ -162,15 +188,16 @@ namespace PAVisualizer
         public static void MakeImage(List<VisibleTileLayer> layers, string exportPath)
         {
             Console.Write("Generating image...");
-            var (tileTypeCounts, entityCounts) = CreateCombinedImage(layers, out var image);
+            var (terrainTypeCounts, structureTypeCounts, entityCounts) = CreateCombinedImage(layers, out var image);
             Console.WriteLine("DONE!");
 
-            if (tileTypeCounts is null || entityCounts is null || image is null)
+            if (terrainTypeCounts is null || structureTypeCounts is null || entityCounts is null || image is null)
             {
                 return;
             }
 
-            Console.WriteLine(VisualizerTools.GetDisplayTileCountsData(tileTypeCounts));
+            Console.WriteLine(VisualizerTools.GetDisplayTerrainCountsData(terrainTypeCounts));
+            Console.WriteLine(VisualizerTools.GetDisplayStructureCountsData(structureTypeCounts));
             Console.WriteLine(VisualizerTools.GetDisplayPopulationCountsData(entityCounts));
 
             image.Save(exportPath);

@@ -29,6 +29,11 @@ namespace PACommon.Enums
         /// The layer separator in the names of the values of the enum.
         /// </summary>
         public static char LayerNameSeparator { get; private set; } = Constants.ENUM_TREE_DEFAULT_LAYER_SEP_CHAR;
+
+        /// <summary>
+        /// The maximum depth of the nested values in the tree.
+        /// </summary>
+        public static uint MaxDepth { get; private set; } = uint.MaxValue;
         #endregion
 
         #region Public functions
@@ -46,6 +51,14 @@ namespace PACommon.Enums
                 ? parrent.Indexes.Append(trueParrentChildren.Count).ToArray()
                 : [trueParrentChildren.Count];
             var fullName = parrent is not null ? parrent.FullName + LayerNameSeparator + name : name;
+
+            if (indexes.Length > MaxDepth)
+            {
+                throw new ArgumentException(
+                    $"The value cannot be added because the depth of the value in the {typeof(TSelf)} enum is too high: {indexes.Length} > {MaxDepth}.",
+                    nameof(parrent)
+                );
+            }
 
             var value = new EnumTreeValueDTO<TSelf>(indexes, fullName, name);
             var success = trueParrentChildren.Add(value);
@@ -93,10 +106,20 @@ namespace PACommon.Enums
                     }
                     if (TryGetDTOValue(parrentName, out var parrent))
                     {
+                        if (MaxDepth < parrent.Indexes.Count + 1)
+                        {
+                            return false;
+                        }
+
                         value = AddValue(parrent, newValueName);
                         return true;
                     }
                 }
+                return false;
+            }
+
+            if (MaxDepth < 1)
+            {
                 return false;
             }
 
@@ -365,6 +388,12 @@ namespace PACommon.Enums
         {
             LayerNameSeparator = layerSep;
             return layerSep;
+        }
+
+        protected static uint UpdateMaxDepth(uint maxDepth)
+        {
+            MaxDepth = maxDepth;
+            return maxDepth;
         }
 
         protected static bool TryGetDTOValue(string? fullName, [NotNullWhen(true)] out EnumTreeValueDTO<TSelf>? value)

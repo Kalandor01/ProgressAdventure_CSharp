@@ -748,7 +748,7 @@ namespace ProgressAdventure.EntityManagement
             ((oldJson, extraData) =>
             {
                 // namespaced type
-                JsonDataCorrecterUtils.TransformValue<Entity, string>(
+                JsonDataCorrecterUtils.TransformValue<string>(
                     oldJson, "type", (value) => (true, ConfigUtils.GetSpecificNamespacedString(value))
                 );
             }, "2.4.1"),

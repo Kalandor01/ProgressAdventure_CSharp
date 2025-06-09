@@ -7,6 +7,7 @@ namespace ProgressAdventure.Enums
     {
         protected static readonly bool isClearable = UpdateIsClearable(true);
         protected static readonly bool isRemovale = UpdateIsRemovable(true);
+        protected static readonly uint maxDepth = UpdateMaxDepth(2);
 
         /// <summary>
         /// Loads the default values of the enum.

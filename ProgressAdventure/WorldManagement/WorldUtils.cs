@@ -1,7 +1,6 @@
 ﻿using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
-using PACommon.Extensions;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
@@ -64,22 +63,26 @@ namespace ProgressAdventure.WorldManagement
         #endregion
 
         #region Default config values
+        /// <summary>
+        /// The default value for the config used for the values of <see cref="TerrainTypes"/>.
+        /// </summary>
+        private static readonly List<EnumValue<TerrainType>> _defaultTerrainTypes =
+        [
+            TerrainType.FIELD,
+            TerrainType.MOUNTAIN,
+            TerrainType.OCEAN,
+            TerrainType.SHORE,
+        ];
 
         /// <summary>
-        /// The default value for the config used for the values of <see cref="ContentType"/>.
+        /// The default value for the config used for the values of <see cref="StructureTypes"/>.
         /// </summary>
-        private static readonly List<EnumTreeValue<ContentType>> _defaultContentTypes =
+        private static readonly List<EnumValue<StructureType>> _defaultStructureTypes =
         [
-            // terrains
-            ContentType.Terrain.FIELD,
-            ContentType.Terrain.MOUNTAIN,
-            ContentType.Terrain.OCEAN,
-            ContentType.Terrain.SHORE,
-            // structures
-            ContentType.Structure.NONE,
-            ContentType.Structure.VILLAGE,
-            ContentType.Structure.KINGDOM,
-            ContentType.Structure.BANDIT_CAMP,
+            StructureType.NONE,
+            StructureType.VILLAGE,
+            StructureType.KINGDOM,
+            StructureType.BANDIT_CAMP,
         ];
 
         /// <summary>
@@ -95,9 +98,9 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
-        /// The default value for the config used for the value of <see cref="TerrainContentTypePropertyMap"/>.
+        /// The default value for the config used for the value of <see cref="TerrainTypePropertyMap"/>.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultTerrainContentTypePropertyMap = new()
+        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultTerrainTypePropertyMap = new()
         {
             [typeof(MountainTerrain)] = new Dictionary<TileNoiseType, double>()
             {
@@ -118,9 +121,9 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
-        /// The default value for the config used for the value of <see cref="StructureContentTypePropertyMap"/>.
+        /// The default value for the config used for the value of <see cref="StructureTypePropertyMap"/>.
         /// </summary>
-        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultStructureContentTypePropertyMap = new()
+        private static readonly Dictionary<Type, Dictionary<TileNoiseType, double>> _defaultStructureTypePropertyMap = new()
         {
             [typeof(NoStructure)] = new Dictionary<TileNoiseType, double>()
             {
@@ -144,9 +147,9 @@ namespace ProgressAdventure.WorldManagement
         };
 
         /// <summary>
-        /// The default value for the config used for the value of <see cref="PopulationContentTypePropertyMap"/>.
+        /// The default value for the config used for the value of <see cref="PopulationTypePropertyMap"/>.
         /// </summary>
-        private static readonly Dictionary<EnumValue<EntityType>, Dictionary<TileNoiseType, double>> _defaultPopulationContentTypePropertyMap = new()
+        private static readonly Dictionary<EnumValue<EntityType>, Dictionary<TileNoiseType, double>> _defaultPopulationTypePropertyMap = new()
         {
             [EntityType.HUMAN] = new Dictionary<TileNoiseType, double>()
             {
@@ -179,34 +182,25 @@ namespace ProgressAdventure.WorldManagement
         };
         
         /// <summary>
-        /// The default value for the config used for the value of <see cref="BaseContentTypeMap"/>.
+        /// The default value for the config used for the value of <see cref="TerrainTypeMap"/>.
         /// </summary>
-        private static readonly Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> _defaultBaseContentTypeMap = new()
+        private static readonly Dictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO> _defaultTerrainTypeMap = new()
         {
-            [ContentType._TERRAIN] = new ContentTypePropertiesDTO(ContentType._TERRAIN, typeof(TerrainContent)),
-            [ContentType._STRUCTURE] = new ContentTypePropertiesDTO(ContentType._STRUCTURE, typeof(StructureContent)),
-        };
-        
-        /// <summary>
-        /// The default value for the config used for the value of <see cref="TerrainContentTypeMap"/>.
-        /// </summary>
-        private static readonly Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> _defaultTerrainContentTypeMap = new()
-        {
-            [ContentType.Terrain.FIELD] = new ContentTypePropertiesDTO(ContentType.Terrain.FIELD, typeof(FieldTerrain)),
-            [ContentType.Terrain.MOUNTAIN] = new ContentTypePropertiesDTO(ContentType.Terrain.MOUNTAIN, typeof(MountainTerrain)),
-            [ContentType.Terrain.OCEAN] = new ContentTypePropertiesDTO(ContentType.Terrain.OCEAN, typeof(OceanTerrain)),
-            [ContentType.Terrain.SHORE] = new ContentTypePropertiesDTO(ContentType.Terrain.SHORE, typeof(ShoreTerrain)),
+            [TerrainType.FIELD] = new ContentTypePropertiesDTO(TerrainType.FIELD, typeof(FieldTerrain)),
+            [TerrainType.MOUNTAIN] = new ContentTypePropertiesDTO(TerrainType.MOUNTAIN, typeof(MountainTerrain)),
+            [TerrainType.OCEAN] = new ContentTypePropertiesDTO(TerrainType.OCEAN, typeof(OceanTerrain)),
+            [TerrainType.SHORE] = new ContentTypePropertiesDTO(TerrainType.SHORE, typeof(ShoreTerrain)),
         };
 
         /// <summary>
-        /// The default value for the config used for the value of <see cref="StructureContentTypeMap"/>.
+        /// The default value for the config used for the value of <see cref="StructureTypeMap"/>.
         /// </summary>
-        private static readonly Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> _defaultStructureContentTypeMap = new()
+        private static readonly Dictionary<EnumValue<StructureType>, ContentTypePropertiesDTO> _defaultStructureTypeMap = new()
         {
-            [ContentType.Structure.NONE] = new ContentTypePropertiesDTO(ContentType.Structure.NONE, typeof(NoStructure)),
-            [ContentType.Structure.BANDIT_CAMP] = new ContentTypePropertiesDTO(ContentType.Structure.BANDIT_CAMP, typeof(BanditCampStructure)),
-            [ContentType.Structure.VILLAGE] = new ContentTypePropertiesDTO(ContentType.Structure.VILLAGE, typeof(VillageStructure)),
-            [ContentType.Structure.KINGDOM] = new ContentTypePropertiesDTO(ContentType.Structure.KINGDOM, typeof(KingdomStructure)),
+            [StructureType.NONE] = new ContentTypePropertiesDTO(StructureType.NONE, typeof(NoStructure)),
+            [StructureType.BANDIT_CAMP] = new ContentTypePropertiesDTO(StructureType.BANDIT_CAMP, typeof(BanditCampStructure)),
+            [StructureType.VILLAGE] = new ContentTypePropertiesDTO(StructureType.VILLAGE, typeof(VillageStructure)),
+            [StructureType.KINGDOM] = new ContentTypePropertiesDTO(StructureType.KINGDOM, typeof(KingdomStructure)),
         };
         #endregion
 
@@ -219,55 +213,27 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain types to their ideal properties.
         /// </summary>
-        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> TerrainContentTypePropertyMap { get; set; }
+        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> TerrainTypePropertyMap { get; set; }
 
         /// <summary>
-        /// Dictionary to map terrain types to their ideal properties.
+        /// Dictionary to map structure types to their ideal properties.
         /// </summary>
-        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> StructureContentTypePropertyMap { get; set; }
+        internal static Dictionary<Type, Dictionary<TileNoiseType, double>> StructureTypePropertyMap { get; set; }
 
         /// <summary>
-        /// Dictionary to map terrain types to their ideal properties.
+        /// Dictionary to map entity types to their ideal properties.
         /// </summary>
-        internal static Dictionary<EnumValue<EntityType>, Dictionary<TileNoiseType, double>> PopulationContentTypePropertyMap { get; set; }
+        internal static Dictionary<EnumValue<EntityType>, Dictionary<TileNoiseType, double>> PopulationTypePropertyMap { get; set; }
 
         /// <summary>
-        /// Dictionary to map content types to their property maps.
+        /// Dictionary to map terrain content types to their object types.
         /// </summary>
-        internal static readonly Dictionary<Type, Dictionary<Type, Dictionary<TileNoiseType, double>>> contentTypePropertyMap = new()
-        {
-            [typeof(TerrainContent)] = null,
-            [typeof(StructureContent)] = null,
-        };
+        internal static Dictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO> TerrainTypeMap { get; set; }
 
         /// <summary>
-        /// Dictionary to map base content types to their content properties.
+        /// Dictionary to map structure content types to their object types.
         /// </summary>
-        internal static Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> BaseContentTypeMap { get; set; }
-
-        /// <summary>
-        /// Dictionary to map content types to their content subtype property maps.
-        /// </summary>
-        internal static readonly Dictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>> contentTypeSubtypesMap = new()
-        {
-            [ContentType._TERRAIN] = null,
-            [ContentType._STRUCTURE] = null,
-        };
-
-        /// <summary>
-        /// Dictionary to map terrain content types to their type properties.
-        /// </summary>
-        internal static Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> TerrainContentTypeMap { get; set; }
-
-        /// <summary>
-        /// Dictionary to map structure content types to their type properties.
-        /// </summary>
-        internal static Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> StructureContentTypeMap { get; set; }
-
-        /// <summary>
-        /// Dictionary to map population content types to their type properties.
-        /// </summary>
-        internal static Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> PopulationContentTypeMap { get; set; }
+        internal static Dictionary<EnumValue<StructureType>, ContentTypePropertiesDTO> StructureTypeMap { get; set; }
         #endregion
 
         #region Constructors
@@ -280,15 +246,30 @@ namespace ProgressAdventure.WorldManagement
         #region Public functions
         #region Configs
         #region Write default config or get reload common data
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataContentTypes(bool isWriteConfig)
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataTerrainTypes(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "content_types");
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_types");
             if (isWriteConfig)
             {
                 PACSingletons.Instance.ConfigManager.SetConfig(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultContentTypes
+                    _defaultTerrainTypes
+                );
+                return default;
+            }
+            return (basePath, false);
+        }
+
+        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataStructureTypes(bool isWriteConfig)
+        {
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_types");
+            if (isWriteConfig)
+            {
+                PACSingletons.Instance.ConfigManager.SetConfig(
+                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                    null,
+                    _defaultStructureTypes
                 );
                 return default;
             }
@@ -313,9 +294,9 @@ namespace ProgressAdventure.WorldManagement
         private static (
             string configName,
             Func<Type, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataTerrainContentTypePropertyMap(bool isWriteConfig)
+        ) WriteDefaultConfigOrGetReloadDataTerrainTypePropertyMap(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_property_map");
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_type_property_map");
             static string KeySerializer(Type key) => key.FullName
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
@@ -326,7 +307,7 @@ namespace ProgressAdventure.WorldManagement
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultTerrainContentTypePropertyMap,
+                    _defaultTerrainTypePropertyMap,
                     KeySerializer
                 );
             return default;
@@ -335,9 +316,9 @@ namespace ProgressAdventure.WorldManagement
         private static (
             string configName,
             Func<Type, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataStructureContentTypePropertyMap(bool isWriteConfig)
+        ) WriteDefaultConfigOrGetReloadDataStructureTypePropertyMap(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_property_map");
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_type_property_map");
             static string KeySerializer(Type key) => key.FullName
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
@@ -348,7 +329,7 @@ namespace ProgressAdventure.WorldManagement
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultStructureContentTypePropertyMap,
+                    _defaultStructureTypePropertyMap,
                     KeySerializer
                 );
             return default;
@@ -357,9 +338,9 @@ namespace ProgressAdventure.WorldManagement
         private static (
             string configName,
             Func<EnumValue<EntityType>, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataPopulationContentTypePropertyMap(bool isWriteConfig)
+        ) WriteDefaultConfigOrGetReloadDataPopulationTypePropertyMap(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_content_type_property_map");
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_type_property_map");
             static string KeySerializer(EnumValue<EntityType> key) => key.Name
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
@@ -370,7 +351,7 @@ namespace ProgressAdventure.WorldManagement
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultPopulationContentTypePropertyMap,
+                    _defaultPopulationTypePropertyMap,
                     KeySerializer
                 );
             return default;
@@ -378,11 +359,11 @@ namespace ProgressAdventure.WorldManagement
 
         private static (
             string configName,
-            Func<EnumTreeValue<ContentType>, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataBaseContentTypeMap(bool isWriteConfig)
+            Func<EnumValue<TerrainType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataTerrainTypeMap(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "base_content_type_map");
-            static string KeySerializer(EnumTreeValue<ContentType> key) => key.FullName;
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_type_map");
+            static string KeySerializer(EnumValue<TerrainType> key) => key.Name;
             if (!isWriteConfig)
             {
                 return (basePath, KeySerializer);
@@ -391,7 +372,7 @@ namespace ProgressAdventure.WorldManagement
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultBaseContentTypeMap,
+                    _defaultTerrainTypeMap,
                     KeySerializer
                 );
             return default;
@@ -399,11 +380,11 @@ namespace ProgressAdventure.WorldManagement
 
         private static (
             string configName,
-            Func<EnumTreeValue<ContentType>, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataTerrainContentTypeMap(bool isWriteConfig)
+            Func<EnumValue<StructureType>, string> serializeKeys
+        ) WriteDefaultConfigOrGetReloadDataStructureTypeMap(bool isWriteConfig)
         {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_content_type_map");
-            static string KeySerializer(EnumTreeValue<ContentType> key) => key.FullName;
+            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_type_map");
+            static string KeySerializer(EnumValue<StructureType> key) => key.Name;
             if (!isWriteConfig)
             {
                 return (basePath, KeySerializer);
@@ -412,57 +393,26 @@ namespace ProgressAdventure.WorldManagement
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultTerrainContentTypeMap,
-                    KeySerializer
-                );
-            return default;
-        }
-
-        private static (
-            string configName,
-            Func<EnumTreeValue<ContentType>, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataStructureContentTypeMap(bool isWriteConfig)
-        {
-            var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_content_type_map");
-            static string KeySerializer(EnumTreeValue<ContentType> key) => key.FullName;
-            if (!isWriteConfig)
-            {
-                return (basePath, KeySerializer);
-            }
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultStructureContentTypeMap,
+                    _defaultStructureTypeMap,
                     KeySerializer
                 );
             return default;
         }
         #endregion
 
-        private static void UpdateNonConfigDicts()
-        {
-            contentTypeSubtypesMap[ContentType._TERRAIN] = TerrainContentTypeMap;
-            contentTypeSubtypesMap[ContentType._STRUCTURE] = StructureContentTypeMap;
-
-            contentTypePropertyMap[typeof(TerrainContent)] = TerrainContentTypePropertyMap;
-            contentTypePropertyMap[typeof(StructureContent)] = StructureContentTypePropertyMap;
-        }
-
         /// <summary>
         /// Resets all variables that come from configs.
         /// </summary>
         public static void LoadDefaultConfigs()
         {
-            Tools.LoadDefultAdvancedEnumTree(_defaultContentTypes);
+            Tools.LoadDefultAdvancedEnum(_defaultTerrainTypes);
+            Tools.LoadDefultAdvancedEnum(_defaultStructureTypes);
             TileNoiseOffsets = _defaultTileNoiseOffsets;
-            TerrainContentTypePropertyMap = _defaultTerrainContentTypePropertyMap;
-            StructureContentTypePropertyMap = _defaultStructureContentTypePropertyMap;
-            PopulationContentTypePropertyMap = _defaultPopulationContentTypePropertyMap;
-            BaseContentTypeMap = _defaultBaseContentTypeMap;
-            TerrainContentTypeMap = _defaultTerrainContentTypeMap;
-            StructureContentTypeMap = _defaultStructureContentTypeMap;
-            UpdateNonConfigDicts();
+            TerrainTypePropertyMap = _defaultTerrainTypePropertyMap;
+            StructureTypePropertyMap = _defaultStructureTypePropertyMap;
+            PopulationTypePropertyMap = _defaultPopulationTypePropertyMap;
+            TerrainTypeMap = _defaultTerrainTypeMap;
+            StructureTypeMap = _defaultStructureTypeMap;
         }
 
         /// <summary>
@@ -470,14 +420,14 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         public static void WriteDefaultConfigs()
         {
-            WriteDefaultConfigOrGetReloadDataContentTypes(true);
+            WriteDefaultConfigOrGetReloadDataTerrainTypes(true);
+            WriteDefaultConfigOrGetReloadDataStructureTypes(true);
             WriteDefaultConfigOrGetReloadDataTileNoiseOffsets(true);
-            WriteDefaultConfigOrGetReloadDataTerrainContentTypePropertyMap(true);
-            WriteDefaultConfigOrGetReloadDataStructureContentTypePropertyMap(true);
-            WriteDefaultConfigOrGetReloadDataPopulationContentTypePropertyMap(true);
-            WriteDefaultConfigOrGetReloadDataBaseContentTypeMap(true);
-            WriteDefaultConfigOrGetReloadDataTerrainContentTypeMap(true);
-            WriteDefaultConfigOrGetReloadDataStructureContentTypeMap(true);
+            WriteDefaultConfigOrGetReloadDataTerrainTypePropertyMap(true);
+            WriteDefaultConfigOrGetReloadDataStructureTypePropertyMap(true);
+            WriteDefaultConfigOrGetReloadDataPopulationTypePropertyMap(true);
+            WriteDefaultConfigOrGetReloadDataTerrainTypeMap(true);
+            WriteDefaultConfigOrGetReloadDataStructureTypeMap(true);
         }
 
         /// <summary>
@@ -495,10 +445,19 @@ namespace ProgressAdventure.WorldManagement
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
-            ConfigUtils.ReloadConfigsAggregateAdvancedEnumTree(
-                WriteDefaultConfigOrGetReloadDataContentTypes(false).configName,
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                WriteDefaultConfigOrGetReloadDataTerrainTypes(false).configName,
                 namespaceFolders,
-                _defaultContentTypes,
+                _defaultTerrainTypes,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true
+            );
+
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                WriteDefaultConfigOrGetReloadDataStructureTypes(false).configName,
+                namespaceFolders,
+                _defaultStructureTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
                 true
@@ -514,76 +473,60 @@ namespace ProgressAdventure.WorldManagement
                 showProgressIndentation
             );
 
-            var terrainContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataTerrainContentTypePropertyMap(false);
-            TerrainContentTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
+            var terrainContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataTerrainTypePropertyMap(false);
+            TerrainTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
                 terrainContentTypePropertyMapData.configName,
                 namespaceFolders,
-                _defaultTerrainContentTypePropertyMap,
+                _defaultTerrainTypePropertyMap,
                 terrainContentTypePropertyMapData.serializeKeys,
                 key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
-            var structureContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataStructureContentTypePropertyMap(false);
-            StructureContentTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
+            var structureContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataStructureTypePropertyMap(false);
+            StructureTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
                 structureContentTypePropertyMapData.configName,
                 namespaceFolders,
-                _defaultStructureContentTypePropertyMap,
+                _defaultStructureTypePropertyMap,
                 structureContentTypePropertyMapData.serializeKeys,
                 key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
-            var populationContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataPopulationContentTypePropertyMap(false);
-            PopulationContentTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
+            var populationContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataPopulationTypePropertyMap(false);
+            PopulationTypePropertyMap = ConfigUtils.ReloadConfigsAggregateDict(
                 populationContentTypePropertyMapData.configName,
                 namespaceFolders,
-                _defaultPopulationContentTypePropertyMap,
+                _defaultPopulationTypePropertyMap,
                 populationContentTypePropertyMapData.serializeKeys,
                 key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
-            var baseContentTypeMapData = WriteDefaultConfigOrGetReloadDataBaseContentTypeMap(false);
-            BaseContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                baseContentTypeMapData.configName,
-                namespaceFolders,
-                _defaultBaseContentTypeMap,
-                baseContentTypeMapData.serializeKeys,
-                key => ParseContentTypeFromRealName(ConfigUtils.GetNameapacedString(key))
-                    ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
-                isVanillaInvalid,
-                showProgressIndentation
-            );
-
-            var terrainContentTypeMapData = WriteDefaultConfigOrGetReloadDataTerrainContentTypeMap(false);
-            TerrainContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+            var terrainContentTypeMapData = WriteDefaultConfigOrGetReloadDataTerrainTypeMap(false);
+            TerrainTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
                 terrainContentTypeMapData.configName,
                 namespaceFolders,
-                _defaultTerrainContentTypeMap,
+                _defaultTerrainTypeMap,
                 terrainContentTypeMapData.serializeKeys,
-                key => ParseContentTypeFromRealName(ConfigUtils.GetNameapacedString(key))
-                    ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
+                key => TerrainType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
 
-            var structureContentTypeMapData = WriteDefaultConfigOrGetReloadDataStructureContentTypeMap(false);
-            StructureContentTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
+            var structureContentTypeMapData = WriteDefaultConfigOrGetReloadDataStructureTypeMap(false);
+            StructureTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
                 structureContentTypeMapData.configName,
                 namespaceFolders,
-                _defaultStructureContentTypeMap,
+                _defaultStructureTypeMap,
                 structureContentTypeMapData.serializeKeys,
-                key => ParseContentTypeFromRealName(ConfigUtils.GetNameapacedString(key))
-                    ?? throw new JsonException($"Unknown content type real name: \"{key}\""),
+                key => StructureType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
                 showProgressIndentation
             );
-
-            UpdateNonConfigDicts();
         }
         #endregion
 
@@ -628,17 +571,18 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Calculates the best tile type for the space depending on the perlin noise values.
         /// </summary>
-        /// <typeparam name="T">The content type to reurn.</typeparam>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
         /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
-        public static Type CalculateClosestContentType<T>(IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null)
-            where T : BaseContent
+        private static Type CalculateClosestContentType(
+            Dictionary<Type, Dictionary<TileNoiseType, double>> contentPropertiesMap,
+            IDictionary<TileNoiseType, double> noiseValues,
+            double? noStructureDLOverride = null
+        )
         {
             noStructureDLOverride ??= noStructureDifferenceLimit;
-            var contentProperties = contentTypePropertyMap[typeof(T)];
-            var minDiffContentType = contentProperties.Keys.First();
-            var minDiff = 1000000.0;
-            foreach (var propertyEntry in contentProperties)
+            var minDiffContentType = contentPropertiesMap.Keys.First();
+            var minDiff = double.MaxValue;
+            foreach (var propertyEntry in contentPropertiesMap)
             {
                 var properties = propertyEntry.Value;
                 var sumDiff = 0.0;
@@ -658,28 +602,61 @@ namespace ProgressAdventure.WorldManagement
                     minDiffContentType = propertyEntry.Key;
                 }
             }
+
             // no content if difference is too big
-            if (contentProperties == StructureContentTypePropertyMap && minDiff >= noStructureDLOverride)
+            if (contentPropertiesMap == StructureTypePropertyMap && minDiff >= noStructureDLOverride)
             {
                 minDiffContentType = typeof(NoStructure);
             }
             return minDiffContentType;
         }
 
+        /// <inheritdoc cref="CalculateClosestContentType(Dictionary{Type, Dictionary{TileNoiseType, double}}, IDictionary{TileNoiseType, double}, double?)"/>
+        public static Type CalculateClosestTerrainType(
+            IDictionary<TileNoiseType, double> noiseValues
+        )
+        {
+            return CalculateClosestContentType(TerrainTypePropertyMap, noiseValues);
+        }
+
+        /// <inheritdoc cref="CalculateClosestContentType(Dictionary{Type, Dictionary{TileNoiseType, double}}, IDictionary{TileNoiseType, double}, double?)"/>
+        public static Type CalculateClosestStructureType(
+            IDictionary<TileNoiseType, double> noiseValues,
+            double? noStructureDLOverride = null
+        )
+        {
+            return CalculateClosestContentType(StructureTypePropertyMap, noiseValues, noStructureDLOverride);
+        }
+
         /// <summary>
-        /// Calculates the best content for the tile depending on the perlin noise values.
+        /// Calculates the best terrain for the tile depending on the perlin noise values.
         /// </summary>
-        /// <typeparam name="T">The content type to reurn.</typeparam>
+        /// <param name="chunkRandom">The parrent chunk's random generator.</param>
+        /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
+        /// <exception cref="InvalidOperationException">Thrown if the terrain type cannot be created.</exception>
+        public static TerrainContent CalculateBestFitTerrain(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues)
+        {
+            var minDiffContentType = CalculateClosestTerrainType(noiseValues);
+            return (TerrainContent)(Activator.CreateInstance(minDiffContentType, [chunkRandom, null, null])
+                ?? throw new InvalidOperationException("Couldn't create terrain object from type!"));
+        }
+
+        /// <summary>
+        /// Calculates the best structure for the tile depending on the perlin noise values.
+        /// </summary>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="noiseValues">The list of noise values for each perlin noise generator.</param>
         /// <param name="noStructureDLOverride">Overrides the default limit for choosing no structure, if the noise value difference is over this limit.</param>
-        /// <exception cref="ArgumentNullException">Thrown if the content type cannot be created.</exception>
-        public static T CalculateClosestContent<T>(SplittableRandom chunkRandom, IDictionary<TileNoiseType, double> noiseValues, double? noStructureDLOverride = null)
-            where T : BaseContent
+        /// <exception cref="InvalidOperationException">Thrown if the structure type cannot be created.</exception>
+        public static StructureContent CalculateBestFitStructure(
+            SplittableRandom chunkRandom,
+            IDictionary<TileNoiseType, double> noiseValues,
+            double? noStructureDLOverride = null
+        )
         {
-            var minDiffContentType = CalculateClosestContentType<T>(noiseValues, noStructureDLOverride);
-            var contentObj = Activator.CreateInstance(minDiffContentType, [chunkRandom, null, null]) ?? throw new ArgumentNullException(message: "Couldn't create content object from type!", null);
-            return (T)contentObj;
+            var minDiffContentType = CalculateClosestStructureType(noiseValues, noStructureDLOverride);
+            return (StructureContent)(Activator.CreateInstance(minDiffContentType, [chunkRandom, null, null])
+                ?? throw new InvalidOperationException("Couldn't create structure object from type!"));
         }
 
         /// <summary>
@@ -695,7 +672,7 @@ namespace ProgressAdventure.WorldManagement
             noPopulationDLOverride ??= noPopulationDifferenceLimit;
             var entityCountDistributions = new Dictionary<EnumValue<EntityType>, double>();
             var allSumDiff = 0.0;
-            foreach (var propertyEntry in PopulationContentTypePropertyMap)
+            foreach (var propertyEntry in PopulationTypePropertyMap)
             {
                 var properties = propertyEntry.Value;
                 var sumDiff = 0.0;
@@ -745,96 +722,53 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Returs the content properties, if the string is the ttring representation of a content subtype.
+        /// NEEDS TO BE REWORKED SOON!!!<br/>
+        /// Returs the content properties (for terrain and structures), if the string is the string representation of a content type.
         /// </summary>
-        /// <param name="parrentContentType">The parrent content type ID.</param>
-        /// <param name="contentSubtypeString">The string representation of the subtype content.</param>
-        public static ContentTypePropertiesDTO? ToContentTypeProperties(EnumTreeValue<ContentType> parrentContentType, string? contentSubtypeString)
+        /// <typeparam name="TEnum">The enum type of the content.</typeparam>
+        /// <param name="contentTypeString">The string representation of the content type.</param>
+        public static ContentTypePropertiesDTO? ContentTypeStrToProperties<TEnum>(string? contentTypeString)
+            where TEnum : AdvancedEnum<TEnum>
         {
+            if (contentTypeString is null)
+            {
+                return null;
+            }
+
             if (
-                contentSubtypeString is not null &&
-                contentTypeSubtypesMap.TryGetValue(parrentContentType, out Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>? subtypePropertesMap) &&
-                subtypePropertesMap.FirstOrDefault(subtypeMap => subtypeMap.Value.typeName == contentSubtypeString)
-                    is KeyValuePair<EnumTreeValue<ContentType>, ContentTypePropertiesDTO> contentProperties &&
-                contentProperties.Value is not null
+                typeof(TEnum) == typeof(TerrainType) &&
+                TerrainType.TryGetValue(contentTypeString, out var terrainType) &&
+                TerrainTypeMap.TryGetValue(terrainType, out var terrainProps)
             )
             {
-                return contentProperties.Value;
+                return terrainProps;
+            }
+            else if (
+                typeof(TEnum) == typeof(StructureType) &&
+                StructureType.TryGetValue(contentTypeString, out var structureType) &&
+                StructureTypeMap.TryGetValue(structureType, out var structureProps)
+            )
+            {
+                return structureProps;
             }
             return null;
         }
 
         /// <summary>
-        /// Tries to convert the string representation of the subtype content to content properties, and returns the success.
+        /// NEEDS TO BE REWORKED SOON!!!<br/>
+        /// Tries to convert the string representation of the content type (terrain/structure) to content properties, and returns the success.
         /// </summary>
-        /// <param name="parrentContentType">The parrent content type ID.</param>
-        /// <param name="contentSubtypeString">The string representation of the subtype content.</param>
+        /// <typeparam name="TEnum">The enum type of the content.</typeparam>
+        /// <param name="contentTypeString">The string representation of the content type.</param>
         /// <param name="contentProperties">The resulting content properties.</param>
-        public static bool TryParseContentType(
-            EnumTreeValue<ContentType> parrentContentType,
-            string? contentSubtypeString,
+        public static bool TryParseContentTypeStrToProperties<TEnum>(
+            string? contentTypeString,
             [NotNullWhen(true)] out ContentTypePropertiesDTO? contentProperties
         )
+            where TEnum : AdvancedEnum<TEnum>
         {
-            contentProperties = ToContentTypeProperties(parrentContentType, contentSubtypeString);
+            contentProperties = ContentTypeStrToProperties<TEnum>(contentTypeString);
             return contentProperties is not null;
-        }
-
-        /// <summary>
-        /// Returs the content type, if the content name is a name for a content type.
-        /// </summary>
-        /// <param name="contentTypeFullName">The full name of the content.</param>
-        public static EnumTreeValue<ContentType>? ParseContentTypeFromRealName(string? contentTypeFullName)
-        {
-            if (string.IsNullOrWhiteSpace(contentTypeFullName))
-            {
-                return null;
-            }
-            return ContentType.GetAllValues().FirstOrDefault(content => content.FullName == contentTypeFullName);
-        }
-
-        /// <summary>
-        /// Converts the content type, to it's default display name.
-        /// </summary>
-        /// <param name="contentType">The content type.</param>
-        public static string ContentTypeToDisplayName(EnumTreeValue<ContentType> contentType)
-        {
-            var displayName = ConfigUtils.RemoveNamespace(contentType.FullName)
-                .Split(ContentType.LayerNameSeparator)
-                .Last()
-                .Replace("_", " ")
-                .Capitalize();
-            return string.IsNullOrWhiteSpace(displayName) ? "[INVALID CONTENT NAME]" : displayName;
-        }
-
-        /// <summary>
-        /// Converts the string representation of the content's type to a content ID.
-        /// </summary>
-        /// <param name="contentTypeName">The string representation of the content's type.</param>
-        public static EnumTreeValue<ContentType>? ParseContentType(string? contentTypeName)
-        {
-            if (string.IsNullOrWhiteSpace(contentTypeName))
-            {
-                return null;
-            }
-            var properties = BaseContentTypeMap
-                .Select(t => t)
-                .ToList();
-            properties.AddRange(contentTypeSubtypesMap.SelectMany(s => s.Value.Select(t => t)));
-            var resultContent = properties.FirstOrDefault(contentAttribute => contentAttribute.Value.typeName == contentTypeName).Key;
-            return resultContent == default ? null : resultContent;
-        }
-
-        /// <summary>
-        /// Tries to convert the string representation of the content's type to a content ID, and returns the success.
-        /// </summary>
-        /// <param name="contentTypeName">The string representation of the content's type.</param>
-        /// <param name="contentType">The resulting content, or a default content.</param>
-        public static bool TryParseContentType(string? contentTypeName, out EnumTreeValue<ContentType> contentType)
-        {
-            var resultContent = ParseContentType(contentTypeName);
-            contentType = resultContent ?? ContentType.Terrain.FIELD;
-            return resultContent is not null;
         }
         #endregion
     }

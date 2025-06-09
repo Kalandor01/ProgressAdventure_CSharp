@@ -666,7 +666,7 @@ namespace PACommon
         /// <param name="isCritical">If the value is critical for the parsing of the object.<br/>
         /// If true, it will return immidietly if it can't be parsed and logs errors.</param>
         /// <returns>If the value was successfuly parsed.</returns>
-        private static bool TryParseValueForJsonParsingInternal<TRes>(
+        public static bool TryParseValueForJsonParsingInternal<TRes>(
             Type? callingClassType,
             JsonObject? value,
             [NotNullWhen(true)] out TRes? parsedValue,

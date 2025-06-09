@@ -10,19 +10,18 @@ using PACTools = PACommon.Tools;
 namespace ProgressAdventure.WorldManagement.Content
 {
     /// <summary>
+    /// PROBABLY NEEDS TO BE REWORKED!!!<br/>
     /// Abstract class for a layer of content, for a tile.
     /// </summary>
-    public abstract class BaseContent : IJsonReadable
+    /// <typeparam name="TType">The enum type that contains the types for this content layer.</typeparam>
+    public abstract class BaseContent<TType>
+        where TType : AdvancedEnum<TType>
     {
         #region Public fields
         /// <summary>
-        /// The type of the content, specifying the layer in the tile.
+        /// The type of the content.
         /// </summary>
-        public readonly EnumTreeValue<ContentType> type;
-        /// <summary>
-        /// The subtype of the content, specifying the actual type of the of the content.
-        /// </summary>
-        public readonly EnumTreeValue<ContentType> subtype;
+        public readonly EnumValue<TType> type;
         /// <summary>
         /// The name of the content layer.
         /// </summary>
@@ -42,53 +41,27 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         /// <param name="chunkRandom">The parrent chunk's random generator.</param>
         /// <param name="type"><inheritdoc cref="type" path="//summary"/></param>
-        /// <param name="subtype"><inheritdoc cref="subtype" path="//summary"/></param>
         /// <param name="name"><inheritdoc cref="Name" path="//summary"/></param>
         /// <param name="data">The extra data for this content. Specific to each content subtype.</param>
-        /// <exception cref="ArgumentException">Thrown, if the type is not a base type, and the subtype is not the child of that type.</exception>
         protected BaseContent(
             SplittableRandom chunkRandom,
-            EnumTreeValue<ContentType> type,
-            EnumTreeValue<ContentType> subtype,
+            EnumValue<TType> type,
             string? name = null,
             JsonDictionary? data = null
         )
         {
-            if (
-                type.Indexes.Count != 1 ||
-                subtype.Indexes.Count == 0 ||
-                type.Indexes.Count + 1 != subtype.Indexes.Count ||
-                !ContentType.TryGetChildValue(type, subtype.Name, out var _) ||
-                !ContentType.TryGetChildValue(null, type.Name, out var _) ||
-                ContentType.TryGetChildValue(null, subtype.Name, out var _)
-            )
-            {
-                throw new ArgumentException("Content types are missmached.");
-            }
-
             this.chunkRandom = chunkRandom;
             this.type = type;
-            this.subtype = subtype;
             Name = name ?? GenerateContentName();
         }
         #endregion
 
         #region Public methods
         /// <summary>
+        /// REWORK SOON TO BE MORE LIKE ITEM PROPERTIES!!!<br/>
         /// Returns the name of the type of this content.
         /// </summary>
-        public string GetTypeName()
-        {
-            return WorldUtils.BaseContentTypeMap[type].typeName;
-        }
-
-        /// <summary>
-        /// Returns the name of the subtype of this content.
-        /// </summary>
-        public string GetSubtypeName()
-        {
-            return WorldUtils.contentTypeSubtypesMap[type][subtype].typeName;
-        }
+        public abstract string GetTypeName();
 
         /// <summary>
         /// Should be called if a player is on the tile, that is the parrent of this content.
@@ -96,7 +69,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="tile">The parrent tile.</param>
         public virtual void Visit(Tile tile)
         {
-            PACSingletons.Instance.Logger.Log($"Player visited \"{GetTypeName()}\": \"{GetSubtypeName()}\"{(Name is not null ? $" (\"{Name}\")" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
+            PACSingletons.Instance.Logger.Log($"Player visited {nameof(TType)} content: \"{GetTypeName()}\"{(Name is not null ? $" (\"{Name}\")" : "")}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
         }
 
         /// <summary>
@@ -137,21 +110,14 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="valueRange">The range, the value can have.</param>
         protected static long GetContentValueRange(SplittableRandom chunkRandom, (long min, long max)? valueRange = null)
         {
-            if (valueRange is not null)
-            {
-                if (valueRange.Value.min != valueRange.Value.max)
-                {
-                    return chunkRandom.GenerateInRange(valueRange.Value.min, valueRange.Value.max);
-                }
-                else
-                {
-                    return valueRange.Value.min;
-                }
-            }
-            else
+            if (valueRange is null)
             {
                 return chunkRandom.GenerateInRange(1, 1000);
             }
+
+            return valueRange.Value.min == valueRange.Value.max
+                ? valueRange.Value.min
+                : chunkRandom.GenerateInRange(valueRange.Value.min, valueRange.Value.max);
         }
 
         /// <summary>
@@ -162,7 +128,12 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="jsonKey">The key to use.</param>
         /// <param name="data">The dictionary to search in.</param>
         /// <param name="defaultRange">The dafult range to use, if the value doesn't exist.</param>
-        protected static long GetLongValueFromData<T>(SplittableRandom chunkRandom, string jsonKey, JsonDictionary? data, (long min, long max)? defaultRange = null)
+        protected static long GetLongValueFromData<T>(
+            SplittableRandom chunkRandom,
+            string jsonKey,
+            JsonDictionary? data,
+            (long min, long max)? defaultRange = null
+        )
         {
             if (!(
                 data is not null &&
@@ -183,7 +154,7 @@ namespace ProgressAdventure.WorldManagement.Content
             ((oldJson, chunkRandom) =>
             {
                 // subtype snake case rename, name not null
-                JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "subtype", (subtype) =>
+                JsonDataCorrecterUtils.TransformValue<string>(oldJson, "subtype", (subtype) =>
                 {
                     return (subtype == "banditCamp", "bandit_camp");
                 });
@@ -201,7 +172,7 @@ namespace ProgressAdventure.WorldManagement.Content
             ((oldJson, chunkRandom) =>
             {
                 // no more "content" content type, content type IDs are like item type IDs
-                JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "type", (oldTypeValue) =>
+                JsonDataCorrecterUtils.TransformValue<string>(oldJson, "type", (oldTypeValue) =>
                 {
                     var isStructure = false;
                     if (oldTypeValue == "content")
@@ -210,7 +181,7 @@ namespace ProgressAdventure.WorldManagement.Content
                         oldTypeValue = "structure";
                     }
 
-                    JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "subtype", (oldSubtypeValue) =>
+                    JsonDataCorrecterUtils.TransformValue<string>(oldJson, "subtype", (oldSubtypeValue) =>
                     {
                         return (
                             WorldUtils._legacyContentSubtypeNameMap.TryGetValue((oldTypeValue, oldSubtypeValue), out var newSubtype),
@@ -246,8 +217,7 @@ namespace ProgressAdventure.WorldManagement.Content
         {
             return new JsonDictionary
             {
-                [JsonKeys.BaseContent.TYPE] = GetTypeName(),
-                [JsonKeys.BaseContent.SUBTYPE] = GetSubtypeName(),
+                [JsonKeys.BaseContent.TYPE] = type.Name,
                 [JsonKeys.BaseContent.NAME] = Name,
             };
         }
@@ -261,8 +231,13 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="contentObject">The content object that was loaded.</param>
         /// <returns>If the content was parsed without warnings.</returns>
-        protected static bool FromJson<T>(SplittableRandom chunkRandom, JsonDictionary? contentJson, string fileVersion, [NotNullWhen(true)] out T? contentObject)
-            where T : BaseContent
+        protected static bool FromJson<T>(
+            SplittableRandom chunkRandom,
+            JsonDictionary? contentJson,
+            string fileVersion,
+            [NotNullWhen(true)] out T? contentObject
+        )
+            where T : BaseContent<TType>
         {
             contentObject = default;
             if (contentJson is null)
@@ -271,7 +246,12 @@ namespace ProgressAdventure.WorldManagement.Content
                 return false;
             }
 
-            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, SplittableRandom>(contentJson, chunkRandom, VersionCorrecters, fileVersion);
+            PACSingletons.Instance.JsonDataCorrecter.CorrectJsonData<T, SplittableRandom>(
+                contentJson,
+                chunkRandom,
+                VersionCorrecters,
+                fileVersion
+            );
 
             return FromJsonWithoutCorrection(chunkRandom, contentJson, fileVersion, ref contentObject);
         }
@@ -285,18 +265,21 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <param name="fileVersion">The version number of the loaded file.</param>
         /// <param name="contentObject">The content object that was loaded.</param>
         /// <returns>If the content was parsed without warnings.</returns>
-        private static bool FromJsonWithoutCorrection<T>(SplittableRandom chunkRandom, JsonDictionary contentJson, string fileVersion, ref T? contentObject)
+        private static bool FromJsonWithoutCorrection<T>(
+            SplittableRandom chunkRandom,
+            JsonDictionary contentJson,
+            string fileVersion,
+            ref T? contentObject
+        )
         {
-            var contentType = WorldUtils.BaseContentTypeMap.First(props => props.Value.matchingType == typeof(T)).Key;
-
-            if (!(
-                PACTools.TryCastJsonAnyValue<T, string>(contentJson, JsonKeys.BaseContent.SUBTYPE, out var contentSubtypeString, true) &&
-                WorldUtils.TryParseContentType(contentType, contentSubtypeString, out var contentProperties)
-            ))
+            if (
+                !PACTools.TryCastJsonAnyValue<T, string>(contentJson, JsonKeys.BaseContent.TYPE, out var contentTypeString, true) ||
+                !WorldUtils.TryParseContentTypeStrToProperties<TType>(contentTypeString, out var contentProperties)
+            )
             {
-                if (contentSubtypeString is not null)
+                if (contentTypeString is not null)
                 {
-                    PACTools.LogJsonError<T>($"unknown content subtype \"{contentSubtypeString}\" for content type \"{typeof(T)}\"", true);
+                    PACTools.LogJsonError<T>($"unknown content type \"{contentTypeString}\" for content layer \"{typeof(T)}\"", true);
                 }
                 return false;
             }

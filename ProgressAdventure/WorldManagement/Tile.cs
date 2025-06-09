@@ -1,6 +1,7 @@
 ﻿using NPrng.Generators;
 using PACommon;
 using PACommon.JsonUtils;
+using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement.Content;
 using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
@@ -104,26 +105,26 @@ namespace ProgressAdventure.WorldManagement
             chunkRandom ??= Chunk.GetChunkRandom((absoluteX, absoluteY));
             var noiseValues = WorldUtils.GetNoiseValues(absoluteX, absoluteY);
             WorldUtils.ShiftNoiseValues(noiseValues);
-            terrain ??= WorldUtils.CalculateClosestContent<TerrainContent>(chunkRandom, noiseValues);
+            terrain ??= WorldUtils.CalculateBestFitTerrain(chunkRandom, noiseValues);
             if (structure is null)
             {
                 // less structures on water
                 var noStructureDL = WorldUtils.noStructureDifferenceLimit;
-                if (terrain.subtype == ContentType.Terrain.OCEAN)
+                if (terrain.type == TerrainType.OCEAN)
                 {
                     noStructureDL -= 0.1;
                 }
-                else if (terrain.subtype == ContentType.Terrain.SHORE)
+                else if (terrain.type == TerrainType.SHORE)
                 {
                     noStructureDL -= 0.05;
                 }
-                structure = WorldUtils.CalculateClosestContent<StructureContent>(chunkRandom, noiseValues, noStructureDL);
+                structure = WorldUtils.CalculateBestFitStructure(chunkRandom, noiseValues, noStructureDL);
             }
             if (populationManager is null)
             {
                 // less population on not structures
                 var noPopulationDL = WorldUtils.noPopulationDifferenceLimit;
-                if (structure.subtype == ContentType.Structure.NONE)
+                if (structure.type == StructureType.NONE)
                 {
                     noPopulationDL -= 0.1;
                 }

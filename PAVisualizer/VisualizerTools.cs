@@ -5,7 +5,6 @@ using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
-using ProgressAdventure.WorldManagement.Content;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,19 +22,25 @@ namespace PAVisualizer
     {
         #region Config dictionaries
         /// <summary>
-        /// Dictionary pairing up content types with their colors.
+        /// Dictionary pairing up terrain types with their colors.
         /// </summary>
-        public static readonly Dictionary<EnumTreeValue<ContentType>, ColorData> contentSubtypeColorMap = new()
+        public static readonly Dictionary<EnumValue<TerrainType>, ColorData> terrainTypeColorMap = new()
         {
-            [ContentType.Terrain.FIELD] = Constants.Colors.DARK_GREEN,
-            [ContentType.Terrain.OCEAN] = Constants.Colors.LIGHT_BLUE,
-            [ContentType.Terrain.SHORE] = Constants.Colors.LIGHTER_BLUE,
-            [ContentType.Terrain.MOUNTAIN] = Constants.Colors.LIGHT_GRAY,
+            [TerrainType.FIELD] = Constants.Colors.DARK_GREEN,
+            [TerrainType.OCEAN] = Constants.Colors.LIGHT_BLUE,
+            [TerrainType.SHORE] = Constants.Colors.LIGHTER_BLUE,
+            [TerrainType.MOUNTAIN] = Constants.Colors.LIGHT_GRAY,
+        };
 
-            [ContentType.Structure.NONE] = Constants.Colors.TRANSPARENT,
-            [ContentType.Structure.VILLAGE] = Constants.Colors.LIGHT_BROWN,
-            [ContentType.Structure.KINGDOM] = Constants.Colors.BROWN,
-            [ContentType.Structure.BANDIT_CAMP] = Constants.Colors.RED,
+        /// <summary>
+        /// Dictionary pairing up structure types with their colors.
+        /// </summary>
+        public static readonly Dictionary<EnumValue<StructureType>, ColorData> structureTypeColorMap = new()
+        {
+            [StructureType.NONE] = Constants.Colors.TRANSPARENT,
+            [StructureType.VILLAGE] = Constants.Colors.LIGHT_BROWN,
+            [StructureType.KINGDOM] = Constants.Colors.BROWN,
+            [StructureType.BANDIT_CAMP] = Constants.Colors.RED,
         };
 
         /// <summary>
@@ -160,9 +165,18 @@ namespace PAVisualizer
         /// Gets the color ascociated with the content subtype, or <see cref="Constants.Colors.MAGENTA"/>.
         /// </summary>
         /// <param name="contentSubtype">The content subtype.</param>
-        public static ColorData GetContentColor(EnumTreeValue<ContentType> contentSubtype)
+        public static ColorData GetTerrainTypeColor(EnumValue<TerrainType> contentSubtype)
         {
-            return contentSubtypeColorMap.TryGetValue(contentSubtype, out var cColor) ? cColor : Constants.Colors.MAGENTA;
+            return terrainTypeColorMap.TryGetValue(contentSubtype, out var cColor) ? cColor : Constants.Colors.MAGENTA;
+        }
+
+        /// <summary>
+        /// Gets the color ascociated with the content subtype, or <see cref="Constants.Colors.MAGENTA"/>.
+        /// </summary>
+        /// <param name="contentSubtype">The content subtype.</param>
+        public static ColorData GetStructureTypeColor(EnumValue<StructureType> contentSubtype)
+        {
+            return structureTypeColorMap.TryGetValue(contentSubtype, out var cColor) ? cColor : Constants.Colors.MAGENTA;
         }
 
         /// <summary>
@@ -211,8 +225,8 @@ namespace PAVisualizer
         {
             return layer switch
             {
-                VisibleTileLayer.Terrain => GetContentColor(tile.terrain.subtype),
-                VisibleTileLayer.Structure => GetContentColor(tile.structure.subtype),
+                VisibleTileLayer.Terrain => GetTerrainTypeColor(tile.terrain.type),
+                VisibleTileLayer.Structure => GetStructureTypeColor(tile.structure.type),
                 VisibleTileLayer.Population => GetPopulationManagerColor(tile.populationManager),
                 _ => Constants.Colors.MAGENTA
             };
@@ -237,23 +251,38 @@ namespace PAVisualizer
         }
 
         /// <summary>
-        /// Returns a string, displaying the tile types, and their counts.
+        /// Returns a string, displaying the tile terrain types, and their counts.
         /// </summary>
-        /// <param name="tileTypeCounts">The dictionary containing the tile subtype counts for each layer.</param>
-        public static string GetDisplayTileCountsData(Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>> tileTypeCounts)
+        /// <param name="terrainTypeCounts">The dictionary containing the tile terrain type counts for each layer.</param>
+        public static string GetDisplayTerrainCountsData(Dictionary<EnumValue<TerrainType>, long> terrainTypeCounts)
         {
             var txt = new StringBuilder();
-            foreach (var layer in tileTypeCounts)
+            var total = 0L;
+            txt.AppendLine($"Terrain content types:");
+            foreach (var terrainTypeCount in terrainTypeCounts)
             {
-                var total = 0L;
-                txt.AppendLine($"{layer.Key} tile types:");
-                foreach (var type in layer.Value)
-                {
-                    txt.AppendLine($"\t{type.Key.ToString()?.Split(".").Last()}: {type.Value}");
-                    total += type.Value;
-                }
-                txt.AppendLine($"\tTOTAL: {total}\n");
+                txt.AppendLine($"\t{terrainTypeCount.Key}: {terrainTypeCount.Value}");
+                total += terrainTypeCount.Value;
             }
+            txt.AppendLine($"\tTOTAL: {total}\n");
+            return txt.ToString();
+        }
+
+        /// <summary>
+        /// Returns a string, displaying the tile structure types, and their counts.
+        /// </summary>
+        /// <param name="structureTypeCounts">The dictionary containing the tile structure type counts for each layer.</param>
+        public static string GetDisplayStructureCountsData(Dictionary<EnumValue<StructureType>, long> structureTypeCounts)
+        {
+            var txt = new StringBuilder();
+            var total = 0L;
+            txt.AppendLine($"Structure content types:");
+            foreach (var structureTypeCount in structureTypeCounts)
+            {
+                txt.AppendLine($"\t{structureTypeCount.Key}: {structureTypeCount.Value}");
+                total += structureTypeCount.Value;
+            }
+            txt.AppendLine($"\tTOTAL: {total}\n");
             return txt.ToString();
         }
 
@@ -322,21 +351,6 @@ namespace PAVisualizer
             }
 
             return 1.0 / (layerIndex + 1);
-        }
-
-        /// <summary>
-        /// Returns the subtype of the selected layer in the tile.
-        /// </summary>
-        /// <param name="tile">The selected tile.</param>
-        /// <param name="layer">The selected layer.</param>
-        public static EnumTreeValue<ContentType> GetLayerSubtype(Tile tile, BaseContentType layer)
-        {
-            return layer switch
-            {
-                BaseContentType.Structure => tile.structure.subtype,
-                BaseContentType.Terrain => tile.terrain.subtype,
-                _ => throw new Exception("Invalid layer type!"),
-            };
         }
 
         /// <summary>

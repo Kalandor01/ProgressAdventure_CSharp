@@ -6,7 +6,6 @@ using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
-using ProgressAdventure.WorldManagement.Content;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -120,12 +119,12 @@ namespace ProgressAdventure.WorldManagement
             
             Console.WriteLine(GetPopulationAmountsString());
 
-            if (tile.structure.subtype == ContentType.Structure.NONE)
+            if (tile.structure.type == StructureType.NONE)
             {
                 return;
             }
 
-            if (tile.structure.subtype == ContentType.Structure.BANDIT_CAMP)
+            if (tile.structure.type == StructureType.BANDIT_CAMP)
             {
                 if (chunkRandom.GenerateDouble() < 0.75)
                 {
@@ -133,8 +132,8 @@ namespace ProgressAdventure.WorldManagement
                 }
             }
             else if (
-                tile.structure.subtype == ContentType.Structure.VILLAGE ||
-                tile.structure.subtype == ContentType.Structure.KINGDOM
+                tile.structure.type == StructureType.VILLAGE ||
+                tile.structure.type == StructureType.KINGDOM
             )
             {
                 if (chunkRandom.GenerateDouble() < 0.01)
@@ -466,7 +465,7 @@ namespace ProgressAdventure.WorldManagement
             ((oldJson, chunkRandom) =>
             {
                 // content type IDs are like item type IDs
-                JsonDataCorrecterUtils.TransformValue<BaseContent, string>(oldJson, "subtype", (oldSubtypeValue) =>
+                JsonDataCorrecterUtils.TransformValue<string>(oldJson, "subtype", (oldSubtypeValue) =>
                 {
                     return (
                         WorldUtils._legacyContentSubtypeNameMap.TryGetValue(("population", oldSubtypeValue), out var newSubtype),

@@ -25,12 +25,12 @@ namespace PAVisualizer
                 : (tile.terrain.TryGetExtraProperty("depth", out var depth) ? $"(depth: {depth})" : "");
 
             PositionLabel.Content = $"Position: ({tile.populationManager.absolutePosition.x}, {tile.populationManager.absolutePosition.y})";
-            TerrainLabel.Content = $"Terrain: {tile.terrain.GetSubtypeName()} ({tile.terrain.Name}) {extraTerrainData}";
+            TerrainLabel.Content = $"Terrain: {tile.terrain.GetTypeName()} ({tile.terrain.Name}) {extraTerrainData}";
 
-            if (tile.structure.subtype != ContentType.Structure.NONE)
+            if (tile.structure.type != ContentType.Structure.NONE)
             {
                 var extraStructureData = tile.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
-                StructureLabel.Content = $"Structure: {tile.structure.GetSubtypeName()} ({tile.structure.Name}) {extraStructureData}";
+                StructureLabel.Content = $"Structure: {tile.structure.GetTypeName()} ({tile.structure.Name}) {extraStructureData}";
             }
 
             if (tile.populationManager.PopulationCount == 0)

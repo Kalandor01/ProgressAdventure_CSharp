@@ -59,8 +59,8 @@ namespace PAVisualizer
                 colorGetterFunction = (noises) =>
                 {
                     var contentType = isTerrain
-                        ? WorldUtils.CalculateClosestContentType<TerrainContent>(noises)
-                        : WorldUtils.CalculateClosestContentType<StructureContent>(noises);
+                        ? WorldUtils.CalculateClosestTerrainType(noises)
+                        : WorldUtils.CalculateClosestStructureType(noises);
                     var subtype = contentSubtypeMap.First().Key;
                     foreach (var contentSubtype in contentSubtypeMap)
                     {

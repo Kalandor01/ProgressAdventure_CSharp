@@ -1,5 +1,6 @@
 ﻿using NPrng.Generators;
 using PACommon.JsonUtils;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.WorldManagement.Content.Structure
 {
@@ -19,9 +20,9 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         /// <summary>
         /// <inheritdoc cref="VillageStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(SplittableRandom, ContentTypeID, string?, JsonDictionary?)"/>
+        /// <inheritdoc cref="StructureContent(SplittableRandom, EnumValue{StructureType} string?, JsonDictionary?)"/>
         public VillageStructure(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
-            : base(chunkRandom, ContentType.Structure.VILLAGE, name, data)
+            : base(chunkRandom, StructureType.VILLAGE, name, data)
         {
             population = GetLongValueFromData<VillageStructure>(base.chunkRandom, Constants.JsonKeys.VillageStructure.POPULATION, data, (50, 10000));
         }

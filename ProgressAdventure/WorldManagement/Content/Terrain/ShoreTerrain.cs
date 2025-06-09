@@ -1,5 +1,6 @@
 ﻿using NPrng.Generators;
 using PACommon.JsonUtils;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.WorldManagement.Content.Terrain
 {
@@ -19,9 +20,9 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         /// <summary>
         /// <inheritdoc cref="ShoreTerrain"/>
         /// </summary>
-        /// <inheritdoc cref="TerrainContent(SplittableRandom, ContentTypeID, string?, JsonDictionary?)"/>
+        /// <inheritdoc cref="TerrainContent(SplittableRandom, EnumValue{TerrainType}, string?, JsonDictionary?)"/>
         public ShoreTerrain(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
-            : base(chunkRandom, ContentType.Terrain.SHORE, name, data)
+            : base(chunkRandom, TerrainType.SHORE, name, data)
         {
             depth = GetLongValueFromData<ShoreTerrain>(base.chunkRandom, Constants.JsonKeys.ShoreTerrain.DEPTH, data, (1, 100));
         }

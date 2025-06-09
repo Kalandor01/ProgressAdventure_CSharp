@@ -210,7 +210,7 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // inventory items in dictionary
-                JsonDataCorrecterUtils.TransformValue<AItem, int>(oldJson, "type", (itemID) =>
+                JsonDataCorrecterUtils.TransformValue<int>(oldJson, "type", (itemID) =>
                 {
                     return (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName);
                 });

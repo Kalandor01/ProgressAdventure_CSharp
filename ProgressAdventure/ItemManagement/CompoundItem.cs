@@ -155,7 +155,7 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // inventory items in dictionary
-                JsonDataCorrecterUtils.TransformValue<CompoundItem, int>(oldJson, "type", (itemID) =>
+                JsonDataCorrecterUtils.TransformValue<int>(oldJson, "type", (itemID) =>
                 {
                     return (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName);
                 });
@@ -164,7 +164,7 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // item material
-                JsonDataCorrecterUtils.TransformMultipleValues<CompoundItem, string, (string typeName, JsonArray partsJson)>(
+                JsonDataCorrecterUtils.TransformMultipleValues<string, (string typeName, JsonArray partsJson)>(
                     oldJson,
                     "type",
                     (typeValue) => (ItemUtils._legacyCompoundtemMap.TryGetValue(typeValue ?? "", out var fixedJson), fixedJson),

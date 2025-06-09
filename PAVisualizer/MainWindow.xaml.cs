@@ -353,27 +353,27 @@ namespace PAVisualizer
             if (
                 worldTileTypeCounts.TryGetValue(BaseContentType.Terrain, out Dictionary<EnumTreeValue<ContentType>, long>? tCounts) &&
                 tCounts is not null &&
-                tCounts.ContainsKey(tile.terrain.subtype)
+                tCounts.ContainsKey(tile.terrain.type)
             )
             {
-                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.subtype]++;
+                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.type]++;
             }
             else
             {
-                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.subtype] = 1;
+                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.type] = 1;
             }
 
             if (
                 worldTileTypeCounts.TryGetValue(BaseContentType.Structure, out Dictionary<EnumTreeValue<ContentType>, long>? sCounts) &&
                 sCounts is not null &&
-                sCounts.ContainsKey(tile.structure.subtype)
+                sCounts.ContainsKey(tile.structure.type)
             )
             {
-                worldTileTypeCounts[BaseContentType.Structure][tile.structure.subtype]++;
+                worldTileTypeCounts[BaseContentType.Structure][tile.structure.type]++;
             }
             else
             {
-                worldTileTypeCounts[BaseContentType.Structure][tile.structure.subtype] = 1;
+                worldTileTypeCounts[BaseContentType.Structure][tile.structure.type] = 1;
             }
 
             var popManager = tile.populationManager;
@@ -483,7 +483,7 @@ namespace PAVisualizer
                         layer = VisibleTileLayer.Population;
                         contentName = null;
                     }
-                    else if (layers.Contains(VisibleTileLayer.Structure) && tileObj.structure.subtype != ContentType.Structure.NONE)
+                    else if (layers.Contains(VisibleTileLayer.Structure) && tileObj.structure.type != ContentType.Structure.NONE)
                     {
                         layer = VisibleTileLayer.Structure;
                         contentName = tileObj.structure.Name;
@@ -509,14 +509,14 @@ namespace PAVisualizer
                         {
                             new Label() { Content = $"Position: ({chunk.Value.basePosition.x + tileObj.relativePosition.x}, {chunk.Value.basePosition.y + tileObj.relativePosition.y})" },
                             new Label() { Content = $"Chunk seed: {PATools.SerializeRandom(chunk.Value.ChunkRandomGenerator)}" },
-                            new Label() { Content = $"Terrain: {tileObj.terrain.GetSubtypeName()} ({tileObj.terrain.Name}) {extraTerrainData}" },
+                            new Label() { Content = $"Terrain: {tileObj.terrain.GetTypeName()} ({tileObj.terrain.Name}) {extraTerrainData}" },
                         }
                     };
 
-                    if (tileObj.structure.subtype != ContentType.Structure.NONE)
+                    if (tileObj.structure.type != ContentType.Structure.NONE)
                     {
                         var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
-                        tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetSubtypeName()} ({tileObj.structure.Name}) {extraStructureData}" });
+                        tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetTypeName()} ({tileObj.structure.Name}) {extraStructureData}" });
                     }
 
                     if (tileObj.populationManager.PopulationCount != 0)

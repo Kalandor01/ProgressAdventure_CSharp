@@ -79,7 +79,6 @@
         /// Tries to parse a json value to a specified type, and then optionaly transforms that value.<br/>
         /// If the value can't be parsed, it logs a json parse error.
         /// </summary>
-        /// <typeparam name="T">The class that is being corrected.</typeparam>
         /// <typeparam name="TRes">The type to parse to.<br/>
         /// The allowed types are the same as with the <see cref="Tools.TryParseValueForJsonParsing{T, TRes}(JsonObject?, out TRes, string?, bool, string?, bool)"/> method.</typeparam>
         /// <param name="jsonData">The json data to correct.</param>
@@ -87,7 +86,7 @@
         /// <param name="transformer">The function to transform the converted value to a <see cref="JsonObject"/>.<br/>
         /// If success is false, the value won't be modified.<br/>
         /// If <paramref name="transformer"/> it's null, <see cref="Tools.ParseToJsonValue{T}(T, bool, bool)"/> will be used instead.</param>
-        public static void TransformValue<T, TRes>(
+        public static void TransformValue<TRes>(
             JsonDictionary jsonData,
             string jsonKey,
             Func<TRes, (bool success, JsonObject? result)>? transformer = null
@@ -95,12 +94,13 @@
         {
             if (
                 jsonData.TryGetValue(jsonKey, out var valueJson) &&
-                Tools.TryParseValueForJsonParsing<T, TRes>(
+                Tools.TryParseValueForJsonParsingInternal<TRes>(
+                    Utils.GetCallingClassType(),
                     valueJson,
                     out var value,
                     jsonKey,
                     true,
-                    $"{typeof(T)} json correction failed",
+                    $"json correction failed",
                     true
                 )
             )
@@ -123,7 +123,6 @@
         /// Tries to parse a json value to a specified type, and then sets multiple values according to a map.<br/>
         /// If the value can't be parsed, it logs a json parse error.
         /// </summary>
-        /// <typeparam name="T">The class that is being corrected.</typeparam>
         /// <typeparam name="TRes">The type to parse to.<br/>
         /// The allowed types are the same as with the <see cref="Tools.TryParseValueForJsonParsing{T, TRes}(JsonObject?, out TRes, string?, bool, string?, bool)"/> method.</typeparam>
         /// <typeparam name="TExtra">The type of the extra data from <paramref name="condition"/>.</typeparam>
@@ -132,7 +131,7 @@
         /// <param name="condition">The function to decide if the <paramref name="transformer"/> should run.</param>
         /// <param name="transformer">The function that can return witch keys to set to what value.<br/>
         /// If success is false, the values won't be modified.</param>
-        public static void TransformMultipleValues<T, TRes, TExtra>(
+        public static void TransformMultipleValues<TRes, TExtra>(
             JsonDictionary jsonData,
             string jsonKey,
             Func<TRes, (bool success, TExtra? extraData)> condition,
@@ -141,12 +140,13 @@
         {
             if (
                 jsonData.TryGetValue(jsonKey, out var valueJson) &&
-                Tools.TryParseValueForJsonParsing<T, TRes>(
+                Tools.TryParseValueForJsonParsingInternal<TRes>(
+                    Utils.GetCallingClassType(),
                     valueJson,
                     out var value,
                     jsonKey,
                     true,
-                    $"{typeof(T)} json correction failed",
+                    $"json correction failed",
                     true
                 )
             )

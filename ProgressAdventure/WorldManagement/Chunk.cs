@@ -72,7 +72,7 @@ namespace ProgressAdventure.WorldManagement
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
             PACSingletons.Instance.Logger.Log(
                 "Created tile",
-                $"x: {posX}, y: {posY}, terrain: {WorldUtils.TerrainContentTypeMap[tile.terrain.subtype].typeName}, structure: {WorldUtils.StructureContentTypeMap[tile.structure.subtype].typeName}, population: {tile.populationManager}",
+                $"x: {posX}, y: {posY}, terrain: {WorldUtils.TerrainTypeMap[tile.terrain.type].displayName}, structure: {WorldUtils.StructureTypeMap[tile.structure.type].displayName}, population: {tile.populationManager}",
                 LogSeverity.DEBUG
             );
             return tile;

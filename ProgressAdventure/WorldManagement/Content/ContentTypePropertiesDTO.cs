@@ -1,4 +1,7 @@
 ﻿using PACommon.Enums;
+using PACommon.Extensions;
+using ProgressAdventure.ConfigManagement;
+using ProgressAdventure.Enums;
 using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.WorldManagement.Content
@@ -6,26 +9,33 @@ namespace ProgressAdventure.WorldManagement.Content
     public class ContentTypePropertiesDTO
     {
         /// <summary>
-        /// The unique name of the content, used in the json representation of the content.<br/>
-        /// Usualy "namespace:content_category/content_type".
+        /// The display name of the content.
         /// </summary>
-        [JsonPropertyName("type_name")]
-        public readonly string typeName;
+        [JsonPropertyName("display_name")]
+        public readonly string displayName;
         /// <summary>
         /// The type of the content for this content type.
         /// </summary>
         [JsonPropertyName("matching_type")]
-        public readonly Type? matchingType;
+        public readonly Type matchingType;
 
         [JsonConstructor]
-        public ContentTypePropertiesDTO(string typeName, Type? matchingType)
+        public ContentTypePropertiesDTO(string displayName, Type matchingType)
         {
-            this.typeName = typeName;
+            this.displayName = displayName;
             this.matchingType = matchingType;
         }
 
-        public ContentTypePropertiesDTO(EnumTreeValue<ContentType> contentType, Type? machingType)
-            : this(contentType.FullName, machingType)
+        private ContentTypePropertiesDTO(EnumValueBase contentType, Type matchingType)
+            :this(displayName: ConfigUtils.RemoveNamespace(contentType.Name).Replace('_', ' ').Capitalize(), matchingType)
+        { }
+
+        public ContentTypePropertiesDTO(EnumValue<TerrainType> terrainType, Type machingType)
+            :this(contentType: terrainType, machingType)
+        { }
+
+        public ContentTypePropertiesDTO(EnumValue<StructureType> structureType, Type machingType)
+            :this(contentType: structureType, machingType)
         { }
     }
 }
