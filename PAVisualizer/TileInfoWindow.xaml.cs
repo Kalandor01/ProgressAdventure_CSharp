@@ -27,7 +27,7 @@ namespace PAVisualizer
             PositionLabel.Content = $"Position: ({tile.populationManager.absolutePosition.x}, {tile.populationManager.absolutePosition.y})";
             TerrainLabel.Content = $"Terrain: {tile.terrain.GetTypeName()} ({tile.terrain.Name}) {extraTerrainData}";
 
-            if (tile.structure.type != ContentType.Structure.NONE)
+            if (tile.structure.type != StructureType.NONE)
             {
                 var extraStructureData = tile.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
                 StructureLabel.Content = $"Structure: {tile.structure.GetTypeName()} ({tile.structure.Name}) {extraStructureData}";

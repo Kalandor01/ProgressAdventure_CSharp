@@ -43,6 +43,33 @@ namespace PAVisualizer
         {
             return new ColorData(R, G, B, (byte)Math.Clamp(A * opacityMultiplier, 0, 255));
         }
+
+        /// <summary>Blends the specified colors together.</summary>
+        /// <param name="otherColor">Color to blend the other color onto.</param>
+        /// <param name="amount">How much of the original color to keep,
+        /// “on top of” <paramref name="otherColor"/>.</param>
+        /// <returns>The blended colors.</returns>
+        public ColorData Blend(ColorData otherColor, double amount)
+        {
+            var r = (byte)(R * amount + otherColor.R * (1 - amount));
+            var g = (byte)(G * amount + otherColor.G * (1 - amount));
+            var b = (byte)(B * amount + otherColor.B * (1 - amount));
+            return new ColorData(r, g, b);
+        }
+
+        /// <summary>Blends the specified colors together based on their opacity.</summary>
+        /// <param name="color">Color to blend onto the background color.</param>
+        /// <param name="otherColor">Color to blend the other color onto.</param>
+        /// <returns>The blended colors that hase an opacity that is the sum of the two opacities.</returns>
+        public ColorData Blend(ColorData otherColor)
+        {
+            var a1 = A / 255d;
+            var a2 = otherColor.A / 255d;
+            var r = (byte)(R * a1 + otherColor.R * a2);
+            var g = (byte)(G * a1 + otherColor.G * a2);
+            var b = (byte)(B * a1 + otherColor.B * a2);
+            return new ColorData(r, g, b, (byte)(A + otherColor.A));
+        }
         #endregion
     }
 }

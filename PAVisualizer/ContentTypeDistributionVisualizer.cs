@@ -27,16 +27,54 @@ namespace PAVisualizer
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the pixels.</param>
+        /// <param name="blendMultiplePopulationColors">Whether to blend population colors if there are multiple entity types for a specific noise value.</param>
         public static Bitmap CreateNoiseTypeDistributionImage(
             VisibleTileLayer layer,
             TileNoiseType noiseTypeXAxis,
             TileNoiseType noiseTypeYAxis,
             uint resolution,
-            double opacityMultiplier = 1
+            double opacityMultiplier = 1,
+            bool blendMultiplePopulationColors = true
         )
         {
             Func<Dictionary<TileNoiseType, double>, ColorData> colorGetterFunction;
-            if (layer == VisibleTileLayer.Population)
+            if (layer == VisibleTileLayer.Terrain)
+            {
+                var contentTypeMap = Utils.GetInternalPropertyFromStaticClass<Dictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "TerrainTypeMap");
+
+                colorGetterFunction = (noises) =>
+                {
+                    var contentType = WorldUtils.CalculateClosestTerrainType(noises);
+                    var type = contentTypeMap.First().Key;
+                    foreach (var contentSubtype in contentTypeMap)
+                    {
+                        if (contentSubtype.Value.matchingType == contentType)
+                        {
+                            type = contentSubtype.Key;
+                        }
+                    }
+                    return VisualizerTools.GetTerrainTypeColor(type);
+                };
+            }
+            else if (layer == VisibleTileLayer.Structure)
+            {
+                var contentTypeMap = Utils.GetInternalPropertyFromStaticClass<Dictionary<EnumValue<StructureType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "StructureTypeMap");
+
+                colorGetterFunction = (noises) =>
+                {
+                    var contentType = WorldUtils.CalculateClosestStructureType(noises);
+                    var type = contentTypeMap.First().Key;
+                    foreach (var contentSubtype in contentTypeMap)
+                    {
+                        if (contentSubtype.Value.matchingType == contentType)
+                        {
+                            type = contentSubtype.Key;
+                        }
+                    }
+                    return VisualizerTools.GetStructureTypeColor(type);
+                };
+            }
+            else if (layer == VisibleTileLayer.Population)
             {
                 colorGetterFunction = (noises) =>
                 {
@@ -46,31 +84,39 @@ namespace PAVisualizer
                         return Constants.Colors.TRANSPARENT;
                     }
 
-                    var minDiff = diffs.StableSort((n1, n2) => n1.Value > n2.Value ? 1 : (n1.Value == n2.Value ? 0 : -1)).First().Key;
-                    return VisualizerTools.GetEntityTypeColor(minDiff);
+                    if (!blendMultiplePopulationColors)
+                    {
+                        var minDiff = diffs.StableSort((n1, n2) => n1.Value > n2.Value ? 1 : (n1.Value == n2.Value ? 0 : -1)).First().Key;
+                        return VisualizerTools.GetEntityTypeColor(minDiff);
+                    }
+
+                    var minDiffValue = diffs.Min(d => d.Value);
+                    var maxDiffValue = diffs.Max(d => d.Value);
+                    var diffDelta = maxDiffValue - minDiffValue;
+                    var frequencys = diffs.Select(d => (d.Key, Value: maxDiffValue - d.Value + minDiffValue)).ToList();
+
+                    var sumFreq = frequencys.Sum(d => d.Value);
+                    ColorData? sumColor = null;
+                    foreach (var (type, frequency) in frequencys)
+                    {
+                        var color = VisualizerTools.GetEntityTypeColor(type);
+                        var percent = frequency / sumFreq;
+                        var newColor = color.MultiplyOpacity(percent);
+                        if (sumColor is null)
+                        {
+                            sumColor = newColor;
+                        }
+                        else
+                        {
+                            sumColor = sumColor.Value.Blend(newColor);
+                        }
+                    }
+                    return (ColorData)sumColor!;
                 };
             }
             else
             {
-                var contentTypeMap = Utils.GetInternalFieldFromStaticClass<Dictionary<EnumTreeValue<ContentType>, Dictionary<EnumTreeValue<ContentType>, ContentTypePropertiesDTO>>>(typeof(WorldUtils), "contentTypeSubtypesMap");
-                var isTerrain = layer == VisibleTileLayer.Terrain;
-                var contentSubtypeMap = contentTypeMap[isTerrain ? ContentType._TERRAIN : ContentType._STRUCTURE];
-
-                colorGetterFunction = (noises) =>
-                {
-                    var contentType = isTerrain
-                        ? WorldUtils.CalculateClosestTerrainType(noises)
-                        : WorldUtils.CalculateClosestStructureType(noises);
-                    var subtype = contentSubtypeMap.First().Key;
-                    foreach (var contentSubtype in contentSubtypeMap)
-                    {
-                        if (contentSubtype.Value.matchingType == contentType)
-                        {
-                            subtype = contentSubtype.Key;
-                        }
-                    }
-                    return VisualizerTools.GetContentColor(subtype);
-                };
+                throw new InvalidOperationException("Invalid world layer type.");
             }
 
             (int x, int y) tileSize = (1, 1);
@@ -120,16 +166,24 @@ namespace PAVisualizer
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="exportPath">The path to export the image to.</param>
+        /// <param name="blendMultiplePopulationColors">Whether to blend population colors if there are multiple entity types for a specific noise value.</param>
         public static void MakeImage(
             VisibleTileLayer layer,
             TileNoiseType noiseTypeXAxis,
             TileNoiseType noiseTypeYAxis,
             uint resolution,
-            string exportPath
+            string exportPath,
+            bool blendMultiplePopulationColors = true
         )
         {
             Console.Write("Generating image...");
-            var image = CreateNoiseTypeDistributionImage(layer, noiseTypeXAxis, noiseTypeYAxis, resolution);
+            var image = CreateNoiseTypeDistributionImage(
+                layer,
+                noiseTypeXAxis,
+                noiseTypeYAxis,
+                resolution,
+                blendMultiplePopulationColors: blendMultiplePopulationColors
+            );
             Console.WriteLine("DONE!");
             image.Save(exportPath);
         }
@@ -142,15 +196,17 @@ namespace PAVisualizer
         /// <param name="noiseTypeYAxis">The noise type to use for the Y axis for the graph.</param>
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="exportPath">The path to export the image to.</param>
+        /// <param name="blendMultiplePopulationColors">Whether to blend population colors if there are multiple entity types for a specific noise value.</param>
         public static void MakeImageForLayer(
             VisibleTileLayer layer,
             TileNoiseType noiseTypeXAxis,
             TileNoiseType noiseTypeYAxis,
             uint resolution,
-            string exportPath
+            string exportPath,
+            bool blendMultiplePopulationColors = true
         )
         {
-            MakeImage(layer, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath);
+            MakeImage(layer, noiseTypeXAxis, noiseTypeYAxis, resolution, exportPath, blendMultiplePopulationColors);
         }
 
         private static (TextFieldValidatorStatus status, string? message) TextValidatorDelegate(string inputValue)
@@ -187,19 +243,19 @@ namespace PAVisualizer
                 noiseTypeNames.Add(noiseType.ToString().Capitalize());
             }
 
-            var noiseTypeElements = new List<BaseUI?>();
+            var visualizeElements = new List<BaseUI?>();
 
             var noiseTypeXSelectionElement = new PAChoice(noiseTypeNames, 0, "X axis noise type: ");
-            noiseTypeElements.Add(noiseTypeXSelectionElement);
+            visualizeElements.Add(noiseTypeXSelectionElement);
 
             var noiseTypeYSelectionElement = new PAChoice(noiseTypeNames, 0, "Y axis noise type: ");
-            noiseTypeElements.Add(noiseTypeYSelectionElement);
-            noiseTypeElements.Add(null);
+            visualizeElements.Add(noiseTypeYSelectionElement);
+            visualizeElements.Add(null);
 
             var layerTypes = Enum.GetValues<VisibleTileLayer>();
             var layerSelectionElement = new PAChoice([.. layerTypes.Select(layer => layer.ToString().Capitalize())], 0, "Layer: ");
-            noiseTypeElements.Add(layerSelectionElement);
-            noiseTypeElements.Add(null);
+            visualizeElements.Add(layerSelectionElement);
+            visualizeElements.Add(null);
 
             var defResolution = 100;
             var resolutionElement = new TextField(
@@ -209,8 +265,15 @@ namespace PAVisualizer
                 keyValidatorFunction: KeyValidatorDelegate,
                 overrideDefaultKeyValidatorFunction: false
             );
-            noiseTypeElements.Add(resolutionElement);
-            noiseTypeElements.Add(null);
+            visualizeElements.Add(resolutionElement);
+
+            var blendPopColorsElement = new Toggle(
+                true,
+                "Blend colors if there are multiple entity types: ",
+                "Yes", "No"
+            );
+            visualizeElements.Add(blendPopColorsElement);
+            visualizeElements.Add(null);
 
             var generateImageButtonElement = new PAButton(
                 new UIAction(
@@ -221,11 +284,12 @@ namespace PAVisualizer
                         noiseTypeYSelectionElement,
                         noiseTypes,
                         resolutionElement,
-                        visualizedContentDistributionPath
+                        visualizedContentDistributionPath,
+                        blendPopColorsElement
                 ),
                 text: "Generate image"
             );
-            noiseTypeElements.Add(generateImageButtonElement);
+            visualizeElements.Add(generateImageButtonElement);
 
             var generateAllImagesButtonElement = new PAButton(
                 new UIAction(
@@ -233,13 +297,14 @@ namespace PAVisualizer
                         layerTypes,
                         noiseTypes,
                         resolutionElement,
-                        visualizedContentDistributionPath
+                        visualizedContentDistributionPath,
+                        blendPopColorsElement
                 ),
                 text: "Generate ALL possible images"
             );
-            noiseTypeElements.Add(generateAllImagesButtonElement);
+            visualizeElements.Add(generateAllImagesButtonElement);
 
-            new OptionsUI(noiseTypeElements, "Select the noise types to generate the distribution image from:").Display();
+            new OptionsUI(visualizeElements, "Select the noise types to generate the distribution image from:").Display();
         }
         #endregion
 
@@ -251,20 +316,29 @@ namespace PAVisualizer
             PAChoice noiseTypeYSelectionElement,
             TileNoiseType[] noiseTypes,
             TextField resolutionElement,
-            string visualizedContentDistributionPath
+            string visualizedContentDistributionPath,
+            Toggle blendMultiplePopulationColorsElement
         )
         {
             // get selected noise types
             var noiseTypeXAxis = noiseTypes[noiseTypeXSelectionElement.Value];
             var noiseTypeYAxis = noiseTypes[noiseTypeYSelectionElement.Value];
             var resolution = uint.Parse(resolutionElement.Value);
+            var blendMultiplePopulationColors = blendMultiplePopulationColorsElement.Value;
 
             // get selected layer
             var layer = layers[layerSelectionElement.Value];
 
             // generate image
             var imageName = $"{noiseTypeXAxis}-{noiseTypeYAxis}.png";
-            MakeImageForLayer(layer, noiseTypeXAxis, noiseTypeYAxis, resolution, Path.Join(visualizedContentDistributionPath, imageName));
+            MakeImageForLayer(
+                layer,
+                noiseTypeXAxis,
+                noiseTypeYAxis,
+                resolution,
+                Path.Join(visualizedContentDistributionPath, imageName),
+                blendMultiplePopulationColors
+            );
             Utils.PressKey($"Generated image as \"{imageName}\"");
         }
 
@@ -272,10 +346,12 @@ namespace PAVisualizer
             VisibleTileLayer[] layers,
             TileNoiseType[] noiseTypes,
             TextField resolutionElement,
-            string visualizedContentDistributionPath
+            string visualizedContentDistributionPath,
+            Toggle blendMultiplePopulationColorsElement
         )
         {
             var resolution = uint.Parse(resolutionElement.Value);
+            var blendMultiplePopulationColors = blendMultiplePopulationColorsElement.Value;
 
             // generate images
             foreach (var layer in layers)
@@ -285,7 +361,14 @@ namespace PAVisualizer
                     foreach (var noiseTypeYAxis in noiseTypes)
                     {
                         var imageName = $"{layer}-{noiseTypeXAxis}-{noiseTypeYAxis}.png";
-                        MakeImageForLayer(layer, noiseTypeXAxis, noiseTypeYAxis, resolution, Path.Join(visualizedContentDistributionPath, imageName));
+                        MakeImageForLayer(
+                            layer,
+                            noiseTypeXAxis,
+                            noiseTypeYAxis,
+                            resolution,
+                            Path.Join(visualizedContentDistributionPath, imageName),
+                            blendMultiplePopulationColors
+                        );
                         Console.WriteLine($"Generated image as \"{imageName}\"");
                     }
                 }

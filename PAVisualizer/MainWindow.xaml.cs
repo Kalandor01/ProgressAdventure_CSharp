@@ -3,7 +3,6 @@ using PACommon.Enums;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
-using ProgressAdventure.WorldManagement.Content;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,13 +25,10 @@ namespace PAVisualizer
         private const double WORLD_ZOOM_IN_CONSTANT = 1.1;
         private const double WORLD_ZOOM_OUT_CONSTANT = 1 / WORLD_ZOOM_IN_CONSTANT;
 
-        private bool _selectedSave;
-        private bool _isWorldVisible;
-        private bool _tileCountsNeedToBeRefreshed;
-
         private string saveName;
         private DateTime lastWorldChange;
-        private Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>> worldTileTypeCounts;
+        private Dictionary<EnumValue<TerrainType>, long> terrainTypeCounts;
+        private Dictionary<EnumValue<StructureType>, long> structureTypeCounts;
         private Dictionary<EnumValue<EntityType>, long> entityTypeCounts;
         private string worldInfoString;
 
@@ -44,10 +40,10 @@ namespace PAVisualizer
         #region Public properties
         public bool SelectedSave
         {
-            get => _selectedSave;
+            get;
             private set
             {
-                _selectedSave = value;
+                field = value;
 
                 closeMenuItem.IsEnabled = SelectedSave;
                 createImageMenuItem.IsEnabled = SelectedSave;
@@ -58,10 +54,10 @@ namespace PAVisualizer
         }
         public bool IsWorldVisible
         {
-            get => _isWorldVisible && SelectedSave;
+            get => field && SelectedSave;
             private set
             {
-                _isWorldVisible = value;
+                field = value;
 
                 revealAreaButton.IsEnabled = IsWorldVisible;
             }
@@ -69,14 +65,15 @@ namespace PAVisualizer
 
         private bool TileCountsNeedToBeRefreshed
         {
-            get => _tileCountsNeedToBeRefreshed;
+            get;
             set
             {
-                _tileCountsNeedToBeRefreshed = value;
+                field = value;
 
                 if (!value)
                 {
-                    worldInfoString = VisualizerTools.GetDisplayTileCountsData(worldTileTypeCounts) + "\n" + 
+                    worldInfoString = VisualizerTools.GetDisplayTerrainCountsData(terrainTypeCounts) + "\n" +
+                        VisualizerTools.GetDisplayStructureCountsData(structureTypeCounts) + "\n" +
                         VisualizerTools.GetDisplayPopulationCountsData(entityTypeCounts);
                 }
             }
@@ -90,7 +87,8 @@ namespace PAVisualizer
             worldGridScale = 1;
             layers = [VisibleTileLayer.Terrain];
             saveName = string.Empty;
-            worldTileTypeCounts = [];
+            terrainTypeCounts = [];
+            structureTypeCounts = [];
             entityTypeCounts = [];
             worldInfoString = string.Empty;
             TileCountsNeedToBeRefreshed = true;
@@ -350,31 +348,8 @@ namespace PAVisualizer
 
         private void AppendTileCounts(Tile tile)
         {
-            if (
-                worldTileTypeCounts.TryGetValue(BaseContentType.Terrain, out Dictionary<EnumTreeValue<ContentType>, long>? tCounts) &&
-                tCounts is not null &&
-                tCounts.ContainsKey(tile.terrain.type)
-            )
-            {
-                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.type]++;
-            }
-            else
-            {
-                worldTileTypeCounts[BaseContentType.Terrain][tile.terrain.type] = 1;
-            }
-
-            if (
-                worldTileTypeCounts.TryGetValue(BaseContentType.Structure, out Dictionary<EnumTreeValue<ContentType>, long>? sCounts) &&
-                sCounts is not null &&
-                sCounts.ContainsKey(tile.structure.type)
-            )
-            {
-                worldTileTypeCounts[BaseContentType.Structure][tile.structure.type]++;
-            }
-            else
-            {
-                worldTileTypeCounts[BaseContentType.Structure][tile.structure.type] = 1;
-            }
+            terrainTypeCounts[tile.terrain.type] = terrainTypeCounts.TryGetValue(tile.terrain.type, out var value1) ? ++value1 : 1;
+            structureTypeCounts[tile.structure.type] = structureTypeCounts.TryGetValue(tile.structure.type, out var value2) ? ++value2 : 1;
 
             var popManager = tile.populationManager;
             foreach (var (type, amount) in VisualizerTools.GetPopulationCounts(popManager))
@@ -394,11 +369,8 @@ namespace PAVisualizer
         {
             if (TileCountsNeedToBeRefreshed)
             {
-                worldTileTypeCounts = new Dictionary<BaseContentType, Dictionary<EnumTreeValue<ContentType>, long>>
-                {
-                    [BaseContentType.Terrain] = [],
-                    [BaseContentType.Structure] = [],
-                };
+                terrainTypeCounts = [];
+                structureTypeCounts = [];
                 entityTypeCounts = [];
             }
 
@@ -483,7 +455,7 @@ namespace PAVisualizer
                         layer = VisibleTileLayer.Population;
                         contentName = null;
                     }
-                    else if (layers.Contains(VisibleTileLayer.Structure) && tileObj.structure.type != ContentType.Structure.NONE)
+                    else if (layers.Contains(VisibleTileLayer.Structure) && tileObj.structure.type != StructureType.NONE)
                     {
                         layer = VisibleTileLayer.Structure;
                         contentName = tileObj.structure.Name;
@@ -513,7 +485,7 @@ namespace PAVisualizer
                         }
                     };
 
-                    if (tileObj.structure.type != ContentType.Structure.NONE)
+                    if (tileObj.structure.type != StructureType.NONE)
                     {
                         var extraStructureData = tileObj.structure.TryGetExtraProperty("population", out var population) ? $"(population: {population})" : "";
                         tooltipContent.Children.Add(new Label() { Content = $"Structure: {tileObj.structure.GetTypeName()} ({tileObj.structure.Name}) {extraStructureData}" });
