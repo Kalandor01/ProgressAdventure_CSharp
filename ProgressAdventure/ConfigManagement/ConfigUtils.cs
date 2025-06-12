@@ -779,40 +779,47 @@ namespace ProgressAdventure.ConfigManagement
 
         #region Namespacing functions
         /// <summary>
-        /// Tries to correct a string to be namespaced using the currently loaded namespace(s).
+        /// Tries to correct a string to be namespaced using the given namespace.
         /// </summary>
         /// <param name="str">The maybe namespaced string.</param>
+        /// <param name="defaultNamespace">The namespace to write if there is no namespace.</param>
         /// <param name="namespacedString">The namespaced string, or the same if the string was null or whitespace.</param>
         /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
+        /// <param name="throwOnInvalidNamespace">Whether to throw and exception if the namespaced string is invalid.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="throwOnInvalidNamespace"/> is true and the namespaced string is invalid.</exception>
         /// <returns>If the string was able to be correctly namespaced.</returns>
-        public static bool TryGetNamespacedString(
+        private static bool TryGetNamespacedStringPrivate(
             string str,
+            string defaultNamespace,
             out string namespacedString,
-            bool logChange = true
+            bool isConfigLoading,
+            bool logChange = true,
+            bool throwOnInvalidNamespace = false
         )
         {
             namespacedString = str;
             if (
-                LoadingNamespaces is null ||
-                CurrentlyLoadingNamespace is null ||
+                (!isConfigLoading && LoadingNamespaces is null) ||
+                string.IsNullOrWhiteSpace(defaultNamespace) ||
                 string.IsNullOrWhiteSpace(str)
             )
             {
+                if (throwOnInvalidNamespace)
+                {
+                    throw new ArgumentException("No namespaced string or default namespace is null.", nameof(str));
+                }
                 return false;
             }
 
             var nsSepIndex = str.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
-            var defaultNamepsace = Constants.DEFAULT_NAMESPACE_IS_CURRENT_NAMESPACE
-                ? CurrentlyLoadingNamespace
-                : Constants.VANILLA_CONFIGS_NAMESPACE;
             if (nsSepIndex == -1)
             {
-                namespacedString = $"{defaultNamepsace}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
+                namespacedString = $"{defaultNamespace}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
                 if (logChange)
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Namespaced string created",
-                        $"while loading from: {CurrentlyLoadingNamespace}, \"{str}\" -> \"{namespacedString}\"",
+                        $"{(isConfigLoading ? $"while loading from: {defaultNamespace}, " : "")}\"{str}\" -> \"{namespacedString}\"",
                         LogSeverity.DEBUG
                     );
                 }
@@ -823,6 +830,10 @@ namespace ProgressAdventure.ConfigManagement
                 string.IsNullOrWhiteSpace(str[(nsSepIndex + 1)..])
             )
             {
+                if (throwOnInvalidNamespace)
+                {
+                    throw new ArgumentException("No text after namespace in namespaced string.", nameof(str));
+                }
                 return false;
             }
 
@@ -830,20 +841,52 @@ namespace ProgressAdventure.ConfigManagement
             if (
                 string.IsNullOrWhiteSpace(nspace) ||
                 !NamespaceRegex().IsMatch(nspace) ||
-                !LoadingNamespaces.Contains(nspace)
+                (isConfigLoading && (LoadingNamespaces is null || !LoadingNamespaces.Contains(nspace)))
             )
             {
-                namespacedString = defaultNamepsace + str[nsSepIndex..];
+                if (throwOnInvalidNamespace)
+                {
+                    throw new ArgumentException("Invalid/non-existent namespace.", nameof(str));
+                }
+
+                namespacedString = defaultNamespace + str[nsSepIndex..];
                 if (logChange)
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Namespaced string changed",
-                        $"while loading from: {CurrentlyLoadingNamespace}, \"{str}\" -> \"{namespacedString}\"",
+                        $"{(isConfigLoading ? $"while loading from: {defaultNamespace}, " : "")}\"{str}\" -> \"{namespacedString}\"",
                         LogSeverity.WARN
                     );
                 }
             }
             return true;
+        }
+
+
+        /// <inheritdoc cref="TryGetNamespacedStringPrivate(string, string, out string, bool, bool, bool)"/>
+        public static bool TryGetNamespacedString(
+            string str,
+            out string namespacedString,
+            bool logChange = true,
+            bool throwOnInvalidNamespace = false
+        )
+        {
+            var defaultNamepsace = Constants.DEFAULT_NAMESPACE_IS_CURRENT_NAMESPACE
+                ? CurrentlyLoadingNamespace
+                : Constants.VANILLA_CONFIGS_NAMESPACE;
+            return TryGetNamespacedStringPrivate(str, defaultNamepsace!, out namespacedString, true, logChange, throwOnInvalidNamespace);
+        }
+
+        /// <inheritdoc cref="TryGetNamespacedStringPrivate(string, string, out string, bool, bool, bool)"/>
+        public static bool TryGetNamespacedString(
+            string str,
+            string defaultNamespace,
+            out string namespacedString,
+            bool logChange = true,
+            bool throwOnInvalidNamespace = false
+        )
+        {
+            return TryGetNamespacedStringPrivate(str, defaultNamespace, out namespacedString, false, logChange, throwOnInvalidNamespace);
         }
 
         /// <summary>
@@ -851,76 +894,17 @@ namespace ProgressAdventure.ConfigManagement
         /// </summary>
         /// <param name="str">The maybe namespaced string.</param>
         /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
+        /// <param name="throwOnInvalidNamespace">Whether to throw and exception if the namespaced string is invalid.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="throwOnInvalidNamespace"/> is true and the namespaced string is invalid.</exception>
         /// <returns>The namespaced string, or the same string if namespacing failed.</returns>
-        public static string GetNameapacedString(string str, bool logChange = true)
-        {
-            TryGetNamespacedString(str, out var nsString, logChange);
-            return nsString;
-        }
-
-        /// <summary>
-        /// Tries to correct a string to be namespaced using the given namespace.
-        /// </summary>
-        /// <param name="str">The maybe namespaced string.</param>
-        /// <param name="namespaceName">The namespace to write if there is no namespace.</param>
-        /// <param name="namespacedString">The namespaced string, or the same if the string was null or whitespace.</param>
-        /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
-        /// <returns>If the string was able to be correctly namespaced.</returns>
-        public static bool TryGetNamespacedString(
+        public static string GetNameapacedString(
             string str,
-            string namespaceName,
-            out string namespacedString,
-            bool logChange = true
+            bool logChange = true,
+            bool throwOnInvalidNamespace = true
         )
         {
-            namespacedString = str;
-            if (
-                string.IsNullOrWhiteSpace(namespaceName) ||
-                string.IsNullOrWhiteSpace(str)
-            )
-            {
-                return false;
-            }
-
-            var nsSepIndex = str.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
-            if (nsSepIndex == -1)
-            {
-                namespacedString = $"{namespaceName}{Constants.NAMESPACE_SEPARATOR_CHAR}{str}";
-                if (logChange)
-                {
-                    PACSingletons.Instance.Logger.Log(
-                        "Namespaced string created",
-                        $"\"{str}\" -> \"{namespacedString}\"",
-                        LogSeverity.DEBUG
-                    );
-                }
-                return true;
-            }
-            else if (
-                nsSepIndex >= str.Length - 1 ||
-                string.IsNullOrWhiteSpace(str[(nsSepIndex + 1)..])
-            )
-            {
-                return false;
-            }
-
-            var nspace = str[..nsSepIndex];
-            if (
-                string.IsNullOrWhiteSpace(nspace) ||
-                !NamespaceRegex().IsMatch(nspace)
-            )
-            {
-                namespacedString = namespaceName + str[nsSepIndex..];
-                if (logChange)
-                {
-                    PACSingletons.Instance.Logger.Log(
-                        "Namespaced string changed",
-                        $"\"{str}\" -> \"{namespacedString}\"",
-                        LogSeverity.WARN
-                    );
-                }
-            }
-            return true;
+            TryGetNamespacedString(str, out var nsString, logChange, throwOnInvalidNamespace);
+            return nsString;
         }
 
         /// <summary>
@@ -999,11 +983,17 @@ namespace ProgressAdventure.ConfigManagement
             {
                 var isRemoveValue = value.StartsWith(removeValueBeggining);
                 var rawValue = isRemoveValue ? value[removeValueBeggining.Length..] : value;
-                if (!TryGetNamespacedString(rawValue, out var namespacedValue))
+                var namespacedValue = "";
+                try
+                {
+                    TryGetNamespacedString(rawValue, out namespacedValue, throwOnInvalidNamespace: true);
+                }
+                catch (Exception ex)
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Invalid namespaced enum value in config",
-                        $"while loading \"{configName}\" from: \"{CurrentlyLoadingNamespace}\", value: \"{value}\""
+                        $"while loading \"{configName}\" from: \"{CurrentlyLoadingNamespace}\", value: \"{value}\", error: \"{ex.Message}\"",
+                        LogSeverity.ERROR
                     );
                     return (false, null, null);
                 }
