@@ -470,7 +470,10 @@ namespace ProgressAdventureTests
         public static TestResultDTO? SettingsUtilsSettingValueTypeMapDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<SettingsKey>();
-            var checkedDictionary = SettingsUtils.SettingValueTypeMap;
+            var checkedDictionary = Utils.GetInternalFieldFromNonStaticClass<Dictionary<SettingsKey, JsonObjectType>, ISettings>(
+                PASingletons.Instance.Settings,
+                "_settingValueTypeMap"
+            );
 
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
@@ -577,13 +580,13 @@ namespace ProgressAdventureTests
             var foundTypeClasses1 = new List<Type>();
             var foundTypeClasses2 = new List<Type>();
 
-            IDictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO> checkedDictionary1;
-            IDictionary<EnumValue<StructureType>, ContentTypePropertiesDTO> checkedDictionary2;
+            IDictionary<EnumValue<TerrainType>, TerrainTypePropertiesDTO> checkedDictionary1;
+            IDictionary<EnumValue<StructureType>, StructureTypePropertiesDTO> checkedDictionary2;
 
             try
             {
-                checkedDictionary1 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "TerrainTypeMap");
-                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<StructureType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "StructureTypeMap");
+                checkedDictionary1 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<TerrainType>, TerrainTypePropertiesDTO>>(typeof(WorldUtils), "TerrainTypeMap");
+                checkedDictionary2 = Utils.GetInternalPropertyFromStaticClass<IDictionary<EnumValue<StructureType>, StructureTypePropertiesDTO>>(typeof(WorldUtils), "StructureTypeMap");
             }
             catch (Exception ex)
             {

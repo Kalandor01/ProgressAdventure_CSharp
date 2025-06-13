@@ -417,7 +417,7 @@ namespace ProgressAdventure
                 .ToList();
 
             // call static consturcors in order to load default config values
-            var sc = SettingsUtils.SettingValueTypeMap;
+            var sc = SettingsUtils.ActionTypeAttributes;
             var ic = ItemUtils.MATERIAL_ITEM_TYPE;
             var ec = EntityUtils.FacingToMovementVectorMap;
             var wc = WorldUtils.noStructureDifferenceLimit;

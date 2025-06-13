@@ -290,7 +290,7 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         public void WeightedTurn()
         {
-            if (RandomStates.Instance.MainRandom.GenerateDouble() < 0.2)
+            if (RandomStates.Instance.MainRandom.GenerateBool(0.2))
             {
                 var oldFacing = facing;
                 var angle = RandomStates.Instance.MainRandom.Triangular(-180, 0, 180);

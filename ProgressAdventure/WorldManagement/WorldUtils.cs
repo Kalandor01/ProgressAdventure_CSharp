@@ -184,23 +184,23 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// The default value for the config used for the value of <see cref="TerrainTypeMap"/>.
         /// </summary>
-        private static readonly Dictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO> _defaultTerrainTypeMap = new()
+        private static readonly Dictionary<EnumValue<TerrainType>, TerrainTypePropertiesDTO> _defaultTerrainTypeMap = new()
         {
-            [TerrainType.FIELD] = new ContentTypePropertiesDTO(TerrainType.FIELD, typeof(FieldTerrain)),
-            [TerrainType.MOUNTAIN] = new ContentTypePropertiesDTO(TerrainType.MOUNTAIN, typeof(MountainTerrain)),
-            [TerrainType.OCEAN] = new ContentTypePropertiesDTO(TerrainType.OCEAN, typeof(OceanTerrain)),
-            [TerrainType.SHORE] = new ContentTypePropertiesDTO(TerrainType.SHORE, typeof(ShoreTerrain)),
+            [TerrainType.FIELD] = new TerrainTypePropertiesDTO(TerrainType.FIELD, typeof(FieldTerrain)),
+            [TerrainType.MOUNTAIN] = new TerrainTypePropertiesDTO(TerrainType.MOUNTAIN, typeof(MountainTerrain)),
+            [TerrainType.OCEAN] = new TerrainTypePropertiesDTO(TerrainType.OCEAN, typeof(OceanTerrain), -0.1),
+            [TerrainType.SHORE] = new TerrainTypePropertiesDTO(TerrainType.SHORE, typeof(ShoreTerrain), -0.05),
         };
 
         /// <summary>
         /// The default value for the config used for the value of <see cref="StructureTypeMap"/>.
         /// </summary>
-        private static readonly Dictionary<EnumValue<StructureType>, ContentTypePropertiesDTO> _defaultStructureTypeMap = new()
+        private static readonly Dictionary<EnumValue<StructureType>, StructureTypePropertiesDTO> _defaultStructureTypeMap = new()
         {
-            [StructureType.NONE] = new ContentTypePropertiesDTO(StructureType.NONE, typeof(NoStructure)),
-            [StructureType.BANDIT_CAMP] = new ContentTypePropertiesDTO(StructureType.BANDIT_CAMP, typeof(BanditCampStructure)),
-            [StructureType.VILLAGE] = new ContentTypePropertiesDTO(StructureType.VILLAGE, typeof(VillageStructure)),
-            [StructureType.KINGDOM] = new ContentTypePropertiesDTO(StructureType.KINGDOM, typeof(KingdomStructure)),
+            [StructureType.NONE] = new StructureTypePropertiesDTO(StructureType.NONE, typeof(NoStructure), -0.1),
+            [StructureType.BANDIT_CAMP] = new StructureTypePropertiesDTO(StructureType.BANDIT_CAMP, typeof(BanditCampStructure), fightChance: 0.75),
+            [StructureType.VILLAGE] = new StructureTypePropertiesDTO(StructureType.VILLAGE, typeof(VillageStructure), fightChance: 0.01),
+            [StructureType.KINGDOM] = new StructureTypePropertiesDTO(StructureType.KINGDOM, typeof(KingdomStructure), fightChance: 0.01),
         };
         #endregion
 
@@ -228,12 +228,12 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Dictionary to map terrain content types to their object types.
         /// </summary>
-        internal static Dictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO> TerrainTypeMap { get; set; }
+        internal static Dictionary<EnumValue<TerrainType>, TerrainTypePropertiesDTO> TerrainTypeMap { get; set; }
 
         /// <summary>
         /// Dictionary to map structure content types to their object types.
         /// </summary>
-        internal static Dictionary<EnumValue<StructureType>, ContentTypePropertiesDTO> StructureTypeMap { get; set; }
+        internal static Dictionary<EnumValue<StructureType>, StructureTypePropertiesDTO> StructureTypeMap { get; set; }
         #endregion
 
         #region Constructors
@@ -769,6 +769,24 @@ namespace ProgressAdventure.WorldManagement
         {
             contentProperties = ContentTypeStrToProperties<TEnum>(contentTypeString);
             return contentProperties is not null;
+        }
+
+        /// <summary>
+        /// NEEDS TO BE REWORKED SOON!!!<br/>
+        /// Tries to convert the string representation of the content type (terrain/structure) to content properties, and returns the success.
+        /// </summary>
+        /// <typeparam name="TType">The enum type of the content.</typeparam>
+        /// <param name="contentTypeMap">The matching content type map.</param>
+        /// <param name="classType">The type of the content class.</param>
+        public static EnumValue<TType> GetContentTypeFromClassType<TType, TProps>(
+            Dictionary<EnumValue<TType>, TProps> contentTypeMap,
+            Type classType
+        )
+            where TType : AdvancedEnum<TType>
+            where TProps : ContentTypePropertiesDTO
+        {
+            return contentTypeMap.FirstOrDefault(ct => ct.Value.matchingType == classType).Key
+                ?? throw new KeyNotFoundException($"No content type found for {classType.FullName} type in {typeof(TType)} property map.");
         }
         #endregion
     }

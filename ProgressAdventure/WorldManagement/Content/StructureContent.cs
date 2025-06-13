@@ -15,13 +15,14 @@ namespace ProgressAdventure.WorldManagement.Content
         /// <inheritdoc cref="StructureContent"/>
         /// </summary>
         /// <inheritdoc cref="BaseContent{TType}(SplittableRandom, EnumValue{TType}, string?, JsonDictionary?)"/>
+        /// <param name="childType">The type of the class that implements this class.</param>
         protected StructureContent(
             SplittableRandom chunkRandom,
-            EnumValue<StructureType> type,
+            Type childType,
             string? name = null,
             JsonDictionary? data = null
         )
-            :base(chunkRandom, type, name, data) { }
+            :base(chunkRandom, WorldUtils.GetContentTypeFromClassType(WorldUtils.StructureTypeMap, childType), name, data) { }
         #endregion
 
         #region Public methods

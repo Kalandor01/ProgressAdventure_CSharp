@@ -40,7 +40,7 @@ namespace PAVisualizer
             Func<Dictionary<TileNoiseType, double>, ColorData> colorGetterFunction;
             if (layer == VisibleTileLayer.Terrain)
             {
-                var contentTypeMap = Utils.GetInternalPropertyFromStaticClass<Dictionary<EnumValue<TerrainType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "TerrainTypeMap");
+                var contentTypeMap = Utils.GetInternalPropertyFromStaticClass<Dictionary<EnumValue<TerrainType>, TerrainTypePropertiesDTO>>(typeof(WorldUtils), "TerrainTypeMap");
 
                 colorGetterFunction = (noises) =>
                 {
@@ -58,7 +58,7 @@ namespace PAVisualizer
             }
             else if (layer == VisibleTileLayer.Structure)
             {
-                var contentTypeMap = Utils.GetInternalPropertyFromStaticClass<Dictionary<EnumValue<StructureType>, ContentTypePropertiesDTO>>(typeof(WorldUtils), "StructureTypeMap");
+                var contentTypeMap = Utils.GetInternalPropertyFromStaticClass<Dictionary<EnumValue<StructureType>, StructureTypePropertiesDTO>>(typeof(WorldUtils), "StructureTypeMap");
 
                 colorGetterFunction = (noises) =>
                 {

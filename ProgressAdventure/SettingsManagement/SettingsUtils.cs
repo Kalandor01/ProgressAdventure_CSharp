@@ -81,20 +81,6 @@ namespace ProgressAdventure.SettingsManagement
                 [new('s', ConsoleKey.S, false, false, false)]
             ),
         };
-
-        /// <summary>
-        /// The default value for the config used for the value of <see cref="SettingValueTypeMap"/>.
-        /// </summary>
-        private static readonly Dictionary<SettingsKey, JsonObjectType> _defaultSettingValueTypeMap = new()
-        {
-            [SettingsKey.AUTO_SAVE] = JsonObjectType.Bool,
-            [SettingsKey.LOGGING_LEVEL] = JsonObjectType.WholeNumber,
-            [SettingsKey.KEYBINDS] = JsonObjectType.Dictionary,
-            [SettingsKey.ASK_DELETE_SAVE] = JsonObjectType.Bool,
-            [SettingsKey.ASK_REGENERATE_SAVE] = JsonObjectType.Bool,
-            [SettingsKey.DEF_BACKUP_ACTION] = JsonObjectType.WholeNumber,
-            [SettingsKey.ENABLE_COLORED_TEXT] = JsonObjectType.Bool,
-        };
         #endregion
 
         #region Config dictionaries
@@ -102,11 +88,6 @@ namespace ProgressAdventure.SettingsManagement
         /// The dictionary pairing up action types, to their attributes.
         /// </summary>
         public static Dictionary<EnumValue<ActionType>, ActionTypeAttributesDTO> ActionTypeAttributes { get; private set; }
-
-        /// <summary>
-        /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
-        /// </summary>
-        public static Dictionary<SettingsKey, JsonObjectType> SettingValueTypeMap { get; private set; }
         #endregion
 
         #region Constructors
@@ -155,27 +136,6 @@ namespace ProgressAdventure.SettingsManagement
                 );
             return default;
         }
-
-        private static (
-            string configName,
-            Func<SettingsKey, string> serializeKeys
-        ) WriteDefaultConfigOrGetReloadDataSettingValueTypeMap(bool isWriteConfig)
-        {
-            var basePath = Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "setting_value_type_map");
-            static string KeySerializer(SettingsKey key) => key.ToString();
-            if (!isWriteConfig)
-            {
-                return (basePath, KeySerializer);
-            }
-
-            PACSingletons.Instance.ConfigManager.SetConfigDict(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultSettingValueTypeMap,
-                    KeySerializer
-                );
-            return default;
-        }
         #endregion
 
         /// <summary>
@@ -185,7 +145,6 @@ namespace ProgressAdventure.SettingsManagement
         {
             Tools.LoadDefultAdvancedEnum(_defaultActionTypes);
             ActionTypeAttributes = _defaultActionTypeAttributes;
-            SettingValueTypeMap = _defaultSettingValueTypeMap;
         }
 
         /// <summary>
@@ -195,7 +154,6 @@ namespace ProgressAdventure.SettingsManagement
         {
             WriteDefaultConfigOrGetReloadDataActionTypes(true);
             WriteDefaultConfigOrGetReloadDataActionTypeAttributes(true);
-            WriteDefaultConfigOrGetReloadDataSettingValueTypeMap(true);
         }
 
         /// <summary>
@@ -229,17 +187,6 @@ namespace ProgressAdventure.SettingsManagement
                 _defaultActionTypeAttributes,
                 actionTypeAttributesData.serializeKeys,
                 key => ActionType.GetValue(ConfigUtils.GetNameapacedString(key)),
-                isVanillaInvalid,
-                showProgressIndentation
-            );
-
-            var settingValueTypeMapData = WriteDefaultConfigOrGetReloadDataSettingValueTypeMap(false);
-            SettingValueTypeMap = ConfigUtils.ReloadConfigsAggregateDict(
-                settingValueTypeMapData.configName,
-                namespaceFolders,
-                _defaultSettingValueTypeMap,
-                settingValueTypeMapData.serializeKeys,
-                Enum.Parse<SettingsKey>,
                 isVanillaInvalid,
                 showProgressIndentation
             );

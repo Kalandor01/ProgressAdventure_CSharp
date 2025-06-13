@@ -6,7 +6,11 @@ using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.WorldManagement.Content
 {
-    public class ContentTypePropertiesDTO
+    /// <summary>
+    /// NEEDS TO BE REWORKED SOON!!!<br/>
+    /// Class containing content properties.
+    /// </summary>
+    public abstract class ContentTypePropertiesDTO
     {
         /// <summary>
         /// The display name of the content.
@@ -18,24 +22,69 @@ namespace ProgressAdventure.WorldManagement.Content
         /// </summary>
         [JsonPropertyName("matching_type")]
         public readonly Type matchingType;
+        /// <summary>
+        /// The additive modifier for the value, where if the next layer's content type difference is bigger than it, then an empty content type will be generated.
+        /// </summary>
+        [JsonPropertyName("no_next_layer_content_modifier")]
+        public readonly double noNextLayerContentModifier;
 
-        [JsonConstructor]
-        public ContentTypePropertiesDTO(string displayName, Type matchingType)
+        public ContentTypePropertiesDTO(string displayName, Type matchingType, double noNextLayerContentModifier)
         {
             this.displayName = displayName;
             this.matchingType = matchingType;
+            this.noNextLayerContentModifier = noNextLayerContentModifier;
         }
 
-        private ContentTypePropertiesDTO(EnumValueBase contentType, Type matchingType)
-            :this(displayName: ConfigUtils.RemoveNamespace(contentType.Name).Replace('_', ' ').Capitalize(), matchingType)
+        protected ContentTypePropertiesDTO(EnumValueBase contentType, Type matchingType, double noNextLayerContentModifier)
+            :this(
+                 displayName: ConfigUtils.RemoveNamespace(contentType.Name).Replace('_', ' ').Capitalize(),
+                 matchingType,
+                 noNextLayerContentModifier
+            )
+        { }
+    }
+
+    public class TerrainTypePropertiesDTO : ContentTypePropertiesDTO
+    {
+        [JsonConstructor]
+        public TerrainTypePropertiesDTO(string displayName, Type matchingType, double noNextLayerContentModifier)
+            :base(displayName, matchingType, noNextLayerContentModifier)
         { }
 
-        public ContentTypePropertiesDTO(EnumValue<TerrainType> terrainType, Type machingType)
-            :this(contentType: terrainType, machingType)
+        public TerrainTypePropertiesDTO(EnumValue<TerrainType> terrainType, Type matchingType, double noNextLayerContentModifier = 0)
+            : base(contentType: terrainType, matchingType, noNextLayerContentModifier)
         { }
+    }
 
-        public ContentTypePropertiesDTO(EnumValue<StructureType> structureType, Type machingType)
-            :this(contentType: structureType, machingType)
-        { }
+    public class StructureTypePropertiesDTO : ContentTypePropertiesDTO
+    {
+        /// <summary>
+        /// The percent chance a fight starting when the player visits this structure.
+        /// </summary>
+        [JsonPropertyName("fight_chance")]
+        public readonly double fightChance;
+
+        [JsonConstructor]
+        public StructureTypePropertiesDTO(
+            string displayName,
+            Type matchingType,
+            double noNextLayerContentModifier,
+            double fightChance
+        )
+            : base(displayName, matchingType, noNextLayerContentModifier)
+        {
+            this.fightChance = fightChance;
+        }
+
+        public StructureTypePropertiesDTO(
+            EnumValue<StructureType> structureType,
+            Type matchingType,
+            double noNextLayerContentModifier = 0,
+            double fightChance = 0
+        )
+            : base(contentType: structureType, matchingType, noNextLayerContentModifier)
+        {
+            this.fightChance = fightChance;
+        }
     }
 }

@@ -119,24 +119,15 @@ namespace ProgressAdventure.WorldManagement
             
             Console.WriteLine(GetPopulationAmountsString());
 
-            if (tile.structure.type == StructureType.NONE)
-            {
-                return;
-            }
-
-            if (tile.structure.type == StructureType.BANDIT_CAMP)
-            {
-                if (chunkRandom.GenerateDouble() < 0.75)
-                {
-                    EntityUtils.RandomFight();
-                }
-            }
-            else if (
-                tile.structure.type == StructureType.VILLAGE ||
-                tile.structure.type == StructureType.KINGDOM
+            if (
+                WorldUtils.StructureTypeMap.TryGetValue(tile.structure.type, out var props) &&
+                props.fightChance > 0
             )
             {
-                if (chunkRandom.GenerateDouble() < 0.01)
+                if (
+                    props.fightChance >= 1 ||
+                    chunkRandom.GenerateBool(props.fightChance)
+                )
                 {
                     EntityUtils.RandomFight();
                 }

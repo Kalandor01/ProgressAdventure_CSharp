@@ -14,6 +14,20 @@ namespace ProgressAdventure.SettingsManagement
     public class Settings : ISettings
     {
         #region Private Fields
+        /// <summary>
+        /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
+        /// </summary>
+        private static readonly Dictionary<SettingsKey, JsonObjectType> _settingValueTypeMap = new()
+        {
+            [SettingsKey.AUTO_SAVE] = JsonObjectType.Bool,
+            [SettingsKey.LOGGING_LEVEL] = JsonObjectType.WholeNumber,
+            [SettingsKey.KEYBINDS] = JsonObjectType.Dictionary,
+            [SettingsKey.ASK_DELETE_SAVE] = JsonObjectType.Bool,
+            [SettingsKey.ASK_REGENERATE_SAVE] = JsonObjectType.Bool,
+            [SettingsKey.DEF_BACKUP_ACTION] = JsonObjectType.WholeNumber,
+            [SettingsKey.ENABLE_COLORED_TEXT] = JsonObjectType.Bool,
+        };
+
         /// <inheritdoc cref="AutoSave"/>
         private bool _autoSave;
         /// <inheritdoc cref="LoggingLevel"/>
@@ -363,7 +377,7 @@ namespace ProgressAdventure.SettingsManagement
         private static bool TryGetFromSettingAsType(SettingsKey settingsKey, out JsonObject value)
         {
             value = SettingsManager(settingsKey);
-            return value.Type == SettingsUtils.SettingValueTypeMap[settingsKey];
+            return value.Type == _settingValueTypeMap[settingsKey];
         }
 
         /// <summary>
@@ -378,7 +392,7 @@ namespace ProgressAdventure.SettingsManagement
             }
             else
             {
-                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {SettingsUtils.SettingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {_settingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
                 var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
                 SettingsManager(settingsKey, newValue!);
                 return newValue!.Value;

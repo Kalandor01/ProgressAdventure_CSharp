@@ -1,6 +1,5 @@
 ﻿using NPrng.Generators;
 using PACommon.JsonUtils;
-using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.WorldManagement.Content.Structure
 {
@@ -13,9 +12,9 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         /// <summary>
         /// <inheritdoc cref="BanditCampStructure"/>
         /// </summary>
-        /// <inheritdoc cref="StructureContent(SplittableRandom, EnumValue{StructureType} string?, JsonDictionary?)"/>
+        /// <inheritdoc cref="StructureContent(SplittableRandom, Type, string?, JsonDictionary?)"/>
         public BanditCampStructure(SplittableRandom chunkRandom, string? name = null, JsonDictionary? data = null)
-            : base(chunkRandom, StructureType.BANDIT_CAMP, name, data) { }
+            : base(chunkRandom, typeof(BanditCampStructure), name, data) { }
         #endregion
 
         #region Public overrides
