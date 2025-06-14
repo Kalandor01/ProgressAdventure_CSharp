@@ -288,14 +288,14 @@ namespace ProgressAdventureTests
                 }
 
                 var prop = compoundItem.properties;
-                double? maxVolume = null;
+                BigDecimal? maxVolume = null;
                 if (
                     prop.dimensionX is not null &&
                     prop.dimensionY is not null &&
                     prop.dimensionZ is not null
                 )
                 {
-                    maxVolume = prop.dimensionX * prop.dimensionY * prop.dimensionZ;
+                    maxVolume = (BigDecimal)prop.dimensionX * prop.dimensionY * prop.dimensionZ;
                 }
 
                 foreach (var deffinition in deffinitions.Value)
