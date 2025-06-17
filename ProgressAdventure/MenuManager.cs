@@ -101,7 +101,7 @@ namespace ProgressAdventure
                 return -1;
             }
 
-            return new PAButton(new UIAction(UIExitFunction), text: text);
+            return new PAButton(UIAction.Create(UIExitFunction), text: text);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace ProgressAdventure
             var elementsList = new List<BaseUI?>();
             foreach (var partItem in compundItem.Parts)
             {
-                elementsList.Add(new PAButton(new UIAction(ItemViever, partItem), text: partItem.ToString() ?? ""));
+                elementsList.Add(new PAButton(UIAction.Create(ItemViever, partItem), text: partItem.ToString() ?? ""));
             }
             elementsList.Add(null);
             elementsList.Add(backButton);
@@ -242,7 +242,7 @@ namespace ProgressAdventure
             var elementsList = new List<BaseUI?>();
             foreach (var item in inventory.items)
             {
-                elementsList.Add(new PAButton(new UIAction(ItemViever, item), text: item.ToString() ?? ""));
+                elementsList.Add(new PAButton(UIAction.Create(ItemViever, item), text: item.ToString() ?? ""));
             }
             if (elementsList.Count == 0)
             {
@@ -296,9 +296,9 @@ namespace ProgressAdventure
         {
             var elementsList = new List<BaseUI?>
             {
-                new PAButton(new UIAction(() => -1), text: "Resume"),
-                new PAButton(new UIAction(ExitWithoutSavingAction), text: "Exit without saving"),
-                new PAButton(new UIAction(SaveAndExitAction), text: "Save and exit"),
+                new PAButton(UIAction.Create(() => -1), text: "Resume"),
+                new PAButton(UIAction.Create(ExitWithoutSavingAction), text: "Exit without saving"),
+                new PAButton(UIAction.Create(SaveAndExitAction), text: "Save and exit"),
             };
 
             var returnValue = new OptionsUI(elementsList, "Paused", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
@@ -375,7 +375,7 @@ namespace ProgressAdventure
                 }
             }
             elementList.Add(null);
-            elementList.Add(new PAButton(new UIAction(SaveKeybinds), text: "Save"));
+            elementList.Add(new PAButton(UIAction.Create(SaveKeybinds), text: "Save"));
 
             new OptionsUI(elementList, " Keybinds", Constants.STANDARD_CURSOR_ICONS).Display(ActionList);
         }
@@ -501,17 +501,17 @@ namespace ProgressAdventure
                 var configManagerUIElement = new OpenMultiButton(
                     [
                         new(
-                            new(ToggleEnableConfigMultiChoice, loadedConfig, () => { UpdateMessages(); }),
+                            UIAction.CreateDelegateAction(ToggleEnableConfigMultiChoice, loadedConfig, () => { UpdateMessages(); }),
                             inactiveText,
                             activeText
                         ),
                         new(
-                            new(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, false),
+                            UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, false),
                             " Move Up ",
                             "[Move Up]"
                         ),
                         new(
-                            new(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, true),
+                            UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, true),
                             " Move Down ",
                             "[Move Down]"
                         )
@@ -906,17 +906,17 @@ namespace ProgressAdventure
             foreach (var (saveName, displayText) in SavesData)
             {
                 elements.Add(new MultiButton([
-                    new(new UIAction(LoadSaveAction, savesMenuUI, saveName), " Load ", "[Load]"),
-                    new(new UIAction(RenameSaveAction, savesMenuUI, saveName), " Rename ", "[Rename]"),
-                    new(new UIAction(BackupSaveAction, saveName), " Backup ", "[Backup]"),
-                    new(new UIAction(CopySaveAction, savesMenuUI, saveName), " Copy ", "[Copy]"),
-                    new(new UIAction(RegenerateSaveAction, savesMenuUI, saveName), " Regenerate ", "[Regenerate]"),
-                    new(new UIAction(DeleteSaveAction, savesMenuUI, saveName), " Delete ", "[Delete]"),
+                    new(UIAction.Create(LoadSaveAction, savesMenuUI, saveName), " Load ", "[Load]"),
+                    new(UIAction.Create(RenameSaveAction, savesMenuUI, saveName), " Rename ", "[Rename]"),
+                    new(UIAction.Create(BackupSaveAction, saveName), " Backup ", "[Backup]"),
+                    new(UIAction.Create(CopySaveAction, savesMenuUI, saveName), " Copy ", "[Copy]"),
+                    new(UIAction.Create(RegenerateSaveAction, savesMenuUI, saveName), " Regenerate ", "[Regenerate]"),
+                    new(UIAction.Create(DeleteSaveAction, savesMenuUI, saveName), " Delete ", "[Delete]"),
                     ], " ", preValue: displayText + "\n", multiline: true));
                 elements.Add(null);
             }
 
-            elements.Add(new Button(new UIAction(RegenerateSavesAction, savesMenuUI), false, "[Regenerate all save files]"));
+            elements.Add(new Button(UIAction.Create(RegenerateSavesAction, savesMenuUI), false, "[Regenerate all save files]"));
             elements.Add(GetBackButton());
 
             savesMenuUI.elements = elements;
@@ -956,10 +956,10 @@ namespace ProgressAdventure
 
             var optionsMenuActions = new List<UIAction?>
             {
-                new(KeybindSettings),
-                new(ConfigSettings),
-                new(AskOptions),
-                new(OtherOptions),
+                UIAction.Create(KeybindSettings),
+                UIAction.Create(ConfigSettings),
+                UIAction.Create(AskOptions),
+                UIAction.Create(OtherOptions),
             };
 
             return new UIList(
@@ -979,8 +979,8 @@ namespace ProgressAdventure
             UpdateSavesData();
 
             // actions
-            var newSaveAction = new UIAction(NewSaveAction);
-            var optionsAction = new UIAction(GetOptionsMenu());
+            var newSaveAction = UIAction.CreateWithExtraArg<UIList>(NewSaveAction);
+            var optionsAction = UIAction.CreateUIListAction(GetOptionsMenu());
 
             // lists
             List<string?> answers;
@@ -988,7 +988,7 @@ namespace ProgressAdventure
 
             if (SavesData.Count != 0)
             {
-                var loadSaveAction = new UIAction(LoadSavesAction);
+                var loadSaveAction = UIAction.CreateWithExtraArg<UIList>(LoadSavesAction);
 
                 answers = ["New save", "Load/Delete save", "Options"];
                 actions =

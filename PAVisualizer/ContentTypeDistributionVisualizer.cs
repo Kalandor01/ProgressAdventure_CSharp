@@ -276,7 +276,7 @@ namespace PAVisualizer
             visualizeElements.Add(null);
 
             var generateImageButtonElement = new PAButton(
-                new UIAction(
+                UIAction.Create(
                     GenerateImageCommand,
                         layerSelectionElement,
                         layerTypes,
@@ -292,13 +292,13 @@ namespace PAVisualizer
             visualizeElements.Add(generateImageButtonElement);
 
             var generateAllImagesButtonElement = new PAButton(
-                new UIAction(
+                UIAction.Create(
                     GenerateAllImagesCommand,
-                        layerTypes,
-                        noiseTypes,
-                        resolutionElement,
-                        visualizedContentDistributionPath,
-                        blendPopColorsElement
+                    layerTypes,
+                    noiseTypes,
+                    resolutionElement,
+                    visualizedContentDistributionPath,
+                    blendPopColorsElement
                 ),
                 text: "Generate ALL possible images"
             );
