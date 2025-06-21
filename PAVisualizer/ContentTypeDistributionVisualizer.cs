@@ -1,5 +1,6 @@
 ﻿using ConsoleUI;
 using ConsoleUI.UIElements;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.Enums;
@@ -176,7 +177,7 @@ namespace PAVisualizer
             bool blendMultiplePopulationColors = true
         )
         {
-            Console.Write("Generating image...");
+            PACSingletons.Instance.ConsoleProxy.Write("Generating image...");
             var image = CreateNoiseTypeDistributionImage(
                 layer,
                 noiseTypeXAxis,
@@ -184,7 +185,7 @@ namespace PAVisualizer
                 resolution,
                 blendMultiplePopulationColors: blendMultiplePopulationColors
             );
-            Console.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
             image.Save(exportPath);
         }
 
@@ -304,7 +305,11 @@ namespace PAVisualizer
             );
             visualizeElements.Add(generateAllImagesButtonElement);
 
-            new OptionsUI(visualizeElements, "Select the noise types to generate the distribution image from:").Display();
+            new OptionsUI(
+                visualizeElements,
+                "Select the noise types to generate the distribution image from:",
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display();
         }
         #endregion
 
@@ -339,7 +344,7 @@ namespace PAVisualizer
                 Path.Join(visualizedContentDistributionPath, imageName),
                 blendMultiplePopulationColors
             );
-            Utils.PressKey($"Generated image as \"{imageName}\"");
+            PACSingletons.Instance.ConsoleProxy.PressKey($"Generated image as \"{imageName}\"");
         }
 
         private static void GenerateAllImagesCommand(
@@ -369,7 +374,7 @@ namespace PAVisualizer
                             Path.Join(visualizedContentDistributionPath, imageName),
                             blendMultiplePopulationColors
                         );
-                        Console.WriteLine($"Generated image as \"{imageName}\"");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"Generated image as \"{imageName}\"");
                     }
                 }
             }

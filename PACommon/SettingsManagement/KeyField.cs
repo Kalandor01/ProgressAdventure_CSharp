@@ -106,18 +106,19 @@ namespace PACommon.SettingsManagement
                 return true;
             }
 
+            var consoleProxy = args.optionsUI?.consoleProxy ?? new ConsoleProxy();
             var keys = new List<ConsoleKeyInfo>();
             if (args.optionsUI is null || !args.optionsUI.elements.Any(element => element == this))
             {
-                Console.WriteLine(preText);
+                consoleProxy.WriteLine(preText);
                 for (int x = 0; x < keyNum; x++)
                 {
-                    var pressedKey = Console.ReadKey();
+                    var pressedKey = consoleProxy.ReadKey();
                     keys.Add(pressedKey);
-                    Console.Write(KeybindUtils.GetKeyName(pressedKey));
+                    consoleProxy.Write(KeybindUtils.GetKeyName(pressedKey));
                     if (x < keyNum - 1)
                     {
-                        Console.Write(", ");
+                        consoleProxy.Write(", ");
                     }
                 }
                 Value.Keys = keys;
@@ -126,7 +127,7 @@ namespace PACommon.SettingsManagement
 
             var xOffset = GetCurrentLineCharCountBeforeValue(args.optionsUI.cursorIcon);
             var yOffset = GetLineNumberAfterTextFieldValue(args.optionsUI);
-            Utils.MoveCursor((xOffset, yOffset));
+            consoleProxy.MoveCursor(xOffset, yOffset);
 
             for (var x = 0; x < keyNum; x++)
             {
@@ -134,7 +135,7 @@ namespace PACommon.SettingsManagement
                 do
                 {
                     retry = false;
-                    var newValue = ReadInput(args.optionsUI.cursorIcon, keys);
+                    var newValue = ReadInput(consoleProxy, args.optionsUI.cursorIcon, keys);
                     if (validatorFunction is null)
                     {
                         keys.Add(newValue);
@@ -148,18 +149,17 @@ namespace PACommon.SettingsManagement
                     var (status, message) = validatorFunction(newValue, this);
                     if (message is not null)
                     {
-                        var (preMessageLeft, preMessageTop) = Console.GetCursorPosition();
-                        Console.Write("\u001b[0K" + message);
-                        Console.ReadKey(true);
-                        Console.SetCursorPosition(preMessageLeft, preMessageTop);
-                        Console.Write("\u001b[0K");
-                        var (left, top) = Console.GetCursorPosition();
-                        Console.Write(
+                        var (preMessageCol, preMessageRow) = consoleProxy.GetCursorPosition();
+                        consoleProxy.Write("\u001b[0K" + message);
+                        consoleProxy.ReadKey(false);
+                        consoleProxy.WriteAtPosition("\u001b[0K", preMessageCol, preMessageRow);
+                        var (column, row) = consoleProxy.GetCursorPosition();
+                        consoleProxy.Write(
                             multiline
                                 ? postValue.Replace("\n", args.optionsUI.cursorIcon.sIconR + "\n" + args.optionsUI.cursorIcon.sIcon)
                                 : postValue
                         );
-                        Console.SetCursorPosition(left, top);
+                        consoleProxy.SetCursorPosition(column, row);
                     }
 
                     if (status == TextFieldValidatorStatus.VALID)
@@ -249,29 +249,30 @@ namespace PACommon.SettingsManagement
         }
 
         /// <summary>
-        /// Reads user input, like <c>Console.ReadKey()</c>, but puts the <c>postValue</c> after the text, while typing.
+        /// Reads user input, like <see cref="IConsoleProxy.ReadKey(bool)"/>, but puts the <c>postValue</c> after the text, while typing.
         /// </summary>
-        /// <param name="cursorIcon">The <c>CursorIcon</c> passed into the <c>OptionsUI</c>, that includes this object.</param>
+        /// <param name="consoleProxy">The <see cref="IConsoleProxy"/> to use.</param>
+        /// <param name="cursorIcon">The <see cref="CursorIcon"/> passed into the <see cref="OptionsUI"/>, that includes this object.</param>
         /// <param name="keys">The keys, that already exist.</param>
-        private ConsoleKeyInfo ReadInput(CursorIcon cursorIcon, List<ConsoleKeyInfo> keys)
+        private ConsoleKeyInfo ReadInput(IConsoleProxy consoleProxy, CursorIcon cursorIcon, List<ConsoleKeyInfo> keys)
         {
-            Console.Write("\u001b[0K");
-            var (prewLeft, prewTop) = Console.GetCursorPosition();
+            consoleProxy.Write("\u001b[0K");
+            var (prewCol, prewRow) = consoleProxy.GetCursorPosition();
 
             foreach (var key in keys)
             {
-                Console.Write(KeybindUtils.GetKeyName(key) + ", ");
+                consoleProxy.Write(KeybindUtils.GetKeyName(key) + ", ");
             }
 
-            var (left, top) = Console.GetCursorPosition();
-            Console.Write(
+            var (column, row) = consoleProxy.GetCursorPosition();
+            consoleProxy.Write(
                 multiline ? postValue.Replace("\n", cursorIcon.sIconR + "\n" + cursorIcon.sIcon) : postValue
             );
-            Console.Write(cursorIcon.sIconR);
+            consoleProxy.Write(cursorIcon.sIconR);
 
-            Console.SetCursorPosition(left, top);
-            var pressedKey = Console.ReadKey(true);
-            Console.SetCursorPosition(prewLeft, prewTop);
+            consoleProxy.SetCursorPosition(column, row);
+            var pressedKey = consoleProxy.ReadKey(true);
+            consoleProxy.SetCursorPosition(prewCol, prewRow);
             return pressedKey;
         }
         #endregion

@@ -116,7 +116,7 @@ namespace ProgressAdventure
             }
             // GAME
             SaveData.Instance.PlayerRef.Stats();
-            Console.WriteLine("Wandering...");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("Wandering...");
             for (var x = 0; x < 20; x++)
             {
                 PASingletons.Instance.Globals.PauseLock();
@@ -146,7 +146,7 @@ namespace ProgressAdventure
             // TODO: SaveGame() maybe instead of the auto save
             // ENDING
             PASingletons.Instance.Globals.Exiting = false;
-            Utils.PressKey("Exiting...Press key!");
+            PACSingletons.Instance.ConsoleProxy.PressKey("Exiting...Press key!");
             PACSingletons.Instance.Logger.Log("Game loop ended");
         }
         #endregion
@@ -216,9 +216,12 @@ namespace ProgressAdventure
                 return false;
             }
 
-            var escapeAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE) ?? throw new Exception($"Action key \"{ActionType.ESCAPE}\" not found");
-            var saveAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.SAVE) ?? throw new Exception($"Action key \"{ActionType.SAVE}\" not found");
-            var statsAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.STATS) ?? throw new Exception($"Action key \"{ActionType.STATS}\" not found");
+            var escapeAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.ESCAPE)
+                ?? throw new Exception($"Action key \"{ActionType.ESCAPE}\" not found");
+            var saveAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.SAVE)
+                ?? throw new Exception($"Action key \"{ActionType.SAVE}\" not found");
+            var statsAction = PASingletons.Instance.Settings.Keybinds.GetActionKey(ActionType.STATS)
+                ?? throw new Exception($"Action key \"{ActionType.STATS}\" not found");
 
             ConsoleKeyInfo key;
             while (true)
@@ -228,9 +231,9 @@ namespace ProgressAdventure
                     return true;
                 }
 
-                if (Console.KeyAvailable)
+                if (PACSingletons.Instance.ConsoleProxy.KeyAvailable)
                 {
-                    key = Console.ReadKey(true);
+                    key = PACSingletons.Instance.ConsoleProxy.ReadKey(true);
                     break;
                 }
             }
@@ -262,10 +265,10 @@ namespace ProgressAdventure
                     return true;
                 }
 
-                Console.WriteLine("SAVING...");
+                PACSingletons.Instance.ConsoleProxy.WriteLine("SAVING...");
                 PACSingletons.Instance.Logger.Log("Beginning manual save", $"save name: {SaveData.Instance.SaveName}");
                 SaveGame();
-                Console.WriteLine("SAVED!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine("SAVED!");
 
                 PASingletons.Instance.Globals.Unpause();
             }
@@ -277,7 +280,7 @@ namespace ProgressAdventure
                 }
 
                 SaveData.Instance.PlayerRef.Stats(false);
-                Console.ReadKey(true);
+                PACSingletons.Instance.ConsoleProxy.ReadKey(true);
                 MenuManager.InventoryViewer(SaveData.Instance.PlayerRef.TryGetInventory()!);
 
                 PASingletons.Instance.Globals.Unpause();

@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon;
 using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Structure
@@ -31,8 +32,8 @@ namespace ProgressAdventure.WorldManagement.Content.Structure
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.Instance.PlayerRef.FullName} entered the {Name} kingdom.");
-            Console.WriteLine($"The kingdom has a population of {population} people.");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"{SaveData.Instance.PlayerRef.FullName} entered the {Name} kingdom.");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"The kingdom has a population of {population} people.");
         }
         #endregion
 

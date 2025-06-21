@@ -30,7 +30,7 @@ namespace PAVisualizer
         {
             PACSingletons.Instance.Logger.DefaultWriteOut = false;
 
-            var elements = new List<BaseUI>();
+            var elements = new List<BaseUI?>();
 
             var visualizeSaveElement = new PAButton(UIAction.Create(VisualizeSaveCommand), text: "Save file visualizer");
             elements.Add(visualizeSaveElement);
@@ -38,7 +38,11 @@ namespace PAVisualizer
             var contentDistributionVisualizerElement = new PAButton(UIAction.Create(ContentTypeDistributionVisualizer.Visualize), text: "Content type distribution visualizer");
             elements.Add(contentDistributionVisualizerElement);
 
-            new OptionsUI(elements, "Select action").Display();
+            new OptionsUI(
+                elements,
+                "Select action",
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display();
         }
 
         static void VisualizeSaveCommand()
@@ -95,16 +99,20 @@ namespace PAVisualizer
         /// </summary>
         static void Preloading()
         {
-            Console.OutputEncoding = Encoding.UTF8;
-
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
-            Console.WriteLine("Loading...");
+
+            var consoleProxy = new PAConsoleProxy
+            {
+                Encoding = Encoding.UTF8,
+            };
+            consoleProxy.WriteLine("Loading...");
 
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
+                consoleProxy,
                 JsonDataCorrecter.Initialize(
                     PAConstants.SAVE_VERSION,
                     PAConstants.ORDER_JSON_CORRECTERS,
@@ -132,7 +140,7 @@ namespace PAVisualizer
                 )
             );
 
-            if (!Utils.TryEnableAnsiCodes())
+            if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
@@ -145,7 +153,7 @@ namespace PAVisualizer
                 new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
 
-            Console.WriteLine("Reloading configs...");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("Reloading configs...");
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
             ProgressAdventure.Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();

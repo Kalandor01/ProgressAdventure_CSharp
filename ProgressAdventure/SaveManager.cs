@@ -3,13 +3,11 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
-using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
-using static System.Net.Mime.MediaTypeNames;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
@@ -34,7 +32,7 @@ namespace ProgressAdventure
 
             if (showProgressText is not null)
             {
-                Console.Write("|" + showProgressText + "\r");
+                PACSingletons.Instance.ConsoleProxy.Write("|" + showProgressText + "\r");
             }
             // make backup
             var backupStatus = Tools.CreateBackup(SaveData.Instance.SaveName, true);
@@ -221,7 +219,7 @@ namespace ProgressAdventure
                 var folderName = data.folderName;
                 if (data.data is not DisplaySaveData displayData)
                 {
-                    Utils.PressKey($"\"{folderName}\" is corrupted!");
+                    PACSingletons.Instance.ConsoleProxy.PressKey($"\"{folderName}\" is corrupted!");
                     continue;
                 }
 
@@ -477,7 +475,7 @@ namespace ProgressAdventure
                 if (ex is InvalidCastException || ex is ArgumentException || ex is KeyNotFoundException)
                 {
                     PACSingletons.Instance.Logger.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex.ToString(), LogSeverity.ERROR);
-                    Utils.PressKey($"\"{folderName}\" could not be parsed!");
+                    PACSingletons.Instance.ConsoleProxy.PressKey($"\"{folderName}\" could not be parsed!");
                     return null;
                 }
                 throw;

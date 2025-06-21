@@ -268,7 +268,7 @@ namespace ProgressAdventureTests
             var checkedDictionary = ItemUtils.DeffinitionItemRecipes;
 
             var errorMessages = new List<string>();
-            Console.WriteLine();
+            PACSingletons.Instance.ConsoleProxy.WriteLine();
             foreach (var deffinitions in checkedDictionary)
             {
                 if (deffinitions.Value is null)
@@ -320,11 +320,11 @@ namespace ProgressAdventureTests
                             continue;
                         }
                     }
-                    Console.WriteLine($"\t{(isClose ? " !!!" : "")} \"{deffinitions.Key}\" Diff: {(maxVolume is null ? "[VARIABLE]" : $"{maxVolume} ({deffinition.volume - maxVolume})")}");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine($"\t{(isClose ? " !!!" : "")} \"{deffinitions.Key}\" Diff: {(maxVolume is null ? "[VARIABLE]" : $"{maxVolume} ({deffinition.volume - maxVolume})")}");
                 }
             }
 
-            Console.Write("Results...");
+            PACSingletons.Instance.ConsoleProxy.Write("Results...");
             if (errorMessages.Count != 0)
             {
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
@@ -1288,7 +1288,7 @@ namespace ProgressAdventureTests
                 .ToList();
             importedZipPaths.Sort(new VersionStringZipPathComparer());
             PATools.RecreateSavesFolder();
-            Console.WriteLine();
+            PACSingletons.Instance.ConsoleProxy.WriteLine();
             var importOverallSuccess = true;
             foreach (var importedZipPath in importedZipPaths)
             {
@@ -1296,13 +1296,13 @@ namespace ProgressAdventureTests
                 var saveName = Path.GetFileNameWithoutExtension(importedZipPath);
 
                 var resultString = TestingUtils.GetResultString(result);
-                Console.WriteLine($"\r\tImporting ({saveName})..." + resultString);
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"\r\tImporting ({saveName})..." + resultString);
                 var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
                 PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(importedZipPath), result.resultType + messageText, LogSeverity.OTHER);
                 importOverallSuccess &= result.resultType == LogSeverity.PASS;
             }
             var overallResult = importOverallSuccess ? new TestResultDTO() : new TestResultDTO(LogSeverity.FAIL, "See above for details");
-            Console.WriteLine($"Overall... {TestingUtils.GetResultString(overallResult)}");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"Overall... {TestingUtils.GetResultString(overallResult)}");
 
 
             // list of reference saves
@@ -1318,7 +1318,7 @@ namespace ProgressAdventureTests
                 var saveName = Path.GetFileNameWithoutExtension(zipPath);
 
                 var resultString = TestingUtils.GetResultString(result);
-                Console.WriteLine($"\r\tChecking ({saveName})..." + resultString);
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"\r\tChecking ({saveName})..." + resultString);
                 var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
                 PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(zipPath), result.resultType + messageText, LogSeverity.OTHER);
                 overallSuccess &= result.resultType == LogSeverity.PASS;
@@ -1332,7 +1332,7 @@ namespace ProgressAdventureTests
                 File.Delete(importedFile);
             }
 
-            Console.Write("Overall...");
+            PACSingletons.Instance.ConsoleProxy.Write("Overall...");
             return overallSuccess ? null : new TestResultDTO(LogSeverity.FAIL, "See above for details");
         }
         #endregion

@@ -1,5 +1,6 @@
 ﻿using ConsoleUI;
 using FileManager;
+using PACommon;
 using ProgressAdventure.WorldManagement;
 using System.IO.Compression;
 using PACConstants = PACommon.Constants;
@@ -35,12 +36,12 @@ namespace PAExtras
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine($"decode save file: FILE {saveFolderName} NOT FOUND!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"decode save file: FILE {saveFolderName} NOT FOUND!");
                 return false;
             }
             catch (DirectoryNotFoundException)
             {
-                Console.WriteLine($"decode save file: DIRECTORY {saveFolderName} NOT FOUND!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"decode save file: DIRECTORY {saveFolderName} NOT FOUND!");
                 return false;
             }
 
@@ -74,7 +75,7 @@ namespace PAExtras
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine($"encode save file: FILE {saveFileName} NOT FOUND!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"encode save file: FILE {saveFileName} NOT FOUND!");
                 return false;
             }
 
@@ -101,7 +102,7 @@ namespace PAExtras
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine($"zip save file: FILE {saveFileName} NOT FOUND!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"zip save file: FILE {saveFileName} NOT FOUND!");
                 return false;
             }
 
@@ -144,7 +145,7 @@ namespace PAExtras
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine($"recompile save file: FILE {saveFolderName} NOT FOUND!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"recompile save file: FILE {saveFolderName} NOT FOUND!");
                 return false;
             }
 
@@ -175,17 +176,17 @@ namespace PAExtras
                     {
                         chunk.FillChunk();
                     }
-                    Console.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round(((double)(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1) % (chunkNum / numberOfSaves)) / (chunkNum / numberOfSaves) * 100, 1)}%");
+                    PACSingletons.Instance.ConsoleProxy.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round((double)(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1) % (chunkNum / numberOfSaves) / (chunkNum / numberOfSaves) * 100, 1)}%");
                     if (PACUtils.Mod(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1, chunkNum / numberOfSaves) == 0)
                     {
                         saveNum++;
-                        Console.WriteLine($"\r({saveNum}/{numberOfSaves})Filling chunks...DONE!           ");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"\r({saveNum}/{numberOfSaves})Filling chunks...DONE!           ");
                         World.SaveAllChunksToFiles(saveFolderName, true, $"({saveNum}/{numberOfSaves})Saving...");
                     }
                 }
             }
             World.SaveAllChunksToFiles(saveFolderName, true, "(FINAL)Saving...");
-            Console.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
         }
 
         /// <summary>
@@ -197,9 +198,9 @@ namespace PAExtras
         {
             World.TryGetTileAll((corners.minX, corners.minY), out _, saveFolderName);
             World.TryGetTileAll((corners.maxX, corners.maxY), out _, saveFolderName);
-            Console.Write("Generating chunks...");
+            PACSingletons.Instance.ConsoleProxy.Write("Generating chunks...");
             World.MakeRectangle(saveFolderName);
-            Console.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
             World.FillAllChunks("Filling chunks...");
         }
 
@@ -236,12 +237,12 @@ namespace PAExtras
 
             if (!File.Exists(zipFileFullPath))
             {
-                Console.WriteLine($"unzip: FILE {Path.GetRelativePath(PACConstants.ROOT_FOLDER, zipFileFullPath)} NOT FOUND");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"unzip: FILE {Path.GetRelativePath(PACConstants.ROOT_FOLDER, zipFileFullPath)} NOT FOUND");
                 return false;
             }
             if (!Directory.Exists(destinationFolderPath))
             {
-                Console.WriteLine($"unzip: FOLDER {Path.GetRelativePath(PACConstants.ROOT_FOLDER, destinationFolderPath)} NOT FOUND");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"unzip: FOLDER {Path.GetRelativePath(PACConstants.ROOT_FOLDER, destinationFolderPath)} NOT FOUND");
                 return false;
             }
 
@@ -260,7 +261,7 @@ namespace PAExtras
 
             if (backupFiles.Count == 0)
             {
-                PACUtils.PressKey("No backups found!");
+                PACSingletons.Instance.ConsoleProxy.PressKey("No backups found!");
                 return;
             }
 
@@ -272,7 +273,10 @@ namespace PAExtras
                     lines.Add($"{saveName}: {PACUtils.MakeDate(backupDate, ".")} {PACUtils.MakeTime(backupDate)}");
                     lines.Add(null);
                 }
-                var option = (int)new UIList(lines, " Backup loading", null, false, true, null, true).Display();
+                var option = (int)new UIList(
+                    lines, " Backup loading", null, false, true, null, true,
+                    consoleProxy: PACSingletons.Instance.ConsoleProxy
+                ).Display();
                 // unzip
                 if (option == -1)
                 {
@@ -280,9 +284,9 @@ namespace PAExtras
                 }
                 else
                 {
-                    var (fileName, saveName, _) = backupFiles.ElementAt(option);
+                    var (fileName, saveName, _) = backupFiles[option];
                     Unzip(Path.Join(PAConstants.BACKUPS_FOLDER_PATH, fileName), PAConstants.SAVES_FOLDER_PATH, true, saveName);
-                    PACUtils.PressKey($"\n{fileName} loaded!");
+                    PACSingletons.Instance.ConsoleProxy.PressKey($"\n{fileName} loaded!");
                     if (ProgressAdventure.MenuManager.AskYesNoUIQuestion("Do you want to regenerate the save file?"))
                     {
                         ProgressAdventure.MenuManager.RegenerateSaveFile(saveName, false);
@@ -345,7 +349,7 @@ namespace PAExtras
                             }
                         }
                     }
-                    Console.WriteLine($"FILE {fullBackupName}.{PAConstants.BACKUP_EXT} HAS WRONG NAMING FORMAT");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine($"FILE {fullBackupName}.{PAConstants.BACKUP_EXT} HAS WRONG NAMING FORMAT");
                 }
             }
             return backups;

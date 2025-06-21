@@ -95,7 +95,7 @@ namespace ProgressAdventureTests
         {
             var allPassed = testsSuccessful == testsRun;
             var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? PAConstants.Colors.GREEN : PAConstants.Colors.RED);
-            Console.WriteLine($"\nFinished running test batch: {result} successful!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"\nFinished running test batch: {result} successful!");
             PACSingletons.Instance.Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
         #endregion
@@ -147,7 +147,7 @@ namespace ProgressAdventureTests
             World.LoadAllChunksFromFolder(out var corruptedChunks, null, "Loading...");
             if (corruptedChunks.Count > 0)
             {
-                Console.WriteLine($"FOUND {corruptedChunks.Count} CORRUPTED CHUNK FILES WHILE LOADING FOR NEW TEST SAVE!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"FOUND {corruptedChunks.Count} CORRUPTED CHUNK FILES WHILE LOADING FOR NEW TEST SAVE!");
             }
             SaveManager.MakeSave(showProgressText: "Saving...");
             var testBackupFilePath = Path.Join(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH, $"{PAConstants.SAVE_VERSION}.{PAConstants.BACKUP_EXT}");

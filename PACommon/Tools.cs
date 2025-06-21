@@ -1388,7 +1388,8 @@ namespace PACommon
                 preSpinner,
                 postSpinner,
                 postValue + "\u001b[0K", 0,
-                valueFormat: $"0.{new string('0', precision)}%"
+                valueFormat: $"0.{new string('0', precision)}%",
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
             );
         }
 
@@ -1400,7 +1401,7 @@ namespace PACommon
         public static void StopLoadingStandard(this LoadingText loadingText, string finalValue = "DONE!")
         {
             loadingText.StopLoading(finalValue);
-            Console.WriteLine();
+            loadingText.ConsoleProxy.WriteLine();
         }
         #endregion
         #endregion

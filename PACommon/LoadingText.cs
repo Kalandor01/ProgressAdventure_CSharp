@@ -31,7 +31,6 @@
         #endregion
 
         #region Public properties
-
         /// <summary>
         /// If the loading text is currently displayed.
         /// </summary>
@@ -46,6 +45,11 @@
         /// The delay between spinner updates. If -1, the spinner doesn't show up.
         /// </summary>
         public int SpinnerRefreshDelay { get; set; }
+
+        /// <summary>
+        /// The <see cref="IPAConsoleProxy"/> to use.
+        /// </summary>
+        public IPAConsoleProxy ConsoleProxy { get; set; }
 
         /// <summary>
         /// The text before the spinner.
@@ -149,13 +153,15 @@
         /// <param name="valueFormat"><inheritdoc cref="ValueFormat" path="//summary"/></param>
         /// <param name="value"><inheritdoc cref="Value" path="//summary"/></param>
         /// <param name="postValue"><inheritdoc cref="PostValue" path="//summary"/></param>
+        /// <param name="consoleProxy"><inheritdoc cref="ConsoleProxy" path="//summary"/></param>
         public LoadingText(
             string preSpinner,
             string postSpinner,
             string postValue = "",
             double? value = 0,
             int spinnerRefreshDelay = 100,
-            string valueFormat = ""
+            string valueFormat = "",
+            IPAConsoleProxy? consoleProxy = null
         )
         {
             SpinnerRefreshDelay = spinnerRefreshDelay;
@@ -164,6 +170,7 @@
             ValueFormat = valueFormat;
             Value = value;
             PostValue = postValue;
+            ConsoleProxy = consoleProxy ?? PACSingletons.Instance.ConsoleProxy;
         }
         #endregion
 
@@ -177,7 +184,7 @@
             spinnerCharIndex = 0;
             preSpinnerChanged = true;
             valueOverwrite = null;
-            (startPosX, startPosY) = Console.GetCursorPosition();
+            (startPosX, startPosY) = ConsoleProxy.GetCursorPosition();
             spinnerPosX = -1;
             spinnerPosY = -1;
             postSpinnerPosX = -1;
@@ -229,6 +236,18 @@
         #endregion
 
         #region Private methods
+        private void WriteMaybeAtPosition(string text, int column, int row, bool setPos)
+        {
+            if (setPos)
+            {
+                ConsoleProxy.WriteAtPosition(text, column, row);
+            }
+            else
+            {
+                ConsoleProxy.Write(text);
+            }
+        }
+
         /// <summary>
         /// Updates the loading text.
         /// </summary>
@@ -249,25 +268,25 @@
             }
 
             IsUpdating = true;
-            var (currentPosX, currentPosY) = Console.GetCursorPosition();
+            var (currentPosX, currentPosY) = ConsoleProxy.GetCursorPosition();
             if (preSpinnerChanged)
             {
-                Console.SetCursorPosition(startPosX, startPosY);
-                Console.Write(PreSpinner);
-                (spinnerPosX, spinnerPosY) = Console.GetCursorPosition();
+                ConsoleProxy.WriteAtPosition(PreSpinner, startPosX, startPosY);
+                (spinnerPosX, spinnerPosY) = ConsoleProxy.GetCursorPosition();
             }
 
             if (updateSpinner || preSpinnerChanged)
             {
-                if (!preSpinnerChanged)
-                {
-                    Console.SetCursorPosition(spinnerPosX, spinnerPosY);
-                }
+                WriteMaybeAtPosition(
+                    spinnerChars[spinnerCharIndex].ToString(),
+                    spinnerPosX,
+                    spinnerPosY,
+                    !preSpinnerChanged
+                );
 
-                Console.Write(spinnerChars[spinnerCharIndex].ToString());
                 if (preSpinnerChanged)
                 {
-                    (postSpinnerPosX, postSpinnerPosY) = Console.GetCursorPosition();
+                    (postSpinnerPosX, postSpinnerPosY) = ConsoleProxy.GetCursorPosition();
                 }
                 if (updateSpinner)
                 {
@@ -277,38 +296,41 @@
 
             if (postSpinnerChanged)
             {
-                if (!preSpinnerChanged)
-                {
-                    Console.SetCursorPosition(postSpinnerPosX, postSpinnerPosY);
-                }
-                Console.Write(PostSpinner);
-                (valuePosX, valuePosY) = Console.GetCursorPosition();
+                WriteMaybeAtPosition(
+                    PostSpinner,
+                    postSpinnerPosX,
+                    postSpinnerPosY,
+                    !preSpinnerChanged
+                );
+                (valuePosX, valuePosY) = ConsoleProxy.GetCursorPosition();
             }
 
             if (valueChanged)
             {
-                if (!postSpinnerChanged)
-                {
-                    Console.SetCursorPosition(valuePosX, valuePosY);
-                }
                 var valueStr = valueOverwrite
                     ?? (Value is null
                         ? ""
                         : ((double)Value).ToString(ValueFormat));
-                Console.Write(valueStr);
-                (postValuePosX, postValuePosY) = Console.GetCursorPosition();
+                WriteMaybeAtPosition(
+                    valueStr,
+                    valuePosX,
+                    valuePosY,
+                    !postSpinnerChanged
+                );
+                (postValuePosX, postValuePosY) = ConsoleProxy.GetCursorPosition();
             }
 
             if (postValueChanged)
             {
-                if (!valueChanged)
-                {
-                    Console.SetCursorPosition(postValuePosX, postValuePosY);
-                }
-                Console.Write(PostValue);
+                WriteMaybeAtPosition(
+                    PostValue,
+                    postValuePosX,
+                    postValuePosY,
+                    !valueChanged
+                );
             }
 
-            Console.SetCursorPosition(currentPosX, currentPosY);
+            ConsoleProxy.SetCursorPosition(currentPosX, currentPosY);
             preSpinnerChanged = false;
             postSpinnerChanged = false;
             valueChanged = false;

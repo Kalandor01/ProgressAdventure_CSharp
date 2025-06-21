@@ -1021,7 +1021,7 @@ namespace ProgressAdventure.ConfigManagement
 
             if (showProgressIndentation is not null)
             {
-                Console.Write(new string(' ', (int)showProgressIndentation * 4) + configFolder);
+                PACSingletons.Instance.ConsoleProxy.Write(new string(' ', (int)showProgressIndentation * 4) + configFolder);
             }
         }
 
@@ -1038,7 +1038,7 @@ namespace ProgressAdventure.ConfigManagement
 
             if (showProgressIndentation is not null)
             {
-                Console.WriteLine(success ? "" : ": FALIED!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine(success ? "" : ": FALIED!");
             }
         }
 
@@ -1072,7 +1072,7 @@ namespace ProgressAdventure.ConfigManagement
 
             if (showProgressIndentation is not null)
             {
-                Console.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading file \"{Path.GetFileName(configNameFull)}\" from config:");
+                PACSingletons.Instance.ConsoleProxy.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading file \"{Path.GetFileName(configNameFull)}\" from config:");
             }
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 

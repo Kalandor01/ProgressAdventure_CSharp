@@ -3,7 +3,6 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
-using ProgressAdventure.ItemManagement;
 using System.Collections;
 using System.Text;
 using PACConstants = PACommon.Constants;
@@ -65,12 +64,12 @@ namespace PAExtras
             if (!Directory.Exists(exprotedSaveFolderPath))
             {
                 PACSingletons.Instance.Logger.Log("Correcting save file", $"save folder doesn't exist: {saveFolderName}", LogSeverity.ERROR);
-                Console.WriteLine($"Save folder \"{exprotedSaveFolderPath}\" doesn't exist");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"Save folder \"{exprotedSaveFolderPath}\" doesn't exist");
                 return;
             }
 
             PACSingletons.Instance.Logger.Log("Correcting save file", $"save folder name: {saveFolderName}");
-            Console.WriteLine($"Correcting save file ({saveFolderName})");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"Correcting save file ({saveFolderName})");
             // get destination folder
             var correctedSaveFolderPath = Path.Join(PAConstants.SAVES_FOLDER_PATH, saveFolderName);
 
@@ -81,7 +80,7 @@ namespace PAExtras
             // chunks
             CorrectChunkFiles(exprotedSaveFolderPath, correctedSaveFolderPath, chunkSeedMod, tileNoiseSeeds, showProggress);
             PACSingletons.Instance.Logger.Log("Corrected save file", $"save folder name: {saveFolderName}");
-            Console.WriteLine($"Corrected save file ({saveFolderName})");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"Corrected save file ({saveFolderName})");
         }
         #endregion
 
@@ -281,7 +280,7 @@ namespace PAExtras
             var correctText = "Correcting chunk files...";
             if (showProggress)
             {
-                Console.Write(correctText);
+                PACSingletons.Instance.ConsoleProxy.Write(correctText);
             }
             var chunksFolderPath = Path.Join(exprotedSaveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
             var correctedChunksFolderPath = Path.Join(correctedSaveFolderPath, Constants.SAVE_FOLDER_NAME_CHUNKS);
@@ -303,12 +302,12 @@ namespace PAExtras
                 PACTools.EncodeFileShort(correctChunkFileLines, correctChunkFilePath, PAConstants.OLD_SAVE_SEED, PAConstants.OLD_SAVE_EXT);
                 if (showProggress)
                 {
-                    Console.Write($"\r{correctText}{Math.Round((x + 1) * 1.0 / chunkPaths.Length * 100, 3)}%                ");
+                    PACSingletons.Instance.ConsoleProxy.Write($"\r{correctText}{Math.Round((x + 1) * 1.0 / chunkPaths.Length * 100, 3)}%                ");
                 }
             }
             if (showProggress)
             {
-                Console.WriteLine($"\r{correctText}DONE!                        ");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"\r{correctText}DONE!                        ");
             }
         }
 

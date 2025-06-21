@@ -403,7 +403,7 @@ namespace ProgressAdventure
             {
                 return;
             }
-            Console.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading from folder \"{configPath}\":");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading from folder \"{configPath}\":");
         }
 
         /// <summary>

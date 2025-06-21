@@ -1,4 +1,5 @@
-﻿using ConsoleUI.Keybinds;
+﻿using ConsoleUI;
+using ConsoleUI.Keybinds;
 using ConsoleUI.UIElements;
 using PACommon.Extensions;
 using System.Text;
@@ -42,6 +43,10 @@ namespace PACommon
         /// </summary>
         private bool _clearScreen;
         /// <summary>
+        /// The <see cref="IConsoleProxy"/> to use.
+        /// </summary>
+        private IConsoleProxy _consoleProxy;
+        /// <summary>
         /// Temporary field for the string corrector <c>TextField</c>.
         /// </summary>
         private TextField correctorTextField;
@@ -57,10 +62,7 @@ namespace PACommon
         /// </summary>
         public string PreValue
         {
-            get
-            {
-                return _preValue;
-            }
+            get => _preValue;
             set
             {
                 _preValue = value;
@@ -72,58 +74,62 @@ namespace PACommon
         /// </summary>
         public StringCorrectorDelegate StringCorrector
         {
-            get
-            {
-                return _stringCorrector;
-            }
+            get => _stringCorrector;
             set
             {
                 _stringCorrector = value;
                 UpdateTextField();
             }
         }
+
         /// <summary>
         /// <inheritdoc cref="_postValue" path="//summary"/>
         /// </summary>
         public string PostValue
         {
-            get
-            {
-                return _postValue;
-            }
+            get => _postValue;
             set
             {
                 _postValue = value;
                 UpdateTextField();
             }
         }
+
         /// <summary>
         /// <inheritdoc cref="_startingValue" path="//summary"/>
         /// </summary>
         public string StartingValue
         {
-            get
-            {
-                return _startingValue;
-            }
+            get => _startingValue;
             set
             {
                 _startingValue = value;
                 UpdateTextField();
             }
         }
+
         /// <summary>
         /// <inheritdoc cref="_clearScreen" path="//summary"/>
         /// </summary>
         public bool ClearScreen
         {
-            get
-            {
-                return _clearScreen;
-            }
+            get => _clearScreen;
             set
             {
                 _clearScreen = value;
+                UpdateBaseUI();
+            }
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="_consoleProxy" path="//summary"/>
+        /// </summary>
+        public IConsoleProxy ConsoleProxy
+        {
+            get => _consoleProxy;
+            set
+            {
+                _consoleProxy = value;
                 UpdateBaseUI();
             }
         }
@@ -137,18 +143,21 @@ namespace PACommon
         /// <param name="postValue"><inheritdoc cref="_postValue" path="//summary"/></param>
         /// <param name="startingValue"><inheritdoc cref="_startingValue" path="//summary"/></param>
         /// <param name="clearScreen"><inheritdoc cref="_clearScreen" path="//summary"/></param>
+        /// <param name="consoleProxy"><inheritdoc cref="_consoleProxy" path="//summary"/></param>
         public RealTimeCorrectedTextField(
             string preValue,
             StringCorrectorDelegate stringCorrector,
             string postValue = "",
             string startingValue = "",
-            bool clearScreen = true
+            bool clearScreen = true,
+            IConsoleProxy? consoleProxy = null
         )
         {
             _preValue = preValue;
             _postValue = postValue;
             _startingValue = startingValue;
             _clearScreen = clearScreen;
+            _consoleProxy = consoleProxy ?? PACSingletons.Instance.ConsoleProxy;
 
             _stringCorrector = stringCorrector;
 
@@ -163,12 +172,12 @@ namespace PACommon
         /// <param name="keybinds">The list of <c>KeyAction</c> objects to use. The order of the actions should be:<br/>
         /// - escape, up, down, left, right, enter.</param>
         /// <param name="getKeyFunction">The function to get the next valid key the user pressed.<br/>
-        /// Should function similarly to <see cref="GetKey(GetKeyMode, IEnumerable{KeyAction}?)"/>.></param>
+        /// Should function similarly to <see cref="GetKey(GetKeyMode, IEnumerable{KeyAction}?, ConsoleUI.IConsoleProxy?)"/>.></param>
         /// <returns>The uncorrected version of the final string.</returns>
         public string GetString(IEnumerable<KeyAction>? keybinds = null, GetKeyFunctionDelegate? getKeyFunction = null)
         {
             baseUIDisplay.Display(keybinds, getKeyFunction);
-            Console.WriteLine();
+            baseUIDisplay.consoleProxy.WriteLine();
             return correctorTextField.Value;
         }
         #endregion
@@ -205,12 +214,13 @@ namespace PACommon
         {
             if (baseUIDisplay is null)
             {
-                baseUIDisplay = new BaseUIDisplay(correctorTextField, autoEnter: true, clearScreen: ClearScreen);
+                baseUIDisplay = new BaseUIDisplay(correctorTextField, autoEnter: true, clearScreen: ClearScreen, consoleProxy: _consoleProxy);
             }
             else
             {
                 baseUIDisplay.Element = correctorTextField;
                 baseUIDisplay.clearScreen = ClearScreen;
+                baseUIDisplay.consoleProxy = ConsoleProxy;
             }
         }
 

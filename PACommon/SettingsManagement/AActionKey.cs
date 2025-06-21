@@ -82,7 +82,7 @@ namespace PACommon.SettingsManagement
         /// </summary>
         public bool IsKey()
         {
-            return IsKey(Console.ReadKey(true));
+            return IsKey(PACSingletons.Instance.ConsoleProxy.ReadKey(true));
         }
 
         /// <summary>

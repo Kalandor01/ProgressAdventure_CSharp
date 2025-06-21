@@ -19,7 +19,6 @@ using AItem = ProgressAdventure.ItemManagement.AItem;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;
 using PACTools = PACommon.Tools;
-using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
 {
@@ -75,7 +74,12 @@ namespace ProgressAdventure
         {
             var recipeElements = new List<BaseUI?> { new Toggle() };
 
-            var menu = new OptionsUI(recipeElements, "Crafting", scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2));
+            var menu = new OptionsUI(
+                recipeElements,
+                "Crafting",
+                scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2),
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            );
 
             CalculateCraftables(menu, recipeElements, inventory);
 
@@ -161,18 +165,21 @@ namespace ProgressAdventure
         /// </summary>
         static void Preloading()
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "Progress Adventure";
-
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
-            Console.WriteLine("Loading...");
-            
+            var consoleProxy = new PAConsoleProxy()
+            {
+                Encoding = Encoding.UTF8,
+                Title = "Progress Adventure",
+            };
+            consoleProxy.WriteLine("Loading...");
+
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
+                consoleProxy,
                 JsonDataCorrecter.Initialize(
                     Constants.SAVE_VERSION,
                     Constants.ORDER_JSON_CORRECTERS,
@@ -200,7 +207,7 @@ namespace ProgressAdventure
                 )
             );
 
-            if (!Utils.TryEnableAnsiCodes())
+            if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
@@ -213,7 +220,7 @@ namespace ProgressAdventure
                 new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
             );
 
-            Console.WriteLine("Reloading configs...");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("Reloading configs...");
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
             Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();

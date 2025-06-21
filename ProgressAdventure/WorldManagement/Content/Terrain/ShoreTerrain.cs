@@ -1,4 +1,5 @@
 ﻿using NPrng.Generators;
+using PACommon;
 using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Terrain
@@ -31,8 +32,8 @@ namespace ProgressAdventure.WorldManagement.Content.Terrain
         public override void Visit(Tile tile)
         {
             base.Visit(tile);
-            Console.WriteLine($"{SaveData.Instance.PlayerRef.FullName} entered the {Name} shore.");
-            Console.WriteLine($"The shore is {depth}m deep.");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"{SaveData.Instance.PlayerRef.FullName} entered the {Name} shore.");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"The shore is {depth}m deep.");
         }
         #endregion
 

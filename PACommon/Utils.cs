@@ -34,12 +34,12 @@ namespace PACommon
         {
             while (true)
             {
-                Console.Write(text);
-                if (double.TryParse(Console.ReadLine(), out double result))
+                PACSingletons.Instance.ConsoleProxy.Write(text);
+                if (double.TryParse(PACSingletons.Instance.ConsoleProxy.ReadLine(), out double result))
                 {
                     return result;
                 }
-                Console.WriteLine(errorText);
+                PACSingletons.Instance.ConsoleProxy.WriteLine(errorText);
             }
         }
 
@@ -62,16 +62,6 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Writes out text, and then returns what the user inputed.
-        /// </summary>
-        /// <param name="text">The text to write out.</param>
-        public static string? Input(string text)
-        {
-            Console.Write(text);
-            return Console.ReadLine();
-        }
-
-        /// <summary>
         /// Returns if the Nth bit in a number is 1.
         /// </summary>
         /// <param name="value">The number to get the bit from</param>
@@ -79,15 +69,6 @@ namespace PACommon
         public static bool GetBit(int value, int place)
         {
             return (value & (1 << place)) != 0;
-        }
-
-        /// <summary>
-        /// Writes out text, and then waits for a key press.
-        /// </summary>
-        /// <param name="text">The text to write out.</param>
-        public static void PressKey(string text = "")
-        {
-            FileManager.Utils.PressKey(text);
         }
 
         /// <summary>
@@ -121,26 +102,6 @@ namespace PACommon
             return dateTime.ToString($"HH{separation}mm{separation}ss{(writeMs ? $"{msSeparation}ffffff" : "")}");
         }
 
-
-        const int STD_OUTPUT_HANDLE = -11;
-        const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
-
-        /// <summary>
-        /// Tries to enable ANSI codes, so they work for the terminal outside of the debug console.
-        /// </summary>
-        public static bool TryEnableAnsiCodes()
-        {
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                return true;
-            }
-            
-            var handle = NativeMethods.GetStdHandle(STD_OUTPUT_HANDLE);
-            NativeMethods.GetConsoleMode(handle, out var mode);
-            mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            return NativeMethods.SetConsoleMode(handle, mode);
-        }
-
         /// <summary>
         /// Colors text fore/background.
         /// </summary>
@@ -160,12 +121,6 @@ namespace PACommon
                 txt.Append($"\e[48;2;{backgroundColor.Value.r};{backgroundColor.Value.g};{backgroundColor.Value.b}m");
             }
             return txt.Append($"{text}\e[0m").ToString();
-        }
-
-        /// <inheritdoc cref="ConsoleUI.Utils.MoveCursor(ValueTuple{int, int})"/>
-        public static void MoveCursor((int x, int y) offset)
-        {
-            ConsoleUI.Utils.MoveCursor(offset);
         }
 
         /// <inheritdoc cref="ConsoleUI.Utils.GetDisplayLen(string, int, bool)"/>
@@ -468,13 +423,13 @@ namespace PACommon
         {
             if (writable is null)
             {
-                Console.WriteLine("[NULL]");
+                PACSingletons.Instance.ConsoleProxy.WriteLine("[NULL]");
             }
             else if (writable is not string && writable is IDictionary writableDict)
             {
                 foreach (var item in writableDict.Keys)
                 {
-                    Console.WriteLine(new string('\t', recursionNum) + item.ToString() + ":");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine(new string('\t', recursionNum) + item.ToString() + ":");
                     RecursiveWrite(writableDict[item], recursionNum + 1);
                 }
             }
@@ -488,7 +443,7 @@ namespace PACommon
             }
             else
             {
-                Console.WriteLine(new string('\t', recursionNum) + writable);
+                PACSingletons.Instance.ConsoleProxy.WriteLine(new string('\t', recursionNum) + writable);
             }
         }
 

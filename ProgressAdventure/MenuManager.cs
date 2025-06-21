@@ -10,7 +10,6 @@ using ProgressAdventure.Exceptions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using Utils = PACommon.Utils;
 
 namespace ProgressAdventure
 {
@@ -114,16 +113,12 @@ namespace ProgressAdventure
         public static bool AskYesNoUIQuestion(string question, bool yesFirst = true, bool canEscape = true, Keybinds? keybinds = null)
         {
             List<string?> answersList = yesFirst ? ["Yes", "No"] : ["No", "Yes"];
-            IEnumerable<ActionKey> keybindList;
-            if (keybinds is null)
-            {
-                keybindList = ActionList;
-            }
-            else
-            {
-                keybindList = keybinds.KeybindList;
-            }
-            return (int)new UIList(answersList, question, Constants.STANDARD_CURSOR_ICONS, canEscape: canEscape).Display(keybindList) == (yesFirst ? 0 : 1);
+            var keybindList = keybinds is not null ? keybinds.KeybindList : ActionList;
+            return (int)new UIList(
+                answersList, question, Constants.STANDARD_CURSOR_ICONS,
+                canEscape: canEscape,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display(keybindList) == (yesFirst ? 0 : 1);
         }
 
         /// <summary>
@@ -163,7 +158,11 @@ namespace ProgressAdventure
                     "Restart in safe mode (only vanilla config enabled)",
                     "Exit"
                 };
-                var response = (int)new UIList(restartAnwers, "ERROR: " + exception.Message).Display();
+                var response = (int)new UIList(
+                    restartAnwers,
+                    "ERROR: " + exception.Message,
+                    consoleProxy: PACSingletons.Instance.ConsoleProxy
+                ).Display();
                 
                 if (response == 1)
                 {
@@ -192,7 +191,8 @@ namespace ProgressAdventure
 
                 Console.WriteLine("ERROR: " + inException.Message);
                 Console.WriteLine("WHILE TRYING TO DISPLAY THE ORIGINAL ERROR: " + exception.Message);
-                var ans = Utils.Input("Restart?(Y/N): ");
+                Console.Write("Restart?(Y/N): ");
+                var ans = Console.ReadLine();
                 var restart = ans is not null && ans.Equals("Y", StringComparison.CurrentCultureIgnoreCase);
                 if (restart)
                 {
@@ -218,7 +218,12 @@ namespace ProgressAdventure
 
             if (item is not CompoundItem compundItem)
             {
-                new OptionsUI([backButton], title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+                new OptionsUI(
+                    [backButton],
+                    title,
+                    Constants.STANDARD_CURSOR_ICONS,
+                    consoleProxy: PACSingletons.Instance.ConsoleProxy
+                ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
                 return;
             }
 
@@ -230,7 +235,12 @@ namespace ProgressAdventure
             elementsList.Add(null);
             elementsList.Add(backButton);
 
-            new OptionsUI(elementsList, title, Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            new OptionsUI(
+                elementsList,
+                title,
+                Constants.STANDARD_CURSOR_ICONS,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
         }
 
         /// <summary>
@@ -252,7 +262,8 @@ namespace ProgressAdventure
                 elementsList,
                 "Inventory",
                 Constants.STANDARD_CURSOR_ICONS,
-                scrollSettings: new ScrollSettings(10)
+                scrollSettings: new ScrollSettings(10),
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
             ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
         }
         #endregion
@@ -301,7 +312,12 @@ namespace ProgressAdventure
                 new PAButton(UIAction.Create(SaveAndExitAction), text: "Save and exit"),
             };
 
-            var returnValue = new OptionsUI(elementsList, "Paused", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            var returnValue = new OptionsUI(
+                elementsList,
+                "Paused",
+                Constants.STANDARD_CURSOR_ICONS,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             return returnValue is not null;
         }
         #endregion
@@ -377,7 +393,12 @@ namespace ProgressAdventure
             elementList.Add(null);
             elementList.Add(new PAButton(UIAction.Create(SaveKeybinds), text: "Save"));
 
-            new OptionsUI(elementList, " Keybinds", Constants.STANDARD_CURSOR_ICONS).Display(ActionList);
+            new OptionsUI(
+                elementList,
+                " Keybinds",
+                Constants.STANDARD_CURSOR_ICONS,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display(ActionList);
         }
         #endregion
 
@@ -488,7 +509,9 @@ namespace ProgressAdventure
                 GetDefaultUIElements(),
                 " Config management",
                 Constants.STANDARD_CURSOR_ICONS,
-                scrollSettings: new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3));
+                scrollSettings: new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3),
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            );
             foreach (var loadedConfig in loadingOrder)
             {
                 var config = configs.FirstOrDefault(c => c.Namespace == loadedConfig.Namespace);
@@ -586,7 +609,12 @@ namespace ProgressAdventure
             var askSettingsElements = new List<BaseUI?> { askDeleteSaveElement, askRegenerateSaveElement, defBackupActionElement, null, GetBackButton("Save") };
 
             // response
-            var response = new OptionsUI(askSettingsElements, " Question popups", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(
+                askSettingsElements,
+                " Question popups",
+                Constants.STANDARD_CURSOR_ICONS,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 PASingletons.Instance.Settings.AskDeleteSave = askDeleteSaveElement.Value;
@@ -628,7 +656,12 @@ namespace ProgressAdventure
             var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GetBackButton("Save") };
 
             // response
-            var response = new OptionsUI(menuElements, " Other options", Constants.STANDARD_CURSOR_ICONS).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            var response = new OptionsUI(
+                menuElements,
+                " Other options",
+                Constants.STANDARD_CURSOR_ICONS,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
             if (response is not null)
             {
                 var newAutoSaveValue = autoSaveElement.Value;
@@ -649,11 +682,11 @@ namespace ProgressAdventure
         /// <param name="makeBackup">Whether to make a backup before regenerating.</param>
         public static void RegenerateSaveFile(string saveName, bool makeBackup = true)
         {
-            Console.WriteLine($"Regenerating \"{saveName}\":");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"Regenerating \"{saveName}\":");
             PACSingletons.Instance.Logger.Log("Regenerating save file", $"save name: {saveName}");
-            Console.Write("\tLoading...");
+            PACSingletons.Instance.ConsoleProxy.Write("\tLoading...");
             SaveManager.LoadSave(saveName, makeBackup);
-            Console.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
             PACSingletons.Instance.Logger.Log("Loading all chunks from file", $"save name: {saveName}");
             World.LoadAllChunksFromFolder(out var corruptedChunks, showProgressText: "\tLoading world...");
             if (corruptedChunks.Count > 0)
@@ -674,9 +707,9 @@ namespace ProgressAdventure
                     return;
                 }
             }
-            Console.Write("\tDeleting...");
+            PACSingletons.Instance.ConsoleProxy.Write("\tDeleting...");
             Tools.DeleteSave(saveName);
-            Console.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
             SaveManager.MakeSave(showProgressText: "\tSaving...");
             PACSingletons.Instance.Logger.Log("Save file regenerated", $"save name: {saveName}");
         }
@@ -696,7 +729,8 @@ namespace ProgressAdventure
                 Constants.STANDARD_CURSOR_ICONS,
                 canEscape: true,
                 actions: actions,
-                modifiableUIList: true
+                modifiableUIList: true,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
             ).Display(ActionList);
         }
         #endregion
@@ -708,7 +742,7 @@ namespace ProgressAdventure
         /// <param name="mainMenuUI">The main menu <c>UIList</c>.</param>
         private static void NewSaveAction(UIList mainMenuUI)
         {
-            Utils.PressKey("\nCreating new save!\n");
+            PACSingletons.Instance.ConsoleProxy.PressKey("\nCreating new save!\n");
             GameManager.NewSave();
 
             var (answers, actions) = GetMainMenuLists();
@@ -736,7 +770,7 @@ namespace ProgressAdventure
         /// <param name="selectedSaveName">The name of the save to load.</param>
         private static object? LoadSaveAction(OptionsUI loadSaveUI, string selectedSaveName)
         {
-            Utils.PressKey($"\nLoading save: {selectedSaveName}!");
+            PACSingletons.Instance.ConsoleProxy.PressKey($"\nLoading save: {selectedSaveName}!");
             GameManager.LoadSave(selectedSaveName);
 
             UpdateSavesMenuLists(loadSaveUI);
@@ -755,8 +789,8 @@ namespace ProgressAdventure
                 ? AskYesNoUIQuestion(" Renaming requires loading the save data.\nDo you want to backup your save file before renaming it?")
                 : PASingletons.Instance.Settings.DefBackupAction == 1;
 
-            Console.Write("\nNew name: ");
-            var newName = Console.ReadLine();
+            PACSingletons.Instance.ConsoleProxy.Write("\nNew name: ");
+            var newName = PACSingletons.Instance.ConsoleProxy.ReadLine();
             if (newName is null)
             {
                 return SavesData.Count != 0 ? null : -1;
@@ -765,7 +799,7 @@ namespace ProgressAdventure
             SaveManager.LoadSave(selectedSaveName, backupSave);
             SaveData.Instance.DisplaySaveName = newName;
             SaveManager.MakeSave();
-            Utils.PressKey($"Renamed \"{selectedSaveName}\" save file to \"{newName}\"!");
+            PACSingletons.Instance.ConsoleProxy.PressKey($"Renamed \"{selectedSaveName}\" save file to \"{newName}\"!");
 
             UpdateSavesMenuLists(savesMenuUI);
             return SavesData.Count != 0 ? null : -1;
@@ -778,7 +812,7 @@ namespace ProgressAdventure
         private static object? BackupSaveAction(string selectedSaveName)
         {
             Tools.CreateBackup(selectedSaveName);
-            Utils.PressKey($"Backed up \"{selectedSaveName}\" save file!");
+            PACSingletons.Instance.ConsoleProxy.PressKey($"Backed up \"{selectedSaveName}\" save file!");
 
             return SavesData.Count != 0 ? null : -1;
         }
@@ -793,7 +827,7 @@ namespace ProgressAdventure
             var copyName = Tools.CopySave(selectedSaveName);
             if (copyName is not null)
             {
-                Utils.PressKey($"Copied \"{selectedSaveName}\" to \"{copyName}\"!");
+                PACSingletons.Instance.ConsoleProxy.PressKey($"Copied \"{selectedSaveName}\" to \"{copyName}\"!");
 
                 UpdateSavesMenuLists(loadSaveUI);
             }
@@ -853,12 +887,12 @@ namespace ProgressAdventure
             var backupSaves = PASingletons.Instance.Settings.DefBackupAction == -1
                 ? AskYesNoUIQuestion(" Do you want to backup your save files before regenerating them?")
                 : PASingletons.Instance.Settings.DefBackupAction == 1;
-            Console.WriteLine("Regenerating save files...\n");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("Regenerating save files...\n");
             foreach (var (saveName, _) in SavesData)
             {
                 RegenerateSaveFile(saveName, backupSaves);
             }
-            Console.WriteLine("\nDONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("\nDONE!");
 
             UpdateSavesMenuLists(loadSaveUI);
         }
@@ -933,7 +967,8 @@ namespace ProgressAdventure
                 Constants.STANDARD_CURSOR_ICONS,
                 true,
                 true,
-                new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3)
+                new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3),
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
             );
             UpdateSavesMenuLists(savesUI);
             return savesUI;
@@ -967,7 +1002,8 @@ namespace ProgressAdventure
                 " Options",
                 Constants.STANDARD_CURSOR_ICONS,
                 canEscape: true,
-                actions: optionsMenuActions
+                actions: optionsMenuActions,
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
             );
         }
 

@@ -787,7 +787,7 @@ namespace ProgressAdventure.EntityManagement
                 PACSingletons.Instance.Logger.Log("Fight log", "no entities in fight");
                 if (writeOut)
                 {
-                    Console.WriteLine("There is no one to fight.");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine("There is no one to fight.");
                 }
             }
             else if (teamsPrepared.Count == 1)
@@ -795,7 +795,7 @@ namespace ProgressAdventure.EntityManagement
                 PACSingletons.Instance.Logger.Log("Fight log", "only 1 team in fight");
                 if (writeOut)
                 {
-                    Console.WriteLine("There is only 1 team in the fight. There is no reason to fight.");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine("There is only 1 team in the fight. There is no reason to fight.");
                 }
             }
             else
@@ -1056,15 +1056,15 @@ namespace ProgressAdventure.EntityManagement
                 {
                     if (team.Value.Count > 1)
                     {
-                        Console.WriteLine($"\nTeam {team.Key}:\n");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"\nTeam {team.Key}:\n");
                         foreach (var entity in team.Value)
                         {
-                            Console.Write($"\t{entity.GetFullNameWithSpecies()}");
+                            PACSingletons.Instance.ConsoleProxy.Write($"\t{entity.GetFullNameWithSpecies()}");
                             if (entity.originalTeam != entity.currentTeam)
                             {
-                                Console.Write(" (Switched to this side!)");
+                                PACSingletons.Instance.ConsoleProxy.Write(" (Switched to this side!)");
                             }
-                            Console.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
+                            PACSingletons.Instance.ConsoleProxy.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
                         }
                         multiEntityTeamExists = true;
                     }
@@ -1081,7 +1081,7 @@ namespace ProgressAdventure.EntityManagement
 
             if (oneEntityTeamExists)
             {
-                Console.WriteLine($"{(multiEntityTeamExists ? "Other e" : "E")}ntities:\n");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"{(multiEntityTeamExists ? "Other e" : "E")}ntities:\n");
                 foreach (var team in teams)
                 {
                     if (team.Value.Count == 0)
@@ -1094,17 +1094,17 @@ namespace ProgressAdventure.EntityManagement
                     {
                         foreach (var entity in team.Value)
                         {
-                            Console.Write($"{entity.GetFullNameWithSpecies()}");
+                            PACSingletons.Instance.ConsoleProxy.Write($"{entity.GetFullNameWithSpecies()}");
                             if (entity.originalTeam != entity.currentTeam)
                             {
-                                Console.Write(" (Switched to this side!)");
+                                PACSingletons.Instance.ConsoleProxy.Write(" (Switched to this side!)");
                             }
-                            Console.WriteLine($"\nHP: {entity.CurrentHp}\nAttack: {entity.Attack}\nDefence: {entity.Defence}\nAgility: {entity.Agility}\n");
+                            PACSingletons.Instance.ConsoleProxy.WriteLine($"\nHP: {entity.CurrentHp}\nAttack: {entity.Attack}\nDefence: {entity.Defence}\nAgility: {entity.Agility}\n");
                         }
                     }
                 }
             }
-            Console.WriteLine();
+            PACSingletons.Instance.ConsoleProxy.WriteLine();
         }
 
         /// <summary>
@@ -1172,7 +1172,7 @@ namespace ProgressAdventure.EntityManagement
                         var attackResponse = entity.AttackEntity(targetEntity);
                         if (writeOut)
                         {
-                            Console.WriteLine($"{entity.FullName} attacked {targetEntity.FullName}");
+                            PACSingletons.Instance.ConsoleProxy.WriteLine($"{entity.FullName} attacked {targetEntity.FullName}");
                             string? writeText = null;
                             switch (attackResponse)
                             {
@@ -1188,7 +1188,7 @@ namespace ProgressAdventure.EntityManagement
                             }
                             if (writeText is not null)
                             {
-                                Console.WriteLine(writeText);
+                                PACSingletons.Instance.ConsoleProxy.WriteLine(writeText);
                             }
                         }
                         if (attackResponse == AttackResponse.TARGET_HIT || attackResponse == AttackResponse.TARGET_KILLED)
@@ -1200,8 +1200,8 @@ namespace ProgressAdventure.EntityManagement
                         {
                             if (writeOut)
                             {
-                                Console.WriteLine($"dealt {targetOldHp - targetEntity.CurrentHp} damage (DEAD)");
-                                Console.WriteLine($"{entity.FullName} defeated {targetEntity.FullName}");
+                                PACSingletons.Instance.ConsoleProxy.WriteLine($"dealt {targetOldHp - targetEntity.CurrentHp} damage (DEAD)");
+                                PACSingletons.Instance.ConsoleProxy.WriteLine($"{entity.FullName} defeated {targetEntity.FullName}");
                             }
                             var targetTeamKey = teamCounts.ElementAt(targetTeamNum).Key;
                             teamCounts[targetTeamKey]--;
@@ -1214,7 +1214,7 @@ namespace ProgressAdventure.EntityManagement
                                     PACSingletons.Instance.Logger.Log("Fight log", $"team {targetTeamKey} defeated");
                                     if (writeOut)
                                     {
-                                        Console.WriteLine($"team {targetTeamKey} defeated");
+                                        PACSingletons.Instance.ConsoleProxy.WriteLine($"team {targetTeamKey} defeated");
                                     }
                                 }
                                 teamCounts.Remove(targetTeamKey);
@@ -1241,7 +1241,7 @@ namespace ProgressAdventure.EntityManagement
             // outcome
             if (writeOut)
             {
-                Console.WriteLine("\nResults:\n");
+                PACSingletons.Instance.ConsoleProxy.WriteLine("\nResults:\n");
             }
             // teams gave up
             if (no_damage_in_x_turns >= Constants.FIGHT_GIVE_UP_TURN_NUMBER)
@@ -1249,7 +1249,7 @@ namespace ProgressAdventure.EntityManagement
                 PACSingletons.Instance.Logger.Log("Fight log", $"no damage was dealt for {no_damage_in_x_turns} turns, so the fight automaticaly ended");
                 if (writeOut)
                 {
-                    Console.WriteLine("Everyone got bored, so the fight ends in a stalemate.");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine("Everyone got bored, so the fight ends in a stalemate.");
                 }
                 return;
             }
@@ -1263,7 +1263,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", $"team {winTeamName} won");
                     if (writeOut)
                     {
-                        Console.WriteLine($"team {winTeamName} won");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"team {winTeamName} won");
                     }
                 }
                 else
@@ -1271,7 +1271,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", $"entity {teams[winTeamName].First().FullName} won");
                     if (writeOut)
                     {
-                        Console.WriteLine($"{teams[winTeamName].First().FullName} won");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"{teams[winTeamName].First().FullName} won");
                     }
                 }
             }
@@ -1289,7 +1289,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", "player team defeated");
                     if (writeOut)
                     {
-                        Console.WriteLine($"{player?.FullName}'s team was defeated");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"{player?.FullName}'s team was defeated");
                     }
                 }
                 else
@@ -1297,7 +1297,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", "player defeated");
                     if (writeOut)
                     {
-                        Console.WriteLine($"{player?.FullName} was defeated");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"{player?.FullName} was defeated");
                     }
                 }
             }
@@ -1309,7 +1309,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", "player team won");
                     if (writeOut)
                     {
-                        Console.WriteLine($"{player?.FullName}'s team won");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"{player?.FullName}'s team won");
                     }
                 }
                 else
@@ -1317,7 +1317,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", "player won");
                     if (writeOut)
                     {
-                        Console.WriteLine($"{player?.FullName} won");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"{player?.FullName} won");
                     }
                 }
                 if (player?.CurrentHp == 0)
@@ -1325,7 +1325,7 @@ namespace ProgressAdventure.EntityManagement
                     PACSingletons.Instance.Logger.Log("Fight log", "player died");
                     if (writeOut)
                     {
-                        Console.WriteLine($"{player.FullName} died");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine($"{player.FullName} died");
                     }
                 }
                 // loot

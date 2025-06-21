@@ -106,7 +106,9 @@ namespace PACommon.Logging
         public async Task WriteOutLogAsync(string text, bool newLine = false)
         {
             var currentDate = Utils.MakeDate(DateTime.Now);
-            Console.WriteLine($"{(newLine ? "\n" : "")}{Path.Join(logsFolderPath, $"{currentDate}.{logsExt}")} -> {text}");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(
+                $"{(newLine ? "\n" : "")}{Path.Join(logsFolderPath, $"{currentDate}.{logsExt}")} -> {text}"
+            );
         }
 
         public async Task LogLoggingExceptionAsync(Exception exception)
@@ -118,7 +120,14 @@ namespace PACommon.Logging
 
         public void LogFinalLoggingException(Exception exception)
         {
-            Console.WriteLine($"\nLogger exception level 2: {exception.Message}");
+            try
+            {
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"\nLogger exception level 2: {exception.Message}");
+            }
+            catch (Exception cex)
+            {
+                Console.WriteLine($"\nConsoleProxy exception: {cex.Message}\nwhile trying to write out Logger exception level 2: {exception.Message}");
+            }
         }
 
         /// <summary>

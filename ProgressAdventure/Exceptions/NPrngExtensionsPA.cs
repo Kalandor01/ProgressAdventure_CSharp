@@ -38,7 +38,7 @@ namespace ProgressAdventure.Extensions
             }
             catch (Exception e)
             {
-                arr = text.ToCharArray().Select(ch => (byte)ch).ToArray();
+                arr = [.. text.ToCharArray().Select(ch => (byte)ch)];
             }
             var limitedArray = new byte[16];
             for (var x = 0; x < arr.Length; x++)

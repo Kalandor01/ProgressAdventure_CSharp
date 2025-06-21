@@ -1,4 +1,5 @@
-﻿using PACommon.Enums;
+﻿using PACommon;
+using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
@@ -154,7 +155,7 @@ namespace ProgressAdventure.ItemManagement
                 Add(item);
                 if (looterName is not null)
                 {
-                    Console.WriteLine($"{looterName} picked up {item}");
+                    PACSingletons.Instance.ConsoleProxy.WriteLine($"{looterName} picked up {item}");
                 }
             }
         }
@@ -168,7 +169,7 @@ namespace ProgressAdventure.ItemManagement
         {
             if (looterName is not null)
             {
-                Console.WriteLine($"{looterName} looted the body of {lootedEntity.FullName}");
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"{looterName} looted the body of {lootedEntity.FullName}");
             }
             Loot(lootedEntity.drops, looterName);
             lootedEntity.drops.Clear();

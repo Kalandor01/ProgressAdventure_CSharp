@@ -116,8 +116,8 @@ namespace ProgressAdventure.WorldManagement
             }
 
             PACSingletons.Instance.Logger.Log($"Player visited \"population\": {ToString()}", $"x: {tile.relativePosition.x}, y: {tile.relativePosition.y}, visits: {tile.Visited}");
-            
-            Console.WriteLine(GetPopulationAmountsString());
+
+            PACSingletons.Instance.ConsoleProxy.WriteLine(GetPopulationAmountsString());
 
             if (
                 WorldUtils.StructureTypeMap.TryGetValue(tile.structure.type, out var props) &&

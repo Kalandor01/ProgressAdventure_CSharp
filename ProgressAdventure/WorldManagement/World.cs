@@ -178,7 +178,7 @@ namespace ProgressAdventure.WorldManagement
                     loadingText.Value = (x + 1) / chunkNum;
                 }
                 loadingText.StopLoadingStandard();
-                Console.WriteLine();
+                PACSingletons.Instance.ConsoleProxy.WriteLine();
             }
             else
             {

@@ -32,12 +32,12 @@ namespace PACommon.TestUtils
 
             var testName = testFunction.Method.Name;
 
-            Console.OutputEncoding = Encoding.UTF8;
+            PACSingletons.Instance.ConsoleProxy.Encoding = Encoding.UTF8;
             Thread.CurrentThread.Name = $"{Constants.TESTS_THREAD_NAME}/{testName}";
 
             prepareTestFunction?.Invoke();
 
-            Console.Write(testName + "...");
+            PACSingletons.Instance.ConsoleProxy.Write(testName + "...");
             PACSingletons.Instance.Logger.Log("Running...");
 
             TestResultDTO result;
@@ -106,7 +106,7 @@ namespace PACommon.TestUtils
             PACSingletons.Instance.Logger.Log("All tests finished runing");
             var allPassed = testsSuccessful == testsRun;
             var result = Utils.StylizedText($"{testsSuccessful}/{testsRun}", allPassed ? Constants.Colors.GREEN : Constants.Colors.RED);
-            Console.WriteLine($"\nFinished running test batch: {result} successful!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"\nFinished running test batch: {result} successful!");
             PACSingletons.Instance.Logger.Log("Finished running test batch", $"{testsSuccessful}/{testsRun} successful", allPassed ? LogSeverity.PASS : LogSeverity.FAIL);
         }
 
@@ -131,7 +131,7 @@ namespace PACommon.TestUtils
         /// <param name="testsSuccessful">The amount of tests that were successfull so far.</param>
         public static void EvaluateResult(string testName, TestResultDTO result, ref int testsRun, ref int testsSuccessful)
         {
-            Console.WriteLine(GetResultString(result));
+            PACSingletons.Instance.ConsoleProxy.WriteLine(GetResultString(result));
 
             var passed = result.resultType == LogSeverity.PASS;
             var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;

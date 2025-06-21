@@ -1,5 +1,6 @@
 ﻿using ConsoleUI;
 using ConsoleUI.UIElements;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure;
@@ -187,18 +188,18 @@ namespace PAVisualizer
         /// <param name="exportPath">The path to export the image to.</param>
         public static void MakeImage(List<VisibleTileLayer> layers, string exportPath)
         {
-            Console.Write("Generating image...");
+            PACSingletons.Instance.ConsoleProxy.Write("Generating image...");
             var (terrainTypeCounts, structureTypeCounts, entityCounts) = CreateCombinedImage(layers, out var image);
-            Console.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
 
             if (terrainTypeCounts is null || structureTypeCounts is null || entityCounts is null || image is null)
             {
                 return;
             }
 
-            Console.WriteLine(VisualizerTools.GetDisplayTerrainCountsData(terrainTypeCounts));
-            Console.WriteLine(VisualizerTools.GetDisplayStructureCountsData(structureTypeCounts));
-            Console.WriteLine(VisualizerTools.GetDisplayPopulationCountsData(entityCounts));
+            PACSingletons.Instance.ConsoleProxy.WriteLine(VisualizerTools.GetDisplayTerrainCountsData(terrainTypeCounts));
+            PACSingletons.Instance.ConsoleProxy.WriteLine(VisualizerTools.GetDisplayStructureCountsData(structureTypeCounts));
+            PACSingletons.Instance.ConsoleProxy.WriteLine(VisualizerTools.GetDisplayPopulationCountsData(entityCounts));
 
             image.Save(exportPath);
         }
@@ -222,7 +223,7 @@ namespace PAVisualizer
             }
             catch (Exception e)
             {
-                Utils.PressKey($"ERROR: {e}");
+                PACSingletons.Instance.ConsoleProxy.PressKey($"ERROR: {e}");
                 return;
             }
 
@@ -233,7 +234,7 @@ namespace PAVisualizer
             txt.AppendLine($"Loaded {PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}:");
             txt.AppendLine(VisualizerTools.GetDisplayGeneralSaveData());
             txt.Append("\n---------------------------------------------------------------------------------------------------------------");
-            Utils.PressKey(txt.ToString());
+            PACSingletons.Instance.ConsoleProxy.PressKey(txt.ToString());
             if (MenuManager.AskYesNoUIQuestion($"Do you want export the data from \"{SaveData.Instance.SaveName}\" into \"{Path.Join(displayVisualizedSavePath, Constants.EXPORT_DATA_FILE)}\"?"))
             {
                 PACTools.RecreateFolder(Constants.VISUALIZED_SAVES_DATA_FOLDER);
@@ -274,7 +275,11 @@ namespace PAVisualizer
             layerElements.Add(null);
             layerElements.Add(new PAButton(UIAction.Create(GenerateImageCommand, layerElements, layers, visualizedSavePath), text: "Generate image"));
 
-            new OptionsUI(layerElements, "Select the layers to export the data and image from:").Display();
+            new OptionsUI(
+                layerElements,
+                "Select the layers to export the data and image from:",
+                consoleProxy: PACSingletons.Instance.ConsoleProxy
+            ).Display();
         }
         #endregion
 
@@ -296,7 +301,7 @@ namespace PAVisualizer
             {
                 var imageName = string.Join("-", selectedLayers) + ".png";
                 MakeImage(selectedLayers, Path.Join(visualizedSavePath, imageName));
-                Utils.PressKey($"Generated image as \"{imageName}\"");
+                PACSingletons.Instance.ConsoleProxy.PressKey($"Generated image as \"{imageName}\"");
             }
         }
         #endregion

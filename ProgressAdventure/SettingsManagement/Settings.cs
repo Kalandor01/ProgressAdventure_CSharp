@@ -278,7 +278,7 @@ namespace ProgressAdventure.SettingsManagement
             catch (FormatException)
             {
                 PACSingletons.Instance.Logger.Log("Decode error", "settings", LogSeverity.ERROR);
-                Utils.PressKey("The settings file is corrupted, and will now be recreated!");
+                PACSingletons.Instance.ConsoleProxy.PressKey("The settings file is corrupted, and will now be recreated!");
             }
 
             if (settingsJson is not null)

@@ -31,7 +31,7 @@ namespace ProgressAdventureTests
             //Tools.CreateNewTestSaveFromPrevious("2.5");
             TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest, Tools.DisposeTest);
 
-            Utils.PressKey("DONE!");
+            PACSingletons.Instance.ConsoleProxy.PressKey("DONE!");
         }
 
         /// <summary>
@@ -39,18 +39,21 @@ namespace ProgressAdventureTests
         /// </summary>
         static void Preloading()
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "Progress Adventure tests";
-
             Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
 
-            Console.WriteLine("Loading...");
+            var consoleProxy = new PAConsoleProxy
+            {
+                Encoding = Encoding.UTF8,
+                Title = "Progress Adventure tests",
+            };
+            consoleProxy.WriteLine("Loading...");
 
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
 
             PACSingletons.Initialize(
                 Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
+                consoleProxy,
                 JsonDataCorrecter.Initialize(
                     PAConstants.SAVE_VERSION,
                     PAConstants.ORDER_JSON_CORRECTERS,
@@ -77,7 +80,7 @@ namespace ProgressAdventureTests
                 )
             );
 
-            if (!Utils.TryEnableAnsiCodes())
+            if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
@@ -115,7 +118,7 @@ namespace ProgressAdventureTests
                 PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
                 if (PAConstants.ERROR_HANDLING)
                 {
-                    Utils.PressKey("ERROR: " + e.Message);
+                    PACSingletons.Instance.ConsoleProxy.PressKey("ERROR: " + e.Message);
                 }
                 throw;
             }
@@ -145,8 +148,8 @@ namespace ProgressAdventureTests
                     PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
                     if (PAConstants.ERROR_HANDLING)
                     {
-                        Console.WriteLine("ERROR: " + e.Message);
-                        var ans = Utils.Input("Restart?(Y/N): ");
+                        PACSingletons.Instance.ConsoleProxy.WriteLine("ERROR: " + e.Message);
+                        var ans = PACSingletons.Instance.ConsoleProxy.ReadLine("Restart?(Y/N): ");
                         if (ans is not null && ans.ToUpper() == "Y")
                         {
                             PACSingletons.Instance.Logger.Log("Restarting instance", forceLog: true);

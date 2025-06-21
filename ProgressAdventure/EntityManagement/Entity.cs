@@ -613,11 +613,11 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="displayInventory">If the inventory should be displayed.</param>
         public void Stats(bool displayInventory = true)
         {
-            Console.WriteLine($"\nName: {FullName}\n\nSTATS:");
-            Console.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\n");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"\nName: {FullName}\n\nSTATS:");
+            PACSingletons.Instance.ConsoleProxy.WriteLine($"HP: {CurrentHp}/{MaxHp}\nAttack: {Attack}\nDefence: {Defence}\nAgility: {Agility}\n");
             if (displayInventory)
             {
-                Console.WriteLine(TryGetInventory());
+                PACSingletons.Instance.ConsoleProxy.WriteLine(TryGetInventory());
             }
         }
         #endregion

@@ -42,6 +42,11 @@ namespace PACommon
         public ILogger Logger { get; private set; }
 
         /// <summary>
+        /// The proxy to the output.
+        /// </summary>
+        public IPAConsoleProxy ConsoleProxy { get; private set; }
+
+        /// <summary>
         /// The json data correcter.
         /// </summary>
         public IJsonDataCorrecter JsonDataCorrecter { get; private set; }
@@ -57,15 +62,18 @@ namespace PACommon
         /// <inheritdoc cref="PACSingletons"/>
         /// </summary>
         /// <param name="logger"><inheritdoc cref="Logger" path="//summary"/></param>
+        /// <param name="consoleProxy"><inheritdoc cref="ConsoleProxy" path="//summary"/></param>
         /// <param name="jsonDataCorrecter"><inheritdoc cref="JsonDataCorrecter" path="//summary"/></param>
         /// <param name="configManager"><inheritdoc cref="ConfigManager" path="//summary"/></param>
         private PACSingletons(
             ILogger logger,
+            IPAConsoleProxy consoleProxy,
             IJsonDataCorrecter jsonDataCorrecter,
             IConfigManager configManager
         )
         {
             Logger = logger;
+            ConsoleProxy = consoleProxy;
             JsonDataCorrecter = jsonDataCorrecter;
             ConfigManager = configManager;
         }
@@ -76,12 +84,14 @@ namespace PACommon
         /// Initializes the object's values.
         /// </summary>
         /// <param name="logger"><inheritdoc cref="Logger" path="//summary"/></param>
+        /// <param name="consoleProxy"><inheritdoc cref="ConsoleProxy" path="//summary"/></param>
         /// <param name="jsonDataCorrecter"><inheritdoc cref="JsonDataCorrecter" path="//summary"/></param>
         /// <param name="configManager"><inheritdoc cref="ConfigManager" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
         /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static PACSingletons Initialize(
             ILogger? logger = null,
+            IPAConsoleProxy? consoleProxy = null,
             IJsonDataCorrecter? jsonDataCorrecter = null,
             IConfigManager? configManager = null,
             bool logInitialization = true,
@@ -98,12 +108,14 @@ namespace PACommon
                 _instance?.Dispose();
                 _instance = new PACSingletons(
                     logger ?? Logging.Logger.Instance,
+                    consoleProxy ?? new PAConsoleProxy(),
                     jsonDataCorrecter ?? JsonUtils.JsonDataCorrecter.Instance,
                     configManager ?? ConfigManagement.ConfigManager.Instance
                 );
                 if (logInitialization)
                 {
                     _instance.Logger.Log($"{nameof(ILogger)} initialized", newLine: true);
+                    _instance.Logger.Log($"{nameof(IPAConsoleProxy)} initialized");
                     _instance.Logger.Log($"{nameof(IJsonDataCorrecter)} initialized");
                     _instance.Logger.Log($"{nameof(IConfigManager)} initialized");
                     _instance.Logger.Log($"{nameof(PACSingletons)} initialized");
@@ -116,6 +128,7 @@ namespace PACommon
         {
             _instance?.ConfigManager?.Dispose();
             _instance?.JsonDataCorrecter?.Dispose();
+            _instance?.ConsoleProxy?.Dispose();
             _instance?.Logger.Dispose();
             GC.SuppressFinalize(this);
         }
