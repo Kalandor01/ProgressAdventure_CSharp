@@ -65,7 +65,8 @@ namespace ProgressAdventure
             (LogSeverity.ERROR, LogSeverity.ERROR.ToString()),
             (LogSeverity.WARN, LogSeverity.WARN.ToString()),
             (LogSeverity.INFO, LogSeverity.INFO.ToString()),
-            (LogSeverity.DEBUG, "ALL"),
+            (LogSeverity.DEBUG, LogSeverity.DEBUG.ToString()),
+            (LogSeverity.TRACE, "ALL"),
         ];
 
         /// <summary>

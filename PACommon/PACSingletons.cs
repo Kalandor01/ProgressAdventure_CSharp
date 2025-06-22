@@ -37,6 +37,11 @@ namespace PACommon
         }
 
         /// <summary>
+        /// If the singleton is currently initialized.
+        /// </summary>
+        public static bool IsInitialized => _instance is not null;
+
+        /// <summary>
         /// The logger.
         /// </summary>
         public ILogger Logger { get; private set; }
@@ -130,6 +135,7 @@ namespace PACommon
             _instance?.JsonDataCorrecter?.Dispose();
             _instance?.ConsoleProxy?.Dispose();
             _instance?.Logger.Dispose();
+            _instance = null;
             GC.SuppressFinalize(this);
         }
         #endregion

@@ -178,7 +178,14 @@ namespace ProgressAdventure
             var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
 
             PACSingletons.Initialize(
-                Logger.Initialize(loggingStream, Constants.LOG_MS, false, LogSeverity.DEBUG, Constants.FORCE_LOG_INTERVAL, false),
+                Logger.Initialize(
+                    loggingStream,
+                    Constants.LOG_MS,
+                    false,
+                    LogSeverity.DEBUG,
+                    Constants.FORCE_LOG_INTERVAL,
+                    false
+                ),
                 consoleProxy,
                 JsonDataCorrecter.Initialize(
                     Constants.SAVE_VERSION,

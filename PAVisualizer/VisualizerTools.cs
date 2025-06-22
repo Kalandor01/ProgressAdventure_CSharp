@@ -197,23 +197,44 @@ namespace PAVisualizer
         /// Gets the color ascociated with the entity with the highest population, or <see cref="Constants.Colors.MAGENTA"/>.
         /// </summary>
         /// <param name="populationManager">The <see cref="PopulationManager"/>.</param>
-        public static ColorData GetPopulationManagerColor(PopulationManager populationManager)
+        /// <param name="blendPopulation">Whether to blend the entity type colors.</param>
+        public static ColorData GetPopulationManagerColor(PopulationManager populationManager, bool blendPopulation)
         {
             if (populationManager.PopulationCount == 0)
             {
                 return Constants.Colors.MAGENTA;
             }
 
-            var sortedEntityCounts = GetPopulationCounts(populationManager)
-                .StableSort((n1, n2) => n1.amount > n2.amount ? 1 : (n1.amount == n2.amount ? 0 : -1))
-                .ToList();
-
-            if (sortedEntityCounts.Count == 0)
+            var entityCounts = GetPopulationCounts(populationManager);
+            if (!blendPopulation)
             {
-                return Constants.Colors.MAGENTA;
+                var mostAmountType = entityCounts
+                    .StableSort((n1, n2) => n1.amount > n2.amount ? -1 : (n1.amount == n2.amount ? 0 : 1))
+                    .First().type;
+
+                return GetEntityTypeColor(mostAmountType);
             }
 
-            return GetEntityTypeColor(sortedEntityCounts.Last().type);
+            var minAmount = entityCounts.Min(e => e.amount);
+            var maxAmount = entityCounts.Max(e => e.amount);
+
+            var sumAmount = (double)entityCounts.Sum(e => e.amount);
+            ColorData? sumColor = null;
+            foreach (var (type, amount) in entityCounts)
+            {
+                var color = GetEntityTypeColor(type);
+                var percent = amount / sumAmount;
+                var newColor = color.MultiplyOpacity(percent);
+                if (sumColor is null)
+                {
+                    sumColor = newColor;
+                }
+                else
+                {
+                    sumColor = sumColor.Value.Blend(newColor);
+                }
+            }
+            return (ColorData)sumColor!;
         }
 
         /// <summary>
@@ -221,13 +242,14 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="tile">The tile to get the color from.</param>
         /// <param name="layer">The layer to get the color from.</param>
-        public static ColorData GetLayerContentColor(Tile tile, VisibleTileLayer layer)
+        /// <param name="blendPopulation">Whether to blend the population layer colors.</param>
+        public static ColorData GetLayerContentColor(Tile tile, VisibleTileLayer layer, bool blendPopulation)
         {
             return layer switch
             {
                 VisibleTileLayer.Terrain => GetTerrainTypeColor(tile.terrain.type),
                 VisibleTileLayer.Structure => GetStructureTypeColor(tile.structure.type),
-                VisibleTileLayer.Population => GetPopulationManagerColor(tile.populationManager),
+                VisibleTileLayer.Population => GetPopulationManagerColor(tile.populationManager, blendPopulation),
                 _ => Constants.Colors.MAGENTA
             };
         }

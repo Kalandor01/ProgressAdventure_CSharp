@@ -13,6 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
+using Tools = PACommon.Tools;
 
 namespace PAVisualizer
 {
@@ -35,6 +36,7 @@ namespace PAVisualizer
         private (double x, double y) center;
         private double worldGridScale;
         private List<VisibleTileLayer> layers;
+        private bool blendPopulationColors;
         #endregion
 
         #region Public properties
@@ -86,6 +88,7 @@ namespace PAVisualizer
             center = (0, 0);
             worldGridScale = 1;
             layers = [VisibleTileLayer.Terrain];
+            blendPopulationColors = true;
             saveName = string.Empty;
             terrainTypeCounts = [];
             structureTypeCounts = [];
@@ -173,7 +176,7 @@ namespace PAVisualizer
             PATools.RecreateFolder(visualizedSavePath);
 
             var imageName = string.Join("-", layers) + ".png";
-            ConsoleVisualizer.MakeImage(layers, Path.Join(visualizedSavePath, imageName));
+            ConsoleVisualizer.MakeImage(layers, Path.Join(visualizedSavePath, imageName), blendPopulationColors);
         }
 
         private void ShowSaveInfoCommand(object sender, RoutedEventArgs e)
@@ -311,6 +314,17 @@ namespace PAVisualizer
             PACSingletons.Instance.Logger.DefaultWriteOut = !PACSingletons.Instance.Logger.DefaultWriteOut;
             toggleLoggingWriteOut.Content = $"Toggle logging in console: {PACSingletons.Instance.Logger.DefaultWriteOut}";
         }
+
+        private void ToggleBlendPopulationColorsCommand(object sender, RoutedEventArgs e)
+        {
+            blendPopulationColors = !blendPopulationColors;
+            toggleBlendPopulationColors.Content = $"Blend population colors: {blendPopulationColors}";
+
+            if (SelectedSave)
+            {
+                RenderWorldArea();
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -425,10 +439,17 @@ namespace PAVisualizer
                 return;
             }
 
+            var loadingText = Tools.GetStandardLoadingText("Rendering...");
+            loadingText.Display();
+            var sumProgress = (double)World.Chunks.Count * PAConstants.CHUNK_SIZE * PAConstants.CHUNK_SIZE;
+            var progress = 0;
             foreach (var chunk in World.Chunks)
             {
                 foreach (var tile in chunk.Value.tiles)
                 {
+                    progress++;
+                    loadingText.Value = progress / sumProgress;
+
                     var tileObj = tile.Value;
 
                     if (TileCountsNeedToBeRefreshed)
@@ -470,7 +491,7 @@ namespace PAVisualizer
                         continue;
                     }
 
-                    var color = VisualizerTools.GetLayerContentColor(tileObj, layer);
+                    var color = VisualizerTools.GetLayerContentColor(tileObj, layer, blendPopulationColors);
 
                     var extraTerrainData = tileObj.terrain.TryGetExtraProperty("height", out var height) ?
                         $"(height: {height})" :
@@ -518,6 +539,7 @@ namespace PAVisualizer
                     worldGrid.Children.Add(content);
                 }
             }
+            loadingText.StopLoadingStandard();
 
             IsWorldVisible = true;
             TileCountsNeedToBeRefreshed = false;

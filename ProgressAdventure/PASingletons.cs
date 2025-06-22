@@ -36,6 +36,11 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// If the singleton is currently initialized.
+        /// </summary>
+        public static bool IsInitialized => _instance is not null;
+
+        /// <summary>
         /// <inheritdoc cref="ProgressAdventure.Globals"/>
         /// </summary>
         public IGlobals Globals { get; private set; }
@@ -103,6 +108,7 @@ namespace ProgressAdventure
         {
             _instance?.Globals.Dispose();
             _instance?.Settings.Dispose();
+            _instance = null;
             GC.SuppressFinalize(this);
         }
         #endregion

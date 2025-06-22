@@ -24,6 +24,7 @@ namespace PAVisualizer
         /// Genarates an image, representing the different types of tiles, and their placements in the world.
         /// </summary>
         /// <param name="layer">Sets which layer to export.</param>
+        /// <param name="blendPopulation">Whether to blend the population layer colors.</param>
         /// <param name="image">The generated image.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the tiles.</param>
         /// <returns>The tile count for all tile types.</returns>
@@ -33,6 +34,7 @@ namespace PAVisualizer
                 Dictionary<EnumValue<EntityType>, long> enttyTypeCounts
             ) CreateWorldLayerImage(
             VisibleTileLayer layer,
+            bool blendPopulation,
             out Bitmap image,
             double opacityMultiplier = 1
         )
@@ -105,7 +107,7 @@ namespace PAVisualizer
                             }
                         }
                     }
-                    var color = VisualizerTools.GetLayerContentColor(tile, layer).MultiplyOpacity(opacityMultiplier);
+                    var color = VisualizerTools.GetLayerContentColor(tile, layer, blendPopulation).MultiplyOpacity(opacityMultiplier);
 
                     if (tileSize.x > 2 && tileSize.y > 2)
                     {
@@ -125,6 +127,7 @@ namespace PAVisualizer
         /// Creates a combined image of the world showing the provided layers.
         /// </summary>
         /// <param name="layers">The layers to show.</param>
+        /// <param name="blendPopulation">Whether to blend the population layer colors.</param>
         /// <param name="image">The created image</param>
         /// <returns>The tile count for all tile types, for each layer.</returns>
         public static (
@@ -133,6 +136,7 @@ namespace PAVisualizer
                 Dictionary<EnumValue<EntityType>, long> entityTypeCounts
             ) CreateCombinedImage(
             List<VisibleTileLayer> layers,
+            bool blendPopulation,
             out Bitmap? image
         )
         {
@@ -151,6 +155,7 @@ namespace PAVisualizer
 
                 var (terrainTypeCounts, structureTypeCounts, entityTypeCounts) = CreateWorldLayerImage(
                     layer,
+                    blendPopulation,
                     out var layerImage,
                     VisualizerTools.GetLayerOpacity(layers, layer)
                 );
@@ -186,10 +191,11 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="layers">The layers to use.</param>
         /// <param name="exportPath">The path to export the image to.</param>
-        public static void MakeImage(List<VisibleTileLayer> layers, string exportPath)
+        /// <param name="blendPopulation">Whether to blend the population layer colors.</param>
+        public static void MakeImage(List<VisibleTileLayer> layers, string exportPath, bool blendPopulation)
         {
             PACSingletons.Instance.ConsoleProxy.Write("Generating image...");
-            var (terrainTypeCounts, structureTypeCounts, entityCounts) = CreateCombinedImage(layers, out var image);
+            var (terrainTypeCounts, structureTypeCounts, entityCounts) = CreateCombinedImage(layers, blendPopulation, out var image);
             PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
 
             if (terrainTypeCounts is null || structureTypeCounts is null || entityCounts is null || image is null)
@@ -273,7 +279,16 @@ namespace PAVisualizer
                 layerElements.Add(new Toggle(true, $"{layer.ToString().Capitalize()}: "));
             }
             layerElements.Add(null);
-            layerElements.Add(new PAButton(UIAction.Create(GenerateImageCommand, layerElements, layers, visualizedSavePath), text: "Generate image"));
+            var blendPop = new Toggle(false, "Blend population colors: ", "Yes", "No");
+            layerElements.Add(blendPop);
+            layerElements.Add(null);
+            layerElements.Add(new PAButton(UIAction.Create(
+                GenerateImageCommand,
+                layerElements,
+                layers,
+                blendPop,
+                visualizedSavePath
+            ), text: "Generate image"));
 
             new OptionsUI(
                 layerElements,
@@ -284,7 +299,12 @@ namespace PAVisualizer
         #endregion
 
         #region Pivate fields
-        private static void GenerateImageCommand(List<BaseUI?> layerElements, VisibleTileLayer[] layers, string visualizedSavePath)
+        private static void GenerateImageCommand(
+            List<BaseUI?> layerElements,
+            VisibleTileLayer[] layers,
+            Toggle blendPopulationElement,
+            string visualizedSavePath
+        )
         {
             // get selected layers
             var selectedLayers = new List<VisibleTileLayer>();
@@ -295,12 +315,13 @@ namespace PAVisualizer
                     selectedLayers.Add(layers[x]);
                 }
             }
+            var blendPopulation = blendPopulationElement.Value;
 
             // generate image
             if (selectedLayers.Count != 0)
             {
                 var imageName = string.Join("-", selectedLayers) + ".png";
-                MakeImage(selectedLayers, Path.Join(visualizedSavePath, imageName));
+                MakeImage(selectedLayers, Path.Join(visualizedSavePath, imageName), blendPopulation);
                 PACSingletons.Instance.ConsoleProxy.PressKey($"Generated image as \"{imageName}\"");
             }
         }

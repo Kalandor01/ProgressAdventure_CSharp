@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PAVisualizer"
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         mc:Ignorable="d"
-        Title="{DynamicResource Title}" Height="850" Width="800">
+        Title="{DynamicResource Title}" Height="850" Width="910">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -35,6 +35,7 @@
             <Label x:Name="diameterTextBox"></Label>
             <Button x:Name="revealAreaButton" Click="RevealAreaCommand" Content="{DynamicResource RevalAreaButtonText}"></Button>
             <Button x:Name="toggleLoggingWriteOut" Click="ToggleLoggingWriteOutCommand">Toggle logging in console: True</Button>
+            <Button x:Name="toggleBlendPopulationColors" Click="ToggleBlendPopulationColorsCommand">Blend population colors: True</Button>
             <CheckBox x:Name="terrainLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand" Content="{DynamicResource TerrainLayerCheckBoxText}"></CheckBox>
             <CheckBox x:Name="structureLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand" Content="{DynamicResource StructureLayerCheckBoxText}"></CheckBox>
             <CheckBox x:Name="populationLayerCheckBox" Unchecked="RebuildLayersCommand" Checked="RebuildLayersCommand" Content="{DynamicResource PopulationLayerCheckBoxText}"></CheckBox>

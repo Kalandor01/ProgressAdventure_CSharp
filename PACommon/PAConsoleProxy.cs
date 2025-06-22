@@ -65,7 +65,7 @@ namespace PACommon
         {
             lock (_writeLock)
             {
-                Console.Write(value);
+                WritePrivate(value);
             }
         }
 
@@ -81,7 +81,7 @@ namespace PACommon
         {
             lock (_writeLock)
             {
-                Console.WriteLine(value);
+                WriteLinePrivate(value);
             }
         }
 
@@ -89,7 +89,7 @@ namespace PACommon
         {
             lock (_writeLock)
             {
-                Console.WriteLine(text);
+                WriteLinePrivate(text);
             }
         }
 
@@ -97,18 +97,22 @@ namespace PACommon
         {
             lock (_writeLock)
             {
-                Console.WriteLine();
+                WriteLinePrivate();
             }
         }
 
         public ConsoleKeyInfo ReadKey(bool displayKey = true)
         {
-            return Console.ReadKey(!displayKey);
+            var key = Console.ReadKey(!displayKey);
+            LogRead(key, displayKey);
+            return key;
         }
 
         public string? ReadLine()
         {
-            return Console.ReadLine();
+            var line = Console.ReadLine();
+            LogRead(line, true);
+            return line;
         }
 
         public string? ReadLine(string text)
@@ -125,6 +129,7 @@ namespace PACommon
         public void SetCursorPosition(int column, int row)
         {
             Console.SetCursorPosition(column, row);
+            LogSetPos(column, row);
         }
 
         public void PressKey(string text = "", bool displayKey = false)
@@ -183,12 +188,134 @@ namespace PACommon
         #endregion
 
         #region Private methods
+        private static void LogWrite(object? textObj, bool newLine)
+        {
+            if (!PACSingletons.IsInitialized)
+            {
+                return;
+            }
+
+            var logger = PACSingletons.Instance.Logger;
+            if (!logger.LoggingEnabled || (int)logger.LoggingLevel > (int)Enums.LogSeverity.TRACE)
+            {
+                return;
+            }
+
+            logger.Log(
+                "Text written to output",
+                $"newline: {newLine}, text: {(textObj is null ? "[NULL]" : $"\"{textObj}\"")}",
+                Enums.LogSeverity.TRACE,
+                false
+            );
+        }
+
+        private static void LogRead(string? readStr, bool displayed)
+        {
+            if (!PACSingletons.IsInitialized)
+            {
+                return;
+            }
+
+            var logger = PACSingletons.Instance.Logger;
+            if (!logger.LoggingEnabled || (int)logger.LoggingLevel > (int)Enums.LogSeverity.TRACE)
+            {
+                return;
+            }
+
+            logger.Log(
+                "Text read from user",
+                $"displayed: {displayed}, text: {(readStr is null ? "[NULL]" : $"\"{readStr}\"")}",
+                Enums.LogSeverity.TRACE,
+                false
+            );
+        }
+
+        private static void LogRead(ConsoleKeyInfo readKey, bool displayed)
+        {
+            if (!PACSingletons.IsInitialized)
+            {
+                return;
+            }
+
+            var logger = PACSingletons.Instance.Logger;
+            if (!logger.LoggingEnabled || (int)logger.LoggingLevel > (int)Enums.LogSeverity.TRACE)
+            {
+                return;
+            }
+
+            var mods = string.Join(", ", Enum.GetValues<ConsoleModifiers>().Where(k => (readKey.Modifiers & k) != 0));
+            logger.Log(
+                "Character read from user",
+                $"displayed: {displayed}, key: {readKey.Key}, char: \"{readKey.KeyChar}\", modifiers: {mods}",
+                Enums.LogSeverity.TRACE,
+                false
+            );
+        }
+
+        private static void LogSetPos(int posCol, int posRow)
+        {
+            if (!PACSingletons.IsInitialized)
+            {
+                return;
+            }
+
+            var logger = PACSingletons.Instance.Logger;
+            if (!logger.LoggingEnabled || (int)logger.LoggingLevel > (int)Enums.LogSeverity.TRACE)
+            {
+                return;
+            }
+
+            logger.Log(
+                "Cusor position set",
+                $"posX: {posCol}, posY: {posRow}",
+                Enums.LogSeverity.TRACE,
+                false
+            );
+        }
+
+        /// <summary>
+        /// Same as <see cref="Write(object?)"/> but doesn't enforce the lock.
+        /// </summary>
+        private static void WritePrivate(object? text)
+        {
+            Console.Write(text);
+            LogWrite(text, false);
+        }
+
         /// <summary>
         /// Same as <see cref="Write(string?)"/> but doesn't enforce the lock.
         /// </summary>
         private static void WritePrivate(string? text)
         {
             Console.Write(text);
+            LogWrite(text, false);
+        }
+
+        /// <summary>
+        /// Same as <see cref="WriteLine(object?)"/> but doesn't enforce the lock.
+        /// </summary>
+        private static void WriteLinePrivate(object? text)
+        {
+            Console.WriteLine(text);
+            LogWrite(text, true);
+        }
+
+        /// <summary>
+        /// Same as <see cref="WriteLine(string?)"/> but doesn't enforce the lock.
+        /// </summary>
+        private static void WriteLinePrivate(string? text)
+        {
+            Console.WriteLine(text);
+            LogWrite(text, true);
+        }
+
+        /// <summary>
+        /// Same as <see cref="WriteLine()"/> but doesn't enforce the lock.
+        /// </summary>
+        private static void WriteLinePrivate()
+        {
+            Console.WriteLine();
+            LogWrite(null, true);
         }
         #endregion
     }

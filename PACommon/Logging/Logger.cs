@@ -166,20 +166,22 @@ namespace PACommon.Logging
             bool forceLog = false
         )
         {
+            if (!LoggingEnabled || (int)LoggingLevel > (int)severity)
+            {
+                return;
+            }
+
             try
             {
-                if (LoggingEnabled && (int)LoggingLevel <= (int)severity)
+                var now = DateTime.Now;
+                var currentDate = Utils.MakeDate(now);
+                var currentTime = Utils.MakeTime(now, writeMs: LogMS);
+                string logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}";
+                _logMessageBuffer.Add((logLine, now));
+                await LogIfNeeded(newLine, forceLog);
+                if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
                 {
-                    var now = DateTime.Now;
-                    var currentDate = Utils.MakeDate(now);
-                    var currentTime = Utils.MakeTime(now, writeMs: LogMS);
-                    string logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}";
-                    _logMessageBuffer.Add((logLine, now));
-                    await LogIfNeeded(newLine, forceLog);
-                    if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
-                    {
-                        await loggerStream.WriteOutLogAsync(logLine, newLine);
-                    }
+                    await loggerStream.WriteOutLogAsync(logLine, newLine);
                 }
             }
             catch (Exception e)
