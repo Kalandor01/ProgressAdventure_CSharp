@@ -70,17 +70,17 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Same as <see cref="SaveJsonFile(JsonDictionary, string, string)"/>, but zips + base64 encodes the file.
+        /// Same as <see cref="SaveJsonFile(JsonDictionary, string, string, bool)"/>, but zips + base64 encodes the file.
         /// </summary>
         /// <param name="data">The data to write to the file.</param>
         /// <inheritdoc cref="SaveCompressedFile(IEnumerable{JsonDictionary}, string, string)"/>
         public static void SaveCompressedFile(JsonDictionary data, string filePath, string extension)
         {
-            SaveJsonFile([data], filePath, extension);
+            SaveCompressedFile([data], filePath, extension);
         }
 
         /// <summary>
-        /// Shorthand for <see cref="FileConversion.EncodeFile(IEnumerable{string}, long, string, string, int, Encoding?)"/> + convert from json to string.
+        /// Shorthand for <see cref="FileConversion.EncodeFile(IEnumerable{string}, long, string, string, int, Encoding?, bool)"/> + convert from json to string.
         /// </summary>
         /// <param name="dataList">The list of data to write to the file, where each element of the list is a line.</param>
         /// <param name="filePath">The path and the name of the file without the extension, that will be created.<br/>
@@ -190,6 +190,7 @@ namespace PACommon
                 PACSingletons.Instance.Logger.Log("Random parse error", "random seed is null", LogSeverity.WARN);
                 return null;
             }
+
             try
             {
                 return (SplittableRandom)new SplittableRandomSerializer().ReadFromString(randomString);

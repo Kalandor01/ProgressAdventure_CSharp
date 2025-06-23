@@ -1,4 +1,5 @@
-﻿using FileManager;
+﻿using ConsoleUI;
+using FileManager;
 using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
@@ -18,10 +19,23 @@ namespace PACommon
         /// </summary>
         /// <param name="text">Text to write out when requesting the number.</param>
         /// <param name="errorText">Text to write out when the user inputs a wrong value.</param>
-        /// <returns></returns>
-        public static int ReadInt(string text = "Number: ", string errorText = "Not a whole number!")
+        /// <param name="consoleProxy">The console proxy to use.</param>
+        public static int ReadInt(string text = "Number: ", string errorText = "Not a whole number!", IConsoleProxy? consoleProxy = null)
         {
-            return FileManager.Utils.ReadInt(text, errorText);
+            consoleProxy ??= new ConsoleProxy();
+            int result;
+            while (true)
+            {
+                consoleProxy.Write(text);
+                if (int.TryParse(consoleProxy.ReadLine(), out result))
+                {
+                    break;
+                }
+
+                consoleProxy.WriteLine(errorText);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -29,17 +43,18 @@ namespace PACommon
         /// </summary>
         /// <param name="text">Text to write out when requesting the number.</param>
         /// <param name="errorText">Text to write out when the user inputs a wrong value.</param>
-        /// <returns></returns>
-        public static double ReadDouble(string text = "Number: ", string errorText = "Not a number!")
+        /// <param name="consoleProxy">The console proxy to use.</param>
+        public static double ReadDouble(string text = "Number: ", string errorText = "Not a number!", IConsoleProxy? consoleProxy = null)
         {
+            consoleProxy ??= new ConsoleProxy();
             while (true)
             {
-                PACSingletons.Instance.ConsoleProxy.Write(text);
-                if (double.TryParse(PACSingletons.Instance.ConsoleProxy.ReadLine(), out double result))
+                consoleProxy.Write(text);
+                if (double.TryParse(consoleProxy.ReadLine(), out double result))
                 {
                     return result;
                 }
-                PACSingletons.Instance.ConsoleProxy.WriteLine(errorText);
+                consoleProxy.WriteLine(errorText);
             }
         }
 
@@ -419,18 +434,20 @@ namespace PACommon
         /// </summary>
         /// <param name="writable">The object to write out</param>
         /// <param name="recursionNum">Recursion number. Should not be modified.</param>
-        public static void RecursiveWrite(object? writable, int recursionNum = 0)
+        /// <param name="writeLineFuntion">The function to use to write out the value with a newline.</param>
+        public static void RecursiveWrite(object? writable, int recursionNum = 0, Action<string>? writeLineFuntion = null)
         {
+            writeLineFuntion ??= Console.WriteLine;
             if (writable is null)
             {
-                PACSingletons.Instance.ConsoleProxy.WriteLine("[NULL]");
+                writeLineFuntion("[NULL]");
             }
             else if (writable is not string && writable is IDictionary writableDict)
             {
                 foreach (var item in writableDict.Keys)
                 {
-                    PACSingletons.Instance.ConsoleProxy.WriteLine(new string('\t', recursionNum) + item.ToString() + ":");
-                    RecursiveWrite(writableDict[item], recursionNum + 1);
+                    writeLineFuntion($"{new string('\t', recursionNum)}{item}:");
+                    RecursiveWrite(writableDict[item], recursionNum + 1, writeLineFuntion);
                 }
             }
             else if (writable is not string && writable is IEnumerable writableList)
@@ -438,12 +455,12 @@ namespace PACommon
                 recursionNum++;
                 foreach (var item in writableList)
                 {
-                    RecursiveWrite(item, recursionNum);
+                    RecursiveWrite(item, recursionNum, writeLineFuntion);
                 }
             }
             else
             {
-                PACSingletons.Instance.ConsoleProxy.WriteLine(new string('\t', recursionNum) + writable);
+                writeLineFuntion($"{new string('\t', recursionNum)}{writable}");
             }
         }
 
@@ -558,12 +575,11 @@ namespace PACommon
             var subClassFieldValues = new List<T>();
 
             var subClasses = classType.GetNestedTypes();
-
             foreach (var subClass in subClasses)
             {
                 subClassFieldValues.AddRange(GetNestedStaticClassFields<T>(subClass));
             }
-            FieldInfo[] properties = classType.GetFields();
+            var properties = classType.GetFields();
 
             var classFieldValues = new List<T>();
             foreach (FieldInfo property in properties)

@@ -1304,7 +1304,6 @@ namespace ProgressAdventureTests
             var overallResult = importOverallSuccess ? new TestResultDTO() : new TestResultDTO(LogSeverity.FAIL, "See above for details");
             PACSingletons.Instance.ConsoleProxy.WriteLine($"Overall... {TestingUtils.GetResultString(overallResult)}");
 
-
             // list of reference saves
             var zipPaths = Directory.GetFiles(Constants.TEST_REFERENCE_SAVES_FOLDER_PATH)
                 .Where(path => Path.GetExtension(path) == ".zip")
