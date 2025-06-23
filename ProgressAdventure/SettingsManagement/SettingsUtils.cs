@@ -209,7 +209,7 @@ namespace ProgressAdventure.SettingsManagement
             return new JsonDictionary
             {
                 [SettingsKey.AUTO_SAVE.ToString()] = true,
-                [SettingsKey.LOGGING_LEVEL.ToString()] = 0,
+                [SettingsKey.LOGGING_LEVEL.ToString()] = (int)LogSeverity.DEBUG,
                 [SettingsKey.KEYBINDS.ToString()] = new Keybinds().ToJson(),
                 [SettingsKey.ASK_DELETE_SAVE.ToString()] = true,
                 [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = true,

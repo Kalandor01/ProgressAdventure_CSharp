@@ -1,18 +1,21 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows;
+using System.Threading.Tasks;
+using Image = SixLabors.ImageSharp.Image;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
 
@@ -84,33 +87,44 @@ namespace PAVisualizer
         /// <param name="window">The window to center the dialog over.</param>
         /// <param name="initialDirectory">The initial dialog of the file dialog.</param>
         /// <param name="isSelectFolder">Whether to make the user select a folder or a file.</param>
-        public static string? GetPathFromFileDialog(
+        public static async Task<string?> GetPathFromFileDialog(
             Window? window = null,
             string? initialDirectory = null,
             bool isSelectFolder = false
         )
         {
-            var fileDialog = new CommonOpenFileDialog()
-            {
-                IsFolderPicker = isSelectFolder,
-            };
+            var topLevel = TopLevel.GetTopLevel(window);
+            var storageProvider = topLevel.StorageProvider;
+            var initialUri = initialDirectory is not null ? await storageProvider.TryGetFolderFromPathAsync(initialDirectory) : null;
 
-            if (initialDirectory is not null)
+            if (isSelectFolder)
             {
-                fileDialog.InitialDirectory = initialDirectory;
+                var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    AllowMultiple = false,
+                    SuggestedStartLocation = initialUri,
+                });
+
+                if (files.Count != 1)
+                {
+                    return null;
+                }
+
+                return files[0].Path.AbsolutePath;
+            }
+            
+            var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                AllowMultiple = false,
+                SuggestedStartLocation = initialUri,
+            });
+
+            if (folders.Count != 1)
+            {
+                return null;
             }
 
-            CommonFileDialogResult showDialogResponse;
-            if (window is null)
-            {
-                showDialogResponse = fileDialog.ShowDialog();
-            }
-            else
-            {
-                showDialogResponse = fileDialog.ShowDialog(window);
-            }
-
-            return showDialogResponse == CommonFileDialogResult.Ok ? fileDialog.FileName : null;
+            return folders[0].Path.AbsolutePath;
         }
 
         /// <summary>
@@ -130,9 +144,7 @@ namespace PAVisualizer
                 fileDialogResponseRecived = false;
                 fileDialogSelectedPath = null;
 
-                var windowThread = new Thread(() => ShowFileDialogThread(initialDirectory, isSelectFolder));
-                windowThread.SetApartmentState(ApartmentState.STA);
-                windowThread.Start();
+                ShowFileDialogThread(initialDirectory, isSelectFolder);
 
                 do
                 {
@@ -156,7 +168,9 @@ namespace PAVisualizer
             bool isSelectFolder = false)
         {
             Thread.CurrentThread.Name = Constants.FILE_DIALOG_THREAD_NAME;
-            fileDialogSelectedPath = GetPathFromFileDialog(null, initialDirectory, isSelectFolder);
+            var selectedPathTask = GetPathFromFileDialog(null, initialDirectory, isSelectFolder);
+            selectedPathTask.Wait();
+            fileDialogSelectedPath = selectedPathTask.Result;
             fileDialogResponseRecived = true;
         }
         #endregion
@@ -380,11 +394,10 @@ namespace PAVisualizer
         /// </summary>
         /// <param name="image">The first image.</param>
         /// <param name="otherImage">The image to add to the first image.</param>
-        public static void CombineImages(ref Bitmap image, Bitmap otherImage)
+        /// <param name="opacity">The opacity of the second image.</param>
+        public static void CombineImages(ref Image image, Image otherImage, double opacity)
         {
-            var graphics = Graphics.FromImage(image);
-            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-            graphics.DrawImage(otherImage, 0, 0);
+            image.Mutate(x => x.DrawImage(otherImage, (float)opacity));
         }
         #endregion
     }

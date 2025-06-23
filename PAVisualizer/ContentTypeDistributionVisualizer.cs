@@ -6,13 +6,17 @@ using PACommon.Extensions;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Text;
 using PACTools = PACommon.Tools;
+using Path = System.IO.Path;
 using Utils = PACommon.Utils;
 
 namespace PAVisualizer
@@ -29,7 +33,7 @@ namespace PAVisualizer
         /// <param name="resolution">The resolution of the graph.</param>
         /// <param name="opacityMultiplier">The opacity multiplier for the pixels.</param>
         /// <param name="blendMultiplePopulationColors">Whether to blend population colors if there are multiple entity types for a specific noise value.</param>
-        public static Bitmap CreateNoiseTypeDistributionImage(
+        public static Image CreateNoiseTypeDistributionImage(
             VisibleTileLayer layer,
             TileNoiseType noiseTypeXAxis,
             TileNoiseType noiseTypeYAxis,
@@ -122,8 +126,7 @@ namespace PAVisualizer
 
             (int x, int y) tileSize = (1, 1);
 
-            var image = new Bitmap((int)resolution * tileSize.x, (int)resolution * tileSize.y);
-            var drawer = Graphics.FromImage(image);
+            var image = new Image<Rgba32>((int)resolution * tileSize.x, (int)resolution * tileSize.y);
 
             var increment = 1.0 / resolution;
             var noiseValues = new Dictionary<TileNoiseType, double>
@@ -145,15 +148,18 @@ namespace PAVisualizer
                     WorldUtils.ShiftNoiseValues(noiseValues);
                     var color = colorGetterFunction(noiseValues).MultiplyOpacity(opacityMultiplier);
 
+                    RectangularPolygon rectangle;
                     if (tileSize.x > 2 && tileSize.y > 2)
                     {
-                        drawer.FillRectangle(new SolidBrush(color.ToDrawingColor()), startX + 10, startY + 10, tileSize.x, tileSize.y);
+                        rectangle = new RectangularPolygon(startX + 10, startY + 10, tileSize.x, tileSize.y);
                     }
                     else
                     {
-                        (float x, float y) actualTileSize = (tileSize.x < 2 ? 0.5f : tileSize.x, tileSize.y < 2 ? 0.5f : tileSize.y);
-                        drawer.DrawRectangle(new Pen(color.ToDrawingColor()), startX, startY, actualTileSize.x, actualTileSize.y);
+                        var actualTileSizeX = tileSize.x < 2 ? 0.5f : tileSize.x;
+                        var actualTileSizeY = tileSize.y < 2 ? 0.5f : tileSize.y;
+                        rectangle = new RectangularPolygon(startX, startY, actualTileSizeX, actualTileSizeY);
                     }
+                    image.Mutate(x => x.Fill(color.ToImageSharpColor(), rectangle));
                 }
             }
             return image;

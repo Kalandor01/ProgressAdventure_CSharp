@@ -6,13 +6,18 @@ using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Text;
 using PAConstants = ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
+using Path = System.IO.Path;
 using Utils = PACommon.Utils;
 
 namespace PAVisualizer
@@ -35,7 +40,7 @@ namespace PAVisualizer
             ) CreateWorldLayerImage(
             VisibleTileLayer layer,
             bool blendPopulation,
-            out Bitmap image,
+            out Image image,
             double opacityMultiplier = 1
         )
         {
@@ -49,7 +54,7 @@ namespace PAVisualizer
 
             if (worldCorners is null)
             {
-                image = new Bitmap(1, 1);
+                image = new Image<Rgba32>(1, 1);
                 return (terrainTypeCounts, structureTypeCounts, entityTypeCounts);
             }
 
@@ -57,9 +62,7 @@ namespace PAVisualizer
 
             (long x, long y) size = ((maxX - minX + 1) * tileSize.x, (maxY - minY + 1) * tileSize.y);
 
-            image = new Bitmap((int)size.x, (int)size.y);
-            var drawer = Graphics.FromImage(image);
-
+            image = new Image<Rgba32>((int)size.x, (int)size.y);
             foreach (var chunk in World.Chunks.Values)
             {
                 foreach (var tile in chunk.tiles.Values)
@@ -109,15 +112,18 @@ namespace PAVisualizer
                     }
                     var color = VisualizerTools.GetLayerContentColor(tile, layer, blendPopulation).MultiplyOpacity(opacityMultiplier);
 
+                    RectangularPolygon rectangle;
                     if (tileSize.x > 2 && tileSize.y > 2)
                     {
-                        drawer.FillRectangle(new SolidBrush(color.ToDrawingColor()), startX + 10, startY + 10, tileSize.x, tileSize.y);
+                        rectangle = new RectangularPolygon(startX + 10, startY + 10, tileSize.x, tileSize.y);
                     }
                     else
                     {
-                        (float x, float y) actualTileSize = (tileSize.x < 2 ? 0.5f : tileSize.x, tileSize.y < 2 ? 0.5f : tileSize.y);
-                        drawer.DrawRectangle(new Pen(color.ToDrawingColor()), startX, startY, actualTileSize.x, actualTileSize.y);
+                        var actualTileSizeX = tileSize.x < 2 ? 0.5f : tileSize.x;
+                        var actualTileSizeY = tileSize.y < 2 ? 0.5f : tileSize.y;
+                        rectangle = new RectangularPolygon(startX, startY, actualTileSizeX, actualTileSizeY);
                     }
+                    image.Mutate(x => x.Fill(color.ToImageSharpColor(), rectangle));
                 }
             }
             return (terrainTypeCounts, structureTypeCounts, entityTypeCounts);
@@ -137,7 +143,7 @@ namespace PAVisualizer
             ) CreateCombinedImage(
             List<VisibleTileLayer> layers,
             bool blendPopulation,
-            out Bitmap? image
+            out Image? image
         )
         {
             image = null;
@@ -156,8 +162,7 @@ namespace PAVisualizer
                 var (terrainTypeCounts, structureTypeCounts, entityTypeCounts) = CreateWorldLayerImage(
                     layer,
                     blendPopulation,
-                    out var layerImage,
-                    VisualizerTools.GetLayerOpacity(layers, layer)
+                    out var layerImage
                 );
 
                 switch (layer)
@@ -180,7 +185,7 @@ namespace PAVisualizer
                     image = layerImage;
                     continue;
                 }
-                VisualizerTools.CombineImages(ref image, layerImage);
+                VisualizerTools.CombineImages(ref image, layerImage, VisualizerTools.GetLayerOpacity(layers, layer));
             }
 
             return (terrainCounts, structureCounts, entityCounts);

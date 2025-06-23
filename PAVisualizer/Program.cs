@@ -1,4 +1,5 @@
-﻿using ConsoleUI;
+﻿using Avalonia;
+using ConsoleUI;
 using ConsoleUI.UIElements;
 using PACommon;
 using PACommon.ConfigManagement;
@@ -63,30 +64,31 @@ namespace PAVisualizer
         /// <summary>
         /// Shows the main window.
         /// </summary>
-        static void ShowMainWindow()
+        [STAThread]
+        static void ShowMainWindow(string[] args)
         {
-            var windowThread = new Thread(ShowMainWindowThread);
-            windowThread.SetApartmentState(ApartmentState.STA);
-            windowThread.Start();
+            BuildAvaloniaApp()
+            .StartWithClassicDesktopLifetime(args);
         }
 
-        [STAThread]
-        static void ShowMainWindowThread()
+        // Avalonia configuration, don't remove; also used by visual designer.
+        public static AppBuilder BuildAvaloniaApp()
         {
-            Thread.CurrentThread.Name = Constants.VISUALIZER_WINDOW_THREAD_NAME;
-            var mainWindow = new MainWindow();
-            var application = new Application();
-            application.Run(mainWindow);
+            return AppBuilder.Configure<App>()
+                        .UsePlatformDetect()
+                        .WithInterFont()
+                        .LogToTrace();
         }
 
         /// <summary>
         /// The main function for the program.
         /// </summary>
-        static void MainFunction()
+        [STAThread]
+        static void MainFunction(string[] args)
         {
             if (MenuManager.AskYesNoUIQuestion("Open visualizer GUI?"))
             {
-                ShowMainWindow();
+                ShowMainWindow(args);
             }
             else
             {
@@ -189,7 +191,8 @@ namespace PAVisualizer
         /// <summary>
         /// The error handler, for the main function.
         /// </summary>
-        static void MainErrorHandler()
+        [STAThread]
+        static void MainErrorHandler(string[] args)
         {
             bool exitGame;
             do
@@ -198,7 +201,7 @@ namespace PAVisualizer
                 try
                 {
                     PACSingletons.Instance.Logger.Log("Beginning new instance", forceLog: true);
-                    MainFunction();
+                    MainFunction(args);
                     //exit
                     PACSingletons.Instance.Logger.Log("Instance ended succesfuly", forceLog: true);
                     PACSingletons.Instance.Dispose();
@@ -215,6 +218,7 @@ namespace PAVisualizer
             while (!exitGame);
         }
 
+        [STAThread]
         static void Main(string[] args)
         {
             bool exitGame;
@@ -225,7 +229,7 @@ namespace PAVisualizer
                 try
                 {
                     PreloadingErrorHandler();
-                    MainErrorHandler();
+                    MainErrorHandler(args);
                 }
                 catch (RestartException re)
                 {

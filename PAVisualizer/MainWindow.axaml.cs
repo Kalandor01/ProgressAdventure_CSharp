@@ -1,4 +1,9 @@
-﻿using PACommon;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Media;
+using PACommon;
 using PACommon.Enums;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
@@ -7,10 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
 using Tools = PACommon.Tools;
@@ -96,8 +97,8 @@ namespace PAVisualizer
             worldInfoString = string.Empty;
             TileCountsNeedToBeRefreshed = true;
 
-            KeyDown += new KeyEventHandler(WorldGridMoveCommand);
-            MouseWheel += new MouseWheelEventHandler(WorldGridZoomCommand);
+            KeyDown += WorldGridMoveCommand;
+            PointerWheelChanged += WorldGridZoomCommand;
 
             InitializeComponent();
             DataContext = this;
@@ -109,13 +110,29 @@ namespace PAVisualizer
             structureLayerCheckBox.IsChecked = true;
             populationLayerCheckBox.IsChecked = true;
             toggleLoggingWriteOut.Content = $"Toggle logging in console: {PACSingletons.Instance.Logger.DefaultWriteOut}";
+
+            selectMenuItem.Command = new Command(SelectSaveCommand);
+            closeMenuItem.Command = new Command(CloseSaveCommand);
+            createImageMenuItem.Command = new Command(CreateImageCommand);
+            showSaveInfoMenuItem.Command = new Command(ShowSaveInfoCommand);
+            showWorldInfoMenuItem.Command = new Command(ShowWorldInfoCommand);
+            createSaveMenuItem.Command = new Command(CreateSaveCommand);
+            revealAreaButton.Command = new Command(RevealAreaCommand);
+            toggleLoggingWriteOut.Command = new Command(ToggleLoggingWriteOutCommand);
+            toggleBlendPopulationColors.Command = new Command(ToggleBlendPopulationColorsCommand);
+            terrainLayerCheckBox.IsCheckedChanged += TerrainLayerCheckBoxIsCheckedChanged;
+            structureLayerCheckBox.IsCheckedChanged += StructureLayerCheckBoxIsCheckedChanged;
+            populationLayerCheckBox.IsCheckedChanged += PopulationLayerCheckBoxIsCheckedChanged;
         }
         #endregion
 
         #region Commands
-        private void SelectSaveCommand(object sender, RoutedEventArgs e)
+        private void SelectSaveCommand()
         {
-            var saveStrings = VisualizerTools.GetSaveFolderFromPath(VisualizerTools.GetPathFromFileDialog(this, PAConstants.SAVES_FOLDER_PATH, true));
+            var pathTask = VisualizerTools.GetPathFromFileDialog(this, PAConstants.SAVES_FOLDER_PATH, true);
+            pathTask.Wait();
+            var path = pathTask.Result;
+            var saveStrings = VisualizerTools.GetSaveFolderFromPath(path);
 
             if (saveStrings is null)
             {
@@ -147,13 +164,13 @@ namespace PAVisualizer
             RenderWorldArea(layers, null);
         }
 
-        private void CloseSaveCommand(object sender, RoutedEventArgs e)
+        private void CloseSaveCommand()
         {
             SelectedSave = false;
             ClearWorldGrid();
         }
 
-        private void CreateSaveCommand(object sender, RoutedEventArgs e)
+        private void CreateSaveCommand( )
         {
             if (!SelectedSave)
             {
@@ -163,7 +180,7 @@ namespace PAVisualizer
             SaveManager.MakeSave(false, "Saving...");
         }
 
-        private void CreateImageCommand(object sender, RoutedEventArgs e)
+        private void CreateImageCommand()
         {
             if (!SelectedSave || layers.Count == 0)
             {
@@ -179,47 +196,46 @@ namespace PAVisualizer
             ConsoleVisualizer.MakeImage(layers, Path.Join(visualizedSavePath, imageName), blendPopulationColors);
         }
 
-        private void ShowSaveInfoCommand(object sender, RoutedEventArgs e)
+        private void ShowSaveInfoCommand()
         {
             if (!SelectedSave)
             {
                 return;
             }
-            new SaveInfoWindow().ShowDialog();
+            new SaveInfoWindow().ShowDialog(this);
         }
 
-        private void ShowWorldInfoCommand(object sender, RoutedEventArgs e)
+        private void ShowWorldInfoCommand()
         {
             if (!SelectedSave)
             {
                 return;
             }
-            new WorldInfoWindow(worldInfoString).ShowDialog();
+            new WorldInfoWindow(worldInfoString).ShowDialog(this);
         }
 
-        private void WorldGridZoomCommand(object sender, MouseWheelEventArgs e)
+        private void WorldGridZoomCommand(object? sender, PointerWheelEventArgs args)
         {
             if (!SelectedSave)
             {
                 return;
             }
 
-            var scrollUp = e.Delta > 0;
+            var scrollUp = args.Delta.X > 0;
             worldGridScale *= scrollUp ? WORLD_ZOOM_IN_CONSTANT : WORLD_ZOOM_OUT_CONSTANT;
 
-            var transformMatrix = new Matrix();
-            transformMatrix.Translate(center.x, center.y);
-            transformMatrix.Scale(worldGridScale, worldGridScale);
+            var transformMatrix = Matrix.CreateTranslation(center.x, center.y)
+                .Append(new ScaleTransform(worldGridScale, worldGridScale).Value);
             worldGrid.RenderTransform = new MatrixTransform(transformMatrix);
             UpdateViewTextboxes();
         }
 
-        private void RebuildLayersCommand(object sender, RoutedEventArgs e)
+        private void RebuildLayersCommand()
         {
             RebuildLayers();
         }
-
-        private void WorldGridMoveCommand(object sender, KeyEventArgs e)
+        
+        private void WorldGridMoveCommand(object? sender, KeyEventArgs args)
         {
             if (!SelectedSave)
             {
@@ -236,12 +252,11 @@ namespace PAVisualizer
             var worldWidth = corners.Value.maxX - corners.Value.minX + 1;
             var worldHeight = corners.Value.maxY - corners.Value.minY + 1;
 
-            var key = e.Key;
-
+            var key = args.Key;
             var newCenter = center;
 
-            var moveModifierX = worldGrid.ActualWidth / worldWidth * -1;
-            var moveModifierY = worldGrid.ActualHeight / worldHeight * -1;
+            var moveModifierX = worldGrid.Width / worldWidth * -1;
+            var moveModifierY = worldGrid.Height / worldHeight * -1;
 
             switch (key)
             {
@@ -263,14 +278,13 @@ namespace PAVisualizer
 
             center = newCenter;
 
-            var transformMatrix = new Matrix();
-            transformMatrix.Translate(center.x, center.y);
-            transformMatrix.Scale(worldGridScale, worldGridScale);
+            var transformMatrix = Matrix.CreateTranslation(center.x, center.y)
+                .Append(new ScaleTransform(worldGridScale, worldGridScale).Value);
             worldGrid.RenderTransform = new MatrixTransform(transformMatrix);
             UpdateViewTextboxes();
         }
 
-        private void RevealAreaCommand(object sender, RoutedEventArgs e)
+        private void RevealAreaCommand()
         {
             if (!SelectedSave)
             {
@@ -286,8 +300,8 @@ namespace PAVisualizer
 
             var worldWidth = corners.Value.maxX - corners.Value.minX + 1;
             var worldHeight = corners.Value.maxY - corners.Value.minY + 1;
-            var worldMoveAmountX = worldGrid.ActualWidth / worldWidth * -1;
-            var worldMoveAmountY = worldGrid.ActualHeight / worldHeight;
+            var worldMoveAmountX = worldGrid.Width / worldWidth * -1;
+            var worldMoveAmountY = worldGrid.Height / worldHeight;
             var xOffset = center.x / worldMoveAmountX;
             var yOffset = center.y / worldMoveAmountY;
 
@@ -309,13 +323,13 @@ namespace PAVisualizer
             RenderWorldArea();
         }
 
-        private void ToggleLoggingWriteOutCommand(object sender, RoutedEventArgs e)
+        private void ToggleLoggingWriteOutCommand()
         {
             PACSingletons.Instance.Logger.DefaultWriteOut = !PACSingletons.Instance.Logger.DefaultWriteOut;
             toggleLoggingWriteOut.Content = $"Toggle logging in console: {PACSingletons.Instance.Logger.DefaultWriteOut}";
         }
 
-        private void ToggleBlendPopulationColorsCommand(object sender, RoutedEventArgs e)
+        private void ToggleBlendPopulationColorsCommand()
         {
             blendPopulationColors = !blendPopulationColors;
             toggleBlendPopulationColors.Content = $"Blend population colors: {blendPopulationColors}";
@@ -324,6 +338,21 @@ namespace PAVisualizer
             {
                 RenderWorldArea();
             }
+        }
+
+        private void TerrainLayerCheckBoxIsCheckedChanged(object? sender, RoutedEventArgs e)
+        {
+            RebuildLayersCommand();
+        }
+
+        private void StructureLayerCheckBoxIsCheckedChanged(object? sender, RoutedEventArgs e)
+        {
+            RebuildLayersCommand();
+        }
+        
+        private void PopulationLayerCheckBoxIsCheckedChanged(object? sender, RoutedEventArgs e)
+        {
+            RebuildLayersCommand();
         }
         #endregion
 
@@ -522,14 +551,14 @@ namespace PAVisualizer
 
                     var content = new Label()
                     {
-                        Background = new SolidColorBrush(color.ToMediaColor()),
+                        Background = new SolidColorBrush(color.ToAvaloniaColor()),
                         Content = contentName,
-                        ToolTip = new ToolTip()
-                        {
-                            Content = tooltipContent,
-                        }
+                        //ToolTip = new ToolTip()
+                        //{
+                        //    Content = tooltipContent,
+                        //}
                     };
-                    content.MouseLeftButtonDown += (s, e) => OnWorldTileClick(tileObj);
+                    content.Tapped += (s, e) => OnWorldTileClick(tileObj);
 
                     var column = xPos - minX;
                     var row = worldGrid.RowDefinitions.Count - 1 - (yPos - minY);
@@ -548,7 +577,7 @@ namespace PAVisualizer
         private void OnWorldTileClick(Tile tile)
         {
             var tileInfo = new TileInfoWindow(tile);
-            tileInfo.ShowDialog();
+            tileInfo.ShowDialog(this);
         }
 
         private void UpdateViewTextboxes()

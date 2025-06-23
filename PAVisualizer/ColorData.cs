@@ -1,6 +1,5 @@
-﻿using System;
-using DrawingColor = System.Drawing.Color;
-using MediaColor = System.Windows.Media.Color;
+﻿using SixLabors.ImageSharp;
+using System;
 
 namespace PAVisualizer
 {
@@ -24,14 +23,14 @@ namespace PAVisualizer
         #endregion
 
         #region Public methods
-        public DrawingColor ToDrawingColor()
+        public Avalonia.Media.Color ToAvaloniaColor()
         {
-            return DrawingColor.FromArgb(A, R, G, B);
+            return Avalonia.Media.Color.FromArgb(A, R, G, B);
         }
 
-        public MediaColor ToMediaColor()
+        public Color ToImageSharpColor()
         {
-            return MediaColor.FromArgb(A, R, G, B);
+            return Color.FromRgba(R, G, B, A);
         }
 
         /// <summary>

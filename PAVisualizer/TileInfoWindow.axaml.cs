@@ -1,11 +1,10 @@
-﻿using PACommon.Enums;
+using Avalonia.Controls;
+using PACommon.Enums;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
-using ProgressAdventure.WorldManagement.Content;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
 
 namespace PAVisualizer
 {
@@ -35,7 +34,7 @@ namespace PAVisualizer
 
             if (tile.populationManager.PopulationCount == 0)
             {
-                LoadedPopulationComboBox.Visibility = Visibility.Collapsed;
+                LoadedPopulationComboBox.IsVisible = false;
                 return;
             }
 
@@ -45,11 +44,11 @@ namespace PAVisualizer
 
             var fieldInfo = typeof(PopulationManager).GetField("loadedEntities", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             var loadedEntitiesDict = (Dictionary<EnumValue<EntityType>, List<Entity>>)fieldInfo!.GetValue(tile.populationManager)!;
-            _loadedEntities = loadedEntitiesDict.SelectMany(k => k.Value).ToList();
+            _loadedEntities = [.. loadedEntitiesDict.SelectMany(k => k.Value)];
 
             if (_loadedEntities.Count == 0)
             {
-                LoadedPopulationComboBox.Visibility = Visibility.Collapsed;
+                LoadedPopulationComboBox.IsVisible = false;
                 return;
             }
 
@@ -60,7 +59,7 @@ namespace PAVisualizer
             }
         }
 
-        private void LoadedEntitySelected(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void LoadedEntitySelected(object? sender, SelectionChangedEventArgs e)
         {
             var index = LoadedPopulationComboBox.SelectedIndex;
             LoadedEntityLabel.Content = _loadedEntities[index].ToString();
