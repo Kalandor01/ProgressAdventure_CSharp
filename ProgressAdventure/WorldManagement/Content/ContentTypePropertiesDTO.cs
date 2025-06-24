@@ -30,8 +30,9 @@ namespace ProgressAdventure.WorldManagement.Content
 
         public ContentTypePropertiesDTO(string displayName, Type matchingType, double noNextLayerContentModifier)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.displayName = displayName;
-            this.matchingType = matchingType;
+            this.matchingType = matchingType ?? throw new ArgumentNullException(nameof(matchingType));
             this.noNextLayerContentModifier = noNextLayerContentModifier;
         }
 

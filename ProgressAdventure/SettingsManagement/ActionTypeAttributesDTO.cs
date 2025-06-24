@@ -42,10 +42,12 @@ namespace ProgressAdventure.SettingsManagement
         [JsonConstructor]
         public ActionTypeAttributesDTO(string response, string displayName, List<GetKeyMode> ignoreModes, List<ConsoleKeyInfo> defaultKeys)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(response);
+            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.response = response;
             this.displayName = displayName;
-            this.ignoreModes = ignoreModes;
-            this.defaultKeys = defaultKeys;
+            this.ignoreModes = ignoreModes ?? throw new ArgumentNullException(nameof(ignoreModes));
+            this.defaultKeys = defaultKeys ?? throw new ArgumentNullException(nameof(defaultKeys));
         }
         #endregion
 

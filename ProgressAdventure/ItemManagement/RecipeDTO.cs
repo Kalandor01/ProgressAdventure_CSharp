@@ -30,11 +30,12 @@ namespace ProgressAdventure.ItemManagement
             {
                 throw new ArgumentException("Ingredients list has no elements.", nameof(ingredients));
             }
-            this.ingredients = ingredients;
             if (resultAmount < 0)
             {
                 throw new ArgumentException("The result", nameof(resultAmount));
             }
+
+            this.ingredients = ingredients;
             this.resultAmount = resultAmount;
         }
 

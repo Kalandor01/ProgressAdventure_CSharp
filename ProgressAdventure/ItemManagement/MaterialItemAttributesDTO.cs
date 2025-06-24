@@ -46,7 +46,7 @@ namespace ProgressAdventure.ItemManagement
                   unit != ItemAmountUnit.AMOUNT ? unit : throw new ArgumentException($"Material atributes cannot have {ItemAmountUnit.AMOUNT} as unit", nameof(unit))
                 )
         {
-            this.properties = properties;
+            this.properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
         #endregion
 

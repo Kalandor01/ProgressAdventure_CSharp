@@ -70,11 +70,12 @@ namespace ProgressAdventure.EntityManagement
             bool updatesWorldWhenMoving = false
         )
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.displayName = displayName;
-            this.maxHp = maxHp;
-            this.attack = attack;
-            this.defence = defence;
-            this.agility = agility;
+            this.maxHp = maxHp ?? throw new ArgumentNullException(nameof(maxHp));
+            this.attack = attack ?? throw new ArgumentNullException(nameof(attack));
+            this.defence = defence ?? throw new ArgumentNullException(nameof(defence));
+            this.agility = agility ?? throw new ArgumentNullException(nameof(agility));
             this.attributeChances = attributeChances ?? EntityUtils.GetDefaultAttributeChances();
             this.originalTeam = originalTeam;
             this.teamChangeChange = teamChangeChange;

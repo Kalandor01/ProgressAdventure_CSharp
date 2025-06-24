@@ -101,12 +101,19 @@ namespace ProgressAdventure.ConfigManagement
             int? showProgressIndentation = null
         )
         {
+            var valueTypeIsNullable = Nullable.GetUnderlyingType(typeof(T)) is not null;
             return ReloadConfigsAggregatePrivate(
                 configName,
                 namespaceFolders,
                 () => [],
                 (aggList, newList, removeList) =>
                 {
+                    if (!valueTypeIsNullable && newList.Any(ni => ni is null))
+                    {
+                        PACSingletons.Instance.Logger.Log("Config error", $"config list value was null instead of {typeof(T).FullName}", LogSeverity.WARN);
+                        return aggList;
+                    }
+
                     foreach (var newItem in newList)
                     {
                         if (!aggList.Contains(newItem))
@@ -560,7 +567,10 @@ namespace ProgressAdventure.ConfigManagement
 
             var vanillaIsInvalid = false;
             var vanillaConfigData = configDatas.FirstOrDefault(cd => cd.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE);
-            if (vanillaConfigData?.Format != Constants.CONFIG_FORMAT_VERSION)
+            if (
+                vanillaConfigData?.Format != Constants.CONFIG_FORMAT_VERSION ||
+                vanillaConfigData?.Version != Constants.VANILLA_CONFIG_VERSION
+            )
             {
                 var paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
                 vanillaIsInvalid = true;
@@ -1038,7 +1048,7 @@ namespace ProgressAdventure.ConfigManagement
 
             if (showProgressIndentation is not null)
             {
-                PACSingletons.Instance.ConsoleProxy.WriteLine(success ? "" : ": FALIED!");
+                PACSingletons.Instance.ConsoleProxy.WriteLine(success ? "" : $": {Tools.StylizedText("FALIED!", Constants.Colors.RED)}");
             }
         }
 
@@ -1127,12 +1137,19 @@ namespace ProgressAdventure.ConfigManagement
         )
             where TK : notnull
         {
+            var valueTypeIsNullable = Nullable.GetUnderlyingType(typeof(TV)) is not null;
             return ReloadConfigsAggregatePrivate(
                 configName,
                 namespaceFolders,
                 () => [],
                 (aggDict, newDict, removeDict) =>
                 {
+                    if (!valueTypeIsNullable && newDict.Any(ni => ni.Value is null && !removeDict.ContainsKey(ni.Key)))
+                    {
+                        PACSingletons.Instance.Logger.Log("Config error", $"config dictionary value was null instead of {typeof(TV).FullName}", LogSeverity.WARN);
+                        return aggDict;
+                    }
+
                     foreach (var newItem in newDict)
                     {
                         aggDict[newItem.Key] = newItem.Value;

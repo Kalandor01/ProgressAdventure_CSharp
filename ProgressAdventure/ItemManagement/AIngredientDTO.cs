@@ -42,9 +42,14 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/><br/>
         /// Amount does nothing (the same as null).</param>
         /// <exception cref="ArgumentException">Thrown, if the item type is material, and the unit is amount.</exception>
-        public AIngredientDTO(EnumTreeValue<ItemType> itemType, EnumValue<Material>? material = null, double amount = 1, ItemAmountUnit? unit = null)
+        public AIngredientDTO(
+            EnumTreeValue<ItemType> itemType,
+            EnumValue<Material>? material = null,
+            double amount = 1,
+            ItemAmountUnit? unit = null
+        )
         {
-            this.itemType = itemType;
+            this.itemType = itemType ?? throw new ArgumentNullException(nameof(itemType));
             this.material = material;
             this.amount = Math.Max(amount, 0);
 

@@ -73,7 +73,7 @@ namespace ProgressAdventure.ItemManagement
                 throw new ArgumentException("Unknown item type", nameof(itemType));
             }
             this.itemType = itemType;
-            this.material = material;
+            this.material = material ?? throw new ArgumentNullException(nameof(material));
             this.chance = chance;
             this.amountMin = amountMin;
             this.amountMax = amountMax;

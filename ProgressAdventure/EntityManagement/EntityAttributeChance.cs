@@ -26,8 +26,8 @@ namespace ProgressAdventure.EntityManagement
             double positiveAttributeChance
         )
         {
-            this.negativeAttribute = negativeAttribute;
-            this.positiveAttribute = positiveAttribute;
+            this.negativeAttribute = negativeAttribute ?? throw new ArgumentNullException(nameof(negativeAttribute));
+            this.positiveAttribute = positiveAttribute ?? throw new ArgumentNullException(nameof(positiveAttribute));
             this.negativeAttributeChance = negativeAttributeChance;
             this.positiveAttributeChance = positiveAttributeChance;
         }
@@ -36,11 +36,9 @@ namespace ProgressAdventure.EntityManagement
             EnumValue<Attribute> attribute,
             double attributeChance
         )
+            :this(attribute, attribute, attributeChance, 0)
         {
-            negativeAttribute = attribute;
-            positiveAttribute = attribute;
-            negativeAttributeChance = attributeChance;
-            positiveAttributeChance = 0;
+
         }
 
         public override string? ToString()

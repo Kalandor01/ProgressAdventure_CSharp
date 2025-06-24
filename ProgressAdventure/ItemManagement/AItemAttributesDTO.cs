@@ -30,11 +30,7 @@ namespace ProgressAdventure.ItemManagement
         [JsonConstructor]
         protected AItemAttributesDTO(string displayName, ItemAmountUnit unit = ItemAmountUnit.AMOUNT)
         {
-            if (string.IsNullOrWhiteSpace(displayName))
-            {
-                throw new ArgumentException($"'{nameof(displayName)}' cannot be null or whitespace.", nameof(displayName));
-            }
-
+            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.displayName = displayName;
             this.unit = unit;
         }

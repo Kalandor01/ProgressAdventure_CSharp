@@ -70,11 +70,11 @@ namespace ProgressAdventure.ItemManagement
         [JsonConstructor]
         public ItemDeffinitionDTO(EnumTreeValue<ItemType> itemType, EnumValue<Material>? material = null, double volume = 1)
         {
-            this.itemType = itemType;
+            this.itemType = itemType ?? throw new ArgumentNullException(nameof(itemType));
             this.material = material;
             this.volume = Math.Max(volume, 0);
 
-            if (itemType != ItemUtils.MATERIAL_ITEM_TYPE)
+            if (this.itemType != ItemUtils.MATERIAL_ITEM_TYPE)
             {
                 var itemUnit = ItemUtils.CompoundItemAttributes[this.itemType].unit;
                 if (itemUnit == ItemAmountUnit.AMOUNT)
