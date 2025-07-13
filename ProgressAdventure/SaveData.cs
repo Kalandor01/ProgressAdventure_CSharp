@@ -2,7 +2,6 @@
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
-using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;

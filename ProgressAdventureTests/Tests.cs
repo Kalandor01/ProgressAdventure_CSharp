@@ -925,7 +925,7 @@ namespace ProgressAdventureTests
 
                 try
                 {
-                    PACSingletons.Instance.Logger.Log("Beggining mock entity creation", "ignore \"value is null\" warnings", LogSeverity.OTHER);
+                    PACSingletons.Instance.Logger.Log("Beggining mock entity creation", "ignore \"json is null\" warnings", LogSeverity.OTHER);
                     PACTools.TryFromJsonExtra(defEntityJson, nullTestPos, PAConstants.SAVE_VERSION, out entity);
                     PACSingletons.Instance.Logger.Log("Mock entity creation ended", "", LogSeverity.OTHER);
 
@@ -1298,7 +1298,11 @@ namespace ProgressAdventureTests
                 var resultString = TestingUtils.GetResultString(result);
                 PACSingletons.Instance.ConsoleProxy.WriteLine($"\r\tImporting ({saveName})..." + resultString);
                 var messageText = result.resultMessage is null ? "" : ": " + result.resultMessage;
-                PACSingletons.Instance.Logger.Log(Path.GetFileNameWithoutExtension(importedZipPath), result.resultType + messageText, LogSeverity.OTHER);
+                PACSingletons.Instance.Logger.Log(
+                    $"Save import {result.resultType}",
+                    $"\"{Path.GetFileNameWithoutExtension(importedZipPath)}\"{(messageText is not null ? $", {messageText}" : "")}",
+                    result.resultType == LogSeverity.PASS ? LogSeverity.INFO : LogSeverity.ERROR
+                );
                 importOverallSuccess &= result.resultType == LogSeverity.PASS;
             }
             var overallResult = importOverallSuccess ? new TestResultDTO() : new TestResultDTO(LogSeverity.FAIL, "See above for details");

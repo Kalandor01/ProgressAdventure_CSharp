@@ -794,6 +794,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="str">The maybe namespaced string.</param>
         /// <param name="defaultNamespace">The namespace to write if there is no namespace.</param>
         /// <param name="namespacedString">The namespaced string, or the same if the string was null or whitespace.</param>
+        /// <param name="isConfigLoading">Whether to get the list of valid namespaces from config loading, or currently loaded namespaces.</param>
         /// <param name="logChange">Whether to log if the namespaced string is changed to be valid.</param>
         /// <param name="throwOnInvalidNamespace">Whether to throw and exception if the namespaced string is invalid.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="throwOnInvalidNamespace"/> is true and the namespaced string is invalid.</exception>
@@ -809,7 +810,7 @@ namespace ProgressAdventure.ConfigManagement
         {
             namespacedString = str;
             if (
-                (!isConfigLoading && LoadingNamespaces is null) ||
+                (isConfigLoading && LoadingNamespaces is null) ||
                 string.IsNullOrWhiteSpace(defaultNamespace) ||
                 string.IsNullOrWhiteSpace(str)
             )
@@ -851,7 +852,8 @@ namespace ProgressAdventure.ConfigManagement
             if (
                 string.IsNullOrWhiteSpace(nspace) ||
                 !NamespaceRegex().IsMatch(nspace) ||
-                (isConfigLoading && (LoadingNamespaces is null || !LoadingNamespaces.Contains(nspace)))
+                (isConfigLoading && (LoadingNamespaces is null || !LoadingNamespaces.Contains(nspace))) ||
+                (!isConfigLoading && !EnabledConfigDatas.Any(c => c.Namespace == nspace))
             )
             {
                 if (throwOnInvalidNamespace)
@@ -871,7 +873,6 @@ namespace ProgressAdventure.ConfigManagement
             }
             return true;
         }
-
 
         /// <inheritdoc cref="TryGetNamespacedStringPrivate(string, string, out string, bool, bool, bool)"/>
         public static bool TryGetNamespacedString(

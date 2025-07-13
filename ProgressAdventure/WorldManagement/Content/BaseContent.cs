@@ -210,6 +210,35 @@ namespace ProgressAdventure.WorldManagement.Content
                     });
                 }
             }, "2.4"),
+            // 2.5.1 -> 2.6
+            ((oldJson, chunkRandom) =>
+            {
+                // split content subtypes into seperate type enums
+                if (
+                    !PACTools.TryParseJsonValue<string>(oldJson, "type", out var typeValue, false) ||
+                    string.IsNullOrWhiteSpace(typeValue) ||
+                    !PACTools.TryParseJsonValue<string>(oldJson, "subtype", out var subtypeValue, false) ||
+                    string.IsNullOrWhiteSpace(subtypeValue)
+                )
+                {
+                    return;
+                }
+
+                var removeValue = typeValue switch
+                {
+                    "pa:terrain" => "terrain/",
+                    "pa:structure" => "structure/",
+                    _ => null,
+                };
+
+                if (removeValue is null)
+                {
+                    return;
+                }
+
+                JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "subtype", "type");
+                oldJson["type"] = subtypeValue.Replace(removeValue, "");
+            }, "2.6"),
         ];
         #endregion
 

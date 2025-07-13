@@ -115,7 +115,7 @@ namespace ProgressAdventure
                 isFileInvalid = false;
                 if (fileJson is null)
                 {
-                    PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, expected);
+                    PACTools.LogJsonNullError<T>(objectTypeName, extraFileInformation, expected ? LogSeverity.ERROR : LogSeverity.INFO);
                     return null;
                 }
                 return fileJson;

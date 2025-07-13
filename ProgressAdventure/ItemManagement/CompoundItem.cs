@@ -197,6 +197,15 @@ namespace ProgressAdventure.ItemManagement
                     });
                 }
             }, "2.4"),
+            // 2.5.1 -> 2.6
+            (oldJson =>
+            {
+                // item rework
+                JsonDataCorrecterUtils.TransformValue<string>(oldJson, "type", (subtype) =>
+                {
+                    return (subtype == "pa:misc/rod", "pa:form/rod");
+                });
+            }, "2.6"),
         ];
 
         public override JsonDictionary ToJson()

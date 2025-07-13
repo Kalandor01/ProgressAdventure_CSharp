@@ -379,11 +379,18 @@ namespace PACommon
         /// </summary>
         /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="message">The error message.</param>
+        /// <param name="severity">The severity of the message.</param>
+        private static void LogJsonErrorInternal(Type? callingClassType, string message, LogSeverity severity = LogSeverity.WARN)
+        {
+            var callingTypeName = callingClassType?.ToString() ?? "[UNKNOWN]";
+            LogJsonErrorBase(message, callingTypeName, severity);
+        }
+
+        /// <inheritdoc cref="LogJsonErrorInternal(Type?, string, LogSeverity)"/>
         /// <param name="isError">If the error will result in the parsing function halting.</param>
         private static void LogJsonErrorInternal(Type? callingClassType, string message, bool isError = false)
         {
-            var callingTypeName = callingClassType?.ToString() ?? "[UNKNOWN]";
-            LogJsonErrorBase(message, callingTypeName, isError);
+            LogJsonErrorInternal(callingClassType, message, isError ? LogSeverity.ERROR : LogSeverity.WARN);
         }
 
         /// <summary>
@@ -392,10 +399,10 @@ namespace PACommon
         /// <param name="callingClassType">The type that is being parsed.</param>
         /// <param name="parameterName">The name of the parameter (or class) that caused the error.</param>
         /// <param name="extraInfo">Some extra information about the error.</param>
-        /// <param name="isError">If the error will result in the parsing function halting.</param>
-        private static void LogJsonNullErrorInternal(Type? callingClassType, string parameterName, string? extraInfo = null, bool isError = false)
+        /// <param name="severity">The severity of the message.</param>
+        private static void LogJsonNullErrorInternal(Type? callingClassType, string parameterName, string? extraInfo = null, LogSeverity severity = LogSeverity.WARN)
         {
-            LogJsonErrorInternal(callingClassType, $"{parameterName} json is null{(extraInfo is not null ? $", {extraInfo}" : "")}", isError);
+            LogJsonErrorInternal(callingClassType, $"{parameterName} json is null{(extraInfo is not null ? $", {extraInfo}" : "")}", severity);
         }
 
         /// <summary>
@@ -416,16 +423,23 @@ namespace PACommon
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="typeName">The name of the type, where the parsing failed. By default, the type name of the calling class.</param>
-        /// <param name="isError">If the error will result in the parsing function halting.</param>
-        public static void LogJsonErrorBase(string message, string? typeName = null, bool isError = false)
+        /// <param name="severity">The severity of the message.</param>
+        public static void LogJsonErrorBase(string message, string? typeName = null, LogSeverity severity = LogSeverity.WARN)
         {
             typeName ??= Utils.GetCallingClassType()?.ToString() ?? "[UNKNOWN]";
             var stackTrace = GetFromJsonCallStackString();
             PACSingletons.Instance.Logger.Log(
-                $"{typeName} parse {(isError ? "error" : "warning")}",
+                $"{typeName} parse {(severity > LogSeverity.WARN ? "error" : "warning")}",
                 message + (stackTrace is null ? "" : $"\n{stackTrace}"),
-                isError ? LogSeverity.ERROR : LogSeverity.WARN
+                severity
             );
+        }
+
+        /// <inheritdoc cref="LogJsonErrorBase(string, string?, LogSeverity)"/>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        public static void LogJsonErrorBase(string message, string? typeName = null, bool isError = false)
+        {
+            LogJsonErrorBase(message, typeName, isError ? LogSeverity.ERROR : LogSeverity.WARN);
         }
 
         /// <typeparam name="T">The type that is being parsed.</typeparam>
@@ -472,17 +486,33 @@ namespace PACommon
         }
 
         /// <typeparam name="T">The class that is being parsed.</typeparam>
-        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, bool)"/>
-        public static void LogJsonNullError<T>(string parameterName, string? extraInfo = null, bool isError = false)
+        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, LogSeverity)"/>
+        public static void LogJsonNullError<T>(string parameterName, string? extraInfo = null, LogSeverity severity = LogSeverity.WARN)
         {
-            LogJsonNullErrorInternal(typeof(T), parameterName, extraInfo, isError);
+            LogJsonNullErrorInternal(typeof(T), parameterName, extraInfo, severity);
         }
 
-        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, bool)"/>
+        /// <typeparam name="T">The class that is being parsed.</typeparam>
+        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, LogSeverity)"/>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
+        public static void LogJsonNullError<T>(string parameterName, string? extraInfo = null, bool isError = false)
+        {
+            LogJsonNullErrorInternal(typeof(T), parameterName, extraInfo, isError ? LogSeverity.ERROR : LogSeverity.WARN);
+        }
+
+        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, LogSeverity)"/>
+        public static void LogJsonNullError(string parameterName, string? extraInfo = null, LogSeverity severity = LogSeverity.WARN)
+        {
+            var callingType = Utils.GetCallingClassType();
+            LogJsonNullErrorInternal(callingType, parameterName, extraInfo, severity);
+        }
+
+        /// <inheritdoc cref="LogJsonNullErrorInternal(Type?, string, string?, LogSeverity)"/>
+        /// <param name="isError">If the error will result in the parsing function halting.</param>
         public static void LogJsonNullError(string parameterName, string? extraInfo = null, bool isError = false)
         {
             var callingType = Utils.GetCallingClassType();
-            LogJsonNullErrorInternal(callingType, parameterName, extraInfo, isError);
+            LogJsonNullErrorInternal(callingType, parameterName, extraInfo, isError ? LogSeverity.ERROR : LogSeverity.WARN);
         }
 
         /// <summary>
@@ -598,7 +628,7 @@ namespace PACommon
             }
             if (logParseWarnings)
             {
-                LogJsonNullErrorInternal(callingClassType, jsonKey, null, isCritical);
+                LogJsonNullErrorInternal(callingClassType, jsonKey, null, isCritical ? LogSeverity.ERROR : LogSeverity.WARN);
             }
             return false;
         }
