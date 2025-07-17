@@ -23,6 +23,18 @@ namespace PAVisualizer
 {
     public static class VisualizerTools
     {
+        class DummyWindow : Window
+        {
+            public DummyWindow()
+                :base()
+            {
+
+            }
+        }
+        #region Constants
+        private static IStorageProvider _sp = new DummyWindow().StorageProvider;
+        #endregion
+
         #region Config dictionaries
         /// <summary>
         /// Dictionary pairing up terrain types with their colors.
@@ -87,44 +99,60 @@ namespace PAVisualizer
         /// <param name="window">The window to center the dialog over.</param>
         /// <param name="initialDirectory">The initial dialog of the file dialog.</param>
         /// <param name="isSelectFolder">Whether to make the user select a folder or a file.</param>
-        public static async Task<string?> GetPathFromFileDialog(
+        public static void GetPathFromFileDialog(
+            Action<string?> callback,
             Window? window = null,
             string? initialDirectory = null,
+            Dictionary<string, List<string>>? filePickerPatterns = null,
             bool isSelectFolder = false
         )
         {
-            var topLevel = TopLevel.GetTopLevel(window);
-            var storageProvider = topLevel.StorageProvider;
-            var initialUri = initialDirectory is not null ? await storageProvider.TryGetFolderFromPathAsync(initialDirectory) : null;
-
-            if (isSelectFolder)
+            var res = Task.Run(async () =>
             {
-                var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                var storageProvider = window?.StorageProvider ?? _sp;
+                var initialUri = initialDirectory is not null ? await storageProvider.TryGetFolderFromPathAsync(initialDirectory) : null;
+
+                if (isSelectFolder)
+                {
+                    var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                    {
+                        AllowMultiple = false,
+                        SuggestedStartLocation = initialUri,
+                    });
+
+                    if (folders.Count != 1)
+                    {
+                        callback(null);
+                        return;
+                    }
+
+                    callback(folders[0].Path.LocalPath);
+                    return;
+                }
+
+                var patterns = filePickerPatterns?.Select(p =>
+                        new FilePickerFileType(p.Key)
+                        {
+                            Patterns = p.Value.Select(v => v).ToList().AsReadOnly()
+                        }).ToList().AsReadOnly();
+
+                var filePickerOptions = new FilePickerOpenOptions
                 {
                     AllowMultiple = false,
                     SuggestedStartLocation = initialUri,
-                });
+                    FileTypeFilter = patterns,
+                };
+                var files = await storageProvider.OpenFilePickerAsync(filePickerOptions);
 
                 if (files.Count != 1)
                 {
-                    return null;
+                    callback(null);
+                    return;
                 }
 
-                return files[0].Path.AbsolutePath;
-            }
-            
-            var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                AllowMultiple = false,
-                SuggestedStartLocation = initialUri,
+                callback(files[0].Path.LocalPath);
+                return;
             });
-
-            if (folders.Count != 1)
-            {
-                return null;
-            }
-
-            return folders[0].Path.AbsolutePath;
         }
 
         /// <summary>
@@ -168,9 +196,8 @@ namespace PAVisualizer
             bool isSelectFolder = false)
         {
             Thread.CurrentThread.Name = Constants.FILE_DIALOG_THREAD_NAME;
-            var selectedPathTask = GetPathFromFileDialog(null, initialDirectory, isSelectFolder);
-            selectedPathTask.Wait();
-            fileDialogSelectedPath = selectedPathTask.Result;
+            //var selectedPath = GetPathFromFileDialog(null, initialDirectory, isSelectFolder);
+            //fileDialogSelectedPath = selectedPath;
             fileDialogResponseRecived = true;
         }
         #endregion

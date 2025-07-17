@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using ConsoleUI;
 using ConsoleUI.UIElements;
 using PACommon;
@@ -8,6 +9,7 @@ using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.Logging;
+using PAVisualizer.Windows;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
@@ -18,7 +20,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
-using System.Windows;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
 using Utils = PACommon.Utils;
@@ -61,29 +62,34 @@ namespace PAVisualizer
             }
         }
 
+        public static void AppMain(Application app, string[] args)
+        {
+            app.Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+
+            var window = new MainWindow();
+            app.Run(window);
+        }
+
         /// <summary>
         /// Shows the main window.
         /// </summary>
-        [STAThread]
         static void ShowMainWindow(string[] args)
         {
             BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+                .Start(AppMain, args);
         }
 
-        // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
         {
-            return AppBuilder.Configure<App>()
-                        .UsePlatformDetect()
-                        .WithInterFont()
-                        .LogToTrace();
+            return AppBuilder.Configure<Application>()
+                    .UsePlatformDetect()
+                    .LogToTrace();
         }
 
         /// <summary>
         /// The main function for the program.
         /// </summary>
-        [STAThread]
         static void MainFunction(string[] args)
         {
             if (MenuManager.AskYesNoUIQuestion("Open visualizer GUI?"))
@@ -191,7 +197,6 @@ namespace PAVisualizer
         /// <summary>
         /// The error handler, for the main function.
         /// </summary>
-        [STAThread]
         static void MainErrorHandler(string[] args)
         {
             bool exitGame;
@@ -218,7 +223,6 @@ namespace PAVisualizer
             while (!exitGame);
         }
 
-        [STAThread]
         static void Main(string[] args)
         {
             bool exitGame;
