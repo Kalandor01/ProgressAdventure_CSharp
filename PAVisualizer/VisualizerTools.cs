@@ -384,6 +384,8 @@ namespace PAVisualizer
                 return null;
             }
 
+            folderPath = folderPath.TrimEnd(Path.DirectorySeparatorChar);
+
             string? saveFolderPath = null;
             var folderSplit = folderPath.Split(Path.DirectorySeparatorChar);
             var saveFolderName = folderSplit.Last();

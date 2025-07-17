@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Declarative;
 using Avalonia.Media;
+using Avalonia.Threading;
 using PACommon;
 using PACommon.Enums;
 using PAVisualizer.Culture;
@@ -45,6 +46,7 @@ namespace PAVisualizer.Windows
         #endregion
 
         #region Private fields
+        private readonly Dispatcher _dispatcher;
         private string saveName;
         private DateTime lastWorldChange;
         private Dictionary<EnumValue<TerrainType>, long> terrainTypeCounts;
@@ -64,12 +66,15 @@ namespace PAVisualizer.Windows
             get;
             private set
             {
-                field = value;
-                _closeMenuItem.IsEnabled = SelectedSave;
-                _createImageMenuItem.IsEnabled = SelectedSave;
-                _showSaveInfoMenuItem.IsEnabled = SelectedSave;
-                _showWorldInfoMenuItem.IsEnabled = SelectedSave;
-                _createSaveMenuItem.IsEnabled = SelectedSave;
+                _dispatcher.Invoke(() =>
+                {
+                    field = value;
+                    _closeMenuItem.IsEnabled = SelectedSave;
+                    _createImageMenuItem.IsEnabled = SelectedSave;
+                    _showSaveInfoMenuItem.IsEnabled = SelectedSave;
+                    _showWorldInfoMenuItem.IsEnabled = SelectedSave;
+                    _createSaveMenuItem.IsEnabled = SelectedSave;
+                });
             }
         }
 
@@ -78,8 +83,11 @@ namespace PAVisualizer.Windows
             get => field && SelectedSave;
             private set
             {
-                field = value;
-                _revealAreaButton.IsEnabled = IsWorldVisible;
+                _dispatcher.Invoke(() =>
+                {
+                    field = value;
+                    _revealAreaButton.IsEnabled = IsWorldVisible;
+                });
             }
         }
 
@@ -88,13 +96,16 @@ namespace PAVisualizer.Windows
             get;
             set
             {
-                field = value;
-                if (!value)
+                _dispatcher.Invoke(() =>
                 {
-                    worldInfoString = VisualizerTools.GetDisplayTerrainCountsData(terrainTypeCounts) + "\n" +
-                        VisualizerTools.GetDisplayStructureCountsData(structureTypeCounts) + "\n" +
-                        VisualizerTools.GetDisplayPopulationCountsData(entityTypeCounts);
-                }
+                    field = value;
+                    if (!value)
+                    {
+                        worldInfoString = VisualizerTools.GetDisplayTerrainCountsData(terrainTypeCounts) + "\n" +
+                            VisualizerTools.GetDisplayStructureCountsData(structureTypeCounts) + "\n" +
+                            VisualizerTools.GetDisplayPopulationCountsData(entityTypeCounts);
+                    }
+                });
             }
         }
         #endregion
@@ -104,10 +115,11 @@ namespace PAVisualizer.Windows
             :base()
         {
             Title = CultureManager.GetCultureString(CultureKey.MainWindowTitle);
-            Width = 910;
+            Width = 1150;
             Height = 850;
             Content = SetupMainGrid();
 
+            _dispatcher = Dispatcher.UIThread;
             center = (0, 0);
             worldGridScale = 1;
             layers = [VisibleTileLayer.Terrain];
@@ -191,9 +203,15 @@ namespace PAVisualizer.Windows
             }
             .Row(1)
             .Children(
-                new Label()
+                new Label
+                {
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                }
                 .SplitInline(out _centerTextBox),
-                new Label()
+                new Label
+                {
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                }
                 .SplitInline(out _diameterTextBox),
                 
                 new Button
@@ -266,36 +284,46 @@ namespace PAVisualizer.Windows
         #region Commands
         private void SelectSaveCommand(string? savePath)
         {
-            var saveStrings = VisualizerTools.GetSaveFolderFromPath(savePath);
-
-            if (saveStrings is null)
-            {
-                return;
-            }
-
             try
             {
-                SaveManager.LoadSave(saveStrings.Value.saveFolderName, false, saveStrings.Value.saveFolderPath);
-            }
-            catch (Exception ex)
-            {
-                if (ex is FileLoadException || ex is FileNotFoundException)
+                var saveStrings = VisualizerTools.GetSaveFolderFromPath(savePath);
+
+                if (saveStrings is null)
                 {
                     return;
                 }
+
+                try
+                {
+                    SaveManager.LoadSave(saveStrings.Value.saveFolderName, false, saveStrings.Value.saveFolderPath);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is FileLoadException || ex is FileNotFoundException)
+                    {
+                        return;
+                    }
+                    throw;
+                }
+
+                saveName = saveStrings.Value.saveFolderName;
+                World.LoadAllChunksFromFolder(out _, saveName, "Loading chunks...");
+
+                SelectedSave = true;
+                lastWorldChange = DateTime.Now;
+                TileCountsNeedToBeRefreshed = true;
+
+                center = (0, 0);
+                worldGridScale = 1;
+                _dispatcher.Invoke(() =>
+                {
+                    RenderWorldArea(layers, null);
+                });
+            }
+            catch (Exception e)
+            {
                 throw;
             }
-
-            saveName = saveStrings.Value.saveFolderName;
-            World.LoadAllChunksFromFolder(out _, saveName, "Loading chunks...");
-
-            SelectedSave = true;
-            lastWorldChange = DateTime.Now;
-            TileCountsNeedToBeRefreshed = true;
-
-            center = (0, 0);
-            worldGridScale = 1;
-            RenderWorldArea(layers, null);
         }
 
         private void SelectSaveCommand()
@@ -366,7 +394,7 @@ namespace PAVisualizer.Windows
                 return;
             }
 
-            var scrollUp = args.Delta.X > 0;
+            var scrollUp = args.Delta.Y > 0;
             worldGridScale *= scrollUp ? WORLD_ZOOM_IN_CONSTANT : WORLD_ZOOM_OUT_CONSTANT;
 
             var transformMatrix = Matrix.CreateTranslation(center.x, center.y)
@@ -400,8 +428,8 @@ namespace PAVisualizer.Windows
             var key = args.Key;
             var newCenter = center;
 
-            var moveModifierX = _worldGrid.Width / worldWidth * -1;
-            var moveModifierY = _worldGrid.Height / worldHeight * -1;
+            var moveModifierX = _worldGrid.Bounds.Width / worldWidth * -1;
+            var moveModifierY = _worldGrid.Bounds.Height / worldHeight * -1;
 
             switch (key)
             {
@@ -445,8 +473,8 @@ namespace PAVisualizer.Windows
 
             var worldWidth = corners.Value.maxX - corners.Value.minX + 1;
             var worldHeight = corners.Value.maxY - corners.Value.minY + 1;
-            var worldMoveAmountX = _worldGrid.Width / worldWidth * -1;
-            var worldMoveAmountY = _worldGrid.Height / worldHeight;
+            var worldMoveAmountX = _worldGrid.Bounds.Width / worldWidth * -1;
+            var worldMoveAmountY = _worldGrid.Bounds.Height / worldHeight;
             var xOffset = center.x / worldMoveAmountX;
             var yOffset = center.y / worldMoveAmountY;
 
@@ -720,11 +748,8 @@ namespace PAVisualizer.Windows
                     {
                         Background = new SolidColorBrush(color.ToAvaloniaColor()),
                         Content = contentName,
-                        //ToolTip = new ToolTip()
-                        //{
-                        //    Content = tooltipContent,
-                        //}
-                    };
+                    }
+                    .ToolTip(tooltipContent);
                     content.Tapped += (s, e) => OnWorldTileClick(tileObj);
 
                     var column = xPos - minX;
@@ -749,8 +774,11 @@ namespace PAVisualizer.Windows
 
         private void UpdateViewTextboxes()
         {
-            _centerTextBox.Content = $"Center: {Math.Round(center.x, 3)}, {Math.Round(center.y, 3)}";
-            _diameterTextBox.Content = $"Zoom scale: {Math.Round(worldGridScale, 3)}";
+            _dispatcher.Invoke(() =>
+            {
+                _centerTextBox.Content = $"Center: {Math.Round(center.x, 3)}, {Math.Round(center.y, 3)}";
+                _diameterTextBox.Content = $"Zoom scale: {Math.Round(worldGridScale, 3)}";
+            });
         }
 
         private void RenderWorldArea(List<VisibleTileLayer> layers, (long x, long y) center, long extraRadius)
