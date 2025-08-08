@@ -1,4 +1,4 @@
-﻿using PACommon.Enums;
+using PACommon.Enums;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

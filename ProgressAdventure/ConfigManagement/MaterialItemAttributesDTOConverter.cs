@@ -1,4 +1,4 @@
-﻿using PACommon.Extensions;
+using PACommon.Extensions;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using System.Text.Json;

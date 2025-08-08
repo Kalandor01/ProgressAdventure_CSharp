@@ -1,4 +1,4 @@
-﻿using ConsoleUI;
+using ConsoleUI;
 using System.Text;
 
 namespace PACommon

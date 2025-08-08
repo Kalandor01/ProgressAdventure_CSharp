@@ -1,4 +1,4 @@
-﻿namespace PACommon.Enums
+namespace PACommon.Enums
 {
     /// <summary>
     /// Should only be used for cases when <see cref="EnumValue{TEnum}"/> cannot be used.

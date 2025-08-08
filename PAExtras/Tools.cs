@@ -1,4 +1,4 @@
-﻿using ConsoleUI;
+using ConsoleUI;
 using FileManager;
 using PACommon;
 using ProgressAdventure.WorldManagement;

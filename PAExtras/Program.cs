@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 using PAConstants = ProgressAdventure.Constants;
 
 namespace PAExtras

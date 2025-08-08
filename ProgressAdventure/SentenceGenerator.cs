@@ -1,4 +1,4 @@
-﻿using NPrng.Generators;
+using NPrng.Generators;
 using PACommon.Extensions;
 using System.Text;
 

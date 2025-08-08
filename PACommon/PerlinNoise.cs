@@ -1,4 +1,4 @@
-﻿using NPrng;
+using NPrng;
 using NPrng.Generators;
 
 namespace PACommon

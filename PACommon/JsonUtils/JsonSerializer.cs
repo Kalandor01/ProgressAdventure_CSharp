@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using SysJsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PACommon.JsonUtils

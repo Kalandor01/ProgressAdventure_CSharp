@@ -1,4 +1,4 @@
-﻿namespace PACommon.JsonUtils
+namespace PACommon.JsonUtils
 {
     /// <summary>
     /// Provides tools for correcting json data.

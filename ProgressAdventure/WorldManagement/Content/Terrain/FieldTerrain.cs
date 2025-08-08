@@ -1,4 +1,4 @@
-﻿using NPrng.Generators;
+using NPrng.Generators;
 using PACommon;
 using PACommon.JsonUtils;
 

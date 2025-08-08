@@ -1,4 +1,4 @@
-﻿using PACommon.Enums;
+using PACommon.Enums;
 
 namespace PACommon.TestUtils
 {

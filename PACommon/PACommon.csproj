@@ -14,10 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConsoleUI" Version="2.1.4" />
-    <PackageReference Include="FileManager" Version="2.1.6" />
+    <PackageReference Include="ConsoleUI" Version="2.1.5" />
+    <PackageReference Include="FileManager" Version="2.1.7" />
     <PackageReference Include="NLua" Version="1.7.5" />
-    <PackageReference Include="NPrng" Version="1.0.0.4" />
+    <PackageReference Include="NPrng" Version="1.0.0.5" />
   </ItemGroup>
 
 </Project>

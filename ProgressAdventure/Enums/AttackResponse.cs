@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.Enums
+namespace ProgressAdventure.Enums
 {
     /// <summary>
     /// Possible responses after an entity attacks another entity.

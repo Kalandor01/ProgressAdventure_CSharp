@@ -1,4 +1,4 @@
-﻿using ConsoleUI;
+using ConsoleUI;
 using ConsoleUI.Keybinds;
 using ConsoleUI.UIElements;
 using PACommon.Extensions;

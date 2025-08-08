@@ -1,4 +1,4 @@
-﻿using PACommon.JsonUtils;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.ConfigManagement
 {

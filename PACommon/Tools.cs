@@ -1,4 +1,4 @@
-﻿using FileManager;
+using FileManager;
 using NPrng;
 using NPrng.Generators;
 using NPrng.Serializers;

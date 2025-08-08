@@ -1,4 +1,4 @@
-﻿using PACommon.Enums;
+using PACommon.Enums;
 using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using ProgressAdventure.Enums;

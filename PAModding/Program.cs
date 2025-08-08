@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 using PACommon.ConfigManagement;
 using PACommon.ConfigManagement.JsonConverters;
 using PACommon.Enums;

@@ -1,4 +1,4 @@
-﻿namespace PACommon.JsonUtils
+namespace PACommon.JsonUtils
 {
     public enum JsonObjectType
     {

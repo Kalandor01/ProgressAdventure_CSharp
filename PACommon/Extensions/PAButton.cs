@@ -1,4 +1,4 @@
-﻿using ConsoleUI;
+using ConsoleUI;
 using ConsoleUI.UIElements;
 
 namespace PACommon.Extensions

@@ -1,4 +1,4 @@
-﻿using PACommon.Enums;
+using PACommon.Enums;
 using ProgressAdventure.ConfigManagement;
 
 namespace ProgressAdventure.Enums

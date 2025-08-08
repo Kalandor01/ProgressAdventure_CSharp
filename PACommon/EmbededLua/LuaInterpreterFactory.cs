@@ -1,4 +1,4 @@
-﻿namespace PACommon.EmbededLua
+namespace PACommon.EmbededLua
 {
     /// <summary>
     /// Class to help create a <see cref="LuaInterpreter"/> object.

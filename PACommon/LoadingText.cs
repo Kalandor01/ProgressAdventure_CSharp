@@ -1,4 +1,4 @@
-﻿namespace PACommon
+namespace PACommon
 {
     /// <summary>
     /// Displays a loading progress with an optional spinner.<br/>

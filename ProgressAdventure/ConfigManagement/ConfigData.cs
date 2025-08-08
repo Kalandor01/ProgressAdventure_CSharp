@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 using PACommon.JsonUtils;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;

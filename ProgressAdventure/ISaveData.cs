@@ -1,4 +1,4 @@
-﻿using PACommon.JsonUtils;
+using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using System.Collections.ObjectModel;

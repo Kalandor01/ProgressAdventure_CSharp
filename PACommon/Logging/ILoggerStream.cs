@@ -1,4 +1,4 @@
-﻿namespace PACommon.Logging
+namespace PACommon.Logging
 {
     /// <summary>
     /// An interface to manage how to do logging.

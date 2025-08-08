@@ -1,4 +1,4 @@
-﻿namespace PACommon.Enums
+namespace PACommon.Enums
 {
     /// <summary>
     /// Stores data about an enum value for <see cref="AdvancedEnumTree{TSelf}"/>.

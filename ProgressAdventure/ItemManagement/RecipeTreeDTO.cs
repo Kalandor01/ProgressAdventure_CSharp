@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 using System.Collections.Immutable;
 using System.Text;
 

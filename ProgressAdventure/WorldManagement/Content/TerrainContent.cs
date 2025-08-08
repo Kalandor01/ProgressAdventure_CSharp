@@ -1,4 +1,4 @@
-﻿using NPrng.Generators;
+using NPrng.Generators;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;

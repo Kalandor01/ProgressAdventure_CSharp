@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Markup.Declarative;
 using PACommon.Enums;
 using PAVisualizer.Culture;

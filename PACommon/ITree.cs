@@ -1,4 +1,4 @@
-﻿namespace PACommon
+namespace PACommon
 {
     public interface ITree<T, TTree>
         where TTree : ITree<T, TTree>

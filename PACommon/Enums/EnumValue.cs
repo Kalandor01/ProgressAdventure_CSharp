@@ -1,4 +1,4 @@
-﻿namespace PACommon.Enums
+namespace PACommon.Enums
 {
     /// <summary>
     /// Represents an enum value.

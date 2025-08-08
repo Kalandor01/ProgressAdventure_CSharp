@@ -1,4 +1,4 @@
-﻿using ProgressAdventure.ItemManagement;
+using ProgressAdventure.ItemManagement;
 using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.EntityManagement

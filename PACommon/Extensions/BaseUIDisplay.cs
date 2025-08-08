@@ -1,4 +1,4 @@
-﻿using ConsoleUI;
+using ConsoleUI;
 using ConsoleUI.Keybinds;
 using ConsoleUI.UIElements;
 using System.Text;
@@ -28,7 +28,10 @@ namespace PACommon.Extensions
             set
             {
                 field = value;
-                optionsUI?.elements = [field];
+                if (optionsUI is not null)
+                {
+                    optionsUI.elements = [field];
+                }
             }
         }
         #endregion

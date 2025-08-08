@@ -1,4 +1,4 @@
-﻿namespace PACommon.SettingsManagement
+namespace PACommon.SettingsManagement
 {
     public static class KeybindUtils
     {

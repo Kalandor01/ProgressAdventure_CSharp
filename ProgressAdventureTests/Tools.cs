@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 using PACommon.Enums;
 using PACommon.TestUtils;
 using ProgressAdventure;

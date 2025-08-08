@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure.Enums
+namespace ProgressAdventure.Enums
 {
     public enum SettingsKey
     {

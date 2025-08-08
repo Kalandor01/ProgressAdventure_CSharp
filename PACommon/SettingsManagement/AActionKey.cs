@@ -1,4 +1,4 @@
-﻿using ConsoleUI.Keybinds;
+using ConsoleUI.Keybinds;
 using PACommon.Enums;
 
 namespace PACommon.SettingsManagement

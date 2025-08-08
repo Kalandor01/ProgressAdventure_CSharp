@@ -1,4 +1,4 @@
-﻿using PACommon.Enums;
+using PACommon.Enums;
 using ProgressAdventure.Enums;
 using System.Text.Json.Serialization;
 

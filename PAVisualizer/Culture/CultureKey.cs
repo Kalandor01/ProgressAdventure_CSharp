@@ -1,4 +1,4 @@
-﻿namespace PAVisualizer.Culture
+namespace PAVisualizer.Culture
 {
     internal enum CultureKey
     {

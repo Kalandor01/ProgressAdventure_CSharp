@@ -1,4 +1,4 @@
-﻿using ConsoleUI.Keybinds;
+using ConsoleUI.Keybinds;
 using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.SettingsManagement

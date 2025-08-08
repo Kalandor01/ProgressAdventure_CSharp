@@ -1,4 +1,4 @@
-﻿namespace PAExtras
+namespace PAExtras
 {
     internal static class ItemType
     {

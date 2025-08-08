@@ -1,4 +1,4 @@
-﻿namespace PACommon.JsonUtils
+namespace PACommon.JsonUtils
 {
     /// <summary>
     /// Interface containing utils to convert json data for <c>IJsonConvertable</c> objects to different versions.

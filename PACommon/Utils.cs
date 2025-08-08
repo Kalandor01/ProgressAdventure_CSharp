@@ -1,4 +1,4 @@
-﻿using ConsoleUI;
+using ConsoleUI;
 using FileManager;
 using System.Collections;
 using System.Diagnostics;

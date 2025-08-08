@@ -1,4 +1,4 @@
-﻿using PACommon.ConfigManagement.JsonConverters;
+using PACommon.ConfigManagement.JsonConverters;
 using System.Text.Json.Serialization;
 
 namespace PACommon.ConfigManagement

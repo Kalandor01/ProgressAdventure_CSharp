@@ -1,4 +1,4 @@
-﻿namespace PACommon.JsonUtils
+namespace PACommon.JsonUtils
 {
     /// <summary>
     /// Interface for classes that can be converted to json.

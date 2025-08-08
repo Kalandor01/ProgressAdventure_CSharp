@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
@@ -1159,24 +1159,23 @@ namespace ProgressAdventureTests
 
             // get all classes that implement IJsonConvertableExtra<T>
             var jsonConvertableType = typeof(IJsonConvertableExtra<,>);
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == nameof(ProgressAdventure));
             var unfilteredTypes = paAssembly.GetTypes().Where(jsonConvertableType.IsGenericAssignableFromType);
-            var filteredTypes = unfilteredTypes.Where(type => !type.IsAbstract && !type.IsInterface);
+            var filteredTypes = unfilteredTypes.Where(type => type is { IsAbstract: false, IsInterface: false }).ToList();
 
             //check if all mocked classes are correct and present
-            if (filteredTypes.Count() != testObjects.Count)
+            if (filteredTypes.Count != testObjects.Count)
             {
-                var diff = testObjects.Count - filteredTypes.Count();
+                var diff = testObjects.Count - filteredTypes.Count;
                 return new TestResultDTO(LogSeverity.FAIL, $"\n\tThere are {Math.Abs(diff)} {(diff > 0 ? "more" : "less")} test objects in the test objects list than there should be.");
             }
 
             var errorMessages = new List<string>();
             foreach (var (testObject, extraData) in testObjects)
             {
-                if (!filteredTypes.Any(type => type == testObject.GetType()))
+                if (filteredTypes.All(type => type != testObject.GetType()))
                 {
                     errorMessages.Add($"The {testObject.GetType()} type object should not be in the test objects list.");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)
@@ -1216,10 +1215,8 @@ namespace ProgressAdventureTests
 
                 var objJson = testObject.ToJson();
                 var method = genericConvertableType?.GetMethod("FromJson", BindingFlags.Static | BindingFlags.Public);
-                var saveVersion = currentVersion.TryGetValue(testObject.GetType().FullName!, out var version)
-                    ? version
-                    : PAConstants.SAVE_VERSION;
-                var parameters = new object?[] { objJson, extraData, saveVersion, null };
+                var saveVersion = currentVersion.GetValueOrDefault(testObject.GetType().FullName!, PAConstants.SAVE_VERSION);
+                var parameters = new[] { objJson, extraData, saveVersion, null };
 
                 try
                 {
@@ -1235,12 +1232,10 @@ namespace ProgressAdventureTests
                     errorMessages2.Add($"FromJson method invokation threw an exception at the {testObject.GetType()} type object.");
                 }
             }
-            if (errorMessages2.Count != 0)
-            {
-                return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages2));
-            }
 
-            return new TestResultDTO(LogSeverity.PASS, "Not fully implemented!");
+            return errorMessages2.Count == 0
+                ? new TestResultDTO(LogSeverity.PASS, "Not fully implemented!")
+                : new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages2));
         }
 
         /// <summary>
@@ -1366,8 +1361,8 @@ namespace ProgressAdventureTests
                     var chunkPositions = Path.GetFileNameWithoutExtension(chunkFileName).Replace($"{PAConstants.CHUNK_FILE_NAME}{PAConstants.CHUNK_FILE_NAME_SEP}", "").Split(PAConstants.CHUNK_FILE_NAME_SEP);
                     if (
                         chunkPositions.Length == 2 &&
-                        long.TryParse(chunkPositions[0], out long posX) &&
-                        long.TryParse(chunkPositions[1], out long posY)
+                        long.TryParse(chunkPositions[0], out var posX) &&
+                        long.TryParse(chunkPositions[1], out var posY)
                     )
                     {
                         existingChunks.Add((posX, posY));

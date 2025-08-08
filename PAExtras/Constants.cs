@@ -1,4 +1,4 @@
-﻿using PACConstants = PACommon.Constants;
+using PACConstants = PACommon.Constants;
 
 namespace PAExtras
 {

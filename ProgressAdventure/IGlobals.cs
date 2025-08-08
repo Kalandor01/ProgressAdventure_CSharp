@@ -1,4 +1,4 @@
-﻿namespace ProgressAdventure
+namespace ProgressAdventure
 {
     /// <summary>
     /// Interface for storing global variables.

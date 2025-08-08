@@ -1,4 +1,4 @@
-﻿using NLua;
+using NLua;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 

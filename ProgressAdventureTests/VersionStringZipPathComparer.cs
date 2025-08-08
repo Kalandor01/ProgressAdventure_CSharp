@@ -1,4 +1,4 @@
-﻿using PACommon;
+using PACommon;
 
 namespace ProgressAdventureTests
 {

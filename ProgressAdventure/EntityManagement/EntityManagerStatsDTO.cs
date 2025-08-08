@@ -1,4 +1,4 @@
-﻿using PACommon.Enums;
+using PACommon.Enums;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.EntityManagement

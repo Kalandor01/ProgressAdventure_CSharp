@@ -1,4 +1,4 @@
-﻿using NPrng.Generators;
+using NPrng.Generators;
 using PACommon.JsonUtils;
 
 namespace ProgressAdventure.WorldManagement.Content.Structure

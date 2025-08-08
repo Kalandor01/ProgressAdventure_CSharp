@@ -1,4 +1,4 @@
-﻿using PACommon.SettingsManagement;
+using PACommon.SettingsManagement;
 
 namespace ProgressAdventure.Exceptions
 {

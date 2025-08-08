@@ -1,4 +1,4 @@
-﻿using PACommon.ConfigManagement;
+using PACommon.ConfigManagement;
 using PACommon.JsonUtils;
 using PACommon.Logging;
 

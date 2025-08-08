@@ -1,4 +1,4 @@
-﻿namespace PACommon.SettingsManagement
+namespace PACommon.SettingsManagement
 {
     /// <summary>
     /// Class for storing the keybinds list.
