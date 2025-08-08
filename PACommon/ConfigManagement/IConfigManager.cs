@@ -105,11 +105,13 @@ namespace PACommon.ConfigManagement
         /// <param name="defaultContent">The default config object value.</param>
         /// <param name="justRecreate">If true, it doesn't try to get the config before recreating it.</param>
         /// <inheritdoc cref="TryGetConfig{T}(string, string?, out T)"/>
+        /// <param name="comment">The comment to write before the recreated json data.</param>
         public T TryGetConfigOrRecreate<T>(
             string configName,
             string? expectedVersion,
             T defaultContent,
-            bool justRecreate = false
+            bool justRecreate = false,
+            string? comment = null
         );
 
         /// <summary>
@@ -120,20 +122,21 @@ namespace PACommon.ConfigManagement
         /// <typeparam name="TV">The type of the values in the resulting dictionary.</typeparam>
         /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
         /// <param name="deserializeDictionaryKeys">A function to convert the string representation of the original keys in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="TryGetConfigOrRecreate{T}(string, string?, T, bool)"/>
+        /// <inheritdoc cref="TryGetConfigOrRecreate{T}(string, string?, T, bool, string?)"/>
         public Dictionary<TK, TV> TryGetConfigOrRecreateDict<TK, TV>(
             string configName,
             string? expectedVersion,
             IDictionary<TK, TV> defaultContent,
             Func<TK, string> serializeDictionaryKeys,
             Func<string, TK> deserializeDictionaryKeys,
-            bool justRecreate = false
+            bool justRecreate = false,
+            string? comment = null
         ) where TK : notnull;
 
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
         /// <param name="deserializeDictionaryValues">A function to convert the converted representation of the original valuess in the dictionary, to their original type.</param>
-        /// <inheritdoc cref="TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        /// <inheritdoc cref="TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool, string?)"/>
         public Dictionary<TK, TV> TryGetConfigOrRecreateDict<TK, TV, TVC>(
             string configName,
             string? expectedVersion,
@@ -142,10 +145,11 @@ namespace PACommon.ConfigManagement
             Func<TVC, TV> deserializeDictionaryValues,
             Func<TK, string>? serializeDictionaryKeys = null,
             Func<string, TK>? deserializeDictionaryKeys = null,
-            bool justRecreate = false
+            bool justRecreate = false,
+            string? comment = null
         ) where TK : notnull;
         #endregion
-
+        
         #region Set config
         /// <summary>
         /// Sets the value of an object in a config file.
@@ -154,8 +158,9 @@ namespace PACommon.ConfigManagement
         /// <param name="configName">The name of the config file.</param>
         /// <param name="configVersion">The version of the config json.<br/>
         /// <param name="configData">The object to put into the config file.</param>
+        /// <param name="comment">The comment to write before the json data.</param>
         /// If null, the config json only contains the data.</param>
-        public void SetConfig<T>(string configName, string? configVersion, T configData);
+        public void SetConfig<T>(string configName, string? configVersion, T configData, string? comment = null);
 
         /// <summary>
         /// Sets the value of an object in a config file.<br/>
@@ -165,23 +170,25 @@ namespace PACommon.ConfigManagement
         /// <typeparam name="TV">The type of the values in the config data.</typeparam>
         /// <param name="configData">The object to put into the config file.</param>
         /// <param name="serializeDictionaryKeys">A function to convert the keys of the dictionary to string values.</param>
-        /// <inheritdoc cref="SetConfig{T}(string, string?, T)"/>
+        /// <inheritdoc cref="SetConfig{T}(string, string?, T, string?)"/>
         public void SetConfigDict<TK, TV>(
             string configName,
             string? configVersion,
             IDictionary<TK, TV> configData,
-            Func<TK, string> serializeDictionaryKeys
+            Func<TK, string> serializeDictionaryKeys,
+            string? comment = null
         ) where TK : notnull;
 
         /// <typeparam name="TVC">The type of the converted values in the dictionary.</typeparam>
         /// <param name="serializeDictionaryValues">A function to convert the values of the dictionary.</param>
-        /// <inheritdoc cref="SetConfigDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string})"/>
+        /// <inheritdoc cref="SetConfigDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, string?)"/>
         public void SetConfigDict<TK, TV, TVC>(
             string configName,
             string? configVersion,
             IDictionary<TK, TV> configData,
             Func<TV, TVC> serializeDictionaryValues,
-            Func<TK, string>? serializeDictionaryKeys = null
+            Func<TK, string>? serializeDictionaryKeys = null,
+            string? comment = null
         ) where TK : notnull;
         #endregion
         #endregion

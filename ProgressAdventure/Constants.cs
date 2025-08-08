@@ -85,7 +85,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The extension used for config files.
         /// </summary>
-        public const string CONFIG_EXT = "json";
+        public const string CONFIG_EXT = "jsonc";
         #endregion
 
         #region Configs folder structure

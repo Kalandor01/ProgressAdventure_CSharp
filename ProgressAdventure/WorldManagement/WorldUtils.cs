@@ -246,155 +246,179 @@ namespace ProgressAdventure.WorldManagement
         #region Public functions
         #region Configs
         #region Write default config or get reload common data
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataTerrainTypes(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataTerrainTypes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_types");
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfig(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultTerrainTypes
-                );
-                return default;
+                return (basePath, comment, false);
             }
-            return (basePath, false);
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultTerrainTypes,
+                comment
+            );
+            return default;
         }
 
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataStructureTypes(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataStructureTypes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_types");
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfig(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultStructureTypes
-                );
-                return default;
+                return (basePath, comment, false);
             }
-            return (basePath, false);
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultStructureTypes,
+                comment
+            );
+            return default;
         }
 
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataTileNoiseOffsets(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataTileNoiseOffsets(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "tile_noise_offsets");
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfig(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultTileNoiseOffsets
-                );
-                return default;
+                return (basePath, comment, false);
             }
-            return (basePath, false);
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultTileNoiseOffsets,
+                comment
+            );
+            return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<Type, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataTerrainTypePropertyMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_type_property_map");
             static string KeySerializer(Type key) => key.FullName
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultTerrainTypePropertyMap,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<Type, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataStructureTypePropertyMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_type_property_map");
             static string KeySerializer(Type key) => key.FullName
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultStructureTypePropertyMap,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<EntityType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataPopulationTypePropertyMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "population_type_property_map");
             static string KeySerializer(EnumValue<EntityType> key) => key.Name
                 ?? throw new ArgumentException($"Cannot get the name of the type: {key}");
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultPopulationTypePropertyMap,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<TerrainType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataTerrainTypeMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "terrain_type_map");
             static string KeySerializer(EnumValue<TerrainType> key) => key.Name;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultTerrainTypeMap,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<StructureType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataStructureTypeMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, "structure_type_map");
             static string KeySerializer(EnumValue<StructureType> key) => key.Name;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultStructureTypeMap,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
@@ -444,33 +468,39 @@ namespace ProgressAdventure.WorldManagement
         {
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_WORLD_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
-
+            
+            var defaultConfigOrGetReloadDataTerrainTypesData = WriteDefaultConfigOrGetReloadDataTerrainTypes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataTerrainTypes(false).configName,
+                defaultConfigOrGetReloadDataTerrainTypesData.configName,
                 namespaceFolders,
                 _defaultTerrainTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: defaultConfigOrGetReloadDataTerrainTypesData.comment
             );
 
+            var defaultConfigOrGetReloadDataStructureTypesData = WriteDefaultConfigOrGetReloadDataStructureTypes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataStructureTypes(false).configName,
+                defaultConfigOrGetReloadDataStructureTypesData.configName,
                 namespaceFolders,
                 _defaultStructureTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: defaultConfigOrGetReloadDataStructureTypesData.comment
             );
 
+            var defaultConfigOrGetReloadDataTileNoiseOffsetsData = WriteDefaultConfigOrGetReloadDataTileNoiseOffsets(false);
             TileNoiseOffsets = ConfigUtils.ReloadConfigsAggregateDict(
-                WriteDefaultConfigOrGetReloadDataTileNoiseOffsets(false).configName,
+                defaultConfigOrGetReloadDataTileNoiseOffsetsData.configName,
                 namespaceFolders,
                 _defaultTileNoiseOffsets,
                 key => key.ToString(),
                 Enum.Parse<TileNoiseType>,
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: defaultConfigOrGetReloadDataTileNoiseOffsetsData.comment
             );
 
             var terrainContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataTerrainTypePropertyMap(false);
@@ -481,7 +511,8 @@ namespace ProgressAdventure.WorldManagement
                 terrainContentTypePropertyMapData.serializeKeys,
                 key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: terrainContentTypePropertyMapData.comment
             );
 
             var structureContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataStructureTypePropertyMap(false);
@@ -492,7 +523,8 @@ namespace ProgressAdventure.WorldManagement
                 structureContentTypePropertyMapData.serializeKeys,
                 key => Utils.GetTypeFromName(key) ?? throw new JsonException($"Unknown type name: \"{key}\""),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: structureContentTypePropertyMapData.comment
             );
 
             var populationContentTypePropertyMapData = WriteDefaultConfigOrGetReloadDataPopulationTypePropertyMap(false);
@@ -503,7 +535,8 @@ namespace ProgressAdventure.WorldManagement
                 populationContentTypePropertyMapData.serializeKeys,
                 key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: populationContentTypePropertyMapData.comment
             );
 
             var terrainContentTypeMapData = WriteDefaultConfigOrGetReloadDataTerrainTypeMap(false);
@@ -514,7 +547,8 @@ namespace ProgressAdventure.WorldManagement
                 terrainContentTypeMapData.serializeKeys,
                 key => TerrainType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: terrainContentTypeMapData.comment
             );
 
             var structureContentTypeMapData = WriteDefaultConfigOrGetReloadDataStructureTypeMap(false);
@@ -525,7 +559,8 @@ namespace ProgressAdventure.WorldManagement
                 structureContentTypeMapData.serializeKeys,
                 key => StructureType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: structureContentTypeMapData.comment
             );
         }
         #endregion

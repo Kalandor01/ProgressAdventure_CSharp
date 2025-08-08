@@ -13,7 +13,7 @@ namespace ProgressAdventure.ItemManagement
     /// <summary>
     /// Utils for items.
     /// </summary>
-    public static class ItemUtils
+    public static partial class ItemUtils
     {
         #region Json correction dicts
         /// <summary>
@@ -537,116 +537,134 @@ namespace ProgressAdventure.ItemManagement
         #region Public fuctions
         #region Configs
         #region Write default config or get reload common data
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataMaterials(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataMaterials(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "materials");
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfig(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultMaterials
-                );
-                return default;
+                return (basePath, comment, false);
             }
-            return (basePath, false);
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultMaterials,
+                comment
+            );
+            return default;
         }
 
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataItemTypes(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataItemTypes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_types");
-            if (isWriteConfig)
+            if (!isWriteConfig)
             {
-                PACSingletons.Instance.ConfigManager.SetConfig(
-                    Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
-                    null,
-                    _defaultItemTypes
-                );
-                return default;
+                return (basePath, comment, false);
             }
-            return (basePath, false);
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultItemTypes,
+                comment
+            );
+            return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumTreeValue<ItemType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataCompoundItemAttributes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "compound_item_attributes");
             static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultCompoundItemAttributes,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<Material>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataMaterialItemAttributes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "material_item_attributes");
             static string KeySerializer(EnumValue<Material> key) => key.Name!;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultMaterialItemAttributes,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumTreeValue<ItemType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataDeffinitionItemRecipes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "deffinition_item_recipes");
             static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultItemRecipes,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumTreeValue<ItemType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataItemRecipes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ITEM_SUBFOLDER_NAME, "item_recipes");
             static string KeySerializer(EnumTreeValue<ItemType> key) => key.FullName!;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultItemRecipes,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
@@ -694,22 +712,26 @@ namespace ProgressAdventure.ItemManagement
             int? showProgressIndentation
         )
         {
+            var materialsData = WriteDefaultConfigOrGetReloadDataMaterials(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataMaterials(false).configName,
+                materialsData.configName,
                 namespaceFolders,
                 _defaultMaterials,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: materialsData.comment
             );
 
+            var itemTypesData = WriteDefaultConfigOrGetReloadDataItemTypes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnumTree(
-                WriteDefaultConfigOrGetReloadDataItemTypes(false).configName,
+                itemTypesData.configName,
                 namespaceFolders,
                 _defaultItemTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: itemTypesData.comment
             );
 
             var compoundAttributesData = WriteDefaultConfigOrGetReloadDataCompoundItemAttributes(false);
@@ -721,7 +743,8 @@ namespace ProgressAdventure.ItemManagement
                 key => (ItemType.TryGetValue(ConfigUtils.GetNameapacedString(key), out var value) ? value : null)
                     ?? throw new ArgumentNullException($"Unknown item type name in \"{compoundAttributesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: compoundAttributesData.comment
             );
 
             var materialAttributesData = WriteDefaultConfigOrGetReloadDataMaterialItemAttributes(false);
@@ -732,7 +755,8 @@ namespace ProgressAdventure.ItemManagement
                 materialAttributesData.serializeKeys,
                 key => Material.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: materialAttributesData.comment
             );
         }
 
@@ -751,7 +775,8 @@ namespace ProgressAdventure.ItemManagement
                 key => ParseItemType(ConfigUtils.GetNameapacedString(key))
                     ?? throw new ArgumentNullException($"Unknown item type name in \"{deffinitionItemRecipesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: deffinitionItemRecipesData.comment
             );
 
             var itemRecipesData = WriteDefaultConfigOrGetReloadDataItemRecipes(false);
@@ -763,7 +788,8 @@ namespace ProgressAdventure.ItemManagement
                 key => ParseItemType(ConfigUtils.GetNameapacedString(key))
                     ?? throw new ArgumentNullException($"Unknown item type name in \"{itemRecipesData.configName}\" config: \"{key}\"", "item type"),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: itemRecipesData.comment
             );
         }
 
@@ -832,15 +858,14 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="parts">The parts used to create the compound item.</param>
         public static string ParseCompoundItemDisplayName(string rawDisplayName, IList<AItem> parts)
         {
-            var pattern = "\\*/(\\d+)([TMN])([ULC])/\\*";
             var finalName = new StringBuilder();
-            var nameParts = Regex.Split(rawDisplayName, pattern);
+            var nameParts = CompoundItemDisplayNameRegex().Split(rawDisplayName);
             for (var x = 0; x < nameParts.Length; x++)
             {
                 // material index
                 if (
                     x % 4 == 1 &&
-                    int.TryParse(nameParts[x], out int materialIndex) &&
+                    int.TryParse(nameParts[x], out var materialIndex) &&
                     materialIndex < parts.Count
                 )
                 {
@@ -1218,6 +1243,9 @@ namespace ProgressAdventure.ItemManagement
             }
             return requiredItems;
         }
+
+        [GeneratedRegex(@"\*/(\d+)([TMN])([ULC])/\*")]
+        private static partial Regex CompoundItemDisplayNameRegex();
         #endregion
     }
 }

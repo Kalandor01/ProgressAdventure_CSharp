@@ -11,6 +11,7 @@ using ProgressAdventure.Exceptions;
 using ProgressAdventure.SettingsManagement;
 using System.Text;
 using System.Text.Json.Serialization;
+using Attribute = ProgressAdventure.Enums.Attribute;
 using Constants = ProgressAdventure.Constants;
 using Tools = ProgressAdventure.Tools;
 
@@ -61,6 +62,9 @@ namespace PAModding
                     [
                         new JsonStringEnumConverter(allowIntegerValues: false),
                         new TypeConverter(),
+                        new AdvancedEnumConverter<Attribute>(),
+                        new AdvancedEnumConverter<Material>(),
+                        new AdvancedEnumConverter<EntityType>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new AIngredientDTOConverter(),

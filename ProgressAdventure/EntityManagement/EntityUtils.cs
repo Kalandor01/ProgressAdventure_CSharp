@@ -225,65 +225,74 @@ namespace ProgressAdventure.EntityManagement
         #region Public fuctions
         #region Configs
         #region Write default config or get reload common data
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataEntityTypes(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataEntityTypes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_types");
             if (!isWriteConfig)
             {
-                return (basePath, false);
+                return (basePath, comment, false);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfig(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultAttributes
+                    _defaultAttributes,
+                    comment
                 );
             return default;
         }
 
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataAttributes(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataAttributes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attributes");
             if (!isWriteConfig)
             {
-                return (basePath, false);
+                return (basePath, comment, false);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfig(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultAttributes
+                    _defaultAttributes,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<EntityType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "entity_properties_map");
             static string KeySerializer(EnumValue<EntityType> key) => key.Name;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultEntityPropertiesMap,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<Facing, string> serializeKeys,
             Func<(int x, int y), Dictionary<string, int>> serializeValues
         ) WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "facing_to_movement_vector_map");
             static string KeySerializer(Facing key) => key.ToString();
             static Dictionary<string, int> ValueSerializer((int x, int y) key) => new()
@@ -293,7 +302,7 @@ namespace ProgressAdventure.EntityManagement
             };
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer, ValueSerializer);
+                return (basePath, comment, KeySerializer, ValueSerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
@@ -301,17 +310,20 @@ namespace ProgressAdventure.EntityManagement
                     null,
                     _defaultFacingToMovementVectorMap,
                     ValueSerializer,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<Attribute>, string> serializeKeys,
             Func<(double maxHp, double attack, double defence, double agility), Dictionary<string, double>> serializeValues
         ) WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, "attribute_stat_change_map");
             static string KeySerializer(EnumValue<Attribute> key) => key.Name;
             static Dictionary<string, double> ValueSerializer((double maxHp, double attack, double defence, double agility) key) => new()
@@ -323,7 +335,7 @@ namespace ProgressAdventure.EntityManagement
             };
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer, ValueSerializer);
+                return (basePath, comment, KeySerializer, ValueSerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
@@ -331,7 +343,8 @@ namespace ProgressAdventure.EntityManagement
                     null,
                     _defaultAttributeStatChangeMap,
                     ValueSerializer,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
@@ -346,8 +359,7 @@ namespace ProgressAdventure.EntityManagement
             if (
                 EntityType.TryGetValue(EntityType.PLAYER.Name, out var playerType) &&
                 EntityPropertiesMap.TryGetValue(playerType, out var playerAttributes) &&
-                playerAttributes.updatesWorldWhenMoving &&
-                playerAttributes.hasInventory
+                playerAttributes is { updatesWorldWhenMoving: true, hasInventory: true }
             )
             {
                 PlayerEntityType = playerType;
@@ -357,9 +369,8 @@ namespace ProgressAdventure.EntityManagement
             if (
                 EntityType.GetValues().FirstOrDefault(e =>
                     EntityPropertiesMap.TryGetValue(e, out var entityAttributes) &&
-                    entityAttributes.updatesWorldWhenMoving &&
-                    entityAttributes.hasInventory
-                ) is EnumValue<EntityType> foundPlayerType
+                    entityAttributes is { updatesWorldWhenMoving: true, hasInventory: true }
+                ) is { } foundPlayerType
             )
             {
                 PlayerEntityType = foundPlayerType;
@@ -419,22 +430,26 @@ namespace ProgressAdventure.EntityManagement
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_ENTITY_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
+            var defaultConfigOrGetReloadDataEntityTypesData = WriteDefaultConfigOrGetReloadDataEntityTypes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataEntityTypes(false).configName,
+                defaultConfigOrGetReloadDataEntityTypesData.configName,
                 namespaceFolders,
                 _defaultEntityTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: defaultConfigOrGetReloadDataEntityTypesData.comment
             );
 
+            var defaultConfigOrGetReloadDataAttributesData = WriteDefaultConfigOrGetReloadDataAttributes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataAttributes(false).configName,
+                defaultConfigOrGetReloadDataAttributesData.configName,
                 namespaceFolders,
                 _defaultAttributes,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: defaultConfigOrGetReloadDataAttributesData.comment
             );
 
             var facingToMovementVectorMapData = WriteDefaultConfigOrGetReloadDataFacingToMovementVectorMap(false);
@@ -447,7 +462,8 @@ namespace ProgressAdventure.EntityManagement
                 facingToMovementVectorMapData.serializeKeys,
                 Enum.Parse<Facing>,
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: facingToMovementVectorMapData.comment
             );
 
             var attributeStatChangeMapData = WriteDefaultConfigOrGetReloadDataAttributeStatChangeMap(false);
@@ -460,7 +476,8 @@ namespace ProgressAdventure.EntityManagement
                 attributeStatChangeMapData.serializeKeys,
                 key => Attribute.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: attributeStatChangeMapData.comment
             );
 
             var entityPropertiesMapData = WriteDefaultConfigOrGetReloadDataEntityPropertiesMap(false);
@@ -471,7 +488,8 @@ namespace ProgressAdventure.EntityManagement
                 entityPropertiesMapData.serializeKeys,
                 key => EntityType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: entityPropertiesMapData.comment
             );
             UpdatePlayerEntityType();
         }

@@ -102,7 +102,7 @@ namespace PACommon.ConfigManagement
                 if (expectedVersion != "" &&
                     !(
                     configVersion is JsonElement versionElement &&
-                    versionElement.GetString() is string configVersionStr &&
+                    versionElement.GetString() is { } configVersionStr &&
                     expectedVersion == configVersionStr
                 ))
                 {
@@ -128,7 +128,7 @@ namespace PACommon.ConfigManagement
         {
             var tempResult = GetConfig<IDictionary<string, TV>>(configName, expectedVersion);
             return tempResult?.ToDictionary(key => deserializeDictionaryKeys(key.Key), value => value.Value)
-                ?? throw new ArgumentNullException("The deserialized config is null!", nameof(tempResult));
+                ?? throw new ArgumentNullException(nameof(tempResult), "The deserialized config is null!");
         }
 
         public Dictionary<TK, TV> GetConfigDict<TK, TV, TVC>(
@@ -204,7 +204,8 @@ namespace PACommon.ConfigManagement
             string configName,
             string? expectedVersion,
             T defaultContent,
-            bool justRecreate = false
+            bool justRecreate = false,
+            string? comment = null
         )
         {
             if (
@@ -218,7 +219,7 @@ namespace PACommon.ConfigManagement
             {
                 return configValue;
             }
-            SetConfig(configName, expectedVersion, defaultContent);
+            SetConfig(configName, expectedVersion, defaultContent, comment);
             return GetConfig<T>(configName, expectedVersion);
         }
 
@@ -228,7 +229,8 @@ namespace PACommon.ConfigManagement
             IDictionary<TK, TV> defaultContent,
             Func<TK, string> serializeDictionaryKeys,
             Func<string, TK> deserializeDictionaryKeys,
-            bool justRecreate = false
+            bool justRecreate = false,
+            string? comment = null
         )
             where TK : notnull
         {
@@ -244,7 +246,7 @@ namespace PACommon.ConfigManagement
             {
                 return configValue;
             }
-            SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryKeys);
+            SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryKeys, comment);
             return GetConfigDict<TK, TV>(configName, expectedVersion, deserializeDictionaryKeys);
         }
 
@@ -256,7 +258,8 @@ namespace PACommon.ConfigManagement
             Func<TVC, TV> deserializeDictionaryValues,
             Func<TK, string>? serializeDictionaryKeys = null,
             Func<string, TK>? deserializeDictionaryKeys = null,
-            bool justRecreate = false
+            bool justRecreate = false,
+            string? comment = null
         )
             where TK : notnull
         {
@@ -273,13 +276,13 @@ namespace PACommon.ConfigManagement
             {
                 return configValue;
             }
-            SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryValues, serializeDictionaryKeys);
+            SetConfigDict(configName, expectedVersion, defaultContent, serializeDictionaryValues, serializeDictionaryKeys, comment);
             return GetConfigDict(configName, expectedVersion, deserializeDictionaryValues, deserializeDictionaryKeys);
         }
         #endregion
 
         #region Set config
-        public void SetConfig<T>(string configName, string? configVersion, T configData)
+        public void SetConfig<T>(string configName, string? configVersion, T configData, string? comment = null)
         {
             Tools.RecreateFolder(_configsFolderPath, "configs");
             var filePath = GetConfigFilePath(configName);
@@ -305,6 +308,12 @@ namespace PACommon.ConfigManagement
                 };
                 jsonString = JsonSerializer.Serialize(configFileData, _jsonWriterOptions);
             }
+            
+            if (comment is not null)
+            {
+                jsonString = $"/*\n{comment.Replace("*/", "")}\n*/\n{jsonString}";
+            }
+            
             File.WriteAllText(filePath, jsonString);
             PACSingletons.Instance.Logger.Log($"Config file recreated", $"file path: \"{safeFilePath}\"");
         }
@@ -313,12 +322,13 @@ namespace PACommon.ConfigManagement
             string configName,
             string? configVersion,
             IDictionary<TK, TV> configData,
-            Func<TK, string> serializeDictionaryKeys
+            Func<TK, string> serializeDictionaryKeys,
+            string? comment = null
         )
             where TK : notnull
         {
             var tempConfigData = configData.ToDictionary(key => serializeDictionaryKeys(key.Key), value => value.Value);
-            SetConfig(configName, configVersion, tempConfigData);
+            SetConfig(configName, configVersion, tempConfigData, comment);
         }
 
         public void SetConfigDict<TK, TV, TVC>(
@@ -326,7 +336,8 @@ namespace PACommon.ConfigManagement
             string? configVersion,
             IDictionary<TK, TV> configData,
             Func<TV, TVC> serializeDictionaryValues,
-            Func<TK, string>? serializeDictionaryKeys = null
+            Func<TK, string>? serializeDictionaryKeys = null,
+            string? comment = null
         )
             where TK : notnull
         {
@@ -336,7 +347,7 @@ namespace PACommon.ConfigManagement
                     key => key.Key,
                     value => serializeDictionaryValues(value.Value)
                 );
-                SetConfig(configName, configVersion, tempconfigData);
+                SetConfig(configName, configVersion, tempconfigData, comment);
             }
             else
             {
@@ -344,7 +355,7 @@ namespace PACommon.ConfigManagement
                     key => serializeDictionaryKeys(key.Key),
                     value => serializeDictionaryValues(value.Value)
                 );
-                SetConfig(configName, configVersion, tempconfigData);
+                SetConfig(configName, configVersion, tempconfigData, comment);
             }
         }
         #endregion

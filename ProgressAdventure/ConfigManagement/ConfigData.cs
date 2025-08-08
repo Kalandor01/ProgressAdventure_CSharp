@@ -66,7 +66,7 @@ namespace ProgressAdventure.ConfigManagement
         public ConfigData(string configFolderName, string @namespace, string format, string version)
             : this(configFolderName, @namespace, format, version, []) { }
 
-        public override string? ToString()
+        public override string ToString()
         {
             return $"\"{FolderName}\"({Namespace}): {Format}-{Version}";
         }
@@ -75,20 +75,19 @@ namespace ProgressAdventure.ConfigManagement
         static List<(Action<JsonDictionary, string> objectJsonCorrecter, string newFileVersion)> IJsonConvertableExtra<ConfigData, string>.VersionCorrecters { get; } =
         [
             // v2 -> v3
-            ((oldJson, folderName) =>
+            ((oldJson, _) =>
             {
                 oldJson["dependencies"] = new JsonArray();
             }, "v3"),
             // v8 -> v9
-            ((oldJson, folderName) =>
+            ((oldJson, _) =>
             {
-                // format and version split
+                // format and version split, json -> jsonc
                 JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "version", "format");
                 oldJson["version"] = "1." +
                 (
                     oldJson.TryGetValue("format", out var formatJson) &&
-                    formatJson?.ToString() is string format &&
-                    format.Length > 1
+                    formatJson?.ToString() is { Length: > 1 } format
                         ? format[1..]
                         : "0"
                 );
@@ -159,7 +158,6 @@ namespace ProgressAdventure.ConfigManagement
         /// <summary>
         /// Writes the config data to a config data file.
         /// </summary>
-        /// <param name="configFolderName">The name of the config folder to write the config data to.</param>
         public void SerializeToFile()
         {
             var namespaceFolder = Path.Join(Constants.CONFIGS_FOLDER_PATH, FolderName);
@@ -196,7 +194,7 @@ namespace ProgressAdventure.ConfigManagement
             if (
                 configJson is not null &&
                 configJson.TryGetValue(Constants.JsonKeys.ConfigData.FORMAT, out var configFormatJs) &&
-                configFormatJs?.ToString() is string configFormatStr
+                configFormatJs?.ToString() is { } configFormatStr
             )
             {
                 configFormat = configFormatStr;
@@ -205,7 +203,7 @@ namespace ProgressAdventure.ConfigManagement
                 configJson is not null &&
                 !configJson.ContainsKey(Constants.JsonKeys.ConfigData.FORMAT) &&
                 configJson.TryGetValue(Constants.JsonKeys.ConfigData.VERSION, out var configOldFormatJs) &&
-                configOldFormatJs?.ToString() is string configOldFormatStr
+                configOldFormatJs?.ToString() is { } configOldFormatStr
             )
             {
                 configFormat = configOldFormatStr;

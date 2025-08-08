@@ -100,39 +100,44 @@ namespace ProgressAdventure.SettingsManagement
         #region Public functions
         #region Configs
         #region Write default config or get reload common data
-        private static (string configName, bool paddingData) WriteDefaultConfigOrGetReloadDataActionTypes(bool isWriteConfig)
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataActionTypes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_types");
             if (!isWriteConfig)
             {
-                return (basePath, false);
+                return (basePath, comment, false);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfig(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
-                    _defaultActionTypes
+                    _defaultActionTypes,
+                    comment
                 );
             return default;
         }
 
         private static (
             string configName,
+            string? comment,
             Func<EnumValue<ActionType>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataActionTypeAttributes(bool isWriteConfig)
         {
+            const string? comment = null;
             var basePath = Path.Join(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, "action_type_attributes");
             static string KeySerializer(EnumValue<ActionType> key) => key.Name;
             if (!isWriteConfig)
             {
-                return (basePath, KeySerializer);
+                return (basePath, comment, KeySerializer);
             }
 
             PACSingletons.Instance.ConfigManager.SetConfigDict(
                     Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
                     null,
                     _defaultActionTypeAttributes,
-                    KeySerializer
+                    KeySerializer,
+                    comment
                 );
             return default;
         }
@@ -171,13 +176,15 @@ namespace ProgressAdventure.SettingsManagement
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
+            var defaultConfigOrGetReloadDataActionTypesData = WriteDefaultConfigOrGetReloadDataActionTypes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                WriteDefaultConfigOrGetReloadDataActionTypes(false).configName,
+                defaultConfigOrGetReloadDataActionTypesData.configName,
                 namespaceFolders,
                 _defaultActionTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
-                true
+                true,
+                comment: defaultConfigOrGetReloadDataActionTypesData.comment
             );
 
             var actionTypeAttributesData = WriteDefaultConfigOrGetReloadDataActionTypeAttributes(false);
@@ -188,7 +195,8 @@ namespace ProgressAdventure.SettingsManagement
                 actionTypeAttributesData.serializeKeys,
                 key => ActionType.GetValue(ConfigUtils.GetNameapacedString(key)),
                 isVanillaInvalid,
-                showProgressIndentation
+                showProgressIndentation,
+                comment: actionTypeAttributesData.comment
             );
         }
         #endregion

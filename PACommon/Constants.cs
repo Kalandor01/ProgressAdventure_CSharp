@@ -40,7 +40,7 @@ namespace PACommon
         /// <summary>
         /// The extension used for config files.
         /// </summary>
-        public const string CONFIG_EXT = "json";
+        public const string CONFIG_EXT = "jsonc";
         #endregion
         #endregion
 

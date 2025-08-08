@@ -19,10 +19,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <summary>
         /// <inheritdoc cref="_loadingNamespaces" path="//summary"/>
         /// </summary>
-        public static ReadOnlyCollection<string>? LoadingNamespaces
-        {
-            get => _loadingNamespaces?.AsReadOnly();
-        }
+        public static ReadOnlyCollection<string>? LoadingNamespaces => _loadingNamespaces?.AsReadOnly();
 
         /// <summary>
         /// The name of the currently loading namespace.
@@ -37,10 +34,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <summary>
         /// <inheritdoc cref="_enabledConfigDatas" path="//summary"/>
         /// </summary>
-        public static ReadOnlyCollection<ConfigData> EnabledConfigDatas
-        {
-            get => _enabledConfigDatas?.AsReadOnly() ?? UpdateEnabledConfigDatas(out _);
-        }
+        public static ReadOnlyCollection<ConfigData> EnabledConfigDatas => _enabledConfigDatas?.AsReadOnly() ?? UpdateEnabledConfigDatas(out _);
 
         #region Public functions
         #region Reload config functions
@@ -55,6 +49,7 @@ namespace ProgressAdventure.ConfigManagement
         /// <param name="appendConfigFunction">The function to aggregate two config values.</param>
         /// <param name="vanillaNamespaceInvalid">If true, it will always recreate the config file from the vanilla namespace.</param>
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
+        /// <param name="comment">The comment to write before the recreated json data.</param>
         /// <returns>The aggregate of the config file from all given namespaces.</returns>
         public static T ReloadConfigsAggregate<T>(
             string configName,
@@ -63,7 +58,8 @@ namespace ProgressAdventure.ConfigManagement
             Func<T> getStartingValueFunction,
             Func<T, T, T> appendConfigFunction,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            string? comment = null
         )
         {
             return ReloadConfigsAggregatePrivate(
@@ -76,7 +72,8 @@ namespace ProgressAdventure.ConfigManagement
                         configName,
                         null,
                         vanillaDefaultValue,
-                        vanillaNamespaceInvalid
+                        vanillaNamespaceInvalid,
+                        comment
                     ), default!),
                 (configName) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfig<T>(
@@ -89,16 +86,17 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for list values.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/> for list values.
         /// </summary>
         /// <typeparam name="T">The type of the elements in the list.</typeparam>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
         public static List<T> ReloadConfigsAggregateList<T>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
             List<T> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
-            int? showProgressIndentation = null
+            int? showProgressIndentation = null,
+            string? comment = null
         )
         {
             var valueTypeIsNullable = Nullable.GetUnderlyingType(typeof(T)) is not null;
@@ -128,8 +126,9 @@ namespace ProgressAdventure.ConfigManagement
                         configName,
                         null,
                         vanillaDefaultValue,
-                        vanillaNamespaceInvalid
-                    ), new List<T>()),
+                        vanillaNamespaceInvalid,
+                        comment
+                    ), []),
                 (configName) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfig<List<T>>(
                         configName,
@@ -141,12 +140,12 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
         /// </summary>
         /// <typeparam name="TEnum">The type of the enum.</typeparam>
         /// <param name="isNamespacedValues">Whether the enum values should be namespaced.</param>
         /// <param name="removeValueBeggining">The string that should be at the beggining of a value, to signify that that value should be removed.</param>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
         public static void ReloadConfigsAggregateAdvancedEnum<TEnum>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
@@ -154,7 +153,8 @@ namespace ProgressAdventure.ConfigManagement
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
             bool isNamespacedValues = false,
-            string removeValueBeggining = Constants.CONFIG_REMOVE_BEGGINING
+            string removeValueBeggining = Constants.CONFIG_REMOVE_BEGGINING,
+            string? comment = null
         )
             where TEnum : AdvancedEnum<TEnum>
         {
@@ -188,7 +188,8 @@ namespace ProgressAdventure.ConfigManagement
                             configName,
                             null,
                             vanillaDefaultActualValue,
-                            vanillaNamespaceInvalid
+                            vanillaNamespaceInvalid,
+                            comment
                         );
                         var (success, addedValues, removedValues) = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues, removeValueBeggining);
                         if (success)
@@ -222,12 +223,12 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/> for <see cref="AdvancedEnum{TSelf}"/> values.
         /// </summary>
         /// <typeparam name="TEnum">The type of the enum.</typeparam>
         /// <param name="isNamespacedValues">Whether the enum values should be namespaced.</param>
         /// <param name="removeValueBeggining">The string that should be at the beggining of a value, to signify that that value should be removed.</param>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
         public static void ReloadConfigsAggregateAdvancedEnumTree<TEnum>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
@@ -235,7 +236,8 @@ namespace ProgressAdventure.ConfigManagement
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
             bool isNamespacedValues = false,
-            string removeValueBeggining = Constants.CONFIG_REMOVE_BEGGINING
+            string removeValueBeggining = Constants.CONFIG_REMOVE_BEGGINING,
+            string? comment = null
         )
             where TEnum : AdvancedEnumTree<TEnum>
         {
@@ -269,7 +271,8 @@ namespace ProgressAdventure.ConfigManagement
                             configName,
                             null,
                             vanillaDefaultActualValue,
-                            vanillaNamespaceInvalid
+                            vanillaNamespaceInvalid,
+                            comment
                         );
                         var (success, addedValues, removedValues) = CheckEnumConfigNamespacedValues(configValues, configName, isNamespacedValues, removeValueBeggining);
                         if (success)
@@ -303,18 +306,19 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
         /// </summary>
         /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool, string?)"/>
         public static Dictionary<string, TV> ReloadConfigsAggregateDict<TV>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
             Dictionary<string, TV> vanillaDefaultValue,
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
-            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING,
+            string? comment = null
         )
         {
             return ReloadConfigsAggregateDictPrivate(
@@ -325,7 +329,8 @@ namespace ProgressAdventure.ConfigManagement
                         configName,
                         null,
                         vanillaDefaultValue,
-                        vanillaNamespaceInvalid
+                        vanillaNamespaceInvalid,
+                        comment
                     ),
                 (configName, deserializeKeysFunction) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfigDict<string, TV>(
@@ -341,11 +346,11 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigDict{TK, TV}(string, string?, out Dictionary{TK, TV}?, Func{string, TK})"/>.
         /// </summary>
         /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool, string?)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
@@ -354,7 +359,8 @@ namespace ProgressAdventure.ConfigManagement
             Func<string, TK> deserializeDictionaryKeys,
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
-            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING,
+            string? comment = null
         )
             where TK : notnull
         {
@@ -368,7 +374,8 @@ namespace ProgressAdventure.ConfigManagement
                         vanillaDefaultValue,
                         serializeDictionaryKeys,
                         deserializeDictionaryKeys,
-                        vanillaNamespaceInvalid
+                        vanillaNamespaceInvalid,
+                        comment
                     ),
                 (configName, deserializeKeysFunction) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfigDict<TK, TV>(
@@ -384,11 +391,11 @@ namespace ProgressAdventure.ConfigManagement
         }
 
         /// <summary>
-        /// <see cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>.
+        /// <see cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/> for <see cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool, string?)"/>.
         /// </summary>
         /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool, string?)"/>
         public static Dictionary<TK, TV> ReloadConfigsAggregateDict<TK, TV, TVC>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
@@ -399,7 +406,8 @@ namespace ProgressAdventure.ConfigManagement
             Func<string, TK>? deserializeDictionaryKeys = null,
             bool vanillaNamespaceInvalid = false,
             int? showProgressIndentation = null,
-            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING,
+            string? comment = null
         )
             where TK : notnull
         {
@@ -415,7 +423,8 @@ namespace ProgressAdventure.ConfigManagement
                         deserializeDictionaryValues,
                         serializeDictionaryKeys,
                         deserializeDictionaryKeys,
-                        vanillaNamespaceInvalid
+                        vanillaNamespaceInvalid,
+                        comment
                     ),
                 (configName, deserializeKeysFunction) =>
                     (PACSingletons.Instance.ConfigManager.TryGetConfigDict(
@@ -605,8 +614,7 @@ namespace ProgressAdventure.ConfigManagement
             {
                 if (
                     configDatas.Any(cd => cd.Namespace == loadingConfig.Namespace) &&
-                    !loadingOrder2.Any(lo2 => lo2.Namespace == loadingConfig.Namespace)
-                )
+                    loadingOrder2.All(lo2 => lo2.Namespace != loadingConfig.Namespace))
                 {
                     loadingOrder2.Add(loadingConfig);
                     continue;
@@ -618,7 +626,7 @@ namespace ProgressAdventure.ConfigManagement
             // add missing namespaces
             foreach (var configData in configDatas)
             {
-                if (!loadingOrder.Any(ld => ld.Namespace == configData.Namespace))
+                if (loadingOrder.All(ld => ld.Namespace != configData.Namespace))
                 {
                     loadingOrder.Add(
                         new ConfigLoadingData(
@@ -849,27 +857,23 @@ namespace ProgressAdventure.ConfigManagement
             }
 
             var nspace = str[..nsSepIndex];
-            if (
-                string.IsNullOrWhiteSpace(nspace) ||
-                !NamespaceRegex().IsMatch(nspace) ||
-                (isConfigLoading && (LoadingNamespaces is null || !LoadingNamespaces.Contains(nspace))) ||
-                (!isConfigLoading && !EnabledConfigDatas.Any(c => c.Namespace == nspace))
-            )
+            if (!string.IsNullOrWhiteSpace(nspace) &&
+                NamespaceRegex().IsMatch(nspace) &&
+                (!isConfigLoading || (LoadingNamespaces is not null && LoadingNamespaces.Contains(nspace))) &&
+                (isConfigLoading || EnabledConfigDatas.Any(c => c.Namespace == nspace))) return true;
+            if (throwOnInvalidNamespace)
             {
-                if (throwOnInvalidNamespace)
-                {
-                    throw new ArgumentException("Invalid/non-existent namespace.", nameof(str));
-                }
+                throw new ArgumentException("Invalid/non-existent namespace.", nameof(str));
+            }
 
-                namespacedString = defaultNamespace + str[nsSepIndex..];
-                if (logChange)
-                {
-                    PACSingletons.Instance.Logger.Log(
-                        "Namespaced string changed",
-                        $"{(isConfigLoading ? $"while loading from: {defaultNamespace}, " : "")}\"{str}\" -> \"{namespacedString}\"",
-                        LogSeverity.WARN
-                    );
-                }
+            namespacedString = defaultNamespace + str[nsSepIndex..];
+            if (logChange)
+            {
+                PACSingletons.Instance.Logger.Log(
+                    "Namespaced string changed",
+                    $"{(isConfigLoading ? $"while loading from: {defaultNamespace}, " : "")}\"{str}\" -> \"{namespacedString}\"",
+                    LogSeverity.WARN
+                );
             }
             return true;
         }
@@ -994,7 +998,7 @@ namespace ProgressAdventure.ConfigManagement
             {
                 var isRemoveValue = value.StartsWith(removeValueBeggining);
                 var rawValue = isRemoveValue ? value[removeValueBeggining.Length..] : value;
-                var namespacedValue = "";
+                string namespacedValue;
                 try
                 {
                     TryGetNamespacedString(rawValue, out namespacedValue, throwOnInvalidNamespace: true);
@@ -1125,8 +1129,8 @@ namespace ProgressAdventure.ConfigManagement
         /// The second argument is the modified deserialize keys function.</param>
         /// <returns>The aggregate of the config file from all avalible namespaces.</returns>
         /// /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
-        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{string}, T, Func{T}, Func{T, T, T}, bool, int?)"/>
-        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool)"/>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV, TVC}(string, string?, IDictionary{TK, TV}, Func{TV, TVC}, Func{TVC, TV}, Func{TK, string}?, Func{string, TK}?, bool, string?)"/>
         private static Dictionary<TK, TV> ReloadConfigsAggregateDictPrivate<TK, TV>(
             string configName,
             List<(string folderName, string namespaceName)> namespaceFolders,
