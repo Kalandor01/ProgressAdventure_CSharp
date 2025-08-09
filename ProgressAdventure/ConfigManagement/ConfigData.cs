@@ -82,7 +82,7 @@ namespace ProgressAdventure.ConfigManagement
             // v8 -> v9
             ((oldJson, _) =>
             {
-                // format and version split, json -> jsonc
+                // format and version split
                 JsonDataCorrecterUtils.RenameKeyIfExists(oldJson, "version", "format");
                 oldJson["version"] = "1." +
                 (
@@ -92,6 +92,15 @@ namespace ProgressAdventure.ConfigManagement
                         : "0"
                 );
             }, "v9"),
+            // v9 -> v10
+            ((oldJson, folderName) =>
+            {
+                // fjson -> jsonc
+                if (Constants.UPGRAGE_ALL_JSON_FILES_TO_JSONC_IN_CONFIGS)
+                {
+                    UpgradeOldJsonConfigFiles(folderName);
+                }
+            }, "v10"),
         ];
 
         public JsonDictionary ToJson()
@@ -174,15 +183,20 @@ namespace ProgressAdventure.ConfigManagement
         public static ConfigData? DeserializeFromFile(string configFolderName)
         {
             var dataFilePath = Path.Join(Constants.CONFIGS_FOLDER_PATH, configFolderName, Constants.CONFIG_FILE_NAME_DATA);
+            var isOld = false;
             if (!File.Exists(dataFilePath + $".{Constants.CONFIG_EXT}"))
             {
-                return null;
+                if (!File.Exists(dataFilePath + $".{Constants.OLD_CONFIG_EXT}"))
+                {
+                    return null;
+                }
+                isOld = true;
             }
 
             JsonDictionary? configJson;
             try
             {
-                configJson = PACommon.Tools.LoadJsonFile(dataFilePath, null, Constants.CONFIG_EXT);
+                configJson = PACommon.Tools.LoadJsonFile(dataFilePath, null, isOld ? Constants.OLD_CONFIG_EXT : Constants.CONFIG_EXT);
             }
             catch (Exception ex)
             {
@@ -220,5 +234,48 @@ namespace ProgressAdventure.ConfigManagement
                 out ConfigData? configData
             ) ? configData : null;
         }
+
+        #region Private functions
+        /// <summary>
+        /// Upgrades (copies) ALL .json files in the config folder to .jsonc, if they haven't been already.
+        /// </summary>
+        /// <param name="configFolderName">The name of the config folder to upgrade.</param>
+        /// <returns>If the folder was upgraded.</returns>
+        private static bool UpgradeOldJsonConfigFiles(string configFolderName)
+        {
+            var configFolderPath = Path.Join(Constants.CONFIGS_FOLDER_PATH, configFolderName);
+            var dataFilePath = Path.Join(configFolderPath, $"{Constants.CONFIG_FILE_NAME_DATA}.{Constants.CONFIG_EXT}");
+            if (
+                !Directory.Exists(configFolderPath) ||
+                File.Exists(dataFilePath)
+            )
+            {
+                return false;
+            }
+            dataFilePath = Path.ChangeExtension(dataFilePath, Constants.OLD_CONFIG_EXT);
+            if (!File.Exists(dataFilePath))
+            {
+                return false;
+            }
+                
+            var jsonFilePaths = Directory.GetFiles(configFolderPath, "*.json", SearchOption.AllDirectories);
+            if (jsonFilePaths.Length == 0)
+            {
+                return false;
+            }
+
+            var safeFilePath = Path.GetRelativePath(PACommon.Constants.ROOT_FOLDER, configFolderPath);
+            PACSingletons.Instance.Logger.Log("Upgrading config files", $"Upgrading {jsonFilePaths.Length} config files in \"{safeFilePath}\"");
+            foreach (var jsonFilePath in jsonFilePaths)
+            {
+                var newFilePath = Path.ChangeExtension(jsonFilePath, Constants.CONFIG_EXT);
+                if (!File.Exists(newFilePath))
+                {
+                    File.Copy(jsonFilePath, newFilePath, true);
+                }
+            }
+            return true;
+        }
+        #endregion
     }
 }

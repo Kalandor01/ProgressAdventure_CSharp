@@ -89,6 +89,21 @@ namespace ProgressAdventure
             return PACTools.DecodeFileShort(filePath, OLD_SAVE_SEED, OLD_SAVE_EXT, lineNum, expected);
         }
 
+        /// <inheritdoc cref="PACommon.Tools.LoadJsonFile(string, int?, string, bool)"/>
+        /// <param name="tryRegularExtension">Whether to try to use the regular json extension, if the json with comments extension doesn't work.</param>
+        /// <exception cref="Exception">Exeption thrown, if the file was malformed and/or couldn't be decoded.</exception>
+        public static JsonDictionary? LoadJsonFileWithCommentsOrNot(
+            string filePath,
+            int? lineNum = 0,
+            string extension = CONFIG_EXT,
+            bool expected = true,
+            bool tryRegularExtension = true
+        )
+        {
+            var newJsonData = PACTools.LoadJsonFile(filePath, lineNum, extension, expected && !tryRegularExtension);
+            return newJsonData ?? PACTools.LoadJsonFile(filePath, lineNum, OLD_CONFIG_EXT, expected);
+        }
+
         /// <summary>
         /// <inheritdoc cref="PACTools.DecodeFileShort(string, long, string, int, bool)"/>
         /// </summary>

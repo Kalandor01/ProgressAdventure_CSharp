@@ -1467,34 +1467,33 @@ namespace PACommon
             var fullFilePath = $"{filePath}.{extension}";
             if (!File.Exists(fullFilePath))
             {
-                if (Directory.Exists(Path.GetDirectoryName(fullFilePath)))
-                {
-                    PACSingletons.Instance.Logger.Log("File not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                }
-                else
-                {
-                    PACSingletons.Instance.Logger.Log("Folder containing file not found", $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}", expected ? LogSeverity.ERROR : LogSeverity.INFO);
-                }
+                PACSingletons.Instance.Logger.Log(
+                    $"{(Directory.Exists(Path.GetDirectoryName(fullFilePath)) ? "File" : "Folder containing file")} not found",
+                    $"{(expected ? "" : "(but it was expected) ")}file name: {safeFilePath}.{extension}",
+                    expected ? LogSeverity.ERROR : LogSeverity.INFO
+                );
                 return null;
             }
 
             string loadedLine;
             try
             {
-                if (type == 0)
+                switch (type)
                 {
-                    loadedLine = lineNum is not null
-                        ? File.ReadLines(fullFilePath, Constants.ENCODING).ElementAt((int)lineNum)
-                        : File.ReadAllText(fullFilePath, Constants.ENCODING);
-                }
-                else if (type == 1)
-                {
-                    var compressedLine = File.ReadAllLines(fullFilePath, Constants.ENCODING).ElementAt(lineNum ?? 0);
-                    loadedLine = Utils.Unzip(Convert.FromBase64String(compressedLine));
-                }
-                else
-                {
-                    loadedLine = FileConversion.DecodeFile((long)seed!, filePath, extension, (lineNum ?? 0) + 1, Constants.ENCODING).Last();
+                    case 0:
+                        loadedLine = lineNum is not null
+                            ? File.ReadLines(fullFilePath, Constants.ENCODING).ElementAt((int)lineNum)
+                            : File.ReadAllText(fullFilePath, Constants.ENCODING);
+                        break;
+                    case 1:
+                    {
+                        var compressedLine = File.ReadAllLines(fullFilePath, Constants.ENCODING).ElementAt(lineNum ?? 0);
+                        loadedLine = Utils.Unzip(Convert.FromBase64String(compressedLine));
+                        break;
+                    }
+                    default:
+                        loadedLine = FileConversion.DecodeFile((long)seed!, filePath, extension, (lineNum ?? 0) + 1, Constants.ENCODING).Last();
+                        break;
                 }
             }
             catch (Exception ex)

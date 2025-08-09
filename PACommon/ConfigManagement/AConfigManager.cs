@@ -78,7 +78,6 @@ namespace PACommon.ConfigManagement
         #region Get config
         public T GetConfig<T>(string configName, string? expectedVersion)
         {
-            Tools.RecreateFolder(_configsFolderPath, "configs");
             var filePath = GetConfigFilePath(configName);
             var parrentPath = Path.GetDirectoryName(_configsFolderPath);
             var safeFilePath = parrentPath is null ? filePath : Path.GetRelativePath(parrentPath, filePath);
@@ -284,7 +283,6 @@ namespace PACommon.ConfigManagement
         #region Set config
         public void SetConfig<T>(string configName, string? configVersion, T configData, string? comment = null)
         {
-            Tools.RecreateFolder(_configsFolderPath, "configs");
             var filePath = GetConfigFilePath(configName);
             var configFolder = Path.GetDirectoryName(filePath);
             if (configFolder is not null && configFolder != _configsFolderPath)

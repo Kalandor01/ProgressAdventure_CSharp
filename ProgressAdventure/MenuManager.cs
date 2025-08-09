@@ -1,5 +1,6 @@
 using ConsoleUI;
 using ConsoleUI.UIElements;
+using ConsoleUI.UIElements.EventArgs;
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
@@ -48,10 +49,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The current list of saves data.
         /// </summary>
-        private static List<(string saveName, string displayText)> SavesData
-        {
-            get => _savesData ??= SaveManager.GetSavesData();
-        }
+        private static List<(string saveName, string displayText)> SavesData => _savesData ??= SaveManager.GetSavesData();
         #endregion
 
         #region Private Lists
@@ -61,11 +59,11 @@ namespace ProgressAdventure
         private static readonly List<(LogSeverity value, string name)> loggingSeveritiesList =
         [
             (LogSeverity.DISABLED, "MINIMAL"),
-            (LogSeverity.FATAL, LogSeverity.FATAL.ToString()),
-            (LogSeverity.ERROR, LogSeverity.ERROR.ToString()),
-            (LogSeverity.WARN, LogSeverity.WARN.ToString()),
-            (LogSeverity.INFO, LogSeverity.INFO.ToString()),
-            (LogSeverity.DEBUG, LogSeverity.DEBUG.ToString()),
+            (LogSeverity.FATAL, nameof(LogSeverity.FATAL)),
+            (LogSeverity.ERROR, nameof(LogSeverity.ERROR)),
+            (LogSeverity.WARN, nameof(LogSeverity.WARN)),
+            (LogSeverity.INFO, nameof(LogSeverity.INFO)),
+            (LogSeverity.DEBUG, nameof(LogSeverity.DEBUG)),
             (LogSeverity.TRACE, "ALL"),
         ];
 
@@ -121,6 +119,31 @@ namespace ProgressAdventure
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
             ).Display(keybindList) == (yesFirst ? 0 : 1);
         }
+        
+        /// <summary>
+        /// Returns en event handler to automaticaly adjust the <see cref="OptionsUI.scrollSettings"/>.maxElements, to the height of the terminal window.
+        /// </summary>
+        /// <param name="elementHeight">The (average) height of an element in the <see cref="OptionsUI"/>.</param>
+        /// <param name="padding">The extra padding to leave aroud the elements. (or the space that other elements take up other than the elements.)</param>
+        /// <param name="minElements">The minimum number of elements to display.</param>
+        /// <returns>An event hadler that can be passed into the <see cref="OptionsUI.BeforeElementsDisplayed"/> event.</returns>
+        public static OptionsUI.BeforeElementsDisplayedEventHandler GetAutoHigthAdjusterEventHandler(double elementHeight, uint padding = 0, uint minElements = 1)
+        {
+            static void AdjustScrollHeight(OptionsUI sender, BeforeElementsDisplayedEventArgs args, double elementHeight, uint padding, uint minElements)
+            {
+                var terminalHeight = PACSingletons.Instance.ConsoleProxy.ConsoleHeight - padding;
+                var existingScroll = sender.scrollSettings;
+                var newScroll = new ScrollSettings(
+                    (int)Math.Max(terminalHeight / elementHeight, minElements),
+                    existingScroll.scrollIcon,
+                    existingScroll.scrollUpMargin,
+                    existingScroll.scrollDownMargin
+                );
+                sender.scrollSettings = newScroll;
+            }
+            
+            return (sender, args) => { AdjustScrollHeight(sender, args, elementHeight, padding, minElements); };
+        }
 
         /// <summary>
         /// Hadles exceptions in a main context and displays a menu for reloading.
@@ -165,19 +188,16 @@ namespace ProgressAdventure
                     consoleProxy: PACSingletons.Instance.ConsoleProxy
                 ).Display();
                 
-                if (response == 1)
+                switch (response)
                 {
-                    ConfigUtils.SetLoadingOrderData([new ConfigLoadingData(Constants.VANILLA_CONFIGS_NAMESPACE, true)]);
-                    throw new RestartException($"Restarting {contextName} in safe mode");
-                }
-                else if (response == 0)
-                {
-                    PACSingletons.Instance.Logger.Log($"Restarting {contextName}", forceLog: true);
-                    return false;
-                }
-                else
-                {
-                    return true;
+                    case 1:
+                        ConfigUtils.SetLoadingOrderData([new ConfigLoadingData(Constants.VANILLA_CONFIGS_NAMESPACE, true)]);
+                        throw new RestartException($"Restarting {contextName} in safe mode");
+                    case 0:
+                        PACSingletons.Instance.Logger.Log($"Restarting {contextName}", forceLog: true);
+                        return false;
+                    default:
+                        return true;
                 }
             }
             catch (Exception inException)
@@ -228,11 +248,12 @@ namespace ProgressAdventure
                 return;
             }
 
-            var elementsList = new List<BaseUI?>();
-            foreach (var partItem in compundItem.Parts)
-            {
-                elementsList.Add(new PAButton(UIAction.Create(ItemViever, partItem), text: partItem.ToString() ?? ""));
-            }
+            var elementsList = compundItem.Parts
+                .Select(partItem =>
+                    new PAButton(UIAction.Create(ItemViever, partItem), text: partItem.ToString() ?? "")
+                )
+                .Cast<BaseUI?>()
+                .ToList();
             elementsList.Add(null);
             elementsList.Add(backButton);
 
@@ -250,22 +271,26 @@ namespace ProgressAdventure
         /// <param name="inventory">The inventory to view.</param>
         public static void InventoryViewer(Inventory inventory)
         {
-            var elementsList = new List<BaseUI?>();
-            foreach (var item in inventory.items)
-            {
-                elementsList.Add(new PAButton(UIAction.Create(ItemViever, item), text: item.ToString() ?? ""));
-            }
+            var elementsList = inventory.items
+                .Select(item =>
+                    new PAButton(UIAction.Create(ItemViever, item), text: item.ToString() ?? "")
+                )
+                .Cast<BaseUI?>()
+                .ToList();
+            
             if (elementsList.Count == 0)
             {
                 elementsList.Add(GetBackButton("Empty"));
             }
-            new OptionsUI(
+            var inventoryMenu = new OptionsUI(
                 elementsList,
                 "Inventory",
                 Constants.STANDARD_CURSOR_ICONS,
                 scrollSettings: new ScrollSettings(10),
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
-            ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
+            );
+            inventoryMenu.BeforeElementsDisplayed += GetAutoHigthAdjusterEventHandler(1, 2);
+            inventoryMenu.Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
         }
         #endregion
 
@@ -336,9 +361,9 @@ namespace ProgressAdventure
                     KeybindUtils.GetColoredNames(keyField.Value, PASingletons.Instance.Settings.EnableColoredText)
                 );
             }
-
-
-
+            
+            
+            
             var configDatas = ConfigUtils.GetValidConfigDatas(null);
             var namespaceToNamespaceName = new Dictionary<string, string>();
             foreach (var configData in configDatas)
@@ -480,19 +505,19 @@ namespace ProgressAdventure
                         continue;
                     }
 
-                    bool isError = false;
+                    var isError = false;
                     var message = "";
                     if (badDependencies is null)
                     {
                         isError = true;
                         message = "Invalid config!";
                     }
-                    else if (badDependencies.FirstOrDefault(bd => bd.invalidType == -1).dependency is string missingDependency)
+                    else if (badDependencies.FirstOrDefault(bd => bd.invalidType == -1).dependency is { } missingDependency)
                     {
                         isError = true;
                         message = $"Dependency doesn't exist: \"{missingDependency}\"!";
                     }
-                    else if (badDependencies.FirstOrDefault(bd => bd.invalidType == 0).dependency is string disabledDependency)
+                    else if (badDependencies.FirstOrDefault(bd => bd.invalidType == 0).dependency is { } disabledDependency)
                     {
                         message = $"Dependency is disabled: \"{disabledDependency}\"";
                     }
@@ -513,6 +538,7 @@ namespace ProgressAdventure
                 scrollSettings: new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3),
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
             );
+            configOptionsUI.BeforeElementsDisplayed += GetAutoHigthAdjusterEventHandler(1.5);
             foreach (var loadedConfig in loadingOrder)
             {
                 var config = configs.FirstOrDefault(c => c.Namespace == loadedConfig.Namespace);
@@ -525,17 +551,17 @@ namespace ProgressAdventure
                 var configManagerUIElement = new OpenMultiButton(
                     [
                         new(
-                            UIAction.CreateDelegateAction(ToggleEnableConfigMultiChoice, loadedConfig, () => { UpdateMessages(); }),
+                            UIAction.CreateWithExtraArg<MultiButton, ConfigLoadingData, Action>(ToggleEnableConfigMultiChoice, loadedConfig, UpdateMessages),
                             inactiveText,
                             activeText
                         ),
                         new(
-                            UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, false),
+                            UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, UpdateMessages, configOptionsUI, false),
                             " Move Up ",
                             "[Move Up]"
                         ),
                         new(
-                            UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, () => { UpdateMessages(); }, configOptionsUI, true),
+                            UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, UpdateMessages, configOptionsUI, true),
                             " Move Down ",
                             "[Move Down]"
                         )
@@ -592,9 +618,9 @@ namespace ProgressAdventure
             var askRegenerateSaveElement = new Toggle(PASingletons.Instance.Settings.AskRegenerateSave, "Confirm save folders regeneration: ", "yes", "no");
 
             // default backup action
-            var backupActionValues = defBackupActionsList.Select(ac => ac.value);
+            var backupActionValues = defBackupActionsList.Select(ac => ac.value).ToList();
             var backupActionNames = defBackupActionsList.Select(ac => ac.name).ToList();
-            var backupActionValue = backupActionValues.ElementAt(0);
+            var backupActionValue = backupActionValues[0];
             foreach (var action in backupActionValues)
             {
                 if (action == PASingletons.Instance.Settings.DefBackupAction)
@@ -635,14 +661,14 @@ namespace ProgressAdventure
             var autoSaveElement = new Toggle(PASingletons.Instance.Settings.AutoSave, "Auto save: ");
 
             // logging
-            var loggingSeverities = loggingSeveritiesList.Select(el => el.value);
+            var loggingSeverities = loggingSeveritiesList.Select(el => el.value).ToList();
             var loggingSeverityNames = loggingSeveritiesList.Select(el => el.name).ToList();
             var currentLoggingLevel = PASingletons.Instance.Settings.LoggingLevel;
 
-            var loggingLevelIndex = loggingSeverities.Count() - 1;
-            for (var x = 0; x < loggingSeverities.Count(); x++)
+            var loggingLevelIndex = loggingSeverities.Count - 1;
+            for (var x = 0; x < loggingSeverities.Count; x++)
             {
-                if (loggingSeverities.ElementAt(x) == currentLoggingLevel)
+                if (loggingSeverities[x] == currentLoggingLevel)
                 {
                     loggingLevelIndex = x;
                     break;
@@ -898,7 +924,7 @@ namespace ProgressAdventure
             UpdateSavesMenuLists(loadSaveUI);
         }
 
-        /// <inheritdoc cref="KeyField.ValidatorDelegate"/>
+        /// <inheritdoc cref="KeyField{T}.ValidatorDelegate"/>
         private static (TextFieldValidatorStatus status, string? message) KeybindChange(ConsoleKeyInfo key, KeyField<EnumValue<ActionType>> keyField)
         {
             tempKeybinds.UpdateKeybindConflicts();
@@ -971,6 +997,7 @@ namespace ProgressAdventure
                 new ScrollSettings(10, new ScrollIcon("...\n", "..."), 3, 3),
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
             );
+            savesUI.BeforeElementsDisplayed += GetAutoHigthAdjusterEventHandler(3);
             UpdateSavesMenuLists(savesUI);
             return savesUI;
         }

@@ -477,7 +477,7 @@ namespace ProgressAdventure.ConfigManagement
             JsonDictionary? loadingOrder;
             try
             {
-                loadingOrder = PACommon.Tools.LoadJsonFile(
+                loadingOrder = Tools.LoadJsonFileWithCommentsOrNot(
                     Path.Join(Constants.CONFIGS_FOLDER_PATH, Constants.CONFIGS_LOADING_ORDER_FILE_NAME),
                     null,
                     Constants.CONFIG_EXT,
@@ -581,7 +581,7 @@ namespace ProgressAdventure.ConfigManagement
                 vanillaConfigData?.Version != Constants.VANILLA_CONFIG_VERSION
             )
             {
-                var paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
+                const string paNspace = Constants.VANILLA_CONFIGS_NAMESPACE;
                 vanillaIsInvalid = true;
                 new ConfigData(paNspace, paNspace, Constants.CONFIG_FORMAT_VERSION, Constants.VANILLA_CONFIG_VERSION).SerializeToFile();
                 if (vanillaConfigData is null)
@@ -626,18 +626,20 @@ namespace ProgressAdventure.ConfigManagement
             // add missing namespaces
             foreach (var configData in configDatas)
             {
-                if (loadingOrder.All(ld => ld.Namespace != configData.Namespace))
+                if (loadingOrder.Any(ld => ld.Namespace == configData.Namespace))
                 {
-                    loadingOrder.Add(
-                        new ConfigLoadingData(
-                            configData.Namespace,
-                            configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE
-                                ? (defaultEnabledIncludesVanilla ? defaultEnabled : !defaultEnabled)
-                                : defaultEnabled
-                        )
-                    );
-                    changed = true;
+                    continue;
                 }
+
+                loadingOrder.Add(
+                    new ConfigLoadingData(
+                        configData.Namespace,
+                        configData.Namespace == Constants.VANILLA_CONFIGS_NAMESPACE
+                            ? (defaultEnabledIncludesVanilla ? defaultEnabled : !defaultEnabled)
+                            : defaultEnabled
+                    )
+                );
+                changed = true;
             }
 
             if (changed)
@@ -666,9 +668,8 @@ namespace ProgressAdventure.ConfigManagement
         )
         {
             var invalids = new Dictionary<string, List<(string dependency, int invalidType)>?>();
-            for (var x = 0; x < loadingOrder.Count; x++)
+            foreach (var loadedConfig in loadingOrder)
             {
-                var loadedConfig = loadingOrder[x];
                 var configData = configDatas.FirstOrDefault(c => c.Namespace == loadedConfig.Namespace);
                 if (configData is null)
                 {
@@ -686,7 +687,7 @@ namespace ProgressAdventure.ConfigManagement
                 var badDepends = new List<(string dependency, int invalidType)>();
                 foreach (var dependency in configData.Dependencies)
                 {
-                    if (loadingOrder.FirstOrDefault(lo => lo.Namespace == dependency) is not ConfigLoadingData dependencyLoading)
+                    if (loadingOrder.FirstOrDefault(lo => lo.Namespace == dependency) is not { } dependencyLoading)
                     {
                         badDepends.Add((dependency, -1));
                     }

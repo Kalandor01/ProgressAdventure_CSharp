@@ -80,6 +80,7 @@ namespace ProgressAdventure
                 scrollSettings: new ScrollSettings(20, new ScrollIcon("...\n", "..."), 2, 2),
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
             );
+            menu.BeforeElementsDisplayed += MenuManager.GetAutoHigthAdjusterEventHandler(1.5);
 
             CalculateCraftables(menu, recipeElements, inventory);
 

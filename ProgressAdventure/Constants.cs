@@ -83,6 +83,10 @@ namespace ProgressAdventure
         /// </summary>
         public static readonly string CONFIGS_FOLDER_PATH = Path.Join(PACConstants.ROOT_FOLDER, CONFIGS_FOLDER);
         /// <summary>
+        /// The old extension used for config files.
+        /// </summary>
+        public const string OLD_CONFIG_EXT = "json";
+        /// <summary>
         /// The extension used for config files.
         /// </summary>
         public const string CONFIG_EXT = "jsonc";
@@ -406,15 +410,19 @@ namespace ProgressAdventure
         /// <summary>
         /// The current config format.
         /// </summary>
-        public const string CONFIG_FORMAT_VERSION = "v9";
+        public const string CONFIG_FORMAT_VERSION = "v10";
         /// <summary>
         /// The current config version.
         /// </summary>
-        public const string VANILLA_CONFIG_VERSION = "1.9";
+        public const string VANILLA_CONFIG_VERSION = "1.10";
         /// <summary>
         /// The string that should be at the beggining of a config key/enum value, to signify that that value should be removed.
         /// </summary>
         public const string CONFIG_REMOVE_BEGGINING = "-";
+        /// <summary>
+        /// Whether to create .jsonc equivalents of all .json files in a config folder if the config version is too old (<v10)
+        /// </summary>
+        public const bool UPGRAGE_ALL_JSON_FILES_TO_JSONC_IN_CONFIGS = true;
         #endregion
 
         #region Items
