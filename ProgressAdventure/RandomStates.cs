@@ -1,10 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
-using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure

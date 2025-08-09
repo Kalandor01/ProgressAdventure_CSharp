@@ -1,7 +1,7 @@
+using System.Collections.ObjectModel;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
-using System.Collections.ObjectModel;
 
 namespace ProgressAdventure
 {

@@ -1,9 +1,9 @@
+using System.Text.Json.Serialization;
 using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.Enums;
-using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.ItemManagement
 {

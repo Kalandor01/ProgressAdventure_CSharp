@@ -1,6 +1,6 @@
-using PACommon;
 using System.Collections.Immutable;
 using System.Text;
+using PACommon;
 
 namespace ProgressAdventure.ItemManagement
 {

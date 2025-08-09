@@ -1,6 +1,6 @@
-using PACommon.Enums;
 using System.Reflection;
 using System.Text;
+using PACommon.Enums;
 
 namespace PACommon.TestUtils
 {

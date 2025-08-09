@@ -1,5 +1,5 @@
-using SixLabors.ImageSharp;
 using System;
+using SixLabors.ImageSharp;
 
 namespace PAVisualizer
 {

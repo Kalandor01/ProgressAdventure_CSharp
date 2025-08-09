@@ -1,7 +1,7 @@
-using NPrng.Generators;
-using PACommon.Enums;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using NPrng.Generators;
+using PACommon.Enums;
 
 namespace PACommon.JsonUtils
 {

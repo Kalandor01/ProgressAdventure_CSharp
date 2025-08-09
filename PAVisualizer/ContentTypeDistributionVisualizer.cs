@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using ConsoleUI;
 using ConsoleUI.UIElements;
 using PACommon;
@@ -11,10 +15,6 @@ using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using PACTools = PACommon.Tools;
 using Path = System.IO.Path;
 using Utils = PACommon.Utils;

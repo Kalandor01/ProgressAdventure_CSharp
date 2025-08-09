@@ -1,7 +1,7 @@
+using System.Text;
 using ConsoleUI;
 using ConsoleUI.Keybinds;
 using ConsoleUI.UIElements;
-using System.Text;
 using CUIUtils = ConsoleUI.Utils;
 
 namespace PACommon.Extensions

@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json.Serialization;
 using PACommon;
 using PACommon.ConfigManagement;
 using PACommon.ConfigManagement.JsonConverters;
@@ -9,8 +11,6 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Exceptions;
 using ProgressAdventure.SettingsManagement;
-using System.Text;
-using System.Text.Json.Serialization;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using Constants = ProgressAdventure.Constants;
 using Tools = ProgressAdventure.Tools;

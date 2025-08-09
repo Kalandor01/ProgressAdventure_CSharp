@@ -1,11 +1,11 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement

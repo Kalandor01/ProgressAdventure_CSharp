@@ -1,3 +1,6 @@
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
@@ -6,9 +9,6 @@ using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
-using System.Data;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.WorldManagement

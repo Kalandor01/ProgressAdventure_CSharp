@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
@@ -7,7 +8,6 @@ using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using System.IO.Compression;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;

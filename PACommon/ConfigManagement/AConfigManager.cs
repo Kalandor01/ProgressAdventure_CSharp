@@ -1,7 +1,7 @@
-using PACommon.Enums;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PACommon.Enums;
 
 namespace PACommon.ConfigManagement
 {

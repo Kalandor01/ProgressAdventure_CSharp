@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -11,10 +15,6 @@ using PAVisualizer.Culture;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using PAConstants = ProgressAdventure.Constants;
 using PATools = PACommon.Tools;
 using Tools = PACommon.Tools;

@@ -1,8 +1,8 @@
+using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
-using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 
 namespace ProgressAdventure.ConfigManagement
 {

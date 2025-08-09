@@ -1,8 +1,8 @@
+using System.Text.Json.Serialization;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
-using System.Text.Json.Serialization;
 
 namespace ProgressAdventure.WorldManagement.Content
 {

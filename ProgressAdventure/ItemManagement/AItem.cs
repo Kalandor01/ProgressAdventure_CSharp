@@ -1,8 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
-using System.Diagnostics.CodeAnalysis;
 using PACTools = PACommon.Tools;
 
 namespace ProgressAdventure.ItemManagement

@@ -1,5 +1,5 @@
-using PACommon.JsonUtils;
 using System.Diagnostics.CodeAnalysis;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.ConfigManagement
 {

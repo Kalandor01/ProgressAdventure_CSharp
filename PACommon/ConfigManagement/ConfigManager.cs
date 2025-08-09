@@ -1,5 +1,5 @@
-using PACommon.ConfigManagement.JsonConverters;
 using System.Text.Json.Serialization;
+using PACommon.ConfigManagement.JsonConverters;
 
 namespace PACommon.ConfigManagement
 {

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
@@ -7,8 +9,6 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.WorldManagement;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using AItem = ProgressAdventure.ItemManagement.AItem;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;

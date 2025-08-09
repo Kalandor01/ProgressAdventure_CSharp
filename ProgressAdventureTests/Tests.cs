@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Reflection;
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
@@ -12,8 +14,6 @@ using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using ProgressAdventure.WorldManagement.Content;
-using System.IO.Compression;
-using System.Reflection;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PACConstants = PACommon.Constants;
 using PAConstants = ProgressAdventure.Constants;

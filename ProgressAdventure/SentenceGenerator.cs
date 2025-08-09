@@ -1,6 +1,6 @@
+using System.Text;
 using NPrng.Generators;
 using PACommon.Extensions;
-using System.Text;
 
 namespace ProgressAdventure
 {

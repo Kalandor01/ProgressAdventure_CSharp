@@ -1,9 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using NPrng.Generators;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
-using System.Diagnostics.CodeAnalysis;
 using static ProgressAdventure.Constants;
 using PACTools = PACommon.Tools;
 

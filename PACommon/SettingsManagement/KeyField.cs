@@ -1,9 +1,9 @@
+using System.Text;
 using ConsoleUI;
 using ConsoleUI.Keybinds;
 using ConsoleUI.UIElements;
 using ConsoleUI.UIElements.EventArgs;
 using PACommon.Extensions;
-using System.Text;
 
 namespace PACommon.SettingsManagement
 {

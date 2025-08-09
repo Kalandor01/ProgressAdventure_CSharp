@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json.Serialization;
 using ConsoleUI;
 using ConsoleUI.UIElements;
 using PACommon;
@@ -13,8 +15,6 @@ using ProgressAdventure.Exceptions;
 using ProgressAdventure.ItemManagement;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
-using System.Text;
-using System.Text.Json.Serialization;
 using AItem = ProgressAdventure.ItemManagement.AItem;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using Inventory = ProgressAdventure.ItemManagement.Inventory;

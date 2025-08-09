@@ -1,5 +1,5 @@
-using ProgressAdventure.ItemManagement;
 using System.Text.Json.Serialization;
+using ProgressAdventure.ItemManagement;
 
 namespace ProgressAdventure.EntityManagement
 {

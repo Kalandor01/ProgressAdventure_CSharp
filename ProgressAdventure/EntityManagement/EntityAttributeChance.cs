@@ -1,5 +1,5 @@
-using PACommon.Enums;
 using System.Text.Json.Serialization;
+using PACommon.Enums;
 using Attribute = ProgressAdventure.Enums.Attribute;
 
 namespace ProgressAdventure.EntityManagement

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
@@ -5,8 +7,6 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using static PACommon.RealTimeCorrectedTextField;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;

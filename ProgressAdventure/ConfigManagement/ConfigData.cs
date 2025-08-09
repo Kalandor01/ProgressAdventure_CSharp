@@ -1,7 +1,7 @@
-using PACommon;
-using PACommon.JsonUtils;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using PACommon;
+using PACommon.JsonUtils;
 
 namespace ProgressAdventure.ConfigManagement
 {

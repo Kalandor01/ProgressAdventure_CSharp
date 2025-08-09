@@ -1,8 +1,8 @@
+using System.Text;
 using ConsoleUI;
 using ConsoleUI.Keybinds;
 using ConsoleUI.UIElements;
 using PACommon.Extensions;
-using System.Text;
 using static ConsoleUI.Utils;
 
 namespace PACommon
