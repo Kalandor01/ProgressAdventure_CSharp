@@ -12,6 +12,7 @@ using Avalonia.Threading;
 using PACommon;
 using PACommon.Enums;
 using PAVisualizer.Culture;
+using PAVisualizer.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;

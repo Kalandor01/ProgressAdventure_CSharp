@@ -561,7 +561,6 @@ namespace PACommon
 
         #region Json parse short
         #region Internal varsions
-
         /// <summary>
         /// Tries to cast a value of a specific type from a value, and logs a warning, if it isn't the expected type.
         /// </summary>
@@ -708,15 +707,25 @@ namespace PACommon
         )
         {
             parsedValue = default;
-            var valueText = value?.Value.ToString();
-
-            if (valueText is null)
+            var jsonValue = value?.Value;
+            if (jsonValue is null)
             {
                 return false;
             }
 
             var parseType = typeof(TRes);
             var actualType = Nullable.GetUnderlyingType(parseType) ?? parseType;
+            if (actualType == jsonValue.GetType())
+            {
+                parsedValue = (TRes)jsonValue;
+                return true;
+            }
+
+            var valueText = jsonValue.ToString();
+            if (valueText is null)
+            {
+                return false;
+            }
 
             if (actualType == typeof(string))
             {

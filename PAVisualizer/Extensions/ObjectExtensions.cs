@@ -1,4 +1,4 @@
-namespace PAVisualizer
+namespace PAVisualizer.Extensions
 {
     public static class ObjectExtensions
     {

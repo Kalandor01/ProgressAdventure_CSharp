@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Declarative;
 using PACommon.Enums;
 using PAVisualizer.Culture;
+using PAVisualizer.Extensions;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
