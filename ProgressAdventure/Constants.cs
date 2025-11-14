@@ -106,6 +106,14 @@ namespace ProgressAdventure
         /// </summary>
         public const string VANILLA_CONFIGS_NAMESPACE = "pa";
         /// <summary>
+        /// The configs subfolder name for configs for <see cref="Localization.Localizer"/>.
+        /// </summary>
+        public const string CONFIGS_LOCALIZATION_SUBFOLDER_NAME = "localization";
+        /// <summary>
+        /// The configs subfolder name for configs for languages in <see cref="Localization.Localizer"/>.
+        /// </summary>
+        public const string CONFIGS_LANGUAGES_SUBFOLDER_NAME = "languages";
+        /// <summary>
         /// The configs subfolder name for configs for <see cref="SettingsManagement.SettingsUtils"/>.
         /// </summary>
         public const string CONFIGS_SETTINGS_SUBFOLDER_NAME = "settings";

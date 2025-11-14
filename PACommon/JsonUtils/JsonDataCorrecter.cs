@@ -40,10 +40,7 @@ namespace PACommon.JsonUtils
         {
             get
             {
-                if (_instance is null)
-                {
-                    _instance ??= Initialize("1.0", false, onlyIfUninitialized: true);
-                }
+                _instance ??= Initialize("1.0", false, onlyIfUninitialized: true);
                 return _instance;
             }
         }
@@ -133,7 +130,7 @@ namespace PACommon.JsonUtils
             CorrectJsonDataVersionPrivate(objectName, () => objectJsonCorrecter(objectJson), ref fileVersion, newFileVersion);
         }
 
-        /// <inheritdoc cref="CorrectJsonDataVersion(string, Action{IDictionary{string, object?}}, ref IDictionary{string, object?}, ref string, string)"/>
+        /// <inheritdoc cref="CorrectJsonDataVersion(string, Action{JsonDictionary}, JsonDictionary, ref string, string)"/>
         /// <typeparam name="TE">The type of the extra data to input with the correcter.</typeparam>
         /// <param name="extraData">The extra data to input with the correcter.</param>
         public static void CorrectJsonDataVersion<TE>(
@@ -227,24 +224,23 @@ namespace PACommon.JsonUtils
             bool? orderCorrecters = null
         )
         {
-            var currentSaveVersion = saveVersionExceptions.TryGetValue(objectName, out var alternateSaveVersion)
-                ? alternateSaveVersion
-                : defaultSaveVersion;
+            var currentSaveVersion = saveVersionExceptions.GetValueOrDefault(objectName, defaultSaveVersion);
             if (correcters.Count == 0 || Utils.IsUpToDate(currentSaveVersion, fileVersion))
             {
                 return;
             }
 
-            var orderedCorrecters = orderCorrecters ?? this.orderCorrecters
+            var orderedCorrecters = (orderCorrecters ?? this.orderCorrecters
                 ? correcters.StableSort(
                     (correcter1, correcter2) =>
                         correcter1.newFileVersion == correcter2.newFileVersion ? 0 :
                             (Utils.IsUpToDate(correcter1.newFileVersion, correcter2.newFileVersion) ? -1 : 1)
                     )
-                : correcters;
+                : correcters)
+                .ToList();
 
             var lastCorrecter = orderedCorrecters.Last();
-            if (Utils.IsUpToDate(orderedCorrecters.Last().newFileVersion, fileVersion))
+            if (Utils.IsUpToDate(lastCorrecter.newFileVersion, fileVersion))
             {
                 return;
             }

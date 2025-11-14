@@ -36,7 +36,7 @@ namespace PAVisualizer
         public static (
                 Dictionary<EnumValue<TerrainType>, long> terrainTypeCounts,
                 Dictionary<EnumValue<StructureType>, long> structureTypeCounts,
-                Dictionary<EnumValue<EntityType>, long> enttyTypeCounts
+                Dictionary<EnumValue<EntityType>, long> entityTypeCounts
             ) CreateWorldLayerImage(
             VisibleTileLayer layer,
             bool blendPopulation,
@@ -75,7 +75,7 @@ namespace PAVisualizer
                     if (layer == VisibleTileLayer.Terrain)
                     {
                         var type = tile.terrain.type;
-                        if (terrainTypeCounts.TryGetValue(type, out long value))
+                        if (terrainTypeCounts.TryGetValue(type, out var value))
                         {
                             terrainTypeCounts[type] = ++value;
                         }
@@ -87,7 +87,7 @@ namespace PAVisualizer
                     else if (layer == VisibleTileLayer.Structure)
                     {
                         var type = tile.structure.type;
-                        if (structureTypeCounts.TryGetValue(type, out long value))
+                        if (structureTypeCounts.TryGetValue(type, out var value))
                         {
                             structureTypeCounts[type] = ++value;
                         }
@@ -100,20 +100,16 @@ namespace PAVisualizer
                     {
                         foreach (var (type, amount) in VisualizerTools.GetPopulationCounts(tile.populationManager))
                         {
-                            if (entityTypeCounts.ContainsKey(type))
+                            if (!entityTypeCounts.TryAdd(type, amount))
                             {
                                 entityTypeCounts[type] += amount;
-                            }
-                            else
-                            {
-                                entityTypeCounts[type] = amount;
                             }
                         }
                     }
                     var color = VisualizerTools.GetLayerContentColor(tile, layer, blendPopulation).MultiplyOpacity(opacityMultiplier);
 
                     RectangularPolygon rectangle;
-                    if (tileSize.x > 2 && tileSize.y > 2)
+                    if (tileSize is { x: > 2, y: > 2 })
                     {
                         rectangle = new RectangularPolygon(startX + 10, startY + 10, tileSize.x, tileSize.y);
                     }
@@ -123,7 +119,7 @@ namespace PAVisualizer
                         var actualTileSizeY = tileSize.y < 2 ? 0.5f : tileSize.y;
                         rectangle = new RectangularPolygon(startX, startY, actualTileSizeX, actualTileSizeY);
                     }
-                    image.Mutate(x => x.Fill(color.ToImageSharpColor(), rectangle));
+                    image.Mutate(ipc => ipc.Fill(color.ToImageSharpColor(), rectangle));
                 }
             }
             return (terrainTypeCounts, structureTypeCounts, entityTypeCounts);
@@ -203,7 +199,7 @@ namespace PAVisualizer
             var (terrainTypeCounts, structureTypeCounts, entityCounts) = CreateCombinedImage(layers, blendPopulation, out var image);
             PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
 
-            if (terrainTypeCounts is null || structureTypeCounts is null || entityCounts is null || image is null)
+            if (image is null)
             {
                 return;
             }

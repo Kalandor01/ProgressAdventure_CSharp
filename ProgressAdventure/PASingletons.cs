@@ -1,4 +1,5 @@
 using PACommon;
+using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 
 namespace ProgressAdventure
@@ -27,10 +28,7 @@ namespace ProgressAdventure
         {
             get
             {
-                if (_instance is null)
-                {
-                    _instance ??= Initialize(onlyIfUninitialized: true);
-                }
+                _instance ??= Initialize(onlyIfUninitialized: true);
                 return _instance;
             }
         }
@@ -49,6 +47,11 @@ namespace ProgressAdventure
         /// <inheritdoc cref="SettingsManagement.Settings"/>
         /// </summary>
         public ISettings Settings { get; private set; }
+
+        /// <summary>
+        /// <inheritdoc cref="Localization.Localizer"/>
+        /// </summary>
+        public Localizer Localizer { get; private set; }
         #endregion
 
         #region Private Constructors
@@ -56,14 +59,17 @@ namespace ProgressAdventure
         /// <inheritdoc cref="PASingletons"/>
         /// </summary>
         /// <param name="globals"><inheritdoc cref="Globals" path="//summary"/></param>
-        /// <param name="globals"><inheritdoc cref="Globals" path="//summary"/></param>
+        /// <param name="settings"><inheritdoc cref="Settings" path="//summary"/></param>
+        /// <param name="localizer"><inheritdoc cref="Localizer" path="//summary"/></param>
         private PASingletons(
             IGlobals globals,
-            ISettings settings
+            ISettings settings,
+            Localizer localizer
         )
         {
             Globals = globals;
             Settings = settings;
+            Localizer = localizer;
         }
         #endregion
 
@@ -73,11 +79,13 @@ namespace ProgressAdventure
         /// </summary>
         /// <param name="globals"><inheritdoc cref="Globals" path="//summary"/></param>
         /// <param name="settings"><inheritdoc cref="Settings" path="//summary"/></param>
+        /// <param name="localizer"><inheritdoc cref="Localizer" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the singleton was initialized.</param>
         /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static PASingletons Initialize(
             IGlobals? globals = null,
             ISettings? settings = null,
+            Localizer? localizer = null,
             bool logInitialization = true,
             bool onlyIfUninitialized = false
         )
@@ -92,12 +100,14 @@ namespace ProgressAdventure
                 _instance?.Dispose();
                 _instance = new PASingletons(
                     globals ?? new Globals(),
-                    settings ?? new Settings()
+                    settings ?? new Settings(),
+                    localizer ?? Localizer.Instance
                 );
                 if (logInitialization)
                 {
                     PACSingletons.Instance.Logger.Log($"{nameof(IGlobals)} initialized");
                     PACSingletons.Instance.Logger.Log($"{nameof(ISettings)} initialized");
+                    PACSingletons.Instance.Logger.Log($"{nameof(Localizer)} initialized");
                     PACSingletons.Instance.Logger.Log($"{nameof(PASingletons)} initialized");
                 }
                 return _instance;

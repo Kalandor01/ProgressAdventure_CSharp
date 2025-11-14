@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
+using ProgressAdventure.Localization;
 
 namespace ProgressAdventure.ConfigManagement
 {
@@ -432,6 +433,38 @@ namespace ProgressAdventure.ConfigManagement
                         null,
                         out var configValue,
                         deserializeDictionaryValues,
+                        deserializeKeysFunction
+                    ), configValue),
+                deserializeDictionaryKeys,
+                showProgressIndentation,
+                removeKeyBeggining
+            );
+        }
+        
+        /// <summary>
+        /// Loades the config value from the aggregate of a config file from all given namespaces.
+        /// </summary>
+        /// <param name="removeKeyBeggining">The string that should be at the beggining of a key, to signify that that key should be removed.</param>
+        /// <inheritdoc cref="ReloadConfigsAggregate{T}(string, List{ValueTuple{string, string}}, T, Func{T}, Func{T, T, T}, bool, int?, string?)"/>
+        /// <inheritdoc cref="PACommon.ConfigManagement.AConfigManager.TryGetConfigOrRecreateDict{TK, TV}(string, string?, IDictionary{TK, TV}, Func{TK, string}, Func{string, TK}, bool, string?)"/>
+        public static Dictionary<TK, TV> GetConfigsAggregateDict<TK, TV>(
+            string configName,
+            List<(string folderName, string namespaceName)> namespaceFolders,
+            Func<string, TK> deserializeDictionaryKeys,
+            int? showProgressIndentation = null,
+            string removeKeyBeggining = Constants.CONFIG_REMOVE_BEGGINING
+        )
+            where TK : notnull
+        {
+            return ReloadConfigsAggregateDictPrivate(
+                configName,
+                namespaceFolders,
+                configName => [],
+                (configName, deserializeKeysFunction) =>
+                    (PACSingletons.Instance.ConfigManager.TryGetConfigDict<TK, TV>(
+                        configName,
+                        null,
+                        out var configValue,
                         deserializeKeysFunction
                     ), configValue),
                 deserializeDictionaryKeys,
@@ -1088,7 +1121,10 @@ namespace ProgressAdventure.ConfigManagement
 
             if (showProgressIndentation is not null)
             {
-                PACSingletons.Instance.ConsoleProxy.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading file \"{Path.GetFileName(configNameFull)}\" from config:");
+                PACSingletons.Instance.ConsoleProxy.WriteLine(
+                    new string(' ', (int)showProgressIndentation * 4) +
+                    PASingletons.Instance.Localizer.GetLocalizedString(Text.LOADING_FILE_FROM_CONFIG_1, Path.GetFileName(configNameFull))
+                );
             }
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 

@@ -27,7 +27,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The main function for the program.
         /// </summary>
-        static void MainFunction()
+        private static void MainFunction()
         {
             MenuManager.MainMenu();
             //Settings.UpdateLoggingLevel(0);
@@ -70,7 +70,7 @@ namespace ProgressAdventure
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
         }
 
-        static void RecipeCraftableMenu(Inventory inventory)
+        private static void RecipeCraftableMenu(Inventory inventory)
         {
             var recipeElements = new List<BaseUI?> { new Toggle() };
 
@@ -87,7 +87,7 @@ namespace ProgressAdventure
             menu.Display();
         }
 
-        static void CalculateCraftables(OptionsUI menu, List<BaseUI?> recipeElements, Inventory inventory)
+        private static void CalculateCraftables(OptionsUI menu, List<BaseUI?> recipeElements, Inventory inventory)
         {
             menu.title = inventory.ToString() + "\n\nCraftnig";
             var selectedValues = recipeElements
@@ -140,7 +140,7 @@ namespace ProgressAdventure
          */
 
 
-        static bool CraftItem(
+        private static bool CraftItem(
             EnumTreeValue<ItemType> targetItem,
             Inventory inventory,
             List<BaseUI?> recipeElements,
@@ -162,9 +162,9 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Function for setting up the enviorment, and initialising global variables.
+        /// Function for setting up the enviorment, and initializing global variables.
         /// </summary>
-        static void Preloading()
+        private static void Preloading()
         {
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
@@ -174,6 +174,7 @@ namespace ProgressAdventure
                 Title = "Progress Adventure",
             };
             consoleProxy.WriteLine("Loading...");
+            consoleProxy.WriteLine("Loading common singletons...");
 
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
@@ -215,30 +216,35 @@ namespace ProgressAdventure
                 )
             );
 
+            consoleProxy.WriteLine("Activating Ansi escape codes (Windows only)...");
             if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
+            consoleProxy.WriteLine("Loading P.A. singletons...");
             // initializing PA singletons
             // special loading order to avoid unintended errors because of complicated self references
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true),
+                Localizer.Initialize(Language.ENGLISH, false)
             );
 
             PACSingletons.Instance.ConsoleProxy.WriteLine("Reloading configs...");
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
             Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
+            
+            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 
         /// <summary>
         /// The error handler, for the preloading.
         /// </summary>
-        static void PreloadingErrorHandler()
+        private static void PreloadingErrorHandler()
         {
             bool exitPreloading;
             do
@@ -263,7 +269,7 @@ namespace ProgressAdventure
         /// <summary>
         /// The error handler, for the main function.
         /// </summary>
-        static void MainErrorHandler()
+        private static void MainErrorHandler()
         {
             bool exitGame;
             do
@@ -289,7 +295,7 @@ namespace ProgressAdventure
             while (!exitGame);
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             bool exitGame;
             do

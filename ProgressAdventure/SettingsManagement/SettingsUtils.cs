@@ -11,7 +11,6 @@ namespace ProgressAdventure.SettingsManagement
     public static class SettingsUtils
     {
         #region Default config values
-
         /// <summary>
         /// The default value for the config used for the values of <see cref="ActionType"/>.
         /// </summary>
@@ -176,15 +175,15 @@ namespace ProgressAdventure.SettingsManagement
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_SETTINGS_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
 
-            var defaultConfigOrGetReloadDataActionTypesData = WriteDefaultConfigOrGetReloadDataActionTypes(false);
+            var actionTypesData = WriteDefaultConfigOrGetReloadDataActionTypes(false);
             ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
-                defaultConfigOrGetReloadDataActionTypesData.configName,
+                actionTypesData.configName,
                 namespaceFolders,
                 _defaultActionTypes,
                 isVanillaInvalid,
                 showProgressIndentation,
                 true,
-                comment: defaultConfigOrGetReloadDataActionTypesData.comment
+                comment: actionTypesData.comment
             );
 
             var actionTypeAttributesData = WriteDefaultConfigOrGetReloadDataActionTypeAttributes(false);

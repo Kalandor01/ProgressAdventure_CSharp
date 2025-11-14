@@ -78,7 +78,7 @@ namespace PACommon.Logging
         /// <summary>
         /// Progress Adventure logger.
         /// </summary>
-        /// <inheritdoc cref="Log(string, string?, LogSeverity, bool?, bool)"/>
+        /// <inheritdoc cref="Log(string, string?, LogSeverity, bool?, bool, bool)"/>
         public void LogAsync(
             string message,
             string? details = "",

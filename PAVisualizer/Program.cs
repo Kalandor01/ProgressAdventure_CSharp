@@ -28,7 +28,7 @@ namespace PAVisualizer
 {
     internal static class Program
     {
-        static void ConsoleMainFunction()
+        private static void ConsoleMainFunction()
         {
             PACSingletons.Instance.Logger.DefaultWriteOut = false;
 
@@ -47,14 +47,18 @@ namespace PAVisualizer
             ).Display();
         }
 
-        static void VisualizeSaveCommand()
+        private static void VisualizeSaveCommand()
         {
-            var saveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}";
-            var oldSaveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.OLD_SAVE_EXT}";
+            const string saveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.SAVE_EXT}";
+            const string oldSaveDataFileName = $"{PAConstants.SAVE_FILE_NAME_DATA}.{PAConstants.OLD_SAVE_EXT}";
+            // TODO: Linux file/folder browser
+            // OperatingSystem.IsWindows()
+#pragma warning disable CA1416
             var folderPath = Utils.SplitPathToParts(Utils.OpenFileDialog([
                 (saveDataFileName, $"Data file ({saveDataFileName})"),
                 (oldSaveDataFileName, $"Old data file ({oldSaveDataFileName})")
             ]))?.folderPath;
+#pragma warning restore CA1416
             var selectedFolder = VisualizerTools.GetSaveFolderFromPath(folderPath);
             if (selectedFolder is not null)
             {
@@ -74,7 +78,7 @@ namespace PAVisualizer
         /// <summary>
         /// Shows the main window.
         /// </summary>
-        static void ShowMainWindow(string[] args)
+        private static void ShowMainWindow(string[] args)
         {
             BuildAvaloniaApp()
                 .Start(AppMain, args);
@@ -90,7 +94,7 @@ namespace PAVisualizer
         /// <summary>
         /// The main function for the program.
         /// </summary>
-        static void MainFunction(string[] args)
+        private static void MainFunction(string[] args)
         {
             if (MenuManager.AskYesNoUIQuestion("Open visualizer GUI?"))
             {
@@ -103,9 +107,9 @@ namespace PAVisualizer
         }
 
         /// <summary>
-        /// Function for setting up the enviorment, and initialising global variables.
+        /// Function for setting up the enviorment, and initializing global variables.
         /// </summary>
-        static void Preloading()
+        private static void Preloading()
         {
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
 
@@ -172,7 +176,7 @@ namespace PAVisualizer
         /// <summary>
         /// The error handler, for the preloading.
         /// </summary>
-        static void PreloadingErrorHandler()
+        private static void PreloadingErrorHandler()
         {
             bool exitPreloading;
             do
@@ -197,7 +201,7 @@ namespace PAVisualizer
         /// <summary>
         /// The error handler, for the main function.
         /// </summary>
-        static void MainErrorHandler(string[] args)
+        private static void MainErrorHandler(string[] args)
         {
             bool exitGame;
             do
@@ -223,7 +227,7 @@ namespace PAVisualizer
             while (!exitGame);
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             bool exitGame;
             do

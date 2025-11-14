@@ -6,6 +6,7 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
+using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using static ProgressAdventure.Constants;
@@ -418,7 +419,10 @@ namespace ProgressAdventure
             {
                 return;
             }
-            PACSingletons.Instance.ConsoleProxy.WriteLine(new string(' ', (int)showProgressIndentation * 4) + $"Loading from folder \"{configPath}\":");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(
+                new string(' ', (int)showProgressIndentation * 4) +
+                PASingletons.Instance.Localizer.GetLocalizedString(Text.LOADING_FROM_FOLDER_1, configPath)
+            );
         }
 
         /// <summary>
@@ -437,6 +441,7 @@ namespace ProgressAdventure
             var ec = EntityUtils.FacingToMovementVectorMap;
             var wc = WorldUtils.noStructureDifferenceLimit;
 
+            PASingletons.Instance.Localizer.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);

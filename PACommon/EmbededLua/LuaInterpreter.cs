@@ -17,7 +17,7 @@ namespace PACommon.EmbededLua
         /// <summary>
         /// If the sandboxed enviroment was successfuly set up.
         /// </summary>
-        public bool IsOk { get => _runLuaCodeFunction is not null; }
+        public bool IsOk => _runLuaCodeFunction is not null;
 
         /// <summary>
         /// <inheritdoc cref="LuaInterpreter" path="//summary"/>

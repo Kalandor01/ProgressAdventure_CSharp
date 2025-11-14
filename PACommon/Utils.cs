@@ -2,6 +2,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using ConsoleUI;
 using FileManager;
@@ -92,7 +93,7 @@ namespace PACommon
         /// <param name="number">The number to pad.</param>
         public static string PadZero(int number)
         {
-            return (number < 10 && number > 0 ? "0" : "") + number.ToString();
+            return (number is < 10 and > 0 ? "0" : "") + number.ToString();
         }
 
         /// <summary>
@@ -191,28 +192,30 @@ namespace PACommon
                 return false;
             }
 
-            if (int.TryParse(str, out int resInt) && resInt >= 0)
+            if (int.TryParse(str, out var resInt) && resInt >= 0)
             {
                 str = "";
                 result = resInt.ToString();
                 return true;
             }
 
-            for (int x = 0; x < str.Length; x++)
+            for (var x = 0; x < str.Length; x++)
             {
-                if (!int.TryParse(str[..(x + 1)], out _))
+                if (int.TryParse(str[..(x + 1)], out _))
                 {
-                    if (x == 0)
-                    {
-                        result = str[0].ToString();
-                        str = str[1..];
-                        return false;
-                    }
-
-                    result = str[..x].ToString();
-                    str = str[x..];
-                    return true;
+                    continue;
                 }
+
+                if (x == 0)
+                {
+                    result = str[0].ToString();
+                    str = str[1..];
+                    return false;
+                }
+
+                result = str[..x];
+                str = str[x..];
+                return true;
             }
 
             str = "";
@@ -329,9 +332,9 @@ namespace PACommon
                         return isMinVersionPartPieceInt;
                     }
 
-                    return isVersionPartPieceInt ?
-                        int.Parse(versionPartResult) > int.Parse(minVersionPartResult) :
-                        new string[] { versionPartResult, minVersionPartResult }.Order().First() == minVersionPartResult;
+                    return isVersionPartPieceInt
+                        ? int.Parse(versionPartResult) > int.Parse(minVersionPartResult)
+                        : new[] { versionPartResult, minVersionPartResult }.Order().First() == minVersionPartResult;
                 }
             }
             // v. <=
@@ -477,7 +480,6 @@ namespace PACommon
             }
 
             string? folderPath = null;
-            string fileName;
             string? fileExtension = null;
 
             var splitPath = fullPath.Split(Path.DirectorySeparatorChar);
@@ -486,7 +488,7 @@ namespace PACommon
                 folderPath = string.Join(Path.DirectorySeparatorChar, splitPath[..^1]);
             }
             var splitFilePath = splitPath.Last().Split('.');
-            fileName = splitFilePath.Last();
+            var fileName = splitFilePath.Last();
             if (splitFilePath.Length > 1)
             {
                 fileExtension = fileName;
@@ -582,19 +584,20 @@ namespace PACommon
             var properties = classType.GetFields();
 
             var classFieldValues = new List<T>();
-            foreach (FieldInfo property in properties)
+            foreach (var property in properties)
             {
-                if (property.IsStatic && property.FieldType == typeof(T))
+                if (!property.IsStatic || property.FieldType != typeof(T))
                 {
-                    var value = property.GetValue(null);
-                    if (value is not null)
-                    {
-                        classFieldValues.Add((T)value);
-                    }
+                    continue;
+                }
+
+                var value = property.GetValue(null);
+                if (value is not null)
+                {
+                    classFieldValues.Add((T)value);
                 }
             }
             classFieldValues.AddRange(subClassFieldValues);
-
             return classFieldValues;
         }
 
@@ -604,6 +607,7 @@ namespace PACommon
         /// </summary>
         /// <param name="filters">A list of filters. A filter limits the type of files that can appear in the window.</param>
         /// <param name="windowTitle">The title of the window.</param>
+        [SupportedOSPlatform("windows")]
         public static string? OpenFileDialog(
             IEnumerable<(string regex, string displayName)>? filters = null,
             string windowTitle = "Select file..."
@@ -739,6 +743,69 @@ namespace PACommon
 
             CopyDirectory(diSource, diTarget);
         }
+
+        /// <summary>
+        /// Returns a camel case string converted to snake case.
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <param name="firstLetterCanBeUnderscore">If the first letter can have an underscore if it's uppercase.</param>
+        public static string CamelCaseToSnakeCaseString(string str, bool firstLetterCanBeUnderscore = false)
+        {
+            var sb = new StringBuilder();
+            var lastCharWasUpper = false;
+            var charIndex = -1;
+            foreach (var chr in str)
+            {
+                charIndex++;
+                if (!char.IsUpper(chr))
+                {
+                    sb.Append(chr);
+                    lastCharWasUpper = false;
+                    continue;
+                }
+
+                if (lastCharWasUpper)
+                {
+                    sb.Append(chr);
+                    continue;
+                }
+
+                lastCharWasUpper = true;
+                if (firstLetterCanBeUnderscore || charIndex != 0)
+                {
+                    sb.Append('_');
+                }
+                
+                sb.Append(
+                    charIndex < str.Length - 1 && char.IsUpper(str[charIndex + 1])
+                        ? chr
+                        : char.ToLower(chr)
+                );
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Returns a snake case string converted to camel case.
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        public static string SnakeCaseToCamelCase(string str)
+        {
+            var sb = new StringBuilder();
+            var lastCharWasSep = false;
+            foreach (var chr in str)
+            {
+                if (chr == '_')
+                {
+                    lastCharWasSep = true;
+                    continue;
+                }
+                
+                sb.Append(lastCharWasSep ? char.ToUpper(chr) : chr);
+                lastCharWasSep = false;
+            }
+            return sb.ToString();
+        }
         #endregion
 
         #region Private functions
@@ -746,40 +813,32 @@ namespace PACommon
         /// Gets an internal field from a class.
         /// </summary>
         /// <typeparam name="T">The type of the internal field.</typeparam>
+        /// <param name="classType">The type of the class to get the field from.</param>
         /// <param name="fieldName">The name of the internal field.</param>
         /// <param name="instance">The instance to get the field from. If null, it assumes, that the class is a static class.</param>
         /// <exception cref="ArgumentNullException">Thrown if the field doesn't exist.</exception>
         private static T GetInternalFieldFromClass<T>(Type classType, string fieldName, object? instance = null)
         {
             var field = classType?.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
-            if (
-                field is null ||
-                field.GetValue(instance) is not T value
-            )
-            {
-                throw new ArgumentNullException(nameof(fieldName), "The internal filed doesn't exist.");
-            }
-            return value;
+            return field?.GetValue(instance) is T value
+                ? value
+                : throw new ArgumentNullException(nameof(fieldName), "The internal filed doesn't exist.");
         }
 
         /// <summary>
         /// Gets an internal property from a class.
         /// </summary>
         /// <typeparam name="T">The type of the internal property.</typeparam>
+        /// <param name="classType">The type of the class to get the property from.</param>
         /// <param name="propertyName">The name of the internal property.</param>
         /// <param name="instance">The instance to get the property from. If null, it assumes, that the class is a static class.</param>
         /// <exception cref="ArgumentNullException">Thrown if the property doesn't exist.</exception>
         private static T GetInternalPropertyValueFromClass<T>(Type classType, string propertyName, object? instance = null)
         {
             var property = classType?.GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Static);
-            if (
-                property is null ||
-                property.GetValue(instance) is not T value
-            )
-            {
-                throw new ArgumentNullException(nameof(propertyName), "The internal property doesn't exist.");
-            }
-            return value;
+            return property?.GetValue(instance) is T value
+                ? value
+                : throw new ArgumentNullException(nameof(propertyName), "The internal property doesn't exist.");
         }
         #endregion
     }

@@ -43,17 +43,7 @@ namespace PACommon
         public string Title
         {
             [SupportedOSPlatform("windows")]
-            get
-            {
-                if (OperatingSystem.IsWindows())
-                {
-                    return Console.Title;
-                }
-                else
-                {
-                    return "";
-                }
-            }
+            get => OperatingSystem.IsWindows() ? Console.Title : "";
             set => Console.Title = value;
         }
         
@@ -170,7 +160,7 @@ namespace PACommon
 
         public bool TryEnableAnsiCodes()
         {
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            if (!OperatingSystem.IsWindows())
             {
                 return true;
             }

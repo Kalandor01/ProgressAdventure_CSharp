@@ -24,7 +24,7 @@ namespace PACommon.Logging
         /// <summary>
         /// <inheritdoc cref="LoggingLevel" path="//summary"/>
         /// </summary>
-        private LogSeverity _loggingLevel = LogSeverity.DEBUG;
+        private LogSeverity _loggingLevel;
 
         /// <summary>
         /// The logger stream to use to write logs.
@@ -50,13 +50,10 @@ namespace PACommon.Logging
         {
             get
             {
-                if (_instance is null)
-                {
-                    _instance ??= Initialize(
-                        new FileLoggerStream(Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER)),
-                        onlyIfUninitialized: true
-                    );
-                }
+                _instance ??= Initialize(
+                    new FileLoggerStream(Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER)),
+                    onlyIfUninitialized: true
+                );
                 return _instance;
             }
         }
@@ -125,7 +122,7 @@ namespace PACommon.Logging
         /// <param name="logMilliseconds"><inheritdoc cref="LogMS" path="//summary"/></param>
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
-        /// <param name="forceLogInterval"><inheritdoc cref="_forceLogInterval" path="//summary"/></param>
+        /// <param name="forceLogInterval"><inheritdoc cref="ForceLogInterval" path="//summary"/></param>
         /// <param name="logInitialization">Whether to log the fact that the <c>Logger</c> was initialized.</param>
         /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static Logger Initialize(
@@ -174,12 +171,11 @@ namespace PACommon.Logging
             try
             {
                 var now = DateTime.Now;
-                var currentDate = Utils.MakeDate(now);
                 var currentTime = Utils.MakeTime(now, writeMs: LogMS);
-                string logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}";
+                var logLine = $"[{currentTime}] [{Thread.CurrentThread.Name}/{severity}]\t: |{message}| {details}";
                 _logMessageBuffer.Add((logLine, now));
                 await LogIfNeeded(newLine, forceLog);
-                if (writeOut is null ? _defaultWriteOut : (bool)writeOut)
+                if (writeOut ?? _defaultWriteOut)
                 {
                     await loggerStream.WriteOutLogAsync(logLine, newLine);
                 }
@@ -204,7 +200,7 @@ namespace PACommon.Logging
         /// Progress Adventure logger.<br/>
         /// MIGHT log things out of order!
         /// </summary>
-        /// <inheritdoc cref="ILogger.LogAsync(string, string?, LogSeverity, bool?, bool)"/>
+        /// <inheritdoc cref="ILogger.LogAsync(string, string?, LogSeverity, bool?, bool, bool)"/>
         public void LogAsync(
             string message,
             string? details = "",
@@ -221,15 +217,17 @@ namespace PACommon.Logging
         {
             try
             {
-                if (LoggingEnabled)
+                if (!LoggingEnabled)
                 {
-                    if (_logMessageBuffer.Count == 0)
-                    {
-                        await loggerStream.LogNewLineAsync();
-                        return;
-                    }
-                    await loggerStream.LogTextAsync(_logMessageBuffer, true);
+                    return;
                 }
+
+                if (_logMessageBuffer.Count == 0)
+                {
+                    await loggerStream.LogNewLineAsync();
+                    return;
+                }
+                await loggerStream.LogTextAsync(_logMessageBuffer, true);
             }
             catch (Exception e)
             {
@@ -259,6 +257,7 @@ namespace PACommon.Logging
         /// <param name="severity">The severity of the message.</param>
         /// <param name="writeOut">Whether to write out the log message to the console.</param>
         /// <param name="newLine">Whether to write a new line before the message.</param>
+        /// <param name="forceLog">Whether to log this, and the built-up batch of logs right now, or only when the logging interval has expired.</param>
         private async void LogAsyncTask(string? threadName,
             string message,
             string? details = "",
@@ -292,21 +291,25 @@ namespace PACommon.Logging
         /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
         private void ChangeLoggingLevel(LogSeverity value)
         {
-            if (_loggingLevel != value)
+            if (_loggingLevel == value)
             {
-                // logging level
-                Log("Logging level changed", $"{_loggingLevel} -> {value}");
-                _loggingLevel = value;
-
-                // logging enabled
-                var newLoggingEnabled = (int)value != -1;
-                if (LoggingEnabled != newLoggingEnabled)
-                {
-                    Log($"Logging disabled");
-                    LoggingEnabled = newLoggingEnabled;
-                    Log($"Logging enabled");
-                }
+                return;
             }
+
+            // logging level
+            Log("Logging level changed", $"{_loggingLevel} -> {value}");
+            _loggingLevel = value;
+
+            // logging enabled
+            var newLoggingEnabled = (int)value != -1;
+            if (LoggingEnabled == newLoggingEnabled)
+            {
+                return;
+            }
+
+            Log($"Logging disabled");
+            LoggingEnabled = newLoggingEnabled;
+            Log($"Logging enabled");
         }
 
         public void Dispose()

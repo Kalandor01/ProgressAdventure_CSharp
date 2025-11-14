@@ -22,14 +22,8 @@ namespace PACommon.Enums
 
         public override bool Equals(object? obj)
         {
-            if (
-                obj is not EnumValue<TEnum> enumValue ||
-                enumValue.Name != Name
-            )
-            {
-                return false;
-            }
-            return true;
+            return obj is EnumValue<TEnum> enumValue &&
+                   enumValue.Name == Name;
         }
 
         public override int GetHashCode()
