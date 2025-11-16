@@ -1,13 +1,15 @@
+using System.Diagnostics.CodeAnalysis;
 using PACommon;
 using PACommon.Enums;
 using ProgressAdventure.ConfigManagement;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.Localization
 {
     /// <summary>
     /// Class used to localize text.
     /// </summary>
-    public class Localizer : ALocalizer<Language, Text>, IDisposable
+    public class Localizer : ALocalizer<Language, LocalizationKey>, IDisposable
     {
         #region Default config values
         /// <summary>
@@ -19,12 +21,93 @@ namespace ProgressAdventure.Localization
         ];
 
         /// <summary>
+        /// The default value for the config used for the values of <see cref="LanguageProperties"/>.
+        /// </summary>
+        private static readonly Dictionary<EnumValue<Language>, LanguageProperties> _defaultLanguageProperties = new()
+        {
+            [Language.ENGLISH] = new LanguageProperties("English"),
+        };
+        
+        /// <summary>
+        /// The default value for the config used for the values of <see cref="LocalizationKey"/>.
+        /// </summary>
+        private static readonly List<EnumValue<LocalizationKey>> _defaultLocalizationKeys =
+        [
+            LocalizationKey.LANGUAGE_NAME_ENGLISH_0,
+            LocalizationKey.APPLICATION_TITLE_0,
+            LocalizationKey.LOADING_0,
+            LocalizationKey.LOADING_COMMON_SINGLETONS_0,
+            LocalizationKey.ACTIVATING_ANSI_0,
+            LocalizationKey.LOADING_PA_SINGLETONS_0,
+            LocalizationKey.RELOADING_CONFIGS_0,
+            LocalizationKey.DONE_0,
+            LocalizationKey.LOADING_FROM_FOLDER_1,
+            LocalizationKey.LOADING_FILE_FROM_CONFIG_1,
+            LocalizationKey.FAILED_0,
+            
+            LocalizationKey.ESCAPE_0,
+            LocalizationKey.UP_0,
+            LocalizationKey.DOWN_0,
+            LocalizationKey.LEFT_0,
+            LocalizationKey.RIGHT_0,
+            LocalizationKey.ENTER_0,
+            LocalizationKey.STATS_0,
+            LocalizationKey.SAVE_0,
+            
+            LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_CLUB_WITH_TEETH_0,
+            LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_PIECE_0,
+            LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_BOTTLE_0,
+            
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_PLAYER_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DEMON_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DWARF_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_ELF_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_HUMAN_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_GHOUL_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_TROLL_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DRAGON_0,
+        ];
+
+        /// <summary>
         /// The default value for the config used for the value of the texts in <see cref="LocalizationDictionary"/> for <see cref="Language.ENGLISH"/>.
         /// </summary>
-        private static readonly Dictionary<EnumValue<Text>, string> _defaultTextsEnglish = new()
+        private static readonly Dictionary<EnumValue<LocalizationKey>, string> _defaultTextsEnglish = new()
         {
-            [Text.LOADING_FROM_FOLDER_1] = "Loading from folder \"{0}\":",
-            [Text.LOADING_FILE_FROM_CONFIG_1] = "Loading file \"{0}\" from config:",
+            [LocalizationKey.LANGUAGE_NAME_ENGLISH_0] = "English",
+            [LocalizationKey.APPLICATION_TITLE_0] = "Progress Adventure",
+            [LocalizationKey.LOADING_0] = "Loading...",
+            [LocalizationKey.LOADING_COMMON_SINGLETONS_0] = "Loading common singletons...",
+            [LocalizationKey.ACTIVATING_ANSI_0] = "Activating Ansi escape codes (Windows only)...",
+            [LocalizationKey.LOADING_PA_SINGLETONS_0] = "Loading P.A. singletons...",
+            [LocalizationKey.RELOADING_CONFIGS_0] = "Reloading configs...",
+            [LocalizationKey.DONE_0] = "DONE!",
+            [LocalizationKey.LOADING_FROM_FOLDER_1] = "Loading from folder \"{0}\":",
+            [LocalizationKey.LOADING_FILE_FROM_CONFIG_1] = "Loading file \"{0}\" from config:",
+            [LocalizationKey.FAILED_0] = "FAILED!",
+            
+            [LocalizationKey.ESCAPE_0] = "Escape",
+            [LocalizationKey.UP_0] = "Up",
+            [LocalizationKey.DOWN_0] = "Down",
+            [LocalizationKey.LEFT_0] = "Left",
+            [LocalizationKey.RIGHT_0] = "Right",
+            [LocalizationKey.ENTER_0] = "Enter",
+            [LocalizationKey.STATS_0] = "Stats",
+            [LocalizationKey.SAVE_0] = "Save",
+            
+            [LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_CLUB_WITH_TEETH_0] = "*/0MC/* club with */1ML/*",
+            [LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_PIECE_0] = "*/0MC/*",
+            [LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_BOTTLE_0] = "*/0MC/* bottle of */1MC/*",
+            
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_PLAYER_0] = "You",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DEMON_0] = "Demon",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DWARF_0] = "Dwarf",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_ELF_0] = "Elf",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_HUMAN_0] = "Human",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0] = "Caveman",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_GHOUL_0] = "Ghoul",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_TROLL_0] = "Troll",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DRAGON_0] = "Dragon",
         };
         #endregion
         
@@ -39,8 +122,15 @@ namespace ProgressAdventure.Localization
         private static Localizer? _instance = null;
         #endregion
 
+        #region Private properties
+        /// <summary>
+        /// The properties of all languages.
+        /// </summary>
+        public Dictionary<EnumValue<Language>, LanguageProperties> LanguageProperties { get; private set; }
+        #endregion
+
         #region Protected properties
-        protected override Dictionary<EnumValue<Language>, Dictionary<EnumValue<Text>, string>> LocalizationDictionary { get; set; }
+        protected override Dictionary<EnumValue<Language>, Dictionary<EnumValue<LocalizationKey>, string>> LocalizationDictionary { get; set; }
         #endregion
 
         #region Public properties
@@ -65,7 +155,7 @@ namespace ProgressAdventure.Localization
         private Localizer(EnumValue<Language> defaultLanguage)
             :base(defaultLanguage)
         {
-            LoadDefaultLanguageDict();
+            LoadDefaultConfigs();
         }
         #endregion
 
@@ -101,11 +191,6 @@ namespace ProgressAdventure.Localization
         #endregion
 
         #region Public methods
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-        }
-        
         #region Configs
         #region Write default config or get reload common data
         private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataLanguages(bool isWriteConfig)
@@ -125,6 +210,48 @@ namespace ProgressAdventure.Localization
                 );
             return default;
         }
+        
+        private static (string configName, string? comment, bool paddingData) WriteDefaultConfigOrGetReloadDataLocalizationKeys(bool isWriteConfig)
+        {
+            const string? comment = null;
+            var basePath = Path.Join(Constants.CONFIGS_LOCALIZATION_SUBFOLDER_NAME, "localization_keys");
+            if (!isWriteConfig)
+            {
+                return (basePath, comment, false);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfig(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultLocalizationKeys,
+                comment
+            );
+            return default;
+        }
+
+        private static (
+            string configName,
+            string? comment,
+            Func<EnumValue<Language>, string> serializeKeys
+            ) WriteDefaultConfigOrGetReloadDataLanguageProperties(bool isWriteConfig)
+        {
+            const string? comment = null;
+            var basePath = Path.Join(Constants.CONFIGS_LOCALIZATION_SUBFOLDER_NAME, "language_properties");
+            static string KeySerializer(EnumValue<Language> key) => key.Name;
+            if (!isWriteConfig)
+            {
+                return (basePath, comment, KeySerializer);
+            }
+
+            PACSingletons.Instance.ConfigManager.SetConfigDict(
+                Path.Join(Constants.VANILLA_CONFIGS_NAMESPACE, basePath),
+                null,
+                _defaultLanguageProperties,
+                KeySerializer,
+                comment
+            );
+            return default;
+        }
 
         private static string GetTextsDictConfigPath(EnumValue<Language> language)
         {
@@ -134,16 +261,16 @@ namespace ProgressAdventure.Localization
         private static (
             string configName,
             string? comment,
-            Func<EnumValue<Text>, string> serializeKeys
+            Func<EnumValue<LocalizationKey>, string> serializeKeys
             ) WriteDefaultConfigOrGetReloadDataTextsBase(
                 bool isWriteConfig,
                 EnumValue<Language> language,
-                Dictionary<EnumValue<Text>, string> defaultTextsDict,
+                Dictionary<EnumValue<LocalizationKey>, string> defaultTextsDict,
                 string? comment
             )
         {
             var basePath = GetTextsDictConfigPath(language);
-            static string KeySerializer(EnumValue<Text> key) => key.Name;
+            static string KeySerializer(EnumValue<LocalizationKey> key) => key.Name;
             if (!isWriteConfig)
             {
                 return (basePath, comment, KeySerializer);
@@ -162,7 +289,7 @@ namespace ProgressAdventure.Localization
         private static (
             string configName,
             string? comment,
-            Func<EnumValue<Text>, string> serializeKeys
+            Func<EnumValue<LocalizationKey>, string> serializeKeys
         ) WriteDefaultConfigOrGetReloadDataTextsEnglish(bool isWriteConfig)
         {
             const string? comment = null;
@@ -176,6 +303,8 @@ namespace ProgressAdventure.Localization
         public void LoadDefaultConfigs()
         {
             Tools.LoadDefultAdvancedEnum(_defaultLanguages);
+            Tools.LoadDefultAdvancedEnum(_defaultLocalizationKeys);
+            LanguageProperties = _defaultLanguageProperties;
             LoadDefaultLanguageDict();
         }
 
@@ -185,6 +314,9 @@ namespace ProgressAdventure.Localization
         public static void WriteDefaultConfigs()
         {
             WriteDefaultConfigOrGetReloadDataLanguages(true);
+            WriteDefaultConfigOrGetReloadDataLocalizationKeys(true);
+            WriteDefaultConfigOrGetReloadDataLanguageProperties(true);
+            
             WriteDefaultConfigOrGetReloadDataTextsEnglish(true);
         }
 
@@ -213,14 +345,37 @@ namespace ProgressAdventure.Localization
                 true,
                 comment: languagesData.comment
             );
+            
+            var localizationKeysData = WriteDefaultConfigOrGetReloadDataLocalizationKeys(false);
+            ConfigUtils.ReloadConfigsAggregateAdvancedEnum(
+                localizationKeysData.configName,
+                namespaceFolders,
+                _defaultLocalizationKeys,
+                isVanillaInvalid,
+                showProgressIndentation,
+                true,
+                comment: localizationKeysData.comment
+            );
+            
+            var languagePropertiesData = WriteDefaultConfigOrGetReloadDataLanguageProperties(false);
+            ConfigUtils.ReloadConfigsAggregateDict(
+                languagePropertiesData.configName,
+                namespaceFolders,
+                _defaultLanguageProperties,
+                languagePropertiesData.serializeKeys,
+                key => Language.GetValue(ConfigUtils.GetNameapacedString(key)),
+                isVanillaInvalid,
+                showProgressIndentation,
+                comment: languagePropertiesData.comment
+            );
 
             Tools.ReloadConfigsFolderDisplayProgress(Constants.CONFIGS_LANGUAGES_SUBFOLDER_NAME, showProgressIndentation);
             showProgressIndentation = showProgressIndentation + 1 ?? null;
             
-            var tempLocalizationDict = new Dictionary<EnumValue<Language>, Dictionary<EnumValue<Text>, string>>();
+            var tempLocalizationDict = new Dictionary<EnumValue<Language>, Dictionary<EnumValue<LocalizationKey>, string>>();
             foreach (var language in Language.GetValues())
             {
-                Dictionary<EnumValue<Text>, string> languageDictionary;
+                Dictionary<EnumValue<LocalizationKey>, string> languageDictionary;
                 if (language == Language.ENGLISH)
                 {
                     var actionTypeAttributesData = WriteDefaultConfigOrGetReloadDataTextsEnglish(false);
@@ -229,7 +384,7 @@ namespace ProgressAdventure.Localization
                         namespaceFolders,
                         _defaultTextsEnglish,
                         actionTypeAttributesData.serializeKeys,
-                        key => Text.GetValue(ConfigUtils.GetNameapacedString(key)),
+                        key => LocalizationKey.GetValue(ConfigUtils.GetNameapacedString(key)),
                         isVanillaInvalid,
                         showProgressIndentation,
                         comment: actionTypeAttributesData.comment
@@ -237,10 +392,10 @@ namespace ProgressAdventure.Localization
                 }
                 else
                 {
-                    languageDictionary = ConfigUtils.GetConfigsAggregateDict<EnumValue<Text>, string>(
+                    languageDictionary = ConfigUtils.GetConfigsAggregateDict<EnumValue<LocalizationKey>, string>(
                         GetTextsDictConfigPath(language),
                         namespaceFolders,
-                        key => Text.GetValue(ConfigUtils.GetNameapacedString(key)),
+                        key => LocalizationKey.GetValue(ConfigUtils.GetNameapacedString(key)),
                         showProgressIndentation
                     );
                 }
@@ -249,17 +404,97 @@ namespace ProgressAdventure.Localization
             }
 
             LocalizationDictionary = tempLocalizationDict;
+            PASingletons.Instance.Settings.CurrentLanguage = PASingletons.Instance.Settings.GetCurrentLanguage();
         }
         #endregion
+        
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+        
+        /// <summary>
+        /// Returns the name of the <see cref="LocalizationKey"/> that contains the localized name of a language.
+        /// </summary>
+        /// <param name="language">The language to get the <see cref="LocalizationKey"/> name for.</param>
+        public static string GetLanguageNameLocalizationKeyName(EnumValue<Language> language)
+        {
+            return ConfigUtils.GetSpecificNamespacedString(
+                $"{Constants.LANGUAGE_NATIVE_NAME_LOCALIZATION_KEY_PREFIX}_{ConfigUtils.RemoveNamespace(language.Name)}_0",
+                ConfigUtils.GetNamespace(language.Name),
+                false
+            );
+        }
+
+        /// <summary>
+        /// Gets the localized name of a language in the current language.
+        /// </summary>
+        /// <param name="language">The language to get the name of.</param>
+        /// <param name="localizedString">The localized name of the language.</param>
+        /// <returns>If the localized language name was successfuly returned.</returns>
+        public bool TryGetLocalizedLanguageName(EnumValue<Language> language, [NotNullWhen(true)] out string? localizedString)
+        {
+            var languageNameKey = GetLanguageNameLocalizationKeyName(language);
+            localizedString = null;
+            return LocalizationKey.TryGetValue(languageNameKey, out var localizedKey) &&
+                   TryGetLocalizedString(localizedKey, out localizedString);
+        }
+
+        /// <summary>
+        /// Rtuens the localized name of a language in the current language.
+        /// </summary>
+        /// <param name="language">The language to get the name of.</param>
+        public string GetLocalizedLanguageName(EnumValue<Language> language)
+        {
+            var languageNameKey = GetLanguageNameLocalizationKeyName(language);
+            return LocalizationKey.TryGetValue(languageNameKey, out var localizedKey) &&
+                   TryGetLocalizedString(localizedKey, out var localizedString)
+                ? localizedString
+                : $"[{languageNameKey}]";
+        }
+
+        /// <summary>
+        /// Adds a new localization to the localization dictionary.
+        /// </summary>
+        /// <param name="language">The language to add the localization to.</param>
+        /// <param name="localizaionKey">The key to add the localization to.</param>
+        /// <param name="localizedString">The localized string.</param>
+        /// <param name="addToDefaults">Whether to add the new localizatio key and localization to the defaults. Only posible if the language is a default language.</param>
+        /// <returns>If the localization was added.</returns>
+        public bool TryAddLocalization(EnumValue<Language> language, EnumValue<LocalizationKey> localizaionKey, string localizedString, bool addToDefaults)
+        {
+            if (
+                !LocalizationDictionary.TryGetValue(language, out var localizedStrings) ||
+                !localizedStrings.TryAdd(localizaionKey, localizedString)
+            )
+            {
+                return false;
+            }
+
+            if (!addToDefaults)
+            {
+                return true;
+            }
+
+            if (!_defaultLocalizationKeys.Contains(localizaionKey))
+            {
+                _defaultLocalizationKeys.Add(localizaionKey);
+            }
+
+            if (language == Language.ENGLISH)
+            {
+                _defaultTextsEnglish.TryAdd(localizaionKey, localizedString);
+            }
+            return true;
+        }
         #endregion
 
         #region Private methods
-
         private void LoadDefaultLanguageDict()
         {
-            LocalizationDictionary = new Dictionary<EnumValue<Language>, Dictionary<EnumValue<Text>, string>>
+            LocalizationDictionary = new Dictionary<EnumValue<Language>, Dictionary<EnumValue<LocalizationKey>, string>>
             {
-                [Language.ENGLISH] = _defaultTextsEnglish,
+                [Language.ENGLISH] = _defaultTextsEnglish.ToDictionary(),
             };
         }
         #endregion

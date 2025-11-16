@@ -412,13 +412,13 @@ namespace ProgressAdventure
         /// </summary>
         public const char NAMESPACE_SEPARATOR_CHAR = ':';
         /// <summary>
-        /// The oldest recognised config format.
+        /// The oldest recognized config format.
         /// </summary>
         public const string OLDEST_CONFIG_FORMAT_VERSION = "v1";
         /// <summary>
         /// The current config format.
         /// </summary>
-        public const string CONFIG_FORMAT_VERSION = "v10";
+        public const string CONFIG_FORMAT_VERSION = "v11";
         /// <summary>
         /// The current config version.
         /// </summary>
@@ -428,7 +428,7 @@ namespace ProgressAdventure
         /// </summary>
         public const string CONFIG_REMOVE_BEGGINING = "-";
         /// <summary>
-        /// Whether to create .jsonc equivalents of all .json files in a config folder if the config version is too old (<v10)
+        /// Whether to create .jsonc equivalents of all .json files in a config folder if the config version is too old (less than v10)
         /// </summary>
         public const bool UPGRAGE_ALL_JSON_FILES_TO_JSONC_IN_CONFIGS = true;
         #endregion
@@ -439,7 +439,7 @@ namespace ProgressAdventure
         /// </summary>
         public const int ITEM_AMOUNT_ROUNDING_DIGITS = 4;
         /// <summary>
-        /// The limit to whether to display the item amount normaly, or in a scientific notation. The limit surpassed if amount > 10^x or amount < 10^-x.
+        /// The limit to whether to display the item amount normaly, or in a scientific notation. The limit surpassed if 10^x > abs(amount).
         /// </summary>
         public const int ITEM_AMOUNT_SCIENTIFIC_FORMAT_DIGITS = 4;
         /// <summary>
@@ -470,7 +470,7 @@ namespace ProgressAdventure
         /// </summary>
         public const int AUTO_SAVE_DELAY = 5000;
         /// <summary>
-        /// The oldest recognised save version.
+        /// The oldest recognized save version.
         /// </summary>
         public const string OLDEST_SAVE_VERSION = "2.0";
         /// <summary>
@@ -497,6 +497,10 @@ namespace ProgressAdventure
         /// How often to check, if the game is unpaused when it is in a pause lock.
         /// </summary>
         public const int GLOBALS_PAUSED_CHECK_FREQUENCY = 100;
+        /// <summary>
+        /// The first part of the name of the LocalizationKey for the localized name of a language.
+        /// </summary>
+        public const string LANGUAGE_NATIVE_NAME_LOCALIZATION_KEY_PREFIX = "language_name";
         #endregion
     }
 }

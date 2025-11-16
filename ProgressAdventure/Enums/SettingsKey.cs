@@ -8,6 +8,7 @@ namespace ProgressAdventure.Enums
         ASK_DELETE_SAVE,
         ASK_REGENERATE_SAVE,
         DEF_BACKUP_ACTION,
-        ENABLE_COLORED_TEXT
+        ENABLE_COLORED_TEXT,
+        CURRENT_LANGUAGE
     }
 }

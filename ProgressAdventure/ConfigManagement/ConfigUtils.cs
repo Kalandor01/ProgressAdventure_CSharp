@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using PACommon;
 using PACommon.Enums;
 using PACommon.JsonUtils;
-using ProgressAdventure.Localization;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.ConfigManagement
 {
@@ -994,6 +994,17 @@ namespace ProgressAdventure.ConfigManagement
             var sepIndex = namespacedString.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
             return sepIndex != -1 ? namespacedString[(sepIndex + 1)..] : namespacedString;
         }
+
+        /// <summary>
+        /// Returns the namespace from a namespaced string.
+        /// </summary>
+        /// <param name="namespacedString">The namespaced string.</param>
+        /// <returns>The namespace or the vanilla namespace if it wasn't namespaced.</returns>
+        public static string GetNamespace(string namespacedString)
+        {
+            var sepIndex = namespacedString.IndexOf(Constants.NAMESPACE_SEPARATOR_CHAR);
+            return sepIndex != -1 ? namespacedString[..sepIndex] : Constants.VANILLA_CONFIGS_NAMESPACE;
+        }
         #endregion
         #endregion
 
@@ -1087,7 +1098,9 @@ namespace ProgressAdventure.ConfigManagement
 
             if (showProgressIndentation is not null)
             {
-                PACSingletons.Instance.ConsoleProxy.WriteLine(success ? "" : $": {Tools.StylizedText("FALIED!", Constants.Colors.RED)}");
+                PACSingletons.Instance.ConsoleProxy.WriteLine(
+                    success ? "" : $": {Tools.StylizedText(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.FAILED_0), Constants.Colors.RED)}"
+                );
             }
         }
 
@@ -1123,7 +1136,7 @@ namespace ProgressAdventure.ConfigManagement
             {
                 PACSingletons.Instance.ConsoleProxy.WriteLine(
                     new string(' ', (int)showProgressIndentation * 4) +
-                    PASingletons.Instance.Localizer.GetLocalizedString(Text.LOADING_FILE_FROM_CONFIG_1, Path.GetFileName(configNameFull))
+                    PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.LOADING_FILE_FROM_CONFIG_1, Path.GetFileName(configNameFull))
                 );
             }
             showProgressIndentation = showProgressIndentation + 1 ?? null;

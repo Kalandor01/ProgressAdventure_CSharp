@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using PACommon.Enums;
+using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
 
 namespace ProgressAdventure.EntityManagement
@@ -9,7 +11,7 @@ namespace ProgressAdventure.EntityManagement
     public class EntityPropertiesDTO
     {
         [JsonPropertyName("display_name")]
-        public readonly string displayName;
+        public readonly EnumValue<LocalizationKey> displayName;
 
         [JsonPropertyName("max_hp")]
         public readonly EntityAttributeValue<int> maxHp;
@@ -57,7 +59,7 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="updatesWorldWhenMoving"><inheritdoc cref="updatesWorldWhenMoving" path="//summary"/></param>
         [JsonConstructor]
         public EntityPropertiesDTO(
-            string displayName,
+            EnumValue<LocalizationKey> displayName,
             EntityAttributeValue<int> maxHp,
             EntityAttributeValue<int> attack,
             EntityAttributeValue<int> defence,
@@ -70,7 +72,6 @@ namespace ProgressAdventure.EntityManagement
             bool updatesWorldWhenMoving = false
         )
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.displayName = displayName;
             this.maxHp = maxHp ?? throw new ArgumentNullException(nameof(maxHp));
             this.attack = attack ?? throw new ArgumentNullException(nameof(attack));
@@ -101,7 +102,7 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="hasInventory"><inheritdoc cref="hasInventory" path="//summary"/></param>
         /// <param name="updatesWorldWhenMoving"><inheritdoc cref="updatesWorldWhenMoving" path="//summary"/></param>
         public EntityPropertiesDTO(
-            string displayName,
+            EnumValue<LocalizationKey> displayName,
             int baseMaxHp,
             int baseAttack,
             int baseDefence,
@@ -134,7 +135,7 @@ namespace ProgressAdventure.EntityManagement
 
         public override string? ToString()
         {
-            return displayName;
+            return PASingletons.Instance.Localizer.GetLocalizedString(displayName);
         }
     }
 }

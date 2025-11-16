@@ -100,9 +100,11 @@ namespace ProgressAdventure
                 _instance?.Dispose();
                 _instance = new PASingletons(
                     globals ?? new Globals(),
-                    settings ?? new Settings(),
+                    settings ?? new Settings(isInitializing: true),
                     localizer ?? Localizer.Instance
                 );
+                // sync current language between settings and localizer if required
+                var cl = _instance.Settings.CurrentLanguage;
                 if (logInitialization)
                 {
                     PACSingletons.Instance.Logger.Log($"{nameof(IGlobals)} initialized");

@@ -28,7 +28,7 @@ namespace ProgressAdventure.WorldManagement.Content
         #region Public methods
         public override string GetTypeName()
         {
-            return WorldUtils.TerrainTypeMap[type].displayName;
+            return PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.TerrainTypeMap[type].displayName);
         }
         #endregion
 

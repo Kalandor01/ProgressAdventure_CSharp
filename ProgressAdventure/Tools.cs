@@ -4,9 +4,9 @@ using PACommon.Enums;
 using PACommon.JsonUtils;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
+using ProgressAdventure.Enums;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.ItemManagement;
-using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using static ProgressAdventure.Constants;
@@ -421,7 +421,7 @@ namespace ProgressAdventure
             }
             PACSingletons.Instance.ConsoleProxy.WriteLine(
                 new string(' ', (int)showProgressIndentation * 4) +
-                PASingletons.Instance.Localizer.GetLocalizedString(Text.LOADING_FROM_FOLDER_1, configPath)
+                PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.LOADING_FROM_FOLDER_1, configPath)
             );
         }
 
@@ -431,6 +431,7 @@ namespace ProgressAdventure
         /// <param name="showProgressIndentation">If not null, shows the progress of loading the configs on the console.</param>
         public static void ReloadConfigs(int? showProgressIndentation = null)
         {
+            PACSingletons.Instance.Logger.Log("Reloading all configs");
             var namespaces = ConfigUtils.UpdateEnabledConfigDatas(out var vanillaInvalid)
                 .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
@@ -439,7 +440,7 @@ namespace ProgressAdventure
             var sc = SettingsUtils.ActionTypeAttributes;
             var ic = ItemUtils.MATERIAL_ITEM_TYPE;
             var ec = EntityUtils.FacingToMovementVectorMap;
-            var wc = WorldUtils.noStructureDifferenceLimit;
+            var wc = WorldUtils.TileNoiseOffsets;
 
             PASingletons.Instance.Localizer.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
@@ -448,6 +449,46 @@ namespace ProgressAdventure
             WorldUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
 
             PACSingletons.Instance.Logger.Log("All configs reloaded");
+        }
+        
+        /// <summary>
+        /// Adds a new english localization key and value to the <see cref="Localization.Localizer"/>, or returns the existing one.
+        /// </summary>
+        /// <param name="namespaceName">The name of the namespace that this localization will be added to.</param>
+        /// <param name="enumTypeName">The name for the enum type for the beggining of the localization key.</param>
+        /// <param name="baseName">The name for this enum value, for the end of the localization key.</param>
+        /// <param name="localizedString">The localized string.</param>
+        /// <param name="addToDefaults">Whether to add the new localizatio key and localization to the defaults.</param>
+        public static EnumValue<LocalizationKey> TryAddEnglishLocalizationFromEnumLikeValue(
+            string namespaceName,
+            string enumTypeName,
+            string baseName,
+            string localizedString,
+            bool addToDefaults
+        )
+        {
+            var localizationKeyName = ConfigUtils.GetSpecificNamespacedString(
+                $"{enumTypeName}_{baseName}_0",
+                namespaceName,
+                false
+            );
+            if (
+                !LocalizationKey.TryAddValue(localizationKeyName, out var localizationKey) ||
+                !PASingletons.Instance.Localizer.GetAvailableLanguages().Contains(Language.ENGLISH)
+            )
+            {
+                return localizationKey!;
+            }
+
+            if (PASingletons.Instance.Localizer.TryAddLocalization(Language.ENGLISH, localizationKey, localizedString, addToDefaults))
+            {
+                PACSingletons.Instance.Logger.Log(
+                    "Added new localization",
+                    $"key: \"{localizationKeyName}\", localization: \"{localizedString}\"",
+                    LogSeverity.DEBUG
+                );
+            }
+            return localizationKey;
         }
         #endregion
         #endregion

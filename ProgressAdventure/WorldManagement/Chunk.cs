@@ -60,7 +60,7 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Generates a new <c>Tile</c> at a specific position.
+        /// Generates a new <see cref="Tile"/> at a specific position.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the tile.</param>
         public Tile GenerateTile((long x, long y) absolutePosition)
@@ -72,7 +72,7 @@ namespace ProgressAdventure.WorldManagement
             var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
             PACSingletons.Instance.Logger.Log(
                 "Created tile",
-                $"x: {posX}, y: {posY}, terrain: {WorldUtils.TerrainTypeMap[tile.terrain.type].displayName}, structure: {WorldUtils.StructureTypeMap[tile.structure.type].displayName}, population: {tile.populationManager}",
+                $"x: {posX}, y: {posY}, terrain: {PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.TerrainTypeMap[tile.terrain.type].displayName)}, structure: {PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.StructureTypeMap[tile.structure.type].displayName)}, population: {tile.populationManager}",
                 LogSeverity.DEBUG
             );
             return tile;

@@ -314,7 +314,7 @@ namespace ProgressAdventure.ItemManagement
             [ItemType.Weapon.BOW] = new CompoundItemAttributesDTO(ItemType.Weapon.BOW, new CompoundItemPropertiesDTO(999, 999, 999)),
             [ItemType.Weapon.ARROW] = new CompoundItemAttributesDTO(ItemType.Weapon.ARROW, new CompoundItemPropertiesDTO(999, 999, 999)),
             [ItemType.Weapon.CLUB] = new CompoundItemAttributesDTO(ItemType.Weapon.CLUB, new CompoundItemPropertiesDTO(999, 999, 999)),
-            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO("*/0MC/* club with */1ML/*", new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Weapon.CLUB_WITH_TEETH] = new CompoundItemAttributesDTO(LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_CLUB_WITH_TEETH_0, new CompoundItemPropertiesDTO(999, 999, 999)),
             //defence
             [ItemType.Defence.SHIELD] = new CompoundItemAttributesDTO(ItemType.Defence.SHIELD, new CompoundItemPropertiesDTO(999, 999, 999)),
             [ItemType.Defence.HELMET] = new CompoundItemAttributesDTO(ItemType.Defence.HELMET, new CompoundItemPropertiesDTO(999, 999, 999)),
@@ -327,7 +327,7 @@ namespace ProgressAdventure.ItemManagement
             [ItemType.Form.BIT] = new CompoundItemAttributesDTO(ItemType.Form.BIT, new CompoundItemPropertiesDTO(Math.Pow(0.1, 1.0/3), Math.Pow(0.1, 1.0 / 3), Math.Pow(0.1, 1.0 / 3))),
             [ItemType.Form.CHIPS] = new CompoundItemAttributesDTO(ItemType.Form.CHIPS, new CompoundItemPropertiesDTO(1e-2, 1e-2, 1e-2), ItemAmountUnit.KG),
             [ItemType.Form.DUST] = new CompoundItemAttributesDTO(ItemType.Form.DUST, new CompoundItemPropertiesDTO(1e-3, 1e-3, 1e-3), ItemAmountUnit.KG),
-            [ItemType.Form.PIECE] = new CompoundItemAttributesDTO($"*/0MC/*", new CompoundItemPropertiesDTO(null, null, null)),
+            [ItemType.Form.PIECE] = new CompoundItemAttributesDTO(LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_PIECE_0, new CompoundItemPropertiesDTO(null, null, null)),
             [ItemType.Form.PLANK] = new CompoundItemAttributesDTO(ItemType.Form.PLANK, new CompoundItemPropertiesDTO(0.03, 0.15, 1)),
             [ItemType.Form.ROD] = new CompoundItemAttributesDTO(ItemType.Form.ROD, new CompoundItemPropertiesDTO(4e-2, 4e-2, 1)),
             [ItemType.Form.SHEET] = new CompoundItemAttributesDTO(ItemType.Form.SHEET, new CompoundItemPropertiesDTO(1, 1, 1e-3)),
@@ -336,7 +336,7 @@ namespace ProgressAdventure.ItemManagement
             //misc
             [MATERIAL_ITEM_TYPE] = new CompoundItemAttributesDTO(MATERIAL_ITEM_TYPE, new CompoundItemPropertiesDTO(null, null, null), ItemAmountUnit.KG),
             [ItemType.Misc.BOTTLE] = new CompoundItemAttributesDTO(ItemType.Misc.BOTTLE, new CompoundItemPropertiesDTO(999, 999, 999)),
-            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO("*/0MC/* bottle of */1MC/*", new CompoundItemPropertiesDTO(999, 999, 999)),
+            [ItemType.Misc.FILLED_BOTTLE] = new CompoundItemAttributesDTO(LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_BOTTLE_0, new CompoundItemPropertiesDTO(999, 999, 999)),
             [ItemType.Misc.COIN] = new CompoundItemAttributesDTO(ItemType.Misc.COIN, new CompoundItemPropertiesDTO(25e-3, 25e-3, 2e-3)),
             [ItemType.Misc.SWORD_BLADE] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_BLADE, new CompoundItemPropertiesDTO(999, 999, 999)),
             [ItemType.Misc.SWORD_HILT] = new CompoundItemAttributesDTO(ItemType.Misc.SWORD_HILT, new CompoundItemPropertiesDTO(999, 999, 999)),
@@ -819,11 +819,10 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="itemTypeName">The string representation of the item's type.</param>
         public static EnumTreeValue<ItemType>? ParseItemType(string? itemTypeName)
         {
-            if (string.IsNullOrWhiteSpace(itemTypeName))
-            {
-                return null;
-            }
-            return CompoundItemAttributes.FirstOrDefault(itemAttribute => itemAttribute.Key.FullName == itemTypeName).Key; ;
+            return !string.IsNullOrWhiteSpace(itemTypeName)
+                ? CompoundItemAttributes
+                    .FirstOrDefault(itemAttribute => itemAttribute.Key.FullName == itemTypeName).Key
+                : null;
         }
 
         /// <summary>
@@ -838,7 +837,7 @@ namespace ProgressAdventure.ItemManagement
         }
 
         /// <summary>
-        /// Converts the item type, to it's default display name.
+        /// Converts the item type, to its default display name.
         /// </summary>
         /// <param name="itemType">The item type.</param>
         public static string ItemTypeToDisplayName(EnumTreeValue<ItemType> itemType)

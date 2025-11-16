@@ -17,7 +17,7 @@ namespace ProgressAdventure.ItemManagement
         /// <inheritdoc cref="MaterialItem"/>
         /// </summary>
         /// <param name="material">The material.</param>
-        /// <param name="amount"><inheritdoc cref="Amount" path="//summary"/></param>
+        /// <param name="amount"><inheritdoc cref="AItem.Amount" path="//summary"/></param>
         public MaterialItem(EnumValue<Material> material, double amount = 1)
         {
             Type = ItemUtils.MATERIAL_ITEM_TYPE;
@@ -35,17 +35,18 @@ namespace ProgressAdventure.ItemManagement
         /// </summary>
         public bool Use()
         {
-            if (Amount > 0)
+            if (!(Amount > 0))
             {
-                //TODO: DO THIS WITH TAGS!
-
-                //if (Consumable)
-                //{
-                Amount--;
-                //}
-                return true;
+                return false;
             }
-            return false;
+            
+            //TODO: DO THIS WITH TAGS!
+
+            //if (Consumable)
+            //{
+            Amount--;
+            //}
+            return true;
         }
         #endregion
 
@@ -64,18 +65,13 @@ namespace ProgressAdventure.ItemManagement
 
         protected override double GetVolumeMultiplier()
         {
-            if (Unit == ItemAmountUnit.M3)
+            return Unit switch
             {
-                return 1;
-            }
-
-            if (Unit == ItemAmountUnit.L)
-            {
-                return 0.001;
-            }
-
-            // KG (/ amount???)
-            return 1 / ItemUtils.MaterialItemAttributes[Material].properties.density;
+                ItemAmountUnit.M3 => 1,
+                ItemAmountUnit.L => 0.001,
+                // KG (/ amount???)
+                _ => 1 / ItemUtils.MaterialItemAttributes[Material].properties.density
+            };
         }
         #endregion
 
@@ -87,7 +83,7 @@ namespace ProgressAdventure.ItemManagement
         {
             var attributes = ItemUtils.MaterialItemAttributes[Material];
             Unit = attributes.unit;
-            DisplayName = attributes.displayName;
+            DisplayName = PASingletons.Instance.Localizer.GetLocalizedString(attributes.displayName);
         }
         #endregion
 
@@ -98,10 +94,8 @@ namespace ProgressAdventure.ItemManagement
             (oldJson =>
             {
                 // inventory items in dictionary
-                JsonDataCorrecterUtils.TransformValue<int>(oldJson, "type", (itemID) =>
-                {
-                    return (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName);
-                });
+                JsonDataCorrecterUtils.TransformValue<int>(oldJson, "type", (itemID)
+                    => (ItemUtils._legacyItemTypeNameMap.TryGetValue(itemID, out var itemName), itemName));
             }, "2.1"),
             // 2.1.1 -> 2.2
             (oldJson =>
@@ -111,15 +105,11 @@ namespace ProgressAdventure.ItemManagement
                     oldJson,
                     "type",
                     (typeValue) => (ItemUtils._legacyMaterialItemMap.TryGetValue(typeValue ?? "", out var fixedType), fixedType),
-                    (fixedType) =>
+                    (fixedType) => new Dictionary<string, JsonObject?>
                     {
-                        return new Dictionary<string, JsonObject?>
-                        {
-                            ["type"] = "misc/material",
-                            ["material"] = fixedType,
-                        };
-                    }
-                );
+                        ["type"] = "misc/material",
+                        ["material"] = fixedType,
+                    });
             }, "2.2"),
             // 2.3 -> 2.4
             (oldJson =>
@@ -129,15 +119,11 @@ namespace ProgressAdventure.ItemManagement
                     oldJson,
                     "material",
                     (materialValue) => (!string.IsNullOrWhiteSpace(materialValue), materialValue),
-                    (materialValue) =>
+                    (materialValue) => new Dictionary<string, JsonObject?>
                     {
-                        return new Dictionary<string, JsonObject?>
-                        {
-                            ["type"] = "pa:misc/material",
-                            ["material"] = ConfigUtils.GetSpecificNamespacedString(materialValue.ToLower()),
-                        };
-                    }
-                );
+                        ["type"] = "pa:misc/material",
+                        ["material"] = ConfigUtils.GetSpecificNamespacedString(materialValue.ToLower()),
+                    });
             }, "2.4"),
         ];
 

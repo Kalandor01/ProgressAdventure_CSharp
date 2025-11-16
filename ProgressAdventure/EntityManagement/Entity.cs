@@ -576,7 +576,7 @@ namespace ProgressAdventure.EntityManagement
         /// </summary>
         public string GetFullNameWithSpecies()
         {
-            return FullName + (type != EntityUtils.PlayerEntityType ? $" ({EntityUtils.EntityPropertiesMap[type].displayName})" : "");
+            return FullName + (type != EntityUtils.PlayerEntityType ? $" ({PASingletons.Instance.Localizer.GetLocalizedString(EntityUtils.EntityPropertiesMap[type].displayName)})" : "");
         }
 
         #region Entity type specific methods
@@ -673,7 +673,7 @@ namespace ProgressAdventure.EntityManagement
         #region Public overrides
         public override string ToString()
         {
-            var typeLine = type != EntityUtils.PlayerEntityType ? $"\nSpecies: {EntityUtils.EntityPropertiesMap[type].displayName}" : "";
+            var typeLine = type != EntityUtils.PlayerEntityType ? $"\nSpecies: {PASingletons.Instance.Localizer.GetLocalizedString(EntityUtils.EntityPropertiesMap[type].displayName)}" : "";
             var attributesStr = string.Join(", ", attributes);
             var originalTeamStr = originalTeam == 0 ? "Player" : originalTeam.ToString();
             var teamStr = currentTeam == 0 ? "Player" : currentTeam.ToString();

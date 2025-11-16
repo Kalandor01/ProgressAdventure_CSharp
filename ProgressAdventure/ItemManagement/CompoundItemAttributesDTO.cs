@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using PACommon.Enums;
+using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.ItemManagement
@@ -30,7 +31,7 @@ namespace ProgressAdventure.ItemManagement
             ItemAmountUnit unit = ItemAmountUnit.AMOUNT
         )
             : this(
-                  $"*/0MC/* {ItemUtils.ItemTypeToDisplayName(itemType)}",
+                  AddLocalizationFromCompoundItemType(itemType),
                   properties,
                   unit
                 )
@@ -44,7 +45,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="unit"><inheritdoc cref="unit" path="//summary"/></param>
         [JsonConstructor]
         public CompoundItemAttributesDTO(
-            string displayName,
+            EnumValue<LocalizationKey> displayName,
             CompoundItemPropertiesDTO properties,
             ItemAmountUnit unit = ItemAmountUnit.AMOUNT
         )
@@ -54,6 +55,20 @@ namespace ProgressAdventure.ItemManagement
                 )
         {
             this.properties = properties ?? throw new ArgumentNullException(nameof(properties));
+        }
+        #endregion
+
+        #region Private functions
+        private static EnumValue<LocalizationKey> AddLocalizationFromCompoundItemType(EnumTreeValue<ItemType> itemType)
+        {
+            var namespaceName = ConfigUtils.GetNamespace(itemType.Name);
+            return Tools.TryAddEnglishLocalizationFromEnumLikeValue(
+                namespaceName,
+                "compound_item_display_name",
+                ConfigUtils.RemoveNamespace(itemType.Name),
+                $"*/0MC/* {ItemUtils.ItemTypeToDisplayName(itemType)}",
+                namespaceName == Constants.VANILLA_CONFIGS_NAMESPACE
+            );
         }
         #endregion
     }

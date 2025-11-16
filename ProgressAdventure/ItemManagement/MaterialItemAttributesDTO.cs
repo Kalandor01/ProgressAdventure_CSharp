@@ -27,7 +27,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="unit"><inheritdoc cref="AItemAttributesDTO.unit" path="//summary"/></param>
         public MaterialItemAttributesDTO(EnumValue<Material> material, MaterialPropertiesDTO properties, ItemAmountUnit unit = ItemAmountUnit.KG)
             : this(
-                  ConfigUtils.RemoveNamespace(material.Name).Replace("_", " ").Capitalize(),
+                  AddLocalizationFromMaterial(material),
                   properties,
                   unit
                 )
@@ -40,7 +40,7 @@ namespace ProgressAdventure.ItemManagement
         /// <param name="properties"><inheritdoc cref="properties" path="//summary"/></param>
         /// <param name="unit"><inheritdoc cref="AItemAttributesDTO.unit" path="//summary"/></param>
         [JsonConstructor]
-        public MaterialItemAttributesDTO(string displayName, MaterialPropertiesDTO properties, ItemAmountUnit unit = ItemAmountUnit.KG)
+        public MaterialItemAttributesDTO(EnumValue<LocalizationKey> displayName, MaterialPropertiesDTO properties, ItemAmountUnit unit = ItemAmountUnit.KG)
             : base(
                   displayName,
                   unit != ItemAmountUnit.AMOUNT ? unit : throw new ArgumentException($"Material atributes cannot have {ItemAmountUnit.AMOUNT} as unit", nameof(unit))
@@ -53,7 +53,21 @@ namespace ProgressAdventure.ItemManagement
         #region Overrides
         public override string? ToString()
         {
-            return $"{displayName} material, {unit}";
+            return $"{PASingletons.Instance.Localizer.GetLocalizedString(displayName)} material, {unit}";
+        }
+        #endregion
+
+        #region Private functions
+        private static EnumValue<LocalizationKey> AddLocalizationFromMaterial(EnumValue<Material> material)
+        {
+            var namespaceName = ConfigUtils.GetNamespace(material.Name);
+            return Tools.TryAddEnglishLocalizationFromEnumLikeValue(
+                namespaceName,
+                "material_display_name",
+                ConfigUtils.RemoveNamespace(material.Name),
+                ConfigUtils.RemoveNamespace(material.Name).Replace("_", " ").Capitalize(),
+                namespaceName == Constants.VANILLA_CONFIGS_NAMESPACE
+            );
         }
         #endregion
     }

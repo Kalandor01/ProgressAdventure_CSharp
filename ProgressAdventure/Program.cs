@@ -13,6 +13,7 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Exceptions;
 using ProgressAdventure.ItemManagement;
+using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using AItem = ProgressAdventure.ItemManagement.AItem;
@@ -168,13 +169,15 @@ namespace ProgressAdventure
         {
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
+            var localizer = Localizer.Initialize(Language.ENGLISH, false);
             var consoleProxy = new PAConsoleProxy()
             {
                 Encoding = Encoding.UTF8,
-                Title = "Progress Adventure",
+                Title = localizer.GetLocalizedString(LocalizationKey.APPLICATION_TITLE_0),
             };
-            consoleProxy.WriteLine("Loading...");
-            consoleProxy.WriteLine("Loading common singletons...");
+            
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_0));
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_COMMON_SINGLETONS_0));
 
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(Constants.LOGS_FOLDER_PATH, Constants.LOG_EXT);
@@ -205,6 +208,7 @@ namespace ProgressAdventure
                         new AdvancedEnumConverter<Attribute>(),
                         new AdvancedEnumConverter<Material>(),
                         new AdvancedEnumConverter<EntityType>(),
+                        new AdvancedEnumConverter<LocalizationKey>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new AIngredientDTOConverter(),
@@ -216,28 +220,28 @@ namespace ProgressAdventure
                 )
             );
 
-            consoleProxy.WriteLine("Activating Ansi escape codes (Windows only)...");
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.ACTIVATING_ANSI_0));
             if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
-            consoleProxy.WriteLine("Loading P.A. singletons...");
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_PA_SINGLETONS_0));
             // initializing PA singletons
             // special loading order to avoid unintended errors because of complicated self references
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true),
-                Localizer.Initialize(Language.ENGLISH, false)
+                new Settings(keybinds: new Keybinds(), currentLanguage: localizer.CurrentLanguage, dontUpdateSettingsIfValueSet: true),
+                localizer
             );
 
-            PACSingletons.Instance.ConsoleProxy.WriteLine("Reloading configs...");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.RELOADING_CONFIGS_0));
             // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
             Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
             
-            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
 

@@ -15,6 +15,11 @@ namespace ProgressAdventure.SettingsManagement
     {
         #region Private Fields
         /// <summary>
+        /// If an instance of <see cref="Settings"/> is already initializing.
+        /// </summary>
+        private static bool _isInitializing;
+        
+        /// <summary>
         /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
         /// </summary>
         private static readonly Dictionary<SettingsKey, JsonObjectType> _settingValueTypeMap = new()
@@ -26,6 +31,7 @@ namespace ProgressAdventure.SettingsManagement
             [SettingsKey.ASK_REGENERATE_SAVE] = JsonObjectType.Bool,
             [SettingsKey.DEF_BACKUP_ACTION] = JsonObjectType.WholeNumber,
             [SettingsKey.ENABLE_COLORED_TEXT] = JsonObjectType.Bool,
+            [SettingsKey.CURRENT_LANGUAGE] = JsonObjectType.String,
         };
 
         /// <inheritdoc cref="AutoSave"/>
@@ -42,6 +48,8 @@ namespace ProgressAdventure.SettingsManagement
         private int _defBackupAction;
         /// <inheritdoc cref="EnableColoredText"/>
         private bool _enableColoredText;
+        /// <inheritdoc cref="CurrentLanguage"/>
+        private EnumValue<Language>? _currentLanguage;
         #endregion
 
         #region Public properties
@@ -76,7 +84,7 @@ namespace ProgressAdventure.SettingsManagement
                 SettingsManager(SettingsKey.KEYBINDS, value);
                 _keybinds = GetKeybins();
                 var kbCount = _keybinds.KeybindList.Count();
-                if (kbCount > 0 && kbCount < 6)
+                if (kbCount is > 0 and < 6)
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Too few keybinds",
@@ -126,6 +134,27 @@ namespace ProgressAdventure.SettingsManagement
                 _enableColoredText = GetEnableColoredText();
             }
         }
+
+        public EnumValue<Language> CurrentLanguage
+        {
+            get
+            {
+                if (_currentLanguage is null)
+                {
+                    return PASingletons.Instance.Localizer.CurrentLanguage;
+                }
+
+                PASingletons.Instance.Localizer.CurrentLanguage = _currentLanguage;
+                _currentLanguage = null;
+                return PASingletons.Instance.Localizer.CurrentLanguage;
+            }
+            set
+            {
+                SettingsManager(SettingsKey.CURRENT_LANGUAGE, value.Name);
+                PASingletons.Instance.Localizer.CurrentLanguage = GetCurrentLanguage();
+            }
+        }
+
         #endregion
 
         #region Constructors
@@ -138,7 +167,10 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="askDeleteSave"><inheritdoc cref="_askDeleteSave" path="//summary"/></param>
         /// <param name="askRegenerateSave"><inheritdoc cref="_askRegenerateSave" path="//summary"/></param>
         /// <param name="defBackupAction"><inheritdoc cref="_defBackupAction" path="//summary"/></param>
+        /// <param name="enableColoredText"><inheritdoc cref="_enableColoredText" path="//summary"/></param>
+        /// <param name="currentLanguage"><inheritdoc cref="Localization.Localizer.CurrentLanguage" path="//summary"/></param>
         /// <param name="dontUpdateSettingsIfValueSet">If this value is true, if a settings value is set in this constructor, it won't update the settings file.</param>
+        /// <param name="isInitializing">If this constructor was called as part of the <see cref="PASingletons"/> initializer.</param>
         public Settings(
             bool? autoSave = null,
             LogSeverity? loggingLevel = null,
@@ -147,7 +179,9 @@ namespace ProgressAdventure.SettingsManagement
             bool? askRegenerateSave = null,
             int? defBackupAction = null,
             bool? enableColoredText = null,
-            bool dontUpdateSettingsIfValueSet = false
+            EnumValue<Language>? currentLanguage = null,
+            bool dontUpdateSettingsIfValueSet = false,
+            bool isInitializing = false
         )
         {
             UpdateOrNotHelper((newValue) => AutoSave = newValue, ref _autoSave, autoSave, GetAutoSave, dontUpdateSettingsIfValueSet);
@@ -157,6 +191,8 @@ namespace ProgressAdventure.SettingsManagement
             UpdateOrNotHelper((newValue) => AskRegenerateSave = newValue, ref _askRegenerateSave, askRegenerateSave, GetAskRegenerateSave, dontUpdateSettingsIfValueSet);
             UpdateOrNotHelper((newValue) => DefBackupAction = newValue, ref _defBackupAction, defBackupAction, GetDefBackupAction, dontUpdateSettingsIfValueSet);
             UpdateOrNotHelper((newValue) => EnableColoredText = newValue, ref _enableColoredText, enableColoredText, GetEnableColoredText, dontUpdateSettingsIfValueSet);
+            UpdateOrNotHelper((newValue) => EnableColoredText = newValue, ref _enableColoredText, enableColoredText, GetEnableColoredText, dontUpdateSettingsIfValueSet);
+            InitializeCurrentLanguageValue(currentLanguage, dontUpdateSettingsIfValueSet, isInitializing);
         }
         #endregion
 
@@ -175,11 +211,11 @@ namespace ProgressAdventure.SettingsManagement
         {
             if (
                 !TryGetFromSettingAsType(SettingsKey.LOGGING_LEVEL, out var logLevel) ||
-                !ILogger.TryParseSeverityValue((int)(long)logLevel.Value, out LogSeverity severity)
+                !ILogger.TryParseSeverityValue((int)(long)logLevel.Value, out var severity)
                 )
             {
                 PACSingletons.Instance.Logger.Log("Settings parse error", $"unknown logging level value: {logLevel}", LogSeverity.WARN);
-                _ = ILogger.TryParseSeverityValue((int)SettingsUtils.GetDefaultSettings()[SettingsKey.LOGGING_LEVEL.ToString()]!.Value, out severity);
+                _ = ILogger.TryParseSeverityValue((int)SettingsUtils.GetDefaultSettings()[nameof(SettingsKey.LOGGING_LEVEL)]!.Value, out severity);
             }
             return severity;
         }
@@ -230,6 +266,22 @@ namespace ProgressAdventure.SettingsManagement
         {
             return (bool)GetFromSettingAsType(SettingsKey.ENABLE_COLORED_TEXT);
         }
+
+        public EnumValue<Language> GetCurrentLanguage()
+        {
+            var languageStr = (string)GetFromSettingAsType(SettingsKey.CURRENT_LANGUAGE);
+            if (!Language.TryGetValue(languageStr, out var language))
+            {
+                PACSingletons.Instance.Logger.Log(
+                    "Invalid language type in the settings file",
+                    "the language will now be set back to the default",
+                    LogSeverity.ERROR
+                );
+                language = Language.ENGLISH;
+                SettingsManager(SettingsKey.CURRENT_LANGUAGE, language);
+            }
+            return language;
+        }
         #endregion
         
         #region Private functions
@@ -247,6 +299,32 @@ namespace ProgressAdventure.SettingsManagement
                 return;
             }
             setPropertyValue(getValueFromSettings());
+        }
+
+        /// <summary>
+        /// Initializes the <see cref="CurrentLanguage"/> value in a way that minimizes the chance and amount of times that the <see cref="Settings"/> construcor gets recursively called.
+        /// </summary>
+        /// <param name="value">The new value of the <see cref="CurrentLanguage"/>.</param>
+        /// <param name="dontUpdateSettingsIfValueSet">If this value is true, if a settings value is set in the constructor, it won't update the settings file.</param>
+        /// <param name="isInitializing">If the constructor was called as part of the <see cref="PASingletons"/> initializer.</param>
+        private void InitializeCurrentLanguageValue(EnumValue<Language>? value, bool dontUpdateSettingsIfValueSet, bool isInitializing)
+        {
+            if (dontUpdateSettingsIfValueSet && value is not null)
+            {
+                _currentLanguage = value;
+                return;
+            }
+
+            var languageFromSettings = GetCurrentLanguage();
+            if (_isInitializing || isInitializing)
+            {
+                _currentLanguage = languageFromSettings;
+                return;
+            }
+
+            _isInitializing = true;
+            CurrentLanguage = languageFromSettings;
+            _isInitializing = false;
         }
 
         /// <summary>

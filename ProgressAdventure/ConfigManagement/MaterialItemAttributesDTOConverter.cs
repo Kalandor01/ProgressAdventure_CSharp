@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.Enums;
 using ProgressAdventure.ItemManagement;
@@ -19,7 +20,7 @@ namespace ProgressAdventure.ConfigManagement
             var jsonDict = reader.GetObjectDictionary(MaterialItemAttrValuesConvert, options);
 
             return new MaterialItemAttributesDTO(
-                ItemArgumentHelper<string>(jsonDict, "display_name"),
+                ItemArgumentHelper<EnumValue<LocalizationKey>>(jsonDict, "display_name"),
                 ItemArgumentHelper<MaterialPropertiesDTO>(jsonDict, nameof(MaterialItemAttributesDTO.properties)),
                 ItemArgumentHelper<ItemAmountUnit>(jsonDict, nameof(MaterialItemAttributesDTO.unit))
             );
@@ -28,7 +29,7 @@ namespace ProgressAdventure.ConfigManagement
         public override void Write(Utf8JsonWriter writer, MaterialItemAttributesDTO value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteString("display_name", value.displayName);
+            writer.WriteString("display_name", value.displayName.Name);
             writer.WritePropertyName(nameof(MaterialItemAttributesDTO.unit));
             writer.WriteRawValue(JsonSerializer.Serialize(value.unit, options));
             writer.WritePropertyName(nameof(MaterialItemAttributesDTO.properties));
@@ -40,7 +41,7 @@ namespace ProgressAdventure.ConfigManagement
         {
             return key switch
             {
-                "display_name" => reader.GetString(),
+                "display_name" => JsonSerializer.Deserialize<EnumValue<LocalizationKey>>(ref reader, options),
                 nameof(MaterialItemAttributesDTO.unit) => JsonSerializer.Deserialize<ItemAmountUnit>(ref reader, options),
                 nameof(MaterialItemAttributesDTO.properties) => JsonSerializer.Deserialize<MaterialPropertiesDTO>(ref reader, options),
                 _ => throw new ArgumentException("Unknown key!", key),

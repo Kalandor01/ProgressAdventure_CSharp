@@ -1,4 +1,5 @@
 using PACommon.Enums;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.SettingsManagement
 {
@@ -45,6 +46,11 @@ namespace ProgressAdventure.SettingsManagement
         /// Whether to enable colored text on the terminal.
         /// </summary>
         public bool EnableColoredText { get; set; }
+
+        /// <summary>
+        /// The currently selected language.
+        /// </summary>
+        public EnumValue<Language> CurrentLanguage { get; set; }
         #endregion
 
         #region Public functions
@@ -82,6 +88,11 @@ namespace ProgressAdventure.SettingsManagement
         /// Returns the value of the <see cref="EnableColoredText"/> from the setting file.
         /// </summary>
         public bool GetEnableColoredText();
+
+        /// <summary>
+        /// Returns the value of the <see cref="CurrentLanguage"/> from the setting file.
+        /// </summary>
+        public EnumValue<Language> GetCurrentLanguage();
         #endregion
     }
 }

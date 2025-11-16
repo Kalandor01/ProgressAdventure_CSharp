@@ -32,50 +32,50 @@ namespace ProgressAdventure.SettingsManagement
         private static readonly Dictionary<EnumValue<ActionType>, ActionTypeAttributesDTO> _defaultActionTypeAttributes = new()
         {
             [ActionType.ESCAPE] = new(
-                Key.ESCAPE.ToString(),
-                Key.ESCAPE.ToString().Capitalize(),
+                nameof(Key.ESCAPE),
+                LocalizationKey.ESCAPE_0,
                 [GetKeyMode.IGNORE_ESCAPE],
                 [new((char)ConsoleKey.Escape, ConsoleKey.Escape, false, false, false)]
             ),
             [ActionType.UP] = new(
-                Key.UP.ToString(),
-                Key.UP.ToString().Capitalize(),
+                nameof(Key.UP),
+                LocalizationKey.UP_0,
                 [GetKeyMode.IGNORE_VERTICAL],
                 [new((char)0, ConsoleKey.UpArrow, false, false, false)]
             ),
             [ActionType.DOWN] = new(
-                Key.DOWN.ToString(),
-                Key.DOWN.ToString().Capitalize(),
+                nameof(Key.DOWN),
+                LocalizationKey.DOWN_0,
                 [GetKeyMode.IGNORE_VERTICAL],
                 [new((char)0, ConsoleKey.DownArrow, false, false, false)]
             ),
             [ActionType.LEFT] = new(
-                Key.LEFT.ToString(),
-                Key.LEFT.ToString().Capitalize(),
+                nameof(Key.LEFT),
+                LocalizationKey.LEFT_0,
                 [GetKeyMode.IGNORE_HORIZONTAL],
                 [new((char)0, ConsoleKey.LeftArrow, false, false, false)]
             ),
             [ActionType.RIGHT] = new(
-                Key.RIGHT.ToString(),
-                Key.RIGHT.ToString().Capitalize(),
+                nameof(Key.RIGHT),
+                LocalizationKey.RIGHT_0,
                 [GetKeyMode.IGNORE_HORIZONTAL],
                 [new((char)0, ConsoleKey.RightArrow, false, false, false)]
             ),
             [ActionType.ENTER] = new(
-                Key.ENTER.ToString(),
-                Key.ENTER.ToString().Capitalize(),
+                nameof(Key.ENTER),
+                LocalizationKey.ENTER_0,
                 [GetKeyMode.IGNORE_ENTER],
                 [new((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false)]
             ),
             [ActionType.STATS] = new(
                 "STATS",
-                "Stats",
+                LocalizationKey.STATS_0,
                 [],
                 [new('e', ConsoleKey.E, false, false, false)]
             ),
             [ActionType.SAVE] = new(
                 "SAVE",
-                "Save",
+                LocalizationKey.SAVE_0,
                 [],
                 [new('s', ConsoleKey.S, false, false, false)]
             ),
@@ -215,13 +215,14 @@ namespace ProgressAdventure.SettingsManagement
         {
             return new JsonDictionary
             {
-                [SettingsKey.AUTO_SAVE.ToString()] = true,
-                [SettingsKey.LOGGING_LEVEL.ToString()] = (int)LogSeverity.DEBUG,
-                [SettingsKey.KEYBINDS.ToString()] = new Keybinds().ToJson(),
-                [SettingsKey.ASK_DELETE_SAVE.ToString()] = true,
-                [SettingsKey.ASK_REGENERATE_SAVE.ToString()] = true,
-                [SettingsKey.DEF_BACKUP_ACTION.ToString()] = -1,
-                [SettingsKey.ENABLE_COLORED_TEXT.ToString()] = true,
+                [nameof(SettingsKey.AUTO_SAVE)] = true,
+                [nameof(SettingsKey.LOGGING_LEVEL)] = (int)LogSeverity.DEBUG,
+                [nameof(SettingsKey.KEYBINDS)] = new Keybinds().ToJson(),
+                [nameof(SettingsKey.ASK_DELETE_SAVE)] = true,
+                [nameof(SettingsKey.ASK_REGENERATE_SAVE)] = true,
+                [nameof(SettingsKey.DEF_BACKUP_ACTION)] = -1,
+                [nameof(SettingsKey.ENABLE_COLORED_TEXT)] = true,
+                [nameof(SettingsKey.CURRENT_LANGUAGE)] = Language.ENGLISH.Name,
             };
         }
         #endregion

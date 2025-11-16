@@ -169,7 +169,7 @@ namespace ProgressAdventureTests
                 }
 
                 if (
-                    string.IsNullOrWhiteSpace(property.displayName) ||
+                    string.IsNullOrWhiteSpace(PASingletons.Instance.Localizer.GetLocalizedString(property.displayName)) ||
                     property.maxHp.baseValue - property.maxHp.negativeFluctuation < 0 ||
                     property.attack.baseValue - property.attack.negativeFluctuation < 0 ||
                     property.defence.baseValue - property.defence.negativeFluctuation < 0 ||
@@ -184,7 +184,6 @@ namespace ProgressAdventureTests
                 )
                 {
                     errorMessages.Add($"Incorrect property value associated with \"{key}\".");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)
@@ -608,9 +607,14 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                if (string.IsNullOrWhiteSpace(props.displayName))
+                if (!PASingletons.Instance.Localizer.TryGetLocalizedString(props.displayName, out var localizedString))
                 {
-                    errorMessages.Add($"The display name of the value of the terrain dictionary at \"{key}\" is an empty.");
+                    errorMessages.Add($"The display name of the value of the terrain dictionary at \"{key}\" is an invalid localization key.");
+                }
+
+                if (string.IsNullOrWhiteSpace(localizedString))
+                {
+                    errorMessages.Add($"The display name of the value of the terrain dictionary at \"{key}\" is empty.");
                 }
 
                 if (!requiredTypeClassess1.Contains(props.matchingType))
@@ -640,9 +644,14 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                if (string.IsNullOrWhiteSpace(props.displayName))
+                if (!PASingletons.Instance.Localizer.TryGetLocalizedString(props.displayName, out var localizedString))
                 {
-                    errorMessages.Add($"The display name of the value of the structure dictionary at \"{key}\" is an empty.");
+                    errorMessages.Add($"The display name of the value of the structure dictionary at \"{key}\" is an invalid localization key.");
+                }
+
+                if (string.IsNullOrWhiteSpace(localizedString))
+                {
+                    errorMessages.Add($"The display name of the value of the structure dictionary at \"{key}\" is empty.");
                 }
 
                 if (!requiredTypeClassess2.Contains(props.matchingType))

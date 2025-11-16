@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 using ConsoleUI.Keybinds;
+using PACommon.Enums;
+using ProgressAdventure.Enums;
 
 namespace ProgressAdventure.SettingsManagement
 {
@@ -18,7 +20,7 @@ namespace ProgressAdventure.SettingsManagement
         /// The display name of this action type.
         /// </summary>
         [JsonPropertyName("display_name")]
-        public readonly string displayName;
+        public readonly EnumValue<LocalizationKey> displayName;
         /// <summary>
         /// The ignore modes that will disable checking for this action type.
         /// </summary>
@@ -40,10 +42,9 @@ namespace ProgressAdventure.SettingsManagement
         /// <param name="ignoreModes"><inheritdoc cref="ignoreModes" path="//summary"/></param>
         /// <param name="defaultKeys"><inheritdoc cref="defaultKeys" path="//summary"/></param>
         [JsonConstructor]
-        public ActionTypeAttributesDTO(string response, string displayName, List<GetKeyMode> ignoreModes, List<ConsoleKeyInfo> defaultKeys)
+        public ActionTypeAttributesDTO(string response, EnumValue<LocalizationKey> displayName, List<GetKeyMode> ignoreModes, List<ConsoleKeyInfo> defaultKeys)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(response);
-            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.response = response;
             this.displayName = displayName;
             this.ignoreModes = ignoreModes ?? throw new ArgumentNullException(nameof(ignoreModes));
@@ -54,7 +55,7 @@ namespace ProgressAdventure.SettingsManagement
         #region Overrides
         public override string? ToString()
         {
-            return $"\"{displayName}\" ({response}){(ignoreModes.Count == 0 ? "" : $" ({string.Join(", ", ignoreModes)})")}, {string.Join(", ", defaultKeys.Select(k => k.Key))}";
+            return $"\"{PASingletons.Instance.Localizer.GetLocalizedString(displayName)}\" ({response}){(ignoreModes.Count == 0 ? "" : $" ({string.Join(", ", ignoreModes)})")}, {string.Join(", ", defaultKeys.Select(k => k.Key))}";
         }
         #endregion
     }

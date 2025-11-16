@@ -10,6 +10,7 @@ using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PACConstants = PACommon.Constants;
@@ -26,7 +27,7 @@ namespace ProgressAdventureTests
         static void MainFunction()
         {
             //PATools.LoadDefaultConfigs();
-            PATools.ReloadConfigs();
+            // PATools.ReloadConfigs();
             //Tools.RunAllTests();
             //Tools.CreateNewTestSaveFromPrevious("2.5");
             TestingUtils.RunAllTests(typeof(Tests), Tools.PrepareTest, Tools.DisposeTest);
@@ -35,24 +36,33 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
-        /// Function for setting up the enviorment, and initialising global variables.
+        /// Function for setting up the enviorment, and initializing global variables.
         /// </summary>
         static void Preloading()
         {
             Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
 
+            var localizer = Localizer.Initialize(Language.ENGLISH, false);
             var consoleProxy = new PAConsoleProxy
             {
                 Encoding = Encoding.UTF8,
-                Title = "Progress Adventure tests",
+                Title = localizer.GetLocalizedString(LocalizationKey.APPLICATION_TITLE_0),
             };
-            consoleProxy.WriteLine("Loading...");
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_0));
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_COMMON_SINGLETONS_0));
 
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
 
             PACSingletons.Initialize(
-                Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
+                Logger.Initialize(
+                    loggingStream,
+                    PAConstants.LOG_MS,
+                    false,
+                    LogSeverity.DEBUG,
+                    PAConstants.FORCE_LOG_INTERVAL,
+                    false
+                ),
                 consoleProxy,
                 JsonDataCorrecter.Initialize(
                     PAConstants.SAVE_VERSION,
@@ -69,6 +79,8 @@ namespace ProgressAdventureTests
                         new TypeConverter(),
                         new AdvancedEnumConverter<Attribute>(),
                         new AdvancedEnumConverter<Material>(),
+                        new AdvancedEnumConverter<EntityType>(),
+                        new AdvancedEnumConverter<LocalizationKey>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new AIngredientDTOConverter(),
@@ -80,11 +92,13 @@ namespace ProgressAdventureTests
                 )
             );
 
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.ACTIVATING_ANSI_0));
             if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_PA_SINGLETONS_0));
             // initializing PA singletons
             // special loading order to avoid unintended errors because of complicated self references
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
@@ -92,15 +106,19 @@ namespace ProgressAdventureTests
                 SettingsUtils.LoadDefaultConfigs();
                 PASingletons.Initialize(
                     new Globals(),
-                    new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
+                    new Settings(keybinds: new Keybinds(), currentLanguage: localizer.CurrentLanguage, dontUpdateSettingsIfValueSet: true, isInitializing: true),
+                    localizer
                 );
             }
 
-            PATools.ReloadConfigs();
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.RELOADING_CONFIGS_0));
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
             {
+                PATools.ReloadConfigs();
                 PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
             }
+            
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.DONE_0));
             PACSingletons.Instance.Logger.Log("Finished initialization", forceLog: true);
         }
 

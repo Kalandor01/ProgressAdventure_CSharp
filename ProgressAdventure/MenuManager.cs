@@ -373,7 +373,7 @@ namespace ProgressAdventure
                     : configData.FolderName;
             }
 
-            var namespacedActionTypeLists = new Dictionary<string, List<(EnumValue<ActionType> actionType, string displayName)>>();
+            var namespacedActionTypeLists = new Dictionary<string, List<(EnumValue<ActionType> actionType, EnumValue<LocalizationKey> displayName)>>();
             foreach (var actionType in SettingsUtils.ActionTypeAttributes)
             {
                 var namespaceName = actionType.Key.Name.Split(Constants.NAMESPACE_SEPARATOR_CHAR)[0];
@@ -409,7 +409,7 @@ namespace ProgressAdventure
                     }
                     elementList.Add(new KeyField<EnumValue<ActionType>>(
                         actionKey,
-                        "    " + actionType.displayName + ": ",
+                        "    " + PASingletons.Instance.Localizer.GetLocalizedString(actionType.displayName) + ": ",
                         validatorFunction: KeybindChange,
                         displayValueFunction: KeybindValueDisplay,
                         keyNum: 2
@@ -678,9 +678,34 @@ namespace ProgressAdventure
 
             // enable colored text
             var coloredTextElement = new Toggle(PASingletons.Instance.Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
+            
+            // language
+            var localizer = PASingletons.Instance.Localizer;
+            var languages = localizer.GetAvailableLanguages();
+            var languageNames = languages
+                .Select(l =>
+                    localizer.TryGetLocalizedLanguageName(l, out var lName)
+                        ? lName
+                        : localizer.LanguageProperties.TryGetValue(l, out var props)
+                            ? props.defaultName
+                            : localizer.GetLocalizedLanguageName(l)
+                )
+                .ToList();
+            var currentLanguage = PASingletons.Instance.Settings.CurrentLanguage;
+
+            var languageIndex = languages.Count - 1;
+            for (var x = 0; x < loggingSeverities.Count; x++)
+            {
+                if (languages[x] == currentLanguage)
+                {
+                    languageIndex = x;
+                    break;
+                }
+            }
+            var languageElement = new PAChoice(languageNames, languageIndex, "Language: ");
 
             // menu elements
-            var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, null, GetBackButton("Save") };
+            var menuElements = new List<BaseUI?> { autoSaveElement, loggingElement, coloredTextElement, languageElement, null, GetBackButton("Save") };
 
             // response
             var response = new OptionsUI(
@@ -689,16 +714,20 @@ namespace ProgressAdventure
                 Constants.STANDARD_CURSOR_ICONS,
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
             ).Display(PASingletons.Instance.Settings.Keybinds.KeybindList);
-            if (response is not null)
+            if (response is null)
             {
-                var newAutoSaveValue = autoSaveElement.Value;
-                var newLoggingLevel = loggingSeverities.ElementAt(loggingElement.Value);
-                var newColoredTextValue = coloredTextElement.Value;
-
-                PASingletons.Instance.Settings.AutoSave = newAutoSaveValue;
-                PASingletons.Instance.Settings.LoggingLevel = newLoggingLevel;
-                PASingletons.Instance.Settings.EnableColoredText = newColoredTextValue;
+                return;
             }
+
+            var newAutoSaveValue = autoSaveElement.Value;
+            var newLoggingLevel = loggingSeverities[loggingElement.Value];
+            var newColoredTextValue = coloredTextElement.Value;
+            var newLanguage = languages[languageElement.Value];
+
+            PASingletons.Instance.Settings.AutoSave = newAutoSaveValue;
+            PASingletons.Instance.Settings.LoggingLevel = newLoggingLevel;
+            PASingletons.Instance.Settings.EnableColoredText = newColoredTextValue;
+            PASingletons.Instance.Settings.CurrentLanguage = newLanguage;
         }
         #endregion
 
@@ -713,7 +742,7 @@ namespace ProgressAdventure
             PACSingletons.Instance.Logger.Log("Regenerating save file", $"save name: {saveName}");
             PACSingletons.Instance.ConsoleProxy.Write("\tLoading...");
             SaveManager.LoadSave(saveName, makeBackup);
-            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
             PACSingletons.Instance.Logger.Log("Loading all chunks from file", $"save name: {saveName}");
             World.LoadAllChunksFromFolder(out var corruptedChunks, showProgressText: "\tLoading world...");
             if (corruptedChunks.Count > 0)
@@ -736,7 +765,7 @@ namespace ProgressAdventure
             }
             PACSingletons.Instance.ConsoleProxy.Write("\tDeleting...");
             Tools.DeleteSave(saveName);
-            PACSingletons.Instance.ConsoleProxy.WriteLine("DONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
             SaveManager.MakeSave(showProgressText: "\tSaving...");
             PACSingletons.Instance.Logger.Log("Save file regenerated", $"save name: {saveName}");
         }
@@ -919,7 +948,7 @@ namespace ProgressAdventure
             {
                 RegenerateSaveFile(saveName, backupSaves);
             }
-            PACSingletons.Instance.ConsoleProxy.WriteLine("\nDONE!");
+            PACSingletons.Instance.ConsoleProxy.WriteLine("\n" + PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
 
             UpdateSavesMenuLists(loadSaveUI);
         }

@@ -3,6 +3,8 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.TestUtils;
 using ProgressAdventure;
+using ProgressAdventure.Enums;
+using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
 using PAConstants = ProgressAdventure.Constants;
@@ -26,6 +28,7 @@ namespace ProgressAdventureTests
         /// Runs all dictionary tests.
         /// </summary>
         /// <param name="newLine">Whether to write a new line in the logs.</param>
+        /// <param name="newBatch">Whether to reset the test counters and print the results.</param>
         public static void RunAllDictionaryTests(bool newLine = true, bool newBatch = true)
         {
             if (newBatch)
@@ -106,10 +109,12 @@ namespace ProgressAdventureTests
         /// </summary>
         internal static void PrepareTest()
         {
+            var localizer = Localizer.Initialize(Language.ENGLISH, false);
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
+                new Settings(keybinds: new Keybinds(), currentLanguage: localizer.CurrentLanguage, dontUpdateSettingsIfValueSet: true, isInitializing: true),
+                localizer
             );
             PASingletons.Instance.Settings.LoggingLevel = LogSeverity.WARN;
 

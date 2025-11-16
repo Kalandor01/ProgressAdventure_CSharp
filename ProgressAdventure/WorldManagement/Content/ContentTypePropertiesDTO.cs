@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using ProgressAdventure.ConfigManagement;
@@ -16,7 +17,7 @@ namespace ProgressAdventure.WorldManagement.Content
         /// The display name of the content.
         /// </summary>
         [JsonPropertyName("display_name")]
-        public readonly string displayName;
+        public readonly EnumValue<LocalizationKey> displayName;
         /// <summary>
         /// The type of the content for this content type.
         /// </summary>
@@ -28,9 +29,8 @@ namespace ProgressAdventure.WorldManagement.Content
         [JsonPropertyName("no_next_layer_content_modifier")]
         public readonly double noNextLayerContentModifier;
 
-        public ContentTypePropertiesDTO(string displayName, Type matchingType, double noNextLayerContentModifier)
+        public ContentTypePropertiesDTO(EnumValue<LocalizationKey> displayName, Type matchingType, double noNextLayerContentModifier)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
             this.displayName = displayName;
             this.matchingType = matchingType ?? throw new ArgumentNullException(nameof(matchingType));
             this.noNextLayerContentModifier = noNextLayerContentModifier;
@@ -38,17 +38,29 @@ namespace ProgressAdventure.WorldManagement.Content
 
         protected ContentTypePropertiesDTO(EnumValueBase contentType, Type matchingType, double noNextLayerContentModifier)
             :this(
-                 displayName: ConfigUtils.RemoveNamespace(contentType.Name).Replace('_', ' ').Capitalize(),
+                 displayName: AddLocalizationFromContentType(contentType),
                  matchingType,
                  noNextLayerContentModifier
             )
         { }
+
+        private static EnumValue<LocalizationKey> AddLocalizationFromContentType(EnumValueBase contentType)
+        {
+            var namespaceName = ConfigUtils.GetNamespace(contentType.Name);
+            return Tools.TryAddEnglishLocalizationFromEnumLikeValue(
+                namespaceName,
+                "content_type_display_name",
+                ConfigUtils.RemoveNamespace(contentType.Name),
+                ConfigUtils.RemoveNamespace(contentType.Name).Replace('_', ' ').Capitalize(),
+                namespaceName == Constants.VANILLA_CONFIGS_NAMESPACE
+            );
+        }
     }
 
     public class TerrainTypePropertiesDTO : ContentTypePropertiesDTO
     {
         [JsonConstructor]
-        public TerrainTypePropertiesDTO(string displayName, Type matchingType, double noNextLayerContentModifier)
+        public TerrainTypePropertiesDTO(EnumValue<LocalizationKey> displayName, Type matchingType, double noNextLayerContentModifier)
             :base(displayName, matchingType, noNextLayerContentModifier)
         { }
 
@@ -67,7 +79,7 @@ namespace ProgressAdventure.WorldManagement.Content
 
         [JsonConstructor]
         public StructureTypePropertiesDTO(
-            string displayName,
+            EnumValue<LocalizationKey> displayName,
             Type matchingType,
             double noNextLayerContentModifier,
             double fightChance

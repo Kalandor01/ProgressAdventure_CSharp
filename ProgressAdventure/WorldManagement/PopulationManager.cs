@@ -407,7 +407,7 @@ namespace ProgressAdventure.WorldManagement
                     txt.Append(", ");
                 }
                 var multiple = amount.Value > 1;
-                txt.Append($"{(multiple ? $"{amount.Value}" : "a(n)")} {EntityUtils.EntityPropertiesMap[amount.Key].displayName}{(multiple ? "s" : "")}");
+                txt.Append($"{(multiple ? $"{amount.Value}" : "a(n)")} {PASingletons.Instance.Localizer.GetLocalizedString(EntityUtils.EntityPropertiesMap[amount.Key].displayName)}{(multiple ? "s" : "")}");
                 if (x == amounts.Count - 2)
                 {
                     txt.Append(" and ");

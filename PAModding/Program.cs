@@ -86,7 +86,7 @@ namespace PAModding
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true)
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true, isInitializing: true)
             );
 
             PACSingletons.Instance.ConsoleProxy.WriteLine("Reloading configs...");

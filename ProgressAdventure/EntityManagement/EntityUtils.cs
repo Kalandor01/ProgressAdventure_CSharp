@@ -93,7 +93,7 @@ namespace ProgressAdventure.EntityManagement
             _defaultEntityPropertiesMap ??= new()
             {
                 [EntityType.PLAYER] = new EntityPropertiesDTO(
-                    "You",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_PLAYER_0,
                     new(20, 6, 6),
                     new(10, 3, 3),
                     new(10, 3, 3),
@@ -105,7 +105,7 @@ namespace ProgressAdventure.EntityManagement
                     true
                 ),
                 [EntityType.DEMON] = new EntityPropertiesDTO(
-                    "Demon",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DEMON_0,
                     new(25, 6, 6),
                     new(15, 3, 3),
                     new(12, 3, 3),
@@ -116,7 +116,7 @@ namespace ProgressAdventure.EntityManagement
                     true
                 ),
                 [EntityType.DWARF] = new EntityPropertiesDTO(
-                    "Dwarf",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DWARF_0,
                     new(15, 6, 6),
                     new(12, 3, 3),
                     new(15, 3, 3),
@@ -127,7 +127,7 @@ namespace ProgressAdventure.EntityManagement
                     true
                 ),
                 [EntityType.ELF] = new EntityPropertiesDTO(
-                    "Elf",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_ELF_0,
                     new(22, 6, 6),
                     new(10, 3, 3),
                     new(8, 3, 3),
@@ -138,7 +138,7 @@ namespace ProgressAdventure.EntityManagement
                     true
                 ),
                 [EntityType.HUMAN] = new EntityPropertiesDTO(
-                    "Human",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_HUMAN_0,
                     new(20, 6, 6),
                     new(10, 3, 3),
                     new(10, 3, 3),
@@ -149,7 +149,7 @@ namespace ProgressAdventure.EntityManagement
                     true
                 ),
                 [EntityType.CAVEMAN] = new EntityPropertiesDTO(
-                    "Caveman",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0,
                     7, 7, 7, 7,
                     loot: [
                         new(ItemType.Weapon.CLUB, Material.WOOD, 0.3),
@@ -158,7 +158,7 @@ namespace ProgressAdventure.EntityManagement
                     ]
                 ),
                 [EntityType.GHOUL] = new EntityPropertiesDTO(
-                    "Ghoul",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_GHOUL_0,
                     11, 9, 9, 9,
                     loot: [
                         new(ItemType.Weapon.SWORD, Material.STONE, 0.2),
@@ -167,7 +167,7 @@ namespace ProgressAdventure.EntityManagement
                     ]
                 ),
                 [EntityType.TROLL] = new EntityPropertiesDTO(
-                    "Troll",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_TROLL_0,
                     13, 11, 11, 5,
                     loot: [
                         new(ItemType.Weapon.CLUB_WITH_TEETH, Material.WOOD, 0.25),
@@ -177,7 +177,7 @@ namespace ProgressAdventure.EntityManagement
                     ]
                 ),
                 [EntityType.DRAGON] = new EntityPropertiesDTO(
-                    "Dragon",
+                    LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DRAGON_0,
                     100, 50, 50, 20,
                     10, 20,
                     GetDefaultAttributeChancesPositiveOnly(),

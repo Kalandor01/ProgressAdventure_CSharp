@@ -125,7 +125,7 @@ namespace ProgressAdventure.ItemManagement
         private void SetAttributes()
         {
             var attributes = ItemUtils.CompoundItemAttributes[Type];
-            DisplayName = ItemUtils.ParseCompoundItemDisplayName(attributes.displayName, Parts);
+            DisplayName = ItemUtils.ParseCompoundItemDisplayName(PASingletons.Instance.Localizer.GetLocalizedString(attributes.displayName), Parts);
         }
         #endregion
 
