@@ -109,7 +109,7 @@ namespace ProgressAdventureTests
         /// </summary>
         internal static void PrepareTest()
         {
-            var localizer = Localizer.Initialize(Language.ENGLISH, false);
+            var localizer = Localizer.Initialize(Localizer.DEFAULT_LANGUAGE, false);
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),

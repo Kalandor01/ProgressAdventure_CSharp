@@ -474,13 +474,13 @@ namespace ProgressAdventure
             );
             if (
                 !LocalizationKey.TryAddValue(localizationKeyName, out var localizationKey) ||
-                !PASingletons.Instance.Localizer.GetAvailableLanguages().Contains(Language.ENGLISH)
+                !PASingletons.Instance.Localizer.GetAvailableLanguages().Contains(Localization.Localizer.DEFAULT_LANGUAGE)
             )
             {
                 return localizationKey!;
             }
 
-            if (PASingletons.Instance.Localizer.TryAddLocalization(Language.ENGLISH, localizationKey, localizedString, addToDefaults))
+            if (PASingletons.Instance.Localizer.TryAddLocalization(Localization.Localizer.DEFAULT_LANGUAGE, localizationKey, localizedString, addToDefaults))
             {
                 PACSingletons.Instance.Logger.Log(
                     "Added new localization",

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using ConsoleUI;
 using ConsoleUI.UIElements;
 using ConsoleUI.UIElements.EventArgs;
@@ -146,6 +147,30 @@ namespace ProgressAdventure
         }
 
         /// <summary>
+        /// Tries to get a <see cref="RestartException"/> from an exception.
+        /// </summary>
+        /// <param name="exception">The exception to check.</param>
+        /// <param name="restartException">The <see cref="RestartException"/> that was found.</param>
+        /// <returns>If a <see cref="RestartException"/> was found.</returns>
+        public static bool TryGetRestartException(Exception exception, [NotNullWhen(true)] out RestartException? restartException)
+        {
+            var ex = exception;
+            while (ex is not null)
+            {
+                if (ex is RestartException re)
+                {
+                    restartException = re;
+                    return true;
+                }
+
+                ex = ex.InnerException;
+            }
+
+            restartException = null;
+            return false;
+        }
+
+        /// <summary>
         /// Hadles exceptions in a main context and displays a menu for reloading.
         /// </summary>
         /// <param name="exception">The exception thwt was thrown.</param>
@@ -153,10 +178,7 @@ namespace ProgressAdventure
         /// <returns>Whether to rethrow.</returns>
         public static bool HandleErrorMenu(Exception exception, bool isPreloading)
         {
-            if (
-                exception is RestartException ||
-                exception.InnerException is RestartException
-            )
+            if (TryGetRestartException(exception, out var re))
             {
                 return true;
             }
@@ -176,15 +198,22 @@ namespace ProgressAdventure
 
             try
             {
+                static string GetMaybeLocalizedString(EnumValue<LocalizationKey> localizationKey, string defaultString)
+                {
+                    return PASingletons.IsInitialized
+                        ? PASingletons.Instance.Localizer.GetLocalizedString(localizationKey)
+                        : defaultString;
+                }
+                
                 var restartAnwers = new List<string?>
                 {
-                    "Restart",
-                    "Restart in safe mode (only vanilla config enabled)",
-                    "Exit"
+                    GetMaybeLocalizedString(LocalizationKey.RESTART_0, "Restart"),
+                    GetMaybeLocalizedString(LocalizationKey.RESTART_IN_SAFE_MODE_0,"Restart in safe mode (only vanilla config enabled)"),
+                    GetMaybeLocalizedString(LocalizationKey.EXIT_0, "Exit")
                 };
                 var response = (int)new UIList(
                     restartAnwers,
-                    "ERROR: " + exception.Message,
+                    GetMaybeLocalizedString(LocalizationKey.ERROR_COLON_0, "ERROR: ") + exception.Message,
                     consoleProxy: PACSingletons.Instance.ConsoleProxy
                 ).Display();
                 

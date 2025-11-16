@@ -19,6 +19,7 @@ using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
 using ProgressAdventure.Exceptions;
+using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
 using PAConstants = ProgressAdventure.Constants;
@@ -30,6 +31,9 @@ namespace PAVisualizer
     {
         private static void ConsoleMainFunction()
         {
+            var app = BuildAvaloniaApp()
+                .SetupWithoutStarting();
+            
             PACSingletons.Instance.Logger.DefaultWriteOut = false;
 
             var elements = new List<BaseUI?>();
@@ -84,7 +88,7 @@ namespace PAVisualizer
                 .Start(AppMain, args);
         }
 
-        public static AppBuilder BuildAvaloniaApp()
+        private static AppBuilder BuildAvaloniaApp()
         {
             return AppBuilder.Configure<Application>()
                     .UsePlatformDetect()
@@ -113,17 +117,28 @@ namespace PAVisualizer
         {
             Thread.CurrentThread.Name = Constants.VISUALIZER_THREAD_NAME;
 
+            var localizer = Localizer.Initialize(Localizer.DEFAULT_LANGUAGE, false);
             var consoleProxy = new PAConsoleProxy
             {
                 Encoding = Encoding.UTF8,
+                Title = "Progress Adventure visualizer",
             };
-            consoleProxy.WriteLine("Loading...");
+            
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_0));
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_COMMON_SINGLETONS_0));
 
             // initializing PAC singletons
             var loggingStream = new FileLoggerStream(PAConstants.LOGS_FOLDER_PATH, PAConstants.LOG_EXT);
 
             PACSingletons.Initialize(
-                Logger.Initialize(loggingStream, PAConstants.LOG_MS, false, LogSeverity.DEBUG, PAConstants.FORCE_LOG_INTERVAL, false),
+                Logger.Initialize(
+                    loggingStream,
+                    PAConstants.LOG_MS,
+                    false,
+                    LogSeverity.DEBUG,
+                    PAConstants.FORCE_LOG_INTERVAL,
+                    false
+                ),
                 consoleProxy,
                 JsonDataCorrecter.Initialize(
                     PAConstants.SAVE_VERSION,
@@ -141,6 +156,7 @@ namespace PAVisualizer
                         new AdvancedEnumConverter<Attribute>(),
                         new AdvancedEnumConverter<Material>(),
                         new AdvancedEnumConverter<EntityType>(),
+                        new AdvancedEnumConverter<LocalizationKey>(),
                         new AdvancedEnumTreeConverter<ItemType>(),
                         new MaterialItemAttributesDTOConverter(),
                         new AIngredientDTOConverter(),
@@ -152,26 +168,29 @@ namespace PAVisualizer
                 )
             );
 
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.ACTIVATING_ANSI_0));
             if (!PACSingletons.Instance.ConsoleProxy.TryEnableAnsiCodes())
             {
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
+            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_PA_SINGLETONS_0));
             // initializing PA singletons
             // special loading order to avoid unintended errors because of complicated self references
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true, isInitializing: true)
+                new Settings(keybinds: new Keybinds(), dontUpdateSettingsIfValueSet: true, isInitializing: true),
+                localizer
             );
 
-            PACSingletons.Instance.ConsoleProxy.WriteLine("Reloading configs...");
-            // TODO: configs for more dicts, namespaces for more (keys?) + in correcters???
+            PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.RELOADING_CONFIGS_0));
             ProgressAdventure.Tools.ReloadConfigs(1);
             PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
+            
+            PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
-
 
         /// <summary>
         /// The error handler, for the preloading.
@@ -232,7 +251,7 @@ namespace PAVisualizer
             bool exitGame;
             do
             {
-                RestartException? restartException = null;
+                Exception? restartException = null;
                 exitGame = true;
                 try
                 {
@@ -245,9 +264,9 @@ namespace PAVisualizer
                 }
                 catch (Exception ie)
                 {
-                    if (ie.InnerException is RestartException re)
+                    if (ie.InnerException is RestartException)
                     {
-                        restartException = re;
+                        restartException = ie;
                     }
                     else
                     {

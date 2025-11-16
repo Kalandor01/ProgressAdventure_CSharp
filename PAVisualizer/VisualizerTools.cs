@@ -13,7 +13,6 @@ using PACommon.Extensions;
 using ProgressAdventure;
 using ProgressAdventure.Enums;
 using ProgressAdventure.WorldManagement;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using Image = SixLabors.ImageSharp.Image;
 using PAConstants = ProgressAdventure.Constants;
@@ -23,16 +22,10 @@ namespace PAVisualizer
 {
     public static class VisualizerTools
     {
-        class DummyWindow : Window
-        {
-            public DummyWindow()
-                :base()
-            {
-
-            }
-        }
+        private class DummyWindow : Window;
+        
         #region Constants
-        private static IStorageProvider _sp = new DummyWindow().StorageProvider;
+        private static readonly IStorageProvider _sp = new DummyWindow().StorageProvider;
         #endregion
 
         #region Config dictionaries

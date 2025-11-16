@@ -11,6 +11,7 @@ namespace ProgressAdventure.Enums
         protected static readonly bool isClearable = UpdateIsClearable(true);
         protected static readonly bool isRemovable = UpdateIsRemovable(true);
 
+        #region Main/Initialization
         public static readonly EnumValue<LocalizationKey> LANGUAGE_NAME_ENGLISH_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(LANGUAGE_NAME_ENGLISH_0).ToLower()));
         public static readonly EnumValue<LocalizationKey> APPLICATION_TITLE_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(APPLICATION_TITLE_0).ToLower()));
         public static readonly EnumValue<LocalizationKey> LOADING_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(LOADING_0).ToLower()));
@@ -28,6 +29,11 @@ namespace ProgressAdventure.Enums
         /// </summary>
         public static readonly EnumValue<LocalizationKey> LOADING_FILE_FROM_CONFIG_1 = AddValue(ConfigUtils.MakeNamespacedString(nameof(LOADING_FILE_FROM_CONFIG_1).ToLower()));
         public static readonly EnumValue<LocalizationKey> FAILED_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(FAILED_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> RESTART_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(RESTART_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> RESTART_IN_SAFE_MODE_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(RESTART_IN_SAFE_MODE_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> EXIT_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(EXIT_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ERROR_COLON_0 = AddValue(ConfigUtils.MakeNamespacedString(nameof(ERROR_COLON_0).ToLower()));
+        #endregion
 
         #region Keybinds
         public static readonly EnumValue<LocalizationKey> ESCAPE_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ESCAPE_0).ToLower()));
@@ -47,15 +53,15 @@ namespace ProgressAdventure.Enums
         #endregion
 
         #region Entities
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_PLAYER_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_PLAYER_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_DEMON_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_DEMON_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_DWARF_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_DWARF_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_ELF_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_ELF_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_HUMAN_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_HUMAN_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_GHOUL_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_GHOUL_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_TROLL_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_TROLL_0).ToLower()));
-        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_NAME_DRAGON_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_NAME_DRAGON_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_PLAYER_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_PLAYER_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_DEMON_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_DEMON_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_DWARF_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_DWARF_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_ELF_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_ELF_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_HUMAN_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_HUMAN_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_CAVEMAN_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_CAVEMAN_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_GHOUL_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_GHOUL_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_TROLL_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_TROLL_0).ToLower()));
+        public static readonly EnumValue<LocalizationKey> ENTITY_DISPLAY_NAME_DRAGON_0  = AddValue(ConfigUtils.MakeNamespacedString(nameof(ENTITY_DISPLAY_NAME_DRAGON_0).ToLower()));
         #endregion
     }
 }

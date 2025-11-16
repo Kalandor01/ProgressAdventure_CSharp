@@ -11,6 +11,13 @@ namespace ProgressAdventure.Localization
     /// </summary>
     public class Localizer : ALocalizer<Language, LocalizationKey>, IDisposable
     {
+        #region Constants
+        /// <summary>
+        /// The default language for P.A.
+        /// </summary>
+        public static readonly EnumValue<Language> DEFAULT_LANGUAGE = Language.ENGLISH;
+        #endregion
+        
         #region Default config values
         /// <summary>
         /// The default value for the config used for the values of <see cref="Language"/>.
@@ -33,6 +40,7 @@ namespace ProgressAdventure.Localization
         /// </summary>
         private static readonly List<EnumValue<LocalizationKey>> _defaultLocalizationKeys =
         [
+            #region Main/Initialization
             LocalizationKey.LANGUAGE_NAME_ENGLISH_0,
             LocalizationKey.APPLICATION_TITLE_0,
             LocalizationKey.LOADING_0,
@@ -44,7 +52,13 @@ namespace ProgressAdventure.Localization
             LocalizationKey.LOADING_FROM_FOLDER_1,
             LocalizationKey.LOADING_FILE_FROM_CONFIG_1,
             LocalizationKey.FAILED_0,
+            LocalizationKey.RESTART_0,
+            LocalizationKey.RESTART_IN_SAFE_MODE_0,
+            LocalizationKey.EXIT_0,
+            LocalizationKey.ERROR_COLON_0,
+            #endregion
             
+            #region Keybinds
             LocalizationKey.ESCAPE_0,
             LocalizationKey.UP_0,
             LocalizationKey.DOWN_0,
@@ -53,20 +67,25 @@ namespace ProgressAdventure.Localization
             LocalizationKey.ENTER_0,
             LocalizationKey.STATS_0,
             LocalizationKey.SAVE_0,
+            #endregion
             
+            #region Items
             LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_CLUB_WITH_TEETH_0,
             LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_PIECE_0,
             LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_BOTTLE_0,
+            #endregion
             
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_PLAYER_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DEMON_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DWARF_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_ELF_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_HUMAN_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_GHOUL_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_TROLL_0,
-            LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DRAGON_0,
+            #region Entities
+            LocalizationKey.ENTITY_DISPLAY_NAME_PLAYER_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_DEMON_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_DWARF_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_ELF_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_HUMAN_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_CAVEMAN_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_GHOUL_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_TROLL_0,
+            LocalizationKey.ENTITY_DISPLAY_NAME_DRAGON_0,
+            #endregion
         ];
 
         /// <summary>
@@ -74,6 +93,7 @@ namespace ProgressAdventure.Localization
         /// </summary>
         private static readonly Dictionary<EnumValue<LocalizationKey>, string> _defaultTextsEnglish = new()
         {
+            #region Main/Initialization
             [LocalizationKey.LANGUAGE_NAME_ENGLISH_0] = "English",
             [LocalizationKey.APPLICATION_TITLE_0] = "Progress Adventure",
             [LocalizationKey.LOADING_0] = "Loading...",
@@ -85,7 +105,13 @@ namespace ProgressAdventure.Localization
             [LocalizationKey.LOADING_FROM_FOLDER_1] = "Loading from folder \"{0}\":",
             [LocalizationKey.LOADING_FILE_FROM_CONFIG_1] = "Loading file \"{0}\" from config:",
             [LocalizationKey.FAILED_0] = "FAILED!",
+            [LocalizationKey.RESTART_0] = "Restart",
+            [LocalizationKey.RESTART_IN_SAFE_MODE_0] = "Restart in safe mode (only vanilla config enabled)",
+            [LocalizationKey.EXIT_0] = "Exit",
+            [LocalizationKey.ERROR_COLON_0] = "ERROR: ",
+            #endregion
             
+            #region Keybinds
             [LocalizationKey.ESCAPE_0] = "Escape",
             [LocalizationKey.UP_0] = "Up",
             [LocalizationKey.DOWN_0] = "Down",
@@ -94,20 +120,25 @@ namespace ProgressAdventure.Localization
             [LocalizationKey.ENTER_0] = "Enter",
             [LocalizationKey.STATS_0] = "Stats",
             [LocalizationKey.SAVE_0] = "Save",
+            #endregion
             
+            #region Items
             [LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_CLUB_WITH_TEETH_0] = "*/0MC/* club with */1ML/*",
             [LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_PIECE_0] = "*/0MC/*",
             [LocalizationKey.COMPOUND_ITEM_DISPLAY_NAME_BOTTLE_0] = "*/0MC/* bottle of */1MC/*",
+            #endregion
             
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_PLAYER_0] = "You",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DEMON_0] = "Demon",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DWARF_0] = "Dwarf",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_ELF_0] = "Elf",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_HUMAN_0] = "Human",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_CAVEMAN_0] = "Caveman",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_GHOUL_0] = "Ghoul",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_TROLL_0] = "Troll",
-            [LocalizationKey.ENTITY_DISPLAY_NAME_NAME_DRAGON_0] = "Dragon",
+            #region Entities
+            [LocalizationKey.ENTITY_DISPLAY_NAME_PLAYER_0] = "You",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_DEMON_0] = "Demon",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_DWARF_0] = "Dwarf",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_ELF_0] = "Elf",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_HUMAN_0] = "Human",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_CAVEMAN_0] = "Caveman",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_GHOUL_0] = "Ghoul",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_TROLL_0] = "Troll",
+            [LocalizationKey.ENTITY_DISPLAY_NAME_DRAGON_0] = "Dragon",
+            #endregion
         };
         #endregion
         
@@ -141,7 +172,7 @@ namespace ProgressAdventure.Localization
         {
             get
             {
-                _instance ??= Initialize(Language.ENGLISH, onlyIfUninitialized: true);
+                _instance ??= Initialize(DEFAULT_LANGUAGE, onlyIfUninitialized: true);
                 return _instance;
             }
         }
@@ -459,7 +490,7 @@ namespace ProgressAdventure.Localization
         /// <param name="language">The language to add the localization to.</param>
         /// <param name="localizaionKey">The key to add the localization to.</param>
         /// <param name="localizedString">The localized string.</param>
-        /// <param name="addToDefaults">Whether to add the new localizatio key and localization to the defaults. Only posible if the language is a default language.</param>
+        /// <param name="addToDefaults">Whether to add the new localizatio key and localization to the defaults. Only posible if the language is <see cref="DEFAULT_LANGUAGE"/>.</param>
         /// <returns>If the localization was added.</returns>
         public bool TryAddLocalization(EnumValue<Language> language, EnumValue<LocalizationKey> localizaionKey, string localizedString, bool addToDefaults)
         {
@@ -481,7 +512,7 @@ namespace ProgressAdventure.Localization
                 _defaultLocalizationKeys.Add(localizaionKey);
             }
 
-            if (language == Language.ENGLISH)
+            if (language == DEFAULT_LANGUAGE)
             {
                 _defaultTextsEnglish.TryAdd(localizaionKey, localizedString);
             }

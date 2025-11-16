@@ -15,11 +15,6 @@ namespace ProgressAdventure.SettingsManagement
     {
         #region Private Fields
         /// <summary>
-        /// If an instance of <see cref="Settings"/> is already initializing.
-        /// </summary>
-        private static bool _isInitializing;
-        
-        /// <summary>
         /// The dictionary pairing up settings keys, to the type, that they are expected to be in the settings file.
         /// </summary>
         private static readonly Dictionary<SettingsKey, JsonObjectType> _settingValueTypeMap = new()
@@ -277,7 +272,16 @@ namespace ProgressAdventure.SettingsManagement
                     "the language will now be set back to the default",
                     LogSeverity.ERROR
                 );
-                language = Language.ENGLISH;
+                var languages = Language.GetValues();
+                if (languages.Count == 0)
+                {
+                    PACSingletons.Instance.Logger.Log("No languages in languages list", severity: LogSeverity.ERROR);
+                    throw new IndexOutOfRangeException("No languages exist");
+                }
+                
+                language = languages.Contains(Localization.Localizer.DEFAULT_LANGUAGE)
+                    ? Localization.Localizer.DEFAULT_LANGUAGE
+                    : languages.First();
                 SettingsManager(SettingsKey.CURRENT_LANGUAGE, language);
             }
             return language;
@@ -306,7 +310,7 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         /// <param name="value">The new value of the <see cref="CurrentLanguage"/>.</param>
         /// <param name="dontUpdateSettingsIfValueSet">If this value is true, if a settings value is set in the constructor, it won't update the settings file.</param>
-        /// <param name="isInitializing">If the constructor was called as part of the <see cref="PASingletons"/> initializer.</param>
+        /// <param name="isInitializing">If this constructor was called as part of the <see cref="PASingletons"/> initializer.</param>
         private void InitializeCurrentLanguageValue(EnumValue<Language>? value, bool dontUpdateSettingsIfValueSet, bool isInitializing)
         {
             if (dontUpdateSettingsIfValueSet && value is not null)
@@ -316,15 +320,13 @@ namespace ProgressAdventure.SettingsManagement
             }
 
             var languageFromSettings = GetCurrentLanguage();
-            if (_isInitializing || isInitializing)
+            if (!PASingletons.IsInitialized || isInitializing)
             {
                 _currentLanguage = languageFromSettings;
                 return;
             }
 
-            _isInitializing = true;
             CurrentLanguage = languageFromSettings;
-            _isInitializing = false;
         }
 
         /// <summary>

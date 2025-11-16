@@ -169,7 +169,7 @@ namespace ProgressAdventure
         {
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
-            var localizer = Localizer.Initialize(Language.ENGLISH, false);
+            var localizer = Localizer.Initialize(Localizer.DEFAULT_LANGUAGE, false);
             var consoleProxy = new PAConsoleProxy()
             {
                 Encoding = Encoding.UTF8,
@@ -232,7 +232,7 @@ namespace ProgressAdventure
             SettingsUtils.LoadDefaultConfigs();
             PASingletons.Initialize(
                 new Globals(),
-                new Settings(keybinds: new Keybinds(), currentLanguage: localizer.CurrentLanguage, dontUpdateSettingsIfValueSet: true),
+                new Settings(keybinds: new Keybinds(), currentLanguage: localizer.CurrentLanguage, dontUpdateSettingsIfValueSet: true, isInitializing: true),
                 localizer
             );
 
@@ -315,21 +315,19 @@ namespace ProgressAdventure
                 {
                     restartException = re;
                 }
-                catch (Exception ie)
+                catch (Exception ex)
                 {
-                    if (ie.InnerException is RestartException)
-                    {
-                        restartException = ie;
-                    }
-                    else
+                    if (!MenuManager.TryGetRestartException(ex, out var re))
                     {
                         throw;
                     }
+                    
+                    restartException = ex;
                 }
 
                 if (restartException is not null)
                 {
-                    PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), LogSeverity.INFO, forceLog: true);
+                    PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), forceLog: true);
                     exitGame = false;
                 }
             }

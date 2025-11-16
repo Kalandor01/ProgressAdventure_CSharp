@@ -222,7 +222,7 @@ namespace ProgressAdventure.SettingsManagement
                 [nameof(SettingsKey.ASK_REGENERATE_SAVE)] = true,
                 [nameof(SettingsKey.DEF_BACKUP_ACTION)] = -1,
                 [nameof(SettingsKey.ENABLE_COLORED_TEXT)] = true,
-                [nameof(SettingsKey.CURRENT_LANGUAGE)] = Language.ENGLISH.Name,
+                [nameof(SettingsKey.CURRENT_LANGUAGE)] = Localization.Localizer.DEFAULT_LANGUAGE.Name,
             };
         }
         #endregion

@@ -10,6 +10,7 @@ using PACommon.TestUtils;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.Enums;
+using ProgressAdventure.Exceptions;
 using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using Attribute = ProgressAdventure.Enums.Attribute;
@@ -24,7 +25,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// The main function for the program.
         /// </summary>
-        static void MainFunction()
+        private static void MainFunction()
         {
             //PATools.LoadDefaultConfigs();
             // PATools.ReloadConfigs();
@@ -38,15 +39,15 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Function for setting up the enviorment, and initializing global variables.
         /// </summary>
-        static void Preloading()
+        private static void Preloading()
         {
             Thread.CurrentThread.Name = PACConstants.TESTS_THREAD_NAME;
 
-            var localizer = Localizer.Initialize(Language.ENGLISH, false);
+            var localizer = Localizer.Initialize(Localizer.DEFAULT_LANGUAGE, false);
             var consoleProxy = new PAConsoleProxy
             {
                 Encoding = Encoding.UTF8,
-                Title = localizer.GetLocalizedString(LocalizationKey.APPLICATION_TITLE_0),
+                Title = "Progress Adventure tests",
             };
             consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_0));
             consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_COMMON_SINGLETONS_0));
@@ -98,11 +99,11 @@ namespace ProgressAdventureTests
                 PACSingletons.Instance.Logger.Log("Failed to enable ANSI codes for the terminal", null, LogSeverity.ERROR, forceLog: true);
             }
 
-            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_PA_SINGLETONS_0));
             // initializing PA singletons
             // special loading order to avoid unintended errors because of complicated self references
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
             {
+                consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.LOADING_PA_SINGLETONS_0));
                 SettingsUtils.LoadDefaultConfigs();
                 PASingletons.Initialize(
                     new Globals(),
@@ -111,9 +112,9 @@ namespace ProgressAdventureTests
                 );
             }
 
-            consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.RELOADING_CONFIGS_0));
             if (Constants.PRELOAD_GLOBALS_ON_PRELOAD)
             {
+                consoleProxy.WriteLine(localizer.GetLocalizedString(LocalizationKey.RELOADING_CONFIGS_0));
                 PATools.ReloadConfigs();
                 PASingletons.Instance.Settings.Keybinds = PASingletons.Instance.Settings.GetKeybins();
             }
@@ -125,27 +126,32 @@ namespace ProgressAdventureTests
         /// <summary>
         /// The error handler, for the preloading.
         /// </summary>
-        static void PreloadingErrorHandler()
+        private static void PreloadingErrorHandler()
         {
-            try
+            bool exitPreloading;
+            do
             {
-                Preloading();
-            }
-            catch (Exception e)
-            {
-                PACSingletons.Instance.Logger.Log("Preloading crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                if (PAConstants.ERROR_HANDLING)
+                exitPreloading = true;
+                try
                 {
-                    PACSingletons.Instance.ConsoleProxy.PressKey("ERROR: " + e.Message);
+                    Preloading();
                 }
-                throw;
+                catch (Exception e)
+                {
+                    if (MenuManager.HandleErrorMenu(e, true))
+                    {
+                        throw;
+                    }
+                    exitPreloading = false;
+                }
             }
+            while (!exitPreloading);
         }
 
         /// <summary>
         /// The error handler, for the main function.
         /// </summary>
-        static void MainErrorHandler()
+        private static void MainErrorHandler()
         {
             // general crash handler (release only)
 
@@ -163,30 +169,49 @@ namespace ProgressAdventureTests
                 }
                 catch (Exception e)
                 {
-                    PACSingletons.Instance.Logger.Log("Instance crashed", e.ToString(), LogSeverity.FATAL, forceLog: true);
-                    if (PAConstants.ERROR_HANDLING)
-                    {
-                        PACSingletons.Instance.ConsoleProxy.WriteLine("ERROR: " + e.Message);
-                        var ans = PACSingletons.Instance.ConsoleProxy.ReadLine("Restart?(Y/N): ");
-                        if (ans is not null && ans.ToUpper() == "Y")
-                        {
-                            PACSingletons.Instance.Logger.Log("Restarting instance", forceLog: true);
-                            exitGame = false;
-                        }
-                    }
-                    else
+                    if (MenuManager.HandleErrorMenu(e, false))
                     {
                         throw;
                     }
+                    exitGame = false;
                 }
             }
             while (!exitGame);
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            PreloadingErrorHandler();
-            MainErrorHandler();
+            bool exitGame;
+            do
+            {
+                Exception? restartException = null;
+                exitGame = true;
+                try
+                {
+                    PreloadingErrorHandler();
+                    MainErrorHandler();
+                }
+                catch (RestartException re)
+                {
+                    restartException = re;
+                }
+                catch (Exception ex)
+                {
+                    if (!MenuManager.TryGetRestartException(ex, out var re))
+                    {
+                        throw;
+                    }
+                    
+                    restartException = ex;
+                }
+
+                if (restartException is not null)
+                {
+                    PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), forceLog: true);
+                    exitGame = false;
+                }
+            }
+            while (!exitGame);
         }
     }
 }
