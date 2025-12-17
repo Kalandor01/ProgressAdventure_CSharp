@@ -706,7 +706,12 @@ namespace ProgressAdventure
             var loggingElement = new PAChoice(loggingSeverityNames, loggingLevelIndex, "Logging: ");
 
             // enable colored text
-            var coloredTextElement = new Toggle(PASingletons.Instance.Settings.EnableColoredText, "Colored text: ", "enabled", "disabled");
+            var coloredTextElement = new Toggle(
+                PASingletons.Instance.Settings.EnableColoredText,
+                "Colored text: ",
+                Tools.StylizedText("enabled", Constants.Colors.GREEN),
+                Tools.StylizedText("disabled", Constants.Colors.RED)
+            );
             
             // language
             var localizer = PASingletons.Instance.Localizer;

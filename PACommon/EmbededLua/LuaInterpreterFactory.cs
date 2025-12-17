@@ -1,3 +1,5 @@
+using Lua;
+
 namespace PACommon.EmbededLua
 {
     /// <summary>
@@ -10,13 +12,12 @@ namespace PACommon.EmbededLua
         /// </summary>
         /// <param name="envWhitelist">The extra enviroment whitelist values, on top of the default one.</param>
         /// <param name="sandboxEnvVars">Same as <paramref name="enviromentVars"/>, but accesable in the sandbox.</param>
-        /// <inheritdoc cref="LuaInterpreter(List{Type}, Dictionary{string, string}, Dictionary{string, object?}, string)"/>
+        /// <inheritdoc cref="LuaInterpreter(Dictionary{string, string}, Dictionary{string, LuaValue}, string)"/>
         /// <returns>The created <see cref="LuaInterpreter"/> object or null, if the setup failed.</returns>
         public static LuaInterpreter? SetupRunLuaCode(
-            List<Type>? importedNamespaces = null,
             Dictionary<string, string>? envWhitelist = null,
-            Dictionary<string, object?>? enviromentVars = null,
-            Dictionary<string, object?>? sandboxEnvVars = null,
+            Dictionary<string, LuaValue>? enviromentVars = null,
+            Dictionary<string, LuaValue>? sandboxEnvVars = null,
             string extraSetupCode = ""
         )
         {
@@ -63,7 +64,7 @@ namespace PACommon.EmbededLua
                 }
             }
 
-            var actualEnvVars = new Dictionary<string, object?>();
+            var actualEnvVars = new Dictionary<string, LuaValue>();
             if (enviromentVars is not null)
             {
                 foreach (var enviromentVar in enviromentVars)
@@ -86,7 +87,6 @@ namespace PACommon.EmbededLua
             }
 
             var interpreter = new LuaInterpreter(
-                importedNamespaces ?? [],
                 defaultEnvWhitelist,
                 actualEnvVars,
                 extraSetupCode

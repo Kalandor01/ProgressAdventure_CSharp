@@ -557,10 +557,10 @@ namespace ProgressAdventure.WorldManagement
                         out var isFileInvalid,
                         expected: true,
                         extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"
-                    ) is not JsonDictionary chunkJson
+                    ) is not { } chunkJson
                 )
                 {
-                    success &= false;
+                    success = false;
                     continue;
                 }
 

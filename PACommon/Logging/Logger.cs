@@ -5,7 +5,7 @@ namespace PACommon.Logging
     /// <summary>
     /// Contains functions for logging.
     /// </summary>
-    public class Logger : ILogger
+    public partial class Logger : ILogger
     {
         #region Private fields
         /// <summary>
