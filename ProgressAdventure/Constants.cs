@@ -494,6 +494,14 @@ namespace ProgressAdventure
         /// The first part of the name of the LocalizationKey for the localized name of a language.
         /// </summary>
         public const string LANGUAGE_NATIVE_NAME_LOCALIZATION_KEY_PREFIX = "language_name";
+        /// <summary>
+        /// The character to replace the <see cref="NAMESPACE_SEPARATOR_CHAR"/> in a language file name.
+        /// </summary>
+        public const char LANGUAGE_FILE_NAMESPACE_SEPARATOR_REPLACE_CHAR = '.';
+        /// <summary>
+        /// The depth of the JsonDictionary merge when updating the settings.
+        /// </summary>
+        public const int SETTINGS_UPDATE_MERGE_DEPTH = 2;
         #endregion
     }
 }

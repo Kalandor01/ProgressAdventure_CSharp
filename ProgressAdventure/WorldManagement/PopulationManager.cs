@@ -1,4 +1,3 @@
-using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NPrng.Generators;

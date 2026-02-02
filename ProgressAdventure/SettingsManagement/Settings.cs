@@ -335,10 +335,39 @@ namespace ProgressAdventure.SettingsManagement
         private static JsonDictionary RecreateSettings()
         {
             var newSettings = SettingsUtils.GetDefaultSettings();
-            PACTools.SaveJsonFile(newSettings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), format: true);
-            // log
+            UpdateSettings(newSettings, false);
             PACSingletons.Instance.Logger.Log("Recreated settings");
             return newSettings;
+        }
+        
+        /// <summary>
+        /// Tries to get the contents of the settings file.
+        /// </summary>
+        /// <param name="willRecreate">If the settings file will be recreated if its value is returned as null.</param>
+        private static JsonDictionary? TryGetSettingsDict(bool willRecreate)
+        {
+            try
+            {
+                var settingsJson = PACTools.LoadJsonFile(Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), null, expected: false);
+                if (settingsJson is null)
+                {
+                    PACSingletons.Instance.Logger.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
+                }
+                
+                return settingsJson;
+            }
+            catch (Exception ex)
+            {
+                PACSingletons.Instance.Logger.Log("Decode error", $"settings, Error: {ex.Message}", LogSeverity.ERROR);
+                if (willRecreate)
+                {
+                    PACSingletons.Instance.ConsoleProxy.PressKey(
+                        "The settings file is corrupted, and will now be recreated!"
+                    );
+                }
+                
+                return null;
+            }
         }
 
         /// <summary>
@@ -346,26 +375,27 @@ namespace ProgressAdventure.SettingsManagement
         /// </summary>
         private static JsonDictionary GetSettingsDict()
         {
-            JsonDictionary? settingsJson = null;
-            try
+            return TryGetSettingsDict(true)
+                   ?? RecreateSettings();
+        }
+        
+        /// <summary>
+        /// Updates the settings file with new data.
+        /// </summary>
+        /// <param name="newData">The new data to write to the settings file.</param>
+        /// <param name="mergeWithExisting">Whether to merge the new data into the already existing settings file if it exists.</param>
+        private static void UpdateSettings(JsonDictionary newData, bool mergeWithExisting = true)
+        {
+            var data = newData;
+            if (
+                mergeWithExisting &&
+                TryGetSettingsDict(false) is { } existingData
+            )
             {
-                settingsJson = PACTools.LoadJsonFile(Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), null, expected: false);
-                if (settingsJson is null)
-                {
-                    PACSingletons.Instance.Logger.Log("Decode error", "settings file data is null", LogSeverity.ERROR);
-                }
+                newData.Merge(existingData, Constants.SETTINGS_UPDATE_MERGE_DEPTH);
             }
-            catch (FormatException)
-            {
-                PACSingletons.Instance.Logger.Log("Decode error", "settings", LogSeverity.ERROR);
-                PACSingletons.Instance.ConsoleProxy.PressKey("The settings file is corrupted, and will now be recreated!");
-            }
-
-            if (settingsJson is not null)
-            {
-                return settingsJson;
-            }
-            return RecreateSettings();
+            
+            PACTools.SaveJsonFile(data, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), format: true);
         }
 
         /// <summary>
@@ -382,22 +412,20 @@ namespace ProgressAdventure.SettingsManagement
                 {
                     return settingValue;
                 }
-                else
-                {
-                    PACSingletons.Instance.Logger.Log("Value is null in settings", settingsKeyName, LogSeverity.WARN);
-                }
+                
+                PACSingletons.Instance.Logger.Log("Value is null in settings", settingsKeyName, LogSeverity.WARN);
             }
             else
             {
                 PACSingletons.Instance.Logger.Log("Missing key in settings", settingsKeyName, LogSeverity.WARN);
             }
-
+            
             var defSettings = SettingsUtils.GetDefaultSettings();
             var defSettingValue = defSettings[settingsKeyName];
             SettingsManager(settingsKey, defSettingValue?.Value);
             return defSettingValue;
         }
-
+        
         /// <summary>
         /// Writes a value into the settings file.
         /// </summary>
@@ -411,10 +439,10 @@ namespace ProgressAdventure.SettingsManagement
             {
                 PACSingletons.Instance.Logger.Log("Recreating key in settings", settingsKey.ToString(), LogSeverity.WARN);
                 settings[settingsKeyName] = PACTools.ParseToJsonValue(value);
-                PACTools.SaveJsonFile(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), format: true);
+                UpdateSettings(settings);
                 return;
             }
-
+            
             var keybindsEqual = false;
             if (settingsKey == SettingsKey.KEYBINDS && settingValue is not null)
             {
@@ -425,7 +453,7 @@ namespace ProgressAdventure.SettingsManagement
                 }
                 catch (Exception e)
                 {
-                    PACSingletons.Instance.Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e.ToString(), LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Error while trying to modify the keybinds from the settings file", "Error: " + e, LogSeverity.ERROR);
                 }
                 if (oldKb is not null)
                 {
@@ -440,15 +468,15 @@ namespace ProgressAdventure.SettingsManagement
                     value = ((Keybinds)value).ToJson();
                 }
             }
-
+            
             if (!(keybindsEqual || value.Equals(settingValue?.Value)))
             {
                 PACSingletons.Instance.Logger.Log("Changed settings", $"{settingsKey}: {settingValue} -> {value}", LogSeverity.DEBUG);
                 settings[settingsKeyName] = PACTools.ParseToJsonValue(value);
-                PACTools.SaveJsonFile(settings, Path.Join(PACConstants.ROOT_FOLDER, Constants.SETTINGS_FILE_NAME), format: true);
+                UpdateSettings(settings);
             }
         }
-
+        
         /// <summary>
         /// Tries to get the value, associated with the key in the settings file, and returns if it's the expected type.
         /// </summary>
@@ -459,7 +487,7 @@ namespace ProgressAdventure.SettingsManagement
             value = SettingsManager(settingsKey);
             return value.Type == _settingValueTypeMap[settingsKey];
         }
-
+        
         /// <summary>
         /// Tries to get the value, associated with the key in the settings file, and returns it, or the default value, if it isn't the expected type.
         /// </summary>
@@ -470,13 +498,11 @@ namespace ProgressAdventure.SettingsManagement
             {
                 return rawValue.Value;
             }
-            else
-            {
-                PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {_settingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
-                var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
-                SettingsManager(settingsKey, newValue!);
-                return newValue!.Value;
-            }
+            
+            PACSingletons.Instance.Logger.Log("Settings value type missmatch", $"value at {settingsKey} should be {_settingValueTypeMap[settingsKey]} but is {rawValue.Type}, correcting...", LogSeverity.WARN);
+            var newValue = SettingsUtils.GetDefaultSettings()[settingsKey.ToString()];
+            SettingsManager(settingsKey, newValue!);
+            return newValue!.Value;
         }
         #endregion
     }

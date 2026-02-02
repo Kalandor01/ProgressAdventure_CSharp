@@ -286,7 +286,11 @@ namespace ProgressAdventure.Localization
 
         private static string GetTextsDictConfigPath(EnumValue<Language> language)
         {
-            return Path.Join(Constants.CONFIGS_LOCALIZATION_SUBFOLDER_NAME, Constants.CONFIGS_LANGUAGES_SUBFOLDER_NAME, language.Name);
+            return Path.Join(
+                Constants.CONFIGS_LOCALIZATION_SUBFOLDER_NAME,
+                Constants.CONFIGS_LANGUAGES_SUBFOLDER_NAME,
+                language.Name.Replace(Constants.NAMESPACE_SEPARATOR_CHAR, Constants.LANGUAGE_FILE_NAMESPACE_SEPARATOR_REPLACE_CHAR)
+            );
         }
 
         private static (

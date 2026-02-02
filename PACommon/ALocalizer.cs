@@ -95,49 +95,30 @@ namespace PACommon
                 ? localizedStr
                 : $"[{textKey}]";
         }
-        
-        /// <inheritdoc cref="GetLocalizedString(EnumValue{TT})"/>
-        public string GetLocalizedString(EnumValue<TT> textKey, object arg1)
-        {
-            return GetLocalizedStringPrivate(textKey, locStr => string.Format(locStr, arg1), () => [arg1]);
-        }
-        
-        /// <inheritdoc cref="GetLocalizedString(EnumValue{TT})"/>
-        public string GetLocalizedString(EnumValue<TT> textKey, object arg1, object arg2)
-        {
-            return GetLocalizedStringPrivate(textKey, locStr => string.Format(locStr, arg1, arg2), () => [arg1, arg2]);
-        }
-        
-        /// <inheritdoc cref="GetLocalizedString(EnumValue{TT})"/>
-        public string GetLocalizedString(EnumValue<TT> textKey, object arg1, object arg2, object arg3)
-        {
-            return GetLocalizedStringPrivate(textKey, locStr => string.Format(locStr, arg1, arg2, arg3), () => [arg1, arg2, arg3]);
-        }
         #endregion
 
         #region Private methods
         /// <inheritdoc cref="GetLocalizedString(EnumValue{TT})"/>
-        /// <param name="formater">The formater method to format the localized text.</param>
-        /// <param name="argsGetter">Gets the args passed into the formater.</param>
-        private string GetLocalizedStringPrivate(EnumValue<TT> textKey, Func<string, string> formater, Func<object[]> argsGetter)
+        /// <param name="args">The args to format the string with.</param>
+        public string GetLocalizedString(EnumValue<TT> textKey, params object[] args)
         {
             if (TryGetLocalizedString(textKey, out var localizedStr))
             {
                 try
                 {
-                    return formater(localizedStr);
+                    return string.Format(localizedStr, args);
                 }
                 catch (FormatException fe)
                 {
                     PACSingletons.Instance.Logger.Log(
                         "Localized string args number missmatch",
-                        $"the resulting localized string at \"{textKey}\" key in the \"{CurrentLanguage}\" (or \"{_defaultLanguage}\") language has less arguments than expected: {argsGetter().Length}",
+                        $"the resulting localized string at \"{textKey}\" key in the \"{CurrentLanguage}\" (or \"{_defaultLanguage}\") language has less arguments than expected: {args.Length}",
                         LogSeverity.ERROR
                     );
                 }
             }
             
-            return $"[[{textKey}] + \"{string.Join("\" + \"", argsGetter())}\"]";
+            return $"[[{textKey}] + \"{string.Join("\" + \"", args)}\"]";
         }
         #endregion
     }

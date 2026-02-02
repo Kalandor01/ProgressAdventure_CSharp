@@ -170,7 +170,7 @@ namespace ProgressAdventure
             Thread.CurrentThread.Name = Constants.MAIN_THREAD_NAME;
 
             var localizer = Localizer.Initialize(Localizer.DEFAULT_LANGUAGE, false);
-            var consoleProxy = new PAConsoleProxy()
+            var consoleProxy = new PAConsoleProxy
             {
                 Encoding = Encoding.UTF8,
                 Title = localizer.GetLocalizedString(LocalizationKey.APPLICATION_TITLE_0),

@@ -3,7 +3,6 @@ using PACommon;
 using PACommon.Enums;
 using PACommon.TestUtils;
 using ProgressAdventure;
-using ProgressAdventure.Enums;
 using ProgressAdventure.Localization;
 using ProgressAdventure.SettingsManagement;
 using ProgressAdventure.WorldManagement;
