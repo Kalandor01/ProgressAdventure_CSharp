@@ -6,7 +6,7 @@ namespace PACommon
     /// <summary>
     /// Object for storing constants.
     /// </summary>
-    public class Constants
+    public static class Constants
     {
         #region Threads
         /// <summary>
@@ -46,7 +46,7 @@ namespace PACommon
 
         #region Cursor types
         /// <summary>
-        /// The <c>CursorIcon</c> for <c>BaseUIDisplay</c>.
+        /// The <see cref="CursorIcon"/> for <see cref="PACommon.Extensions.BaseUIDisplay"/>.
         /// </summary>
         public static readonly CursorIcon NO_CURSOR_ICONS = new("", "", "", "");
         #endregion

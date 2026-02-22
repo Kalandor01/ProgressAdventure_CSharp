@@ -1,7 +1,7 @@
 namespace PACommon.Extensions
 {
     /// <summary>
-    /// Object for storing extensions for <c>Type</c>.
+    /// Object for storing extensions for <see cref="Type"/>.
     /// </summary>
     public static class TypeExtensions
     {
@@ -9,12 +9,9 @@ namespace PACommon.Extensions
         public static bool IsGenericAssignableFromType(this Type genericType, Type givenType)
         {
             var interfaceTypes = givenType.GetInterfaces();
-            foreach (var interfaceType in interfaceTypes)
+            if (interfaceTypes.Any(interfaceType => interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == genericType))
             {
-                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == genericType)
-                {
-                    return true;
-                }
+                return true;
             }
 
             if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)

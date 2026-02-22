@@ -8,8 +8,8 @@ using static ConsoleUI.Utils;
 namespace PACommon
 {
     /// <summary>
-    /// Displays a <c>TextField</c>, where the user can input a string, that will be corrected as the user types it.<br/>
-    /// DOESN'T INHERIT FROM <c>BaseUI</c>!
+    /// Displays a <see cref="TextField"/>, where the user can input a string, that will be corrected as the user types it.<br/>
+    /// DOESN'T INHERIT FROM <see cref="BaseUI"/>!
     /// </summary>
     public class RealTimeCorrectedTextField
     {
@@ -47,11 +47,11 @@ namespace PACommon
         /// </summary>
         private IConsoleProxy _consoleProxy;
         /// <summary>
-        /// Temporary field for the string corrector <c>TextField</c>.
+        /// Temporary field for the string corrector <see cref="TextField"/>.
         /// </summary>
         private TextField correctorTextField;
         /// <summary>
-        /// The baseUIDisplay to use.
+        /// The <see cref="PACommon.Extensions.BaseUIDisplay"/> to use.
         /// </summary>
         private BaseUIDisplay baseUIDisplay;
         #endregion
@@ -167,9 +167,9 @@ namespace PACommon
 
         #region Public methods
         /// <summary>
-        /// Displays the <c>TextField</c>.
+        /// Displays the <see cref="TextField"/>.
         /// </summary>
-        /// <param name="keybinds">The list of <c>KeyAction</c> objects to use. The order of the actions should be:<br/>
+        /// <param name="keybinds">The list of <see cref="KeyAction"/> objects to use. The order of the actions should be:<br/>
         /// - escape, up, down, left, right, enter.</param>
         /// <param name="getKeyFunction">The function to get the next valid key the user pressed.<br/>
         /// Should function similarly to <see cref="GetKey(GetKeyMode, IEnumerable{KeyAction}?, ConsoleUI.IConsoleProxy?)"/>.></param>
@@ -196,7 +196,7 @@ namespace PACommon
                     PreValue,
                     correctorPostValue,
                     oldValueAsStartingValue: true,
-                    keyValidatorFunction: new TextField.KeyValidatorDelegate(StringCorrectorKeyValidator),
+                    keyValidatorFunction: StringCorrectorKeyValidator,
                     overrideDefaultKeyValidatorFunction: false
                 );
             }
@@ -226,7 +226,7 @@ namespace PACommon
 
         private bool StringCorrectorKeyValidator(StringBuilder text, ConsoleKeyInfo? key, int cursorPosition)
         {
-            string newText = "";
+            var newText = "";
             if (key is null)
             {
                 if (text.Length > 0)

@@ -7,7 +7,6 @@ using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
 using ProgressAdventure.Extensions;
 using ProgressAdventure.WorldManagement;
-using static PACommon.RealTimeCorrectedTextField;
 using PACTools = PACommon.Tools;
 using Utils = PACommon.Utils;
 
@@ -73,7 +72,7 @@ namespace ProgressAdventure
             // make save name
             var saveName = Tools.CorrectSaveName(displaySaveName);
             // random generators
-            RandomStates.Initialize(seedString is not null ? NPrngExtensionsPA.GetRandomFromString(seedString, out _) : null);
+            RandomStates.Initialize(seedString is not null ? NPrngExtensionsPA.GetRandomFromString(seedString, out _, out _) : null);
             // player
             var player = new Entity(EntityUtils.PlayerEntityType, playerName);
             // load to class
@@ -87,6 +86,39 @@ namespace ProgressAdventure
             //explicitly resolve player
             _ = SaveData.Instance.PlayerRef;
         }
+        
+        /// <summary>
+        /// Creates a seed string using user input.
+        /// </summary>
+        /// <param name="text">The text to display when getting the seed text.</param>
+        /// <param name="correctZeroGamma">Whether to correct if the user gave a seed string that results in 0 gamma, or to just warn the user.</param>
+        public static string? GetSeedStringFromUser(string text = "Custom seed: ", bool correctZeroGamma = false)
+        {
+            while (true)
+            {
+                var seedText = new RealTimeCorrectedTextField(
+                    text,
+                    Tools.CorrectSeed,
+                    clearScreen: false
+                ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
+                
+                string? seedString = null;
+                if (seedText == "")
+                {
+                    return seedString;
+                }
+                
+                NPrngExtensionsPA.GetRandomFromString(seedText, out seedString, out var isZeroGamma, !correctZeroGamma);
+                if (
+                    isZeroGamma &&
+                    !correctZeroGamma &&
+                    MenuManager.AskYesNoUIQuestion("Are you sure you want to use a seed that has 0 gamma (the rng will be uniform)?", false)
+                )
+                {
+                    return seedString;
+                }
+            }
+        }
 
         /// <summary>
         /// Creates the data for a new save file, using user input.
@@ -95,27 +127,17 @@ namespace ProgressAdventure
         {
             var displaySaveName = new RealTimeCorrectedTextField(
                 "Name your save: ",
-                new StringCorrectorDelegate(Tools.CorrectSaveName),
+                Tools.CorrectSaveName,
                 clearScreen: false
             ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
 
             var playerName = new RealTimeCorrectedTextField(
                 "What is your name?: ",
-                new StringCorrectorDelegate(Tools.CorrectPlayerName),
+                Tools.CorrectPlayerName,
                 clearScreen: false
             ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
-
-            var seedText = new RealTimeCorrectedTextField(
-                "Custom seed: ",
-                new StringCorrectorDelegate(Tools.CorrectSeed),
-                clearScreen: false
-            ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
-
-            string? seedString = null;
-            if (seedText != "")
-            {
-                NPrngExtensionsPA.GetRandomFromString(seedText, out seedString);
-            }
+            
+            var seedString = GetSeedStringFromUser();
 
             CreateSaveData(displaySaveName, playerName, seedString);
         }
@@ -166,7 +188,7 @@ namespace ProgressAdventure
             );
             if (fileVersion is null)
             {
-                PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {saveName}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log($"Unknown {nameof(SaveData)} version", $"{nameof(SaveData)} name: {saveName}", LogSeverity.ERROR);
                 throw new FileLoadException("Unknown save version", saveName);
             }
 
@@ -182,7 +204,7 @@ namespace ProgressAdventure
                 success = false;
             }
 
-            if (configDiff is ConfigDiff cd && !cd.IsEmpty)
+            if (configDiff is { IsEmpty: false } cd)
             {
                 PACSingletons.Instance.Logger.Log(
                     "Trying to load save with an different config layout",
@@ -214,16 +236,15 @@ namespace ProgressAdventure
             var datas = GetFoldersDisplayData(folders);
             // process file data
             var datasProcessed = new List<(string saveName, string displayText)>();
-            foreach (var data in datas)
+            foreach (var (folderName, data) in datas)
             {
-                var folderName = data.folderName;
-                if (data.data is not DisplaySaveData displayData)
+                if (data is null)
                 {
                     PACSingletons.Instance.ConsoleProxy.PressKey($"\"{folderName}\" is corrupted!");
                     continue;
                 }
 
-                var formatedData = ProcessSaveDisplayData(folderName, displayData);
+                var formatedData = ProcessSaveDisplayData(folderName, data);
                 if (formatedData is not null)
                 {
                     datasProcessed.Add((folderName, formatedData));
@@ -249,7 +270,7 @@ namespace ProgressAdventure
 
             if (PACTools.TryParseJsonValue<T, string>(dataJson, oldJsonKey, out var fileVersionBackup))
             {
-                PACSingletons.Instance.Logger.Log($"Old style {typeof(T).Name} version (< 2.2)", $"{typeof(T).Name} name: {fileName}", LogSeverity.INFO);
+                PACSingletons.Instance.Logger.Log($"Old style {typeof(T).Name} version (< 2.2)", $"{typeof(T).Name} name: {fileName}");
                 return fileVersionBackup;
             }
             return null;
@@ -302,7 +323,7 @@ namespace ProgressAdventure
 
 
 
-            if (automaticBackup is bool mustBackup)
+            if (automaticBackup is  { } mustBackup)
             {
                 if (mustBackup)
                 {
@@ -312,7 +333,7 @@ namespace ProgressAdventure
             }
 
             var versionDiff = fileVersion != Constants.SAVE_VERSION;
-            var isConfigDiff = configDiff is ConfigDiff cd && !cd.IsEmpty;
+            var isConfigDiff = configDiff is { IsEmpty: false };
             if (!versionDiff && !isConfigDiff)
             {
                 return;
@@ -374,7 +395,6 @@ namespace ProgressAdventure
                 if (createBackup)
                 {
                     Tools.CreateBackup(saveName);
-                    return;
                 }
             }
         }
@@ -389,7 +409,7 @@ namespace ProgressAdventure
         {
             displaySaveData = null;
             var filePath = Path.Join(Tools.GetSaveFolderPath(saveFolder), Constants.SAVE_FILE_NAME_DATA);
-            var dataJson = Tools.LoadFileExpected<DisplaySaveData>(filePath, out var isFileInvalid, 0);
+            var dataJson = Tools.LoadFileExpected<DisplaySaveData>(filePath, out var isFileInvalid);
 
             if (dataJson is null)
             {
@@ -405,7 +425,7 @@ namespace ProgressAdventure
             );
             if (fileVersion is null)
             {
-                PACSingletons.Instance.Logger.Log($"Unknown {typeof(SaveData).Name} version", $"{typeof(SaveData).Name} name: {saveFolder}", LogSeverity.ERROR);
+                PACSingletons.Instance.Logger.Log($"Unknown {nameof(SaveData)} version", $"{nameof(SaveData)} name: {saveFolder}", LogSeverity.ERROR);
                 fileVersion = Constants.OLDEST_SAVE_VERSION;
             }
 
@@ -472,9 +492,9 @@ namespace ProgressAdventure
             }
             catch (Exception ex)
             {
-                if (ex is InvalidCastException || ex is ArgumentException || ex is KeyNotFoundException)
+                if (ex is InvalidCastException or ArgumentException or KeyNotFoundException)
                 {
-                    PACSingletons.Instance.Logger.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex.ToString(), LogSeverity.ERROR);
+                    PACSingletons.Instance.Logger.Log("Save display data parse error", $"Save name: {folderName}, exception: " + ex, LogSeverity.ERROR);
                     PACSingletons.Instance.ConsoleProxy.PressKey($"\"{folderName}\" could not be parsed!");
                     return null;
                 }

@@ -1,6 +1,6 @@
 namespace PACommon.Enums
 {
-    public enum LogSeverity : int
+    public enum LogSeverity
     {
         TRACE = 0,
         DEBUG = 1,
@@ -13,7 +13,7 @@ namespace PACommon.Enums
         OTHER = 8,
         /// <summary>
         /// Logging level REPRESENTING MINIMAL/NO LOGGING ONLY!!!<br/>
-        /// DON'T USE WHEN CALLING <c>PACSingletons.Instance.Logger.Log()</c>!!!<br/>
+        /// DON'T USE WHEN CALLING <see cref="PACommon.Logging.ILogger.Log"/>!!!<br/>
         /// </summary>
         DISABLED = -1,
     }

@@ -28,7 +28,9 @@ namespace ProgressAdventure.Extensions
         /// </summary>
         /// <param name="text">The string to generate the random generator from.</param>
         /// <param name="seedString">A unified equivalent of the inputed string.</param>
-        public static SplittableRandom GetRandomFromString(string text, out string seedString)
+        /// <param name="isZeroGamma">If the seed string has/had a zero gamma.</param>
+        /// <param name="allowZeroGamma">Whether to allow the seed gamma to be 0. (Makes the generator always output the same number.)</param>
+        public static SplittableRandom GetRandomFromString(string text, out string seedString, out bool isZeroGamma, bool allowZeroGamma = true)
         {
             // string to seed + gamma
             byte[] arr;
@@ -43,7 +45,7 @@ namespace ProgressAdventure.Extensions
             var limitedArray = new byte[16];
             for (var x = 0; x < arr.Length; x++)
             {
-                limitedArray[x % 16] = (byte)(limitedArray[x % 16] + arr[x]);
+                limitedArray[x % 16] += arr[x];
             }
 
             var seedArrReverse = limitedArray[..8];
@@ -53,13 +55,15 @@ namespace ProgressAdventure.Extensions
 
             // seed + gamma to seed string
             var gamma = Utils.ByteArrayToUlong(gammaArr);
-            var isGammaUseles = gamma == 0 || gamma == NPrngExtensions.GOLDEN_GAMMA;
-            if (gamma == 0)
+            isZeroGamma = gamma == 0 && arr.Length > 8;
+            
+            var isGammaUseles = arr.Length <= 8 || gamma == NPrngExtensions.GOLDEN_GAMMA;
+            seedString = Convert.ToBase64String(!isGammaUseles ? [.. seedArrReverse, .. gammaArrReverse] : seedArrReverse);
+            
+            if (gamma == 0 && (arr.Length <= 8 || !allowZeroGamma))
             {
                 gammaArr = Utils.UlongToByteArray(NPrngExtensions.GOLDEN_GAMMA);
             }
-
-            seedString = Convert.ToBase64String(!isGammaUseles ? [.. seedArrReverse, .. gammaArrReverse] : seedArrReverse);
 
             // seed + gamma to random
             var randomStateText = Convert.ToBase64String(seedArr.Concat(gammaArr).ToArray());

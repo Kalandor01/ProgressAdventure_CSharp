@@ -8,9 +8,9 @@ using PACommon.Extensions;
 namespace PACommon.SettingsManagement
 {
     /// <summary>
-    /// Object for the <c>OptionsUI</c> method.<br/>
-    /// When used as input in the <c>OptionsUI</c> function, it draws a field for one keypress, that can be selected to edit it's value in place, with the enter action.<br/>
-    /// Structure: [<c>preText</c>][<c>value</c>][<c>postValue</c>]
+    /// Object for the <see cref="OptionsUI"/> method.<br/>
+    /// When used as input in the <see cref="OptionsUI"/> function, it draws a field for one keypress, that can be selected to edit its value in place, with the enter action.<br/>
+    /// Structure: [<see cref="BaseUI.preText"/>][<see cref="BaseUI.Value"/>][<see cref="BaseUI.postValue"/>]
     /// </summary>
     public class KeyField<T> : BaseUI
         where T : notnull
@@ -25,11 +25,11 @@ namespace PACommon.SettingsManagement
         /// </summary>
         public ValidatorDelegate? validatorFunction;
         /// <summary>
-        /// A function to return the display value of the value of the <c>ActionKey</c>.
+        /// A function to return the display value of the value of the <see cref="AActionKey{T}"/>.
         /// </summary>
         public DisplayValueDelegate? displayValueFunction;
         /// <summary>
-        /// The number of keys to request for the <c>ActionKey</c>.
+        /// The number of keys to request for the <see cref="AActionKey{T}"/>.
         /// </summary>
         public int keyNum;
         /// <summary>
@@ -40,10 +40,10 @@ namespace PACommon.SettingsManagement
 
         #region Override properties
         /// <inheritdoc cref="BaseUI.IsClickable"/>
-        public override bool IsClickable { get => true; }
-
+        public override bool IsClickable => true;
+        
         /// <inheritdoc cref="BaseUI.IsOnlyClickable"/>
-        public override bool IsOnlyClickable { get => true; }
+        public override bool IsOnlyClickable => true;
         #endregion
 
         #region Public delegates
@@ -51,19 +51,19 @@ namespace PACommon.SettingsManagement
         /// <inheritdoc cref="validatorFunction" path="//summary"/>
         /// </summary>
         /// <param name="key">The key that the user inputed.</param>
-        /// <param name="keyField">The <c>KeyField</c> that the called this function.</param>
+        /// <param name="keyField">The <see cref="KeyField{T}"/> that called this function.</param>
         public delegate (TextFieldValidatorStatus status, string? message) ValidatorDelegate(ConsoleKeyInfo key, KeyField<T> keyField);
         /// <summary>
         /// <inheritdoc cref="displayValueFunction" path="//summary"/>
         /// </summary>
         /// <inheritdoc cref="BaseUI.MakeSpecial"/>
-        /// <param name="keyField">The <c>KeyField</c>, that called the function.</param>
+        /// <param name="keyField">The <see cref="KeyField{T}"/> that called this function.</param>
         public delegate string DisplayValueDelegate(KeyField<T> keyField, string icons, OptionsUI? optionsUI = null);
         #endregion
 
         #region Constructors
         /// <summary>
-        /// <inheritdoc cref="KeyField"/>
+        /// <inheritdoc cref="KeyField{T}"/>
         /// </summary>
         /// <param name="value"><inheritdoc cref="Value" path="//summary"/></param>
         /// <param name="validatorFunction"><inheritdoc cref="validatorFunction" path="//summary"/></param>
@@ -108,10 +108,10 @@ namespace PACommon.SettingsManagement
 
             var consoleProxy = args.optionsUI?.consoleProxy ?? new ConsoleProxy();
             var keys = new List<ConsoleKeyInfo>();
-            if (args.optionsUI is null || !args.optionsUI.elements.Any(element => element == this))
+            if (args.optionsUI is null || !args.optionsUI.elements.Contains(this))
             {
                 consoleProxy.WriteLine(preText);
-                for (int x = 0; x < keyNum; x++)
+                for (var x = 0; x < keyNum; x++)
                 {
                     var pressedKey = consoleProxy.ReadKey();
                     keys.Add(pressedKey);
@@ -150,9 +150,9 @@ namespace PACommon.SettingsManagement
                     if (message is not null)
                     {
                         var (preMessageCol, preMessageRow) = consoleProxy.GetCursorPosition();
-                        consoleProxy.Write("\u001b[0K" + message);
+                        consoleProxy.Write("\e[0K" + message);
                         consoleProxy.ReadKey(false);
-                        consoleProxy.WriteAtPosition("\u001b[0K", preMessageCol, preMessageRow);
+                        consoleProxy.WriteAtPosition("\e[0K", preMessageCol, preMessageRow);
                         var (column, row) = consoleProxy.GetCursorPosition();
                         consoleProxy.Write(
                             multiline
@@ -179,16 +179,16 @@ namespace PACommon.SettingsManagement
             return true;
         }
         #endregion
-
+        
         #region Private functions
         /// <summary>
         /// Gets the number of lines after the value that is in this object, in the display.
         /// </summary>
-        /// <param name="optionsUI">The <c>OptionsUI</c>, that includes this object.</param>
+        /// <param name="optionsUI">The <see cref="OptionsUI"/>, that includes this object.</param>
         private int GetLineNumberAfterTextFieldValue(OptionsUI optionsUI)
         {
             var txt = new StringBuilder();
-
+            
             // current object's line
             txt.Append(
                 multiline
@@ -196,12 +196,12 @@ namespace PACommon.SettingsManagement
                     : postValue
             );
             txt.Append(optionsUI.cursorIcon.sIconR);
-
+            
             // get displayed range
             var endIndex = optionsUI.scrollSettings.maxElements != -1 && optionsUI.scrollSettings.maxElements < optionsUI.elements.Count
                 ? Math.Clamp(optionsUI.startIndex + optionsUI.scrollSettings.maxElements, 0, optionsUI.elements.Count)
                 : optionsUI.elements.Count;
-
+            
             // lines after current object
             for (var x = optionsUI.selected + 1; x < endIndex; x++)
             {
@@ -220,7 +220,7 @@ namespace PACommon.SettingsManagement
                 }
                 else
                 {
-                    txt.Append(element.ToString() + "\n");
+                    txt.Append(element + "\n");
                 }
             }
             txt.Append(
@@ -229,14 +229,14 @@ namespace PACommon.SettingsManagement
                     : optionsUI.scrollSettings.scrollIcon.bottomContinueIndicator
             );
             txt.Append('\n');
-
+            
             return txt.ToString().Count(c => c == '\n') + 1;
         }
-
+        
         /// <summary>
         /// Gets the number of characters in this object's display line string, before the value.
         /// </summary>
-        /// <param name="cursorIcon">The <c>CursorIcon</c> passed into the <c>OptionsUI</c>, that includes this object.</param>
+        /// <param name="cursorIcon">The <see cref="CursorIcon"/> passed into the <see cref="OptionsUI"/>, that includes this object.</param>
         private int GetCurrentLineCharCountBeforeValue(CursorIcon cursorIcon)
         {
             var lineText = new StringBuilder();
@@ -247,16 +247,16 @@ namespace PACommon.SettingsManagement
             var lastLine = lineText.ToString().Split("\n").Last();
             return lengthAsDisplayLength ? Utils.GetDisplayLen(lastLine) : lastLine.Length;
         }
-
+        
         /// <summary>
-        /// Reads user input, like <see cref="IConsoleProxy.ReadKey(bool)"/>, but puts the <c>postValue</c> after the text, while typing.
+        /// Reads user input, like <see cref="IConsoleProxy.ReadKey(bool)"/>, but puts the <see cref="BaseUI.postValue"/> after the text, while typing.
         /// </summary>
         /// <param name="consoleProxy">The <see cref="IConsoleProxy"/> to use.</param>
         /// <param name="cursorIcon">The <see cref="CursorIcon"/> passed into the <see cref="OptionsUI"/>, that includes this object.</param>
         /// <param name="keys">The keys, that already exist.</param>
         private ConsoleKeyInfo ReadInput(IConsoleProxy consoleProxy, CursorIcon cursorIcon, List<ConsoleKeyInfo> keys)
         {
-            consoleProxy.Write("\u001b[0K");
+            consoleProxy.Write("\e[0K");
             var (prewCol, prewRow) = consoleProxy.GetCursorPosition();
 
             foreach (var key in keys)
@@ -271,7 +271,7 @@ namespace PACommon.SettingsManagement
             consoleProxy.Write(cursorIcon.sIconR);
 
             consoleProxy.SetCursorPosition(column, row);
-            var pressedKey = consoleProxy.ReadKey(true);
+            var pressedKey = consoleProxy.ReadKey();
             consoleProxy.SetCursorPosition(prewCol, prewRow);
             return pressedKey;
         }

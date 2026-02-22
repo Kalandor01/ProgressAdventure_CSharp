@@ -70,7 +70,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Saves all chunks to the save file.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <param name="clearChunks">If the chunks dictionary should be cleared, after saving.</param>
         /// <param name="showProgressText">If not null, it writes out a progress percentage with this string while saving.</param>
         /// <param name="threadManager">The <see cref="ThreadManager"/> to use to cancel the task.</param>
@@ -195,7 +195,7 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// <see cref="Chunk.FromFile(ValueTuple{long, long}, out Chunk?, string?, bool)"/>, but if it finds the chunk, it adds it to the chunks dictionary.
+        /// <see cref="Chunk.FromFile(ValueTuple{long, long}, out Chunk?, out bool, string?, bool)"/>, but if it finds the chunk, it adds it to the chunks dictionary.
         /// </summary>
         /// <param name="position">The position of the <see cref="Chunk"/>.</param>
         /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
@@ -211,12 +211,12 @@ namespace ProgressAdventure.WorldManagement
         }
 
         /// <summary>
-        /// Tries to find a chunk at a specific location, creates one, if doesn't exist, and adds the result into the chunks dictionary.
+        /// Tries to find a chunk at a specific location, creates one, if it doesn't exist, and adds the result into the chunks dictionary.
         /// </summary>
         /// <param name="position">The position of the chunk.</param>
         /// <param name="chunk">The chunk that was fould or created.</param>
         /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <returns>If the <see cref="Chunk"/> file was found.</returns>
         public static bool TryGetChunkFromFolder(
             (long x, long y) position,
@@ -233,7 +233,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Gets all chunk files that have the correct syntax from a chunks folder.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <param name="checkOldExtension">Whether to check the pre 2.3 file extension.</param>
         /// <returns>The list of chunk positions.</returns>
         public static List<(long x , long y)> GetChunkFilesFromFolder(
@@ -251,9 +251,8 @@ namespace ProgressAdventure.WorldManagement
             foreach (var chunkFilePath in chunkFilePaths)
             {
                 var chunkFileName = Path.GetFileName(chunkFilePath);
-                var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName).ToLower() : null;
+                var chunkExtension = Path.GetExtension(chunkFileName).ToLower();
                 if (!(
-                    chunkFileName is not null &&
                     (
                         chunkExtension == $".{Constants.SAVE_EXT}" ||
                         (checkOldExtension && chunkExtension == $".{Constants.OLD_SAVE_EXT}")
@@ -265,11 +264,15 @@ namespace ProgressAdventure.WorldManagement
                     continue;
                 }
 
-                var chunkPositions = ChunkFileNameRegex().Match(Path.GetFileNameWithoutExtension(chunkFileName)).Groups.Values.Select(group => group.Value);
+                var chunkPositions = ChunkFileNameRegex()
+                    .Match(Path.GetFileNameWithoutExtension(chunkFileName))
+                    .Groups.Values
+                    .Select(group => group.Value)
+                    .ToList();
                 if (!(
-                    chunkPositions.Count() == 3 &&
-                    long.TryParse(chunkPositions.ElementAt(1), out long posX) &&
-                    long.TryParse(chunkPositions.ElementAt(2), out long posY)
+                    chunkPositions.Count == 3 &&
+                    long.TryParse(chunkPositions[1], out var posX) &&
+                    long.TryParse(chunkPositions[2], out var posY)
                 ))
                 {
                     PACSingletons.Instance.Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
@@ -300,14 +303,16 @@ namespace ProgressAdventure.WorldManagement
 
             void AddChunkIfNotLoaded((long x, long y) chunkPos, List<(long x, long y)> corruptedChunks)
             {
-                if (!Chunks.ContainsKey(GetChunkDictName(chunkPos)))
+                if (Chunks.ContainsKey(GetChunkDictName(chunkPos)))
                 {
-                    FindChunkInFolder(chunkPos, out var isFileInvalid, saveFolderName);
-                    chunksNum++;
-                    if (isFileInvalid)
-                    {
-                        corruptedChunks.Add(chunkPos);
-                    }
+                    return;
+                }
+                
+                FindChunkInFolder(chunkPos, out var isFileInvalid, saveFolderName);
+                chunksNum++;
+                if (isFileInvalid)
+                {
+                    corruptedChunks.Add(chunkPos);
                 }
             }
 
@@ -399,6 +404,7 @@ namespace ProgressAdventure.WorldManagement
         /// Checks in chunks dictionary and in save folder.
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the <see cref="Tile"/>.</param>
+        /// <param name="tile">The that was found/created.</param>
         /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         /// <returns>If the <see cref="Chunk"/> or the <see cref="Tile"/> didn't need to be generated.</returns>
         public static bool TryGetTileAll((long x, long y) absolutePosition, out Tile tile, string? saveFolderName = null)
@@ -497,7 +503,7 @@ namespace ProgressAdventure.WorldManagement
                 loadingText.Display();
                 for (var x = minX; x <= maxX; x += Constants.CHUNK_SIZE)
                 {
-                    for (long y = minY; y <= maxY; y += Constants.CHUNK_SIZE)
+                    for (var y = minY; y <= maxY; y += Constants.CHUNK_SIZE)
                     {
                         TryGetChunkAll((x, y), out _, saveFolderName);
                         loadingText.Value = ((x - minX) / (double)Constants.CHUNK_SIZE * columnNum + (y - minY) / (double)Constants.CHUNK_SIZE) / chunkNum;
@@ -613,7 +619,7 @@ namespace ProgressAdventure.WorldManagement
             return success;
         }
         #endregion
-
+        
         #region Private functions
         /// <summary>
         /// Converts the position of the chunk into it's dictionary key name.
@@ -623,7 +629,7 @@ namespace ProgressAdventure.WorldManagement
         {
             return $"{Utils.FloorRound(position.x, Constants.CHUNK_SIZE)}_{Utils.FloorRound(position.y, Constants.CHUNK_SIZE)}";
         }
-
+        
         /// <summary>
         /// Returns the <see cref="Chunk"/> if it exists, or null.
         /// </summary>
@@ -633,8 +639,8 @@ namespace ProgressAdventure.WorldManagement
             Chunks.TryGetValue(chunkKey, out var chunk);
             return chunk;
         }
-
-        [GeneratedRegex("^chunk_(-?\\d+)_(-?\\d+)$")]
+        
+        [GeneratedRegex(@"^chunk_(-?\d+)_(-?\d+)$")]
         private static partial Regex ChunkFileNameRegex();
         #endregion
     }

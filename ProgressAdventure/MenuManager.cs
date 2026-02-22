@@ -535,7 +535,7 @@ namespace ProgressAdventure
                     }
 
                     var isError = false;
-                    var message = "";
+                    string message;
                     if (badDependencies is null)
                     {
                         isError = true;
@@ -579,21 +579,21 @@ namespace ProgressAdventure
                 var (inactiveText, activeText) = GetMultiButtonEnabledText(loadedConfig.Enabled);
                 var configManagerUIElement = new OpenMultiButton(
                     [
-                        new(
+                        new MultiButtonElement(
                             UIAction.CreateWithExtraArg<MultiButton, ConfigLoadingData, Action>(ToggleEnableConfigMultiChoice, loadedConfig, UpdateMessages),
                             inactiveText,
                             activeText
                         ),
-                        new(
+                        new MultiButtonElement(
                             UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, UpdateMessages, configOptionsUI, false),
                             " Move Up ",
                             "[Move Up]"
                         ),
-                        new(
+                        new MultiButtonElement(
                             UIAction.CreateDelegateAction(MoveConfigMultiChoice, loadingOrder, UpdateMessages, configOptionsUI, true),
                             " Move Down ",
                             "[Move Down]"
-                        )
+                        ),
                     ],
                     " ",
                     preValue: $"\"{config.FolderName}\" {Tools.StylizedText(
@@ -797,13 +797,14 @@ namespace ProgressAdventure
                     return;
                 }
             }
+            
             PACSingletons.Instance.ConsoleProxy.Write("\tDeleting...");
             Tools.DeleteSave(saveName);
             PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
             SaveManager.MakeSave(showProgressText: "\tSaving...");
             PACSingletons.Instance.Logger.Log("Save file regenerated", $"save name: {saveName}");
         }
-
+        
         /// <summary>
         /// Displays the main menu.
         /// </summary>
@@ -829,7 +830,7 @@ namespace ProgressAdventure
         /// <summary>
         /// Action, called when the new save button is pressed.
         /// </summary>
-        /// <param name="mainMenuUI">The main menu <c>UIList</c>.</param>
+        /// <param name="mainMenuUI">The main menu <see cref="UIList"/>.</param>
         private static void NewSaveAction(UIList mainMenuUI)
         {
             PACSingletons.Instance.ConsoleProxy.PressKey("\nCreating new save!\n");
@@ -843,7 +844,7 @@ namespace ProgressAdventure
         /// <summary>
         /// Action, called when the load saves button is pressed.
         /// </summary>
-        /// <param name="mainMenuUI">The main menu <c>UIList</c>.</param>
+        /// <param name="mainMenuUI">The main menu <see cref="UIList"/>.</param>
         private static void LoadSavesAction(UIList mainMenuUI)
         {
             GetSavesMenu().Display(ActionList);
@@ -963,7 +964,7 @@ namespace ProgressAdventure
         /// <summary>
         /// Action, called when the regenerate saves button is pressed.
         /// </summary>
-        /// <param name="loadSaveUI">The load saves menu <c>UIList</c>.</param>
+        /// <param name="loadSaveUI">The load saves menu <see cref="UIList"/>.</param>
         private static void RegenerateSavesAction(OptionsUI loadSaveUI)
         {
             if (
@@ -1012,7 +1013,7 @@ namespace ProgressAdventure
 
         #region Private function
         /// <summary>
-        /// Updates the saves data, used for answers and actions in <c>UIList</c>s.
+        /// Updates the saves data, used for answers and actions in <see cref="UIList"/>s.
         /// </summary>
         private static void UpdateSavesData()
         {

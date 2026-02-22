@@ -650,17 +650,15 @@ namespace ProgressAdventure.EntityManagement
         }
 
         /// <summary>
-        /// Converts the vector into the equivalent <c>Facing</c> enum, if there is one.<br/>
-        /// Otherwise returns null.
+        /// Converts the vector into the equivalent <see cref="Facing"/> enum, if there is one.<br/>
+        /// Otherwise, returns null.
         /// </summary>
         /// <param name="vector">The movement vector.</param>
         public static Facing? MovementVectorToFacing((int x, int y) vector)
         {
-            if (FacingToMovementVectorMap.ContainsValue(vector))
-            {
-                return FacingToMovementVectorMap.First(facing => facing.Value == vector).Key;
-            }
-            return null;
+            return FacingToMovementVectorMap.ContainsValue(vector)
+                ? FacingToMovementVectorMap.First(facing => facing.Value == vector).Key
+                : null;
         }
 
         /// <summary>
@@ -741,10 +739,10 @@ namespace ProgressAdventure.EntityManagement
                     return false;
                 }
             }
-
+            
             return true;
         }
-
+        
         /// <summary>
         /// Creates teams based on the team number of the entities in the list.
         /// </summary>
@@ -768,7 +766,7 @@ namespace ProgressAdventure.EntityManagement
                     noTeamNumber++;
                 }
 
-                if (entity.currentTeam != -1 && teams.TryGetValue(teamName, out List<Entity>? value))
+                if (entity.currentTeam != -1 && teams.TryGetValue(teamName, out var value))
                 {
                     value.Add(entity);
                 }
@@ -949,7 +947,7 @@ namespace ProgressAdventure.EntityManagement
         {
             generationRandom ??= RandomStates.Instance.MainRandom;
             int statValue;
-            if (statRange.negativeFluctuation == 0 && statRange.positiveFluctuation == 0)
+            if (statRange is { negativeFluctuation: 0, positiveFluctuation: 0 })
             {
                 statValue = statRange.baseValue;
             }
@@ -988,16 +986,13 @@ namespace ProgressAdventure.EntityManagement
                 }
 
                 var entityList = new List<Entity>();
-                foreach (var entity in team.Value)
+                foreach (var entity in team.Value.Where(entity => entity.CurrentHp > 0))
                 {
-                    if (entity.CurrentHp > 0)
+                    entityList.Add(entity);
+                    if (entity.type == PlayerEntityType)
                     {
-                        entityList.Add(entity);
-                        if (entity.type == EntityUtils.PlayerEntityType)
-                        {
-                            playerTeam = team.Key;
-                            player = entity;
-                        }
+                        playerTeam = team.Key;
+                        player = entity;
                     }
                 }
 
@@ -1028,14 +1023,7 @@ namespace ProgressAdventure.EntityManagement
                 }
                 else
                 {
-                    var teamCount = 0;
-                    foreach (var entity in team.Value)
-                    {
-                        if (entity.CurrentHp > 0)
-                        {
-                            teamCount++;
-                        }
-                    }
+                    var teamCount = team.Value.Count(entity => entity.CurrentHp > 0);
                     if (teamCount > 0)
                     {
                         teamCounts.Add(team.Key, teamCount);
@@ -1051,14 +1039,9 @@ namespace ProgressAdventure.EntityManagement
         /// <param name="teamCounts">The entity counts for teams.</param>
         private static int GetTotalEntityCount(Dictionary<string, int> teamCounts)
         {
-            var count = 0;
-            foreach (var teamCount in teamCounts)
-            {
-                count += teamCount.Value;
-            }
-            return count;
+            return teamCounts.Sum(teamCount => teamCount.Value);
         }
-
+        
         /// <summary>
         /// Writes out the teams, and entities in those teams.
         /// </summary>
@@ -1072,24 +1055,27 @@ namespace ProgressAdventure.EntityManagement
             {
                 foreach (var team in teams)
                 {
-                    if (team.Value.Count > 1)
-                    {
-                        PACSingletons.Instance.ConsoleProxy.WriteLine($"\nTeam {team.Key}:\n");
-                        foreach (var entity in team.Value)
-                        {
-                            PACSingletons.Instance.ConsoleProxy.Write($"\t{entity.GetFullNameWithSpecies()}");
-                            if (entity.originalTeam != entity.currentTeam)
-                            {
-                                PACSingletons.Instance.ConsoleProxy.Write(" (Switched to this side!)");
-                            }
-                            PACSingletons.Instance.ConsoleProxy.WriteLine($"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n");
-                        }
-                        multiEntityTeamExists = true;
-                    }
-                    else
+                    if (team.Value.Count <= 1)
                     {
                         oneEntityTeamExists = true;
+                        continue;
                     }
+                    
+                    PACSingletons.Instance.ConsoleProxy.WriteLine($"\nTeam {team.Key}:\n");
+                    foreach (var entity in team.Value)
+                    {
+                        PACSingletons.Instance.ConsoleProxy.Write($"\t{entity.GetFullNameWithSpecies()}");
+                        if (entity.originalTeam != entity.currentTeam)
+                        {
+                            PACSingletons.Instance.ConsoleProxy.Write(" (Switched to this side!)");
+                        }
+                        
+                        PACSingletons.Instance.ConsoleProxy.WriteLine(
+                            $"\n\tHP: {entity.CurrentHp}\n\tAttack: {entity.Attack}\n\tDefence: {entity.Defence}\n\tAgility: {entity.Agility}\n"
+                        );
+                    }
+                    
+                    multiEntityTeamExists = true;
                 }
             }
             else
@@ -1163,14 +1149,13 @@ namespace ProgressAdventure.EntityManagement
                 for (var teamNum = 0; teamNum < teams.Count; teamNum++)
                 {
                     var team = teams.ElementAt(teamNum);
-                    for (var entityNum = 0; entityNum < team.Value.Count; entityNum++)
+                    foreach (var entity in team.Value)
                     {
-                        var entity = team.Value[entityNum];
                         if (entity.CurrentHp <= 0)
                         {
                             continue;
                         }
-
+                        
                         // get target
                         var targetTeamNum = (int)RandomStates.Instance.MiscRandom.GenerateInRange(0, teams.Count - 2);
                         if (targetTeamNum >= teamNum)
@@ -1185,34 +1170,31 @@ namespace ProgressAdventure.EntityManagement
                             targetEntity = targetTeam.Value.ElementAt((int)targetEntityNum);
                         }
                         while (targetEntity.CurrentHp == 0);
+                        
                         // attack
                         var targetOldHp = targetEntity.CurrentHp;
                         var attackResponse = entity.AttackEntity(targetEntity);
                         if (writeOut)
                         {
                             PACSingletons.Instance.ConsoleProxy.WriteLine($"{entity.FullName} attacked {targetEntity.FullName}");
-                            string? writeText = null;
-                            switch (attackResponse)
+                            var writeText = attackResponse switch
                             {
-                                case AttackResponse.TARGET_DOGDED:
-                                    writeText = "DODGED!";
-                                    break;
-                                case AttackResponse.TARGET_BLOCKED:
-                                    writeText = "BLOCKED!";
-                                    break;
-                                case AttackResponse.TARGET_HIT:
-                                    writeText = $"dealt {targetOldHp - targetEntity.CurrentHp} damage ({targetEntity.CurrentHp})";
-                                    break;
-                            }
+                                AttackResponse.TARGET_DOGDED => "DODGED!",
+                                AttackResponse.TARGET_BLOCKED => "BLOCKED!",
+                                AttackResponse.TARGET_HIT => $"dealt {targetOldHp - targetEntity.CurrentHp} damage ({targetEntity.CurrentHp})",
+                                _ => null,
+                            };
                             if (writeText is not null)
                             {
                                 PACSingletons.Instance.ConsoleProxy.WriteLine(writeText);
                             }
                         }
-                        if (attackResponse == AttackResponse.TARGET_HIT || attackResponse == AttackResponse.TARGET_KILLED)
+                        
+                        if (attackResponse is AttackResponse.TARGET_HIT or AttackResponse.TARGET_KILLED)
                         {
                             no_damage_in_x_turns = 0;
                         }
+                        
                         // kill
                         if (attackResponse == AttackResponse.TARGET_KILLED)
                         {
@@ -1221,6 +1203,7 @@ namespace ProgressAdventure.EntityManagement
                                 PACSingletons.Instance.ConsoleProxy.WriteLine($"dealt {targetOldHp - targetEntity.CurrentHp} damage (DEAD)");
                                 PACSingletons.Instance.ConsoleProxy.WriteLine($"{entity.FullName} defeated {targetEntity.FullName}");
                             }
+                            
                             var targetTeamKey = teamCounts.ElementAt(targetTeamNum).Key;
                             teamCounts[targetTeamKey]--;
                             // loot?
@@ -1243,6 +1226,7 @@ namespace ProgressAdventure.EntityManagement
                                 }
                             }
                         }
+                        
                         if (writeOut)
                         {
                             Thread.Sleep(500);
@@ -1261,6 +1245,7 @@ namespace ProgressAdventure.EntityManagement
             {
                 PACSingletons.Instance.ConsoleProxy.WriteLine("\nResults:\n");
             }
+            
             // teams gave up
             if (no_damage_in_x_turns >= Constants.FIGHT_GIVE_UP_TURN_NUMBER)
             {
@@ -1349,15 +1334,14 @@ namespace ProgressAdventure.EntityManagement
                 // loot
                 else
                 {
-                    foreach (var team in teams)
+                    var lootableEntities = teams
+                        .SelectMany(team =>
+                            team.Value
+                                .Where(entity => entity.CurrentHp == 0 && !entity.Equals(player))
+                        );
+                    foreach (var entity in lootableEntities)
                     {
-                        foreach (var entity in team.Value)
-                        {
-                            if (entity.CurrentHp == 0 && !entity.Equals(player))
-                            {
-                                player?.TryGetInventory()?.Loot(entity.drops, writeOut ? player.FullName : null);
-                            }
-                        }
+                        player?.TryGetInventory()?.Loot(entity.drops, writeOut ? player.FullName : null);
                     }
                 }
                 if (writeOut)

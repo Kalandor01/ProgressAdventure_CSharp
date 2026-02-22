@@ -807,7 +807,7 @@ namespace PACommon
             return sb.ToString();
         }
         #endregion
-
+        
         #region Private functions
         /// <summary>
         /// Gets an internal field from a class.
@@ -819,12 +819,12 @@ namespace PACommon
         /// <exception cref="ArgumentNullException">Thrown if the field doesn't exist.</exception>
         private static T GetInternalFieldFromClass<T>(Type classType, string fieldName, object? instance = null)
         {
-            var field = classType?.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+            var field = classType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
             return field?.GetValue(instance) is T value
                 ? value
                 : throw new ArgumentNullException(nameof(fieldName), "The internal filed doesn't exist.");
         }
-
+        
         /// <summary>
         /// Gets an internal property from a class.
         /// </summary>
@@ -835,7 +835,7 @@ namespace PACommon
         /// <exception cref="ArgumentNullException">Thrown if the property doesn't exist.</exception>
         private static T GetInternalPropertyValueFromClass<T>(Type classType, string propertyName, object? instance = null)
         {
-            var property = classType?.GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Static);
+            var property = classType.GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Static);
             return property?.GetValue(instance) is T value
                 ? value
                 : throw new ArgumentNullException(nameof(propertyName), "The internal property doesn't exist.");

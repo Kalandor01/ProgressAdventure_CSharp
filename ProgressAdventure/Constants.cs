@@ -6,7 +6,7 @@ namespace ProgressAdventure
     /// <summary>
     /// Object for storing constants.
     /// </summary>
-    public class Constants
+    public static class Constants
     {
         #region Thread names
         /// <summary>
@@ -161,13 +161,9 @@ namespace ProgressAdventure
 
         #region Cursor types
         /// <summary>
-        /// The <c>CursorIcon</c> used in most cases.
+        /// The <see cref="CursorIcon"/> used in most cases.
         /// </summary>
         public static readonly CursorIcon STANDARD_CURSOR_ICONS = new(">", "", " ", "");
-        /// <summary>
-        /// The <c>CursorIcon</c> for deletions.
-        /// </summary>
-        public static readonly CursorIcon DELETE_CURSOR_ICONS = new(" X", "", "  ", "");
         #endregion
 
         #region Colors

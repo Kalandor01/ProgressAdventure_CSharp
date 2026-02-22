@@ -5,23 +5,22 @@ namespace PACommon
 {
     /// <summary>
     /// A perlin noise generator, capable of generating 2D perlin noise.<br/>
-    /// Based on the <see href="https://www.nuget.org/packages/Simplex"><c>Simplex</c></see> package by DanClipca.
+    /// Based on the <see href="https://www.nuget.org/packages/Simplex">Simplex</see> package by DanClipca.
     /// </summary>
     public class PerlinNoise
     {
         #region Private fields
         private readonly byte[] _perm;
-        private IPseudoRandomGenerator _generator;
         #endregion
 
         #region Public properties
         public IPseudoRandomGenerator Generator
         {
-            get => _generator;
+            get;
             set
             {
                 GeneratePermBytes(value);
-                _generator = value;
+                field = value;
             }
         }
         #endregion
@@ -30,28 +29,27 @@ namespace PACommon
         /// <summary>
         /// Creates a new perlin noise generator, with the specified generator.
         /// </summary>
-        /// <param name="generator">The generator to initialise the perlin generator with.</param>
+        /// <param name="generator">The generator to initialize the perlin generator with.</param>
         public PerlinNoise(IPseudoRandomGenerator generator)
         {
             _perm = new byte[512];
             Generator = generator;
         }
-
+        
         /// <summary>
         /// Creates a new perlin noise generator, with the specified seed.
         /// </summary>
-        /// <param name="seed">The seed to initialise the perlin generator with.</param>
+        /// <param name="seed">The seed to initialize the perlin generator with.</param>
         public PerlinNoise(ulong seed)
             : this(new SplittableRandom(seed)) { }
-
+        
         /// <summary>
         /// Creates a new perlin noise generator, with a random seed.
         /// </summary>
-        /// <param name="seed">The seed to initialise the perlin generator with.</param>
         public PerlinNoise()
             : this(new SplittableRandom()) { }
         #endregion
-
+        
         #region Public methods
         /// <summary>
         /// Generates a perlin noise value, ranging from 0 to 1.
@@ -147,14 +145,14 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Fills the elements of the perm array with ramdom bytes, using an <c>NPrng</c> generator.
+        /// Fills the elements of the perm array with ramdom bytes, using an <see cref="NPrng"/> generator.
         /// </summary>
-        /// <param name="generator">The <c>NPrng</c> generator to use.</param>
+        /// <param name="generator">The <see cref="NPrng"/> generator to use.</param>
         private void GeneratePermBytes(IPseudoRandomGenerator generator)
         {
             var halfArray = new byte[256];
 
-            for (int x = 0; x < halfArray.Length; x++)
+            for (var x = 0; x < halfArray.Length; x++)
             {
                 halfArray[x] = (byte)generator.GenerateInRange(0, 255);
             }

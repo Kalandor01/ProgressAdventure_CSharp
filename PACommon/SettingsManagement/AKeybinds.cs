@@ -43,7 +43,7 @@ namespace PACommon.SettingsManagement
 
         #region Public methods
         /// <summary>
-        /// Returns the <c>ActionKey</c> by type.
+        /// Returns the <see cref="AActionKey{T}"/> by type.
         /// </summary>
         /// <param name="actionType">The action type.</param>
         public TA? GetActionKey(T actionType)
@@ -64,7 +64,7 @@ namespace PACommon.SettingsManagement
         public abstract void FillAllKeybinds();
 
         /// <summary>
-        /// Marks all of the keys, that are the same, as another key.
+        /// Marks all keys, that are the same, as another key.
         /// </summary>
         public void UpdateKeybindConflicts()
         {

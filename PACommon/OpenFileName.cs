@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace PACommon
 {
     /// <summary>
-    /// Struct used in <c>OpenFileDialog</c>.
+    /// Struct used in <see cref="Utils.OpenFileDialog"/>.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     internal struct OpenFileName

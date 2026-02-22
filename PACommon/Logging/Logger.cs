@@ -5,7 +5,7 @@ namespace PACommon.Logging
     /// <summary>
     /// Contains functions for logging.
     /// </summary>
-    public partial class Logger : ILogger
+    public class Logger : ILogger
     {
         #region Private fields
         /// <summary>
@@ -123,7 +123,7 @@ namespace PACommon.Logging
         /// <param name="defaultWriteOut"><inheritdoc cref="_defaultWriteOut" path="//summary"/></param>
         /// <param name="loggingLevel"><inheritdoc cref="_loggingLevel" path="//summary"/></param>
         /// <param name="forceLogInterval"><inheritdoc cref="ForceLogInterval" path="//summary"/></param>
-        /// <param name="logInitialization">Whether to log the fact that the <c>Logger</c> was initialized.</param>
+        /// <param name="logInitialization">Whether to log the fact that the <see cref="Logger"/> was initialized.</param>
         /// <param name="onlyIfUninitialized">If true, only initializes the singleton if it hasn't been initialized yet.</param>
         public static Logger Initialize(
             ILoggerStream loggerStream,
@@ -286,9 +286,9 @@ namespace PACommon.Logging
         }
 
         /// <summary>
-        /// Sets the <c>LOGGING_LEVEL</c>, and if logging is enabled.
+        /// Sets <see cref="LoggingLevel"/> and <see cref="LoggingEnabled"/>.
         /// </summary>
-        /// <param name="value">The level to set the <c>LOGGING_LEVEL</c>.</param>
+        /// <param name="value">The level to set the <see cref="LoggingLevel"/>.</param>
         private void ChangeLoggingLevel(LogSeverity value)
         {
             if (_loggingLevel == value)

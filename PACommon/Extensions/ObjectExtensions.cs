@@ -3,7 +3,7 @@ using System.Reflection;
 namespace PACommon.Extensions
 {
     /// <summary>
-    /// Object for storing extensions for <c>object</c>.
+    /// Object for storing extensions for <see cref="object"/>.
     /// </summary>
     public static class ObjectExtensions
     {
@@ -201,13 +201,13 @@ namespace PACommon.Extensions
 
     internal class ArrayTraverse
     {
-        public int[] Position;
+        public readonly int[] Position;
         private readonly int[] maxLengths;
 
         public ArrayTraverse(Array array)
         {
             maxLengths = new int[array.Rank];
-            for (int x = 0; x < array.Rank; ++x)
+            for (var x = 0; x < array.Rank; ++x)
             {
                 maxLengths[x] = array.GetLength(x) - 1;
             }

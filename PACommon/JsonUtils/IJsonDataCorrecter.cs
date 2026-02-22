@@ -1,7 +1,7 @@
 namespace PACommon.JsonUtils
 {
     /// <summary>
-    /// Interface containing utils to convert json data for <c>IJsonConvertable</c> objects to different versions.
+    /// Interface containing utils to convert json data for <see cref="IJsonConvertable{TSelf}"/> objects to different versions.
     /// </summary>
     public interface IJsonDataCorrecter : IDisposable
     {

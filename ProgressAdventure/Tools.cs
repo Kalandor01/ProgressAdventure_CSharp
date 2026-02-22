@@ -151,29 +151,29 @@ namespace ProgressAdventure
 
         #region Recreate folder
         /// <summary>
-        /// <c>RecreateFolder</c> for the saves folder.
+        /// <see cref="PACTools.RecreateFolder"/> for the saves folder.
         /// </summary>
-        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?)"/></returns>
         public static bool RecreateSavesFolder()
         {
             return PACTools.RecreateFolder(SAVES_FOLDER);
         }
 
         /// <summary>
-        /// <c>RecreateFolder</c> for the backups folder.
+        /// <see cref="PACTools.RecreateFolder"/> for the backups folder.
         /// </summary>
-        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?)"/></returns>
         public static bool RecreateBackupsFolder()
         {
             return PACTools.RecreateFolder(BACKUPS_FOLDER);
         }
 
         /// <summary>
-        /// <c>RecreateFolder</c> for a save folder, and all previous folders up to root.
+        /// <see cref="PACTools.RecreateFolder"/> for a save folder, and all previous folders up to root.
         /// </summary>
         /// <param name="saveFolderName">The name of the save folder.<br/>
-        /// If null, it uses the save name of <c>SaveData</c> instead.</param>
-        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
+        /// If null, it uses <see cref="SaveData.SaveName"/> instead.</param>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?)"/></returns>
         public static bool RecreateSaveFileFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.SaveName;
@@ -181,11 +181,11 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// <c>RecreateFolder</c> for a save's chunk folder, and all previous folders up to root.
+        /// <see cref="PACTools.RecreateFolder"/> for a save's chunk folder, and all previous folders up to root.
         /// </summary>
         /// <param name="saveFolderName">The save name.<br/>
-        /// If null, it uses the save name of <c>SaveData</c> instead.</param>
-        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?, string?)"/></returns>
+        /// If null, it uses <see cref="SaveData.SaveName"/> instead.</param>
+        /// <returns><inheritdoc cref="PACTools.RecreateFolder(string, string?)"/></returns>
         public static bool RecreateChunksFolder(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.SaveName;
@@ -206,7 +206,7 @@ namespace ProgressAdventure
         /// <summary>
         /// Returns what the currently loaded save's folder path should be.
         /// </summary>
-        public static string? GetSaveFolderPath()
+        public static string GetSaveFolderPath()
         {
             return GetSaveFolderPath(SaveData.Instance.SaveName);
         }
@@ -279,7 +279,7 @@ namespace ProgressAdventure
         {
             return string.IsNullOrWhiteSpace(rawPlayerName) ? "You" : rawPlayerName;
         }
-
+        
         /// <summary>
         /// Returns a variant of the seed text, that is unified.
         /// </summary>
@@ -290,9 +290,9 @@ namespace ProgressAdventure
             {
                 return "???";
             }
-
-            NPrngExtensionsPA.GetRandomFromString(rawSeedText, out var seedString);
-            return seedString;
+            
+            NPrngExtensionsPA.GetRandomFromString(rawSeedText, out var seedString, out var isZeroGamma);
+            return $"{seedString}{(isZeroGamma ? " ZERO GAMMA!" : "")}";
         }
 
         /// <summary>
@@ -335,7 +335,7 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Colors text fore/background (influenced by <c>Settings.EnableColoredText</c>).
+        /// Colors text fore/background (influenced by <see cref="ISettings.EnableColoredText"/>).
         /// </summary>
         /// <param name="text">The text to display</param>
         /// <param name="foregroundColor">The RGB color of the foreground color.</param>
@@ -362,10 +362,10 @@ namespace ProgressAdventure
         }
 
         /// <summary>
-        /// Clears the values form an <see cref="AdvancedEnumTree{TSelf}{TSelf}"/>, and sets the default values.
+        /// Clears the values form an <see cref="AdvancedEnumTree{TSelf}"/>, and sets the default values.
         /// </summary>
-        /// <typeparam name="TEnum">The type of the <see cref="AdvancedEnumTree{TSelf}{TSelf}"/>.</typeparam>
-        /// <param name="defaultValues">The default values for that <see cref="AdvancedEnumTree{TSelf}{TSelf}"/>.</param>
+        /// <typeparam name="TEnum">The type of the <see cref="AdvancedEnumTree{TSelf}"/>.</typeparam>
+        /// <param name="defaultValues">The default values for that <see cref="AdvancedEnumTree{TSelf}"/>.</param>
         public static void LoadDefultAdvancedEnumTree<TEnum>(List<EnumTreeValue<TEnum>> defaultValues)
             where TEnum : AdvancedEnumTree<TEnum>
         {
@@ -435,19 +435,19 @@ namespace ProgressAdventure
             var namespaces = ConfigUtils.UpdateEnabledConfigDatas(out var vanillaInvalid)
                 .Select(cd => (cd.FolderName, cd.Namespace))
                 .ToList();
-
-            // call static consturcors in order to load default config values
+            
+            // call static constructors in order to load default config values
             var sc = SettingsUtils.ActionTypeAttributes;
             var ic = ItemUtils.MATERIAL_ITEM_TYPE;
             var ec = EntityUtils.FacingToMovementVectorMap;
             var wc = WorldUtils.TileNoiseOffsets;
-
+            
             PASingletons.Instance.Localizer.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             SettingsUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             ItemUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             EntityUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
             WorldUtils.ReloadConfigs(namespaces, vanillaInvalid, showProgressIndentation);
-
+            
             PACSingletons.Instance.Logger.Log("All configs reloaded");
         }
         

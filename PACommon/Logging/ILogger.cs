@@ -36,7 +36,7 @@ namespace PACommon.Logging
 
         #region Public functions
         /// <summary>
-        /// Tries to turn the int value of the log severity into a <c>LogSeverity</c> enum, and returns the success.
+        /// Tries to turn the int value of the log severity into a <see cref="LogSeverity"/> enum, and returns the success.
         /// </summary>
         /// <param name="severityValue">The log sevrity's int representation.</param>
         /// <param name="severity">The sevrity, that got parsed, or created.</param>

@@ -8,7 +8,6 @@ namespace PACommon.Logging
     public class FileLoggerStream : ILoggerStream
     {
         #region Private fields
-
         /// <summary>
         /// The name of the folder, where the logs will be placed.
         /// </summary>
@@ -26,7 +25,7 @@ namespace PACommon.Logging
         /// <param name="logsFolderPath"><inheritdoc cref="logsFolderPath" path="//summary"/></param>
         /// <param name="logsExtension"><inheritdoc cref="logsExt" path="//summary"/></param>
         public FileLoggerStream(
-            string? logsFolderPath = null,
+            string? logsFolderPath,
             string logsExtension = Constants.DEFAULT_LOG_EXT
         )
         {
@@ -40,7 +39,7 @@ namespace PACommon.Logging
                 throw new ArgumentException($"'{nameof(logsExtension)}' cannot be null or whitespace.", nameof(logsExtension));
             }
 
-            this.logsFolderPath = logsFolderPath ?? Path.Join(Constants.ROOT_FOLDER, Constants.DEFAULT_LOGS_FOLDER);
+            this.logsFolderPath = logsFolderPath;
             logsExt = logsExtension;
         }
         #endregion
@@ -89,7 +88,7 @@ namespace PACommon.Logging
             {
                 try
                 {
-                    using var writer = File.AppendText(Path.Join(logsFolderPath, $"{currentDate}.{logsExt}"));
+                    await using var writer = File.AppendText(Path.Join(logsFolderPath, $"{currentDate}.{logsExt}"));
                     await writer.WriteAsync(joinedLogs);
                     break;
                 }
@@ -99,7 +98,7 @@ namespace PACommon.Logging
 
         public async Task LogNewLineAsync()
         {
-            using var f = File.AppendText(Path.Join(logsFolderPath, $"{Utils.MakeDate(DateTime.Now)}.{logsExt}"));
+            await using var f = File.AppendText(Path.Join(logsFolderPath, $"{Utils.MakeDate(DateTime.Now)}.{logsExt}"));
             await f.WriteAsync("\n");
         }
 
@@ -114,7 +113,7 @@ namespace PACommon.Logging
         public async Task LogLoggingExceptionAsync(Exception exception)
         {
             RecreateLogsFolder();
-            using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
+            await using var f = File.AppendText(Path.Join(Constants.ROOT_FOLDER, "CRASH.log"));
             await f.WriteAsync($"\n[{Utils.MakeDate(DateTime.Now)}_{Utils.MakeTime(DateTime.Now, writeMs: true)}] [LOGGING CRASHED]\t: |{exception}|\n");
         }
 
@@ -131,9 +130,9 @@ namespace PACommon.Logging
         }
 
         /// <summary>
-        /// <c>RecreateFolder</c> for the logs folder.
+        /// <see cref="Tools.RecreateFolder"/> for the logs folder.
         /// </summary>
-        /// <returns><inheritdoc cref="Tools.RecreateFolder(string, string?, string?)"/></returns>
+        /// <returns><inheritdoc cref="Tools.RecreateFolder(string, string?)"/></returns>
         public bool RecreateLogsFolder()
         {
             return Tools.RecreateFolder(logsFolderPath);

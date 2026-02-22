@@ -153,19 +153,18 @@ namespace PACommon
         /// <returns>If the folder needed to be recreated.</returns>
         public static bool RecreateFolder(string folderPath, string? displayName = null)
         {
-            folderPath = folderPath.Contains(Path.DirectorySeparatorChar) ? folderPath : Path.Join(Constants.ROOT_FOLDER, folderPath);
-            displayName ??= new DirectoryInfo(folderPath).Name.ToLower();
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-                PACSingletons.Instance.Logger.Log($"Recreating {displayName} folder");
-                return true;
-            }
-            else
+            folderPath = folderPath.Contains(Path.DirectorySeparatorChar)
+                ? folderPath
+                : Path.Join(Constants.ROOT_FOLDER, folderPath);
+            if (Directory.Exists(folderPath))
             {
                 return false;
             }
+            
+            Directory.CreateDirectory(folderPath);
+            displayName ??= new DirectoryInfo(folderPath).Name.ToLower();
+            PACSingletons.Instance.Logger.Log($"Recreating {displayName} folder");
+            return true;
         }
         #endregion
 
@@ -202,10 +201,7 @@ namespace PACommon
                     PACSingletons.Instance.Logger.Log("Random parse error", "cannot parse random generator from seed string", LogSeverity.WARN);
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
         }
 
@@ -213,7 +209,7 @@ namespace PACommon
         /// Tries to turn the string representation of a Splittable random into an object, and returns the success.
         /// </summary>
         /// <param name="randomString">The random generator's string representation.</param>
-        /// <param name="random">The random generator, that got deserialised.</param>
+        /// <param name="random">The random generator, that got deserialized.</param>
         public static bool TryDeserializeRandom(string? randomString, [NotNullWhen(true)] out SplittableRandom? random)
         {
             random = DeserializeRandom(randomString);
@@ -221,7 +217,7 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Returns a new <c>SplittableRandom</c> from another <c>SplittableRandom</c>.
+        /// Returns a new <see cref="SplittableRandom"/> from another <see cref="SplittableRandom"/>.
         /// </summary>
         /// <param name="parrentRandom">The random generator to use, to generate the other generator.</param>
         public static SplittableRandom MakeRandomGenerator(SplittableRandom parrentRandom)
@@ -253,12 +249,12 @@ namespace PACommon
         public static T? FromJson<T>(JsonDictionary? objectJson, string fileVersion)
             where T : IJsonConvertable<T>
         {
-            T.FromJson(objectJson, fileVersion, out T? convertedObject);
+            T.FromJson(objectJson, fileVersion, out var convertedObject);
             return convertedObject;
         }
 
         /// <summary>
-        /// FromJson(), but without correcting the json data first.
+        /// <see cref="FromJson"/>, but without correcting the json data first.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
@@ -271,7 +267,7 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Tries to do FromJson(), but without correcting the json data first.
+        /// <see cref="TryFromJson"/>, but without correcting the json data first.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="fileVersion">The version number of the loaded file.</param>
@@ -321,7 +317,7 @@ namespace PACommon
         }
 
         /// <summary>
-        /// FromJson(), but without correcting the json data first.
+        /// <see cref="FromJson"/>, but without correcting the json data first.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="extraData">Some extra data to help with the conversion.</param>
@@ -340,7 +336,7 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Tries to do FromJson(), but without correcting the json data first.
+        /// <see cref="TryFromJson"/>, but without correcting the json data first.
         /// </summary>
         /// <param name="objectJson">The json representation of the object.</param>
         /// <param name="extraData">Some extra data to help with the conversion.</param>
@@ -516,13 +512,13 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Returns the call stack of "FromJson()" (and json correcter) methods.
+        /// Returns the call stack of <see cref="FromJson"/> (and <see cref="JsonDataCorrecter"/>) methods.
         /// </summary>
         public static List<StackFrame?> GetFromJsonCallStack()
         {
             var frames = new StackTrace(true).GetFrames();
-            var fromJsonMethodName = "FromJsonWithoutCorrection";
-            var correcterMethodName = "CorrectJsonDataVersionPrivate";
+            const string fromJsonMethodName = "FromJsonWithoutCorrection";
+            const string correcterMethodName = "CorrectJsonDataVersionPrivate";
 
             return [.. frames.Where(frame =>
             {
@@ -546,7 +542,7 @@ namespace PACommon
         }
 
         /// <summary>
-        /// Returns the string representation of the call stack of "FromJson()" methods.
+        /// Returns the string representation of <see cref="GetFromJsonCallStack"/>.
         /// </summary>
         public static string? GetFromJsonCallStackString()
         {
@@ -1405,9 +1401,9 @@ namespace PACommon
             if (inputKey is null)
             {
                 var sbText = currentValue.ToString();
-                return sbText[0..cursorPosition] + sbText[(cursorPosition + 1)..];
+                return sbText[..cursorPosition] + sbText[(cursorPosition + 1)..];
             }
-            return currentValue.ToString().Insert(cursorPosition, inputKey?.KeyChar.ToString() ?? "");
+            return currentValue.ToString().Insert(cursorPosition, inputKey.Value.KeyChar.ToString());
         }
 
         /// <summary>
@@ -1427,7 +1423,7 @@ namespace PACommon
             return new LoadingText(
                 preSpinner,
                 postSpinner,
-                postValue + "\u001b[0K", 0,
+                postValue + "\e[0K",
                 valueFormat: $"0.{new string('0', precision)}%",
                 consoleProxy: PACSingletons.Instance.ConsoleProxy
             );

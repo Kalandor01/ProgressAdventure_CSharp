@@ -51,7 +51,7 @@ namespace ProgressAdventure.WorldManagement
 
         #region Public methods
         /// <summary>
-        /// Returns the <c>Tile</c> if it exists, or null.
+        /// Returns the <see cref="Tile"/> if it exists, or null.
         /// </summary>
         /// <param name="position">The position of the tile.</param>
         public Tile? FindTile((long x, long y) position)
@@ -94,7 +94,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// Saves the chunk's data into a file in the save folder.
         /// </summary>
-        /// <param name="saveFolderName">If null, it will use the save name in <c>SaveData</c>.</param>
+        /// <param name="saveFolderName">If null, it will use the save name in <see cref="SaveData"/>.</param>
         public void SaveToFile(string? saveFolderName = null)
         {
             saveFolderName ??= SaveData.Instance.SaveName;
@@ -124,7 +124,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="isFileInvalid">If the file wasn't able to be decoded because of it's format/content.</param>
         /// <param name="chunk">The parsed <see cref="Chunk"/>.</param>
         /// <param name="saveFolderName">The name of the save folder.<br/>
-        /// If null, it will make one using the save name in <c>SaveData</c>.</param>
+        /// If null, it will make one using the save name in <see cref="SaveData"/>.</param>
         /// <param name="expected">If the chunk is expected to exist.<br/>
         /// ONLY ALTERS THE LOGS DISPLAYED, IF THE CHUNK DOESN'T EXIST.</param>
         /// <returns>If the parsing was succesfull without any warnings.</returns>
@@ -184,12 +184,12 @@ namespace ProgressAdventure.WorldManagement
 
         #region Private methods
         /// <summary>
-        /// Returns the <c>Tile</c> if it exists, or null.
+        /// Returns the <see cref="Tile"/> if it exists, or null.
         /// </summary>
         /// <param name="tileKey">The name of the tile in the distionary.</param>
         private Tile? FindTile(string tileKey)
         {
-            tiles.TryGetValue(tileKey, out Tile? tile);
+            tiles.TryGetValue(tileKey, out var tile);
             return tile;
         }
 
@@ -199,9 +199,9 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="checkExisting">If it should check, if tile already exists before creating it.</param>
         private void FillChunk(bool checkExisting)
         {
-            for (int x = 0; x < Constants.CHUNK_SIZE; x++)
+            for (var x = 0; x < Constants.CHUNK_SIZE; x++)
             {
-                for (int y = 0; y < Constants.CHUNK_SIZE; y++)
+                for (var y = 0; y < Constants.CHUNK_SIZE; y++)
                 {
                     if (checkExisting)
                     {
@@ -242,19 +242,13 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
         /// <param name="chunkSize">The chunk size to round the position to.</param>
-        public static string GetChunkFileName((long x, long y) absolutePosition, int chunkSize)
+        public static string GetChunkFileName((long x, long y) absolutePosition, int chunkSize = Constants.CHUNK_SIZE)
         {
             var baseX = Utils.FloorRound(absolutePosition.x, chunkSize);
             var baseY = Utils.FloorRound(absolutePosition.y, chunkSize);
             return $"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}{baseX}{Constants.CHUNK_FILE_NAME_SEP}{baseY}";
         }
-
-        /// <inheritdoc cref="GetChunkFileName(ValueTuple{long, long}, int)"/>
-        public static string GetChunkFileName((long x, long y) absolutePosition)
-        {
-            return GetChunkFileName(absolutePosition, Constants.CHUNK_SIZE);
-        }
-
+        
         /// <summary>
         /// Generates the chunk random genrator for a chunk.
         /// </summary>
@@ -266,15 +260,11 @@ namespace ProgressAdventure.WorldManagement
             var posY = Utils.FloorRound(absolutePosition.y, chunkSize);
             var noiseValues = WorldUtils.GetNoiseValues(posX, posY);
             var noiseNum = noiseValues.Count;
-            var seedNumSize = 19.0;
+            const double seedNumSize = 19.0;
             var noiseTenMulti = (int)Math.Floor(seedNumSize / noiseNum);
             var noiseMulti = Math.Pow(10, noiseTenMulti);
-            ulong seed = 1;
-            for (int x = 0; x < noiseValues.Count; x++)
-            {
-                var noiseVal = noiseValues.ElementAt(x).Value;
-                seed *= (ulong)(noiseVal * noiseMulti);
-            }
+            var seed = noiseValues.Values
+                .Aggregate<double, ulong>(1, (current, noiseVal) => current * (ulong)(noiseVal * noiseMulti));
             seed = (ulong)(seed * RandomStates.Instance.ChunkSeedModifier);
             return new SplittableRandom(seed);
         }
@@ -293,11 +283,10 @@ namespace ProgressAdventure.WorldManagement
 
         public JsonDictionary ToJson()
         {
-            var tilesJson = new List<JsonObject?>();
-            foreach (var tile in tiles)
-            {
-                tilesJson.Add(tile.Value.ToJson());
-            }
+            var tilesJson = tiles
+                .Select(tile => tile.Value.ToJson())
+                .Cast<JsonObject?>()
+                .ToList();
             return new JsonDictionary
             {
                 [Constants.JsonKeys.Chunk.POSITION_X] = basePosition.x,
@@ -341,7 +330,7 @@ namespace ProgressAdventure.WorldManagement
             }
             var tiles = tilesKvPair.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            var totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
+            const int totalTileNum = Constants.CHUNK_SIZE * Constants.CHUNK_SIZE;
             var allTilesExist = tiles.Count == totalTileNum;
             PACSingletons.Instance.Logger.Log(
                 "Loaded chunk tiles from json",

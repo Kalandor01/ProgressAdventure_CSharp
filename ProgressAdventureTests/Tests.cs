@@ -1,11 +1,13 @@
 using System.IO.Compression;
 using System.Reflection;
+using JetBrains.Annotations;
 using PACommon;
 using PACommon.Enums;
 using PACommon.Extensions;
 using PACommon.JsonUtils;
 using PACommon.SettingsManagement;
 using PACommon.TestUtils;
+using PAExtras;
 using ProgressAdventure;
 using ProgressAdventure.ConfigManagement;
 using ProgressAdventure.EntityManagement;
@@ -31,6 +33,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the EntityUtils, facing to movement vector dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? EntityUtilsFacingToMovementVectorDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<Facing>();
@@ -50,14 +53,13 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out (int x, int y) value))
+                if (checkedDictionary.TryGetValue(key, out var value))
                 {
                     if (
                         existingValues.Contains(value)
                     )
                     {
                         errorMessages.Add($"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
-                        continue;
                     }
                     else
                     {
@@ -75,7 +77,6 @@ namespace ProgressAdventureTests
                 else
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)
@@ -85,10 +86,11 @@ namespace ProgressAdventureTests
 
             return null;
         }
-
+        
         /// <summary>
         /// Checks if the EntityUtils, attributes stat change dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? EntityUtilsAttributeStatsChangeDictionaryCheck()
         {
             var requiredKeys = Attribute.GetValues();
@@ -108,12 +110,11 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (checkedDictionary.TryGetValue(key, out (double maxHp, double attack, double defence, double agility) value))
+                if (checkedDictionary.TryGetValue(key, out var value))
                 {
                     if (existingValues.Contains(value))
                     {
                         errorMessages.Add($"The dictionary already contains the value \"{value}\", associated with \"{key}\".");
-                        continue;
                     }
                     else
                     {
@@ -123,7 +124,6 @@ namespace ProgressAdventureTests
                 else
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)
@@ -133,10 +133,11 @@ namespace ProgressAdventureTests
 
             return null;
         }
-
+        
         /// <summary>
         /// Checks if the EntityUtils, entity properties map dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? EntityUtilsEntityPropertiesMapDictionaryCheck()
         {
             var requiredKeys = EntityType.GetValues();
@@ -199,6 +200,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the ItemUtils, material item attributes dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? ItemUtilsMaterialItemAttributesDictionaryCheck()
         {
             var requiredKeys = Material.GetValues();
@@ -209,7 +211,7 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out MaterialItemAttributesDTO? _))
+                if (!checkedDictionary.TryGetValue(key, out var _))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
@@ -227,6 +229,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the ItemUtils, compound item attributes dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? ItemUtilsCompoundItemAttributesDictionaryCheck()
         {
             var requiredKeys = ItemType.GetAllValues().Where(v => ItemType.GetValues(v).Count == 0).ToList();
@@ -237,7 +240,7 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out CompoundItemAttributesDTO? _))
+                if (!checkedDictionary.TryGetValue(key, out var _))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
                     continue;
@@ -262,6 +265,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the ItemUtils, item deffinitions are correct.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? ItemUtilsItemDeffinitionsCheck()
         {
             var checkedDictionary = ItemUtils.DeffinitionItemRecipes;
@@ -335,6 +339,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the ItemUtils, compound item attributes dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? ItemUtilsItemRecipesDictionaryCheck()
         {
             var checkedDictionary = ItemUtils.ItemRecipes;
@@ -371,7 +376,6 @@ namespace ProgressAdventureTests
                     )
                     {
                         errorMessages.Add($"A recipe in the recipes list at item type \"{itemRecipes.Key}\" has a {nameof(itemRecipe.resultAmount)} that isn't an integer, but the item type that will be created can only have an integer amount.");
-                        continue;
                     }
                 }
             }
@@ -388,6 +392,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the SettingsUtils, action type attributes dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? SettingsUtilsActionTypeAttributesDictionaryCheck()
         {
             var requiredKeys = ActionType.GetValues();
@@ -415,7 +420,6 @@ namespace ProgressAdventureTests
                 if (value.defaultKeys.Count == 0)
                 {
                     errorMessages.Add($"The action type doesn't have any keys at the key \"{key}\".");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)
@@ -429,6 +433,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the SettingsUtils, special key name dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? SettingsUtilsSpecialKeyNameDictionaryCheck()
         {
             var checkedDictionary = KeybindUtils.specialKeyNameMap;
@@ -466,6 +471,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the SettingsUtils, setting value type map dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? SettingsUtilsSettingValueTypeMapDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<SettingsKey>();
@@ -480,9 +486,9 @@ namespace ProgressAdventureTests
                 if (!checkedDictionary.ContainsKey(key))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
                 }
             }
+            
             if (errorMessages.Count != 0)
             {
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
@@ -492,8 +498,9 @@ namespace ProgressAdventureTests
         }
 
         /// <summary>
-        /// Checks if the SettingsUtils, <c>GetDefaultSettings()</c> dictionary contains all required keys and correct values.
+        /// Checks if the SettingsUtils, <see cref="SettingsUtils.GetDefaultSettings"/> dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? SettingsUtilsDefaultSettingsDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<SettingsKey>();
@@ -511,7 +518,6 @@ namespace ProgressAdventureTests
                 if (value is null)
                 {
                     errorMessages.Add($"The ignore map in the dictionary at \"{key}\" is null.");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)
@@ -527,6 +533,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the WorldUtils, tile noise offsets dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? WorldUtilsTileNoiseOffsetsDictionaryCheck()
         {
             var requiredKeys = Enum.GetValues<TileNoiseType>();
@@ -544,12 +551,12 @@ namespace ProgressAdventureTests
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
-                if (!checkedDictionary.TryGetValue(key, out double value))
+                if (!checkedDictionary.ContainsKey(key))
                 {
                     errorMessages.Add($"The dictionary doesn't contain a value for \"{key}\".");
-                    continue;
                 }
             }
+            
             if (errorMessages.Count != 0)
             {
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
@@ -561,10 +568,12 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the WorldUtils, content type map dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? WorldUtilsContentTypeMapDictionaryCheck()
         {
             // get all classes that directly implement BaseContent directly
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .First(a => a.GetName().Name == nameof(ProgressAdventure));
 
             var requiredKeys1 = TerrainType.GetValues();
             var requiredKeys2 = StructureType.GetValues();
@@ -572,9 +581,9 @@ namespace ProgressAdventureTests
             var terrainType = typeof(TerrainContent);
             var structureType = typeof(StructureContent);
             var unfilteredClassObjs1 = paAssembly.GetTypes().Where(terrainType.IsAssignableFrom);
-            var requiredTypeClassess1 = unfilteredClassObjs1.Where(type => !type.IsAbstract && !type.IsInterface).ToList();
+            var requiredTypeClassess1 = unfilteredClassObjs1.Where(type => type is { IsAbstract: false, IsInterface: false }).ToList();
             var unfilteredClassObjs2 = paAssembly.GetTypes().Where(structureType.IsAssignableFrom);
-            var requiredTypeClassess2 = unfilteredClassObjs2.Where(type => !type.IsAbstract && !type.IsInterface).ToList();
+            var requiredTypeClassess2 = unfilteredClassObjs2.Where(type => type is { IsAbstract: false, IsInterface: false }).ToList();
 
             var foundTypeClasses1 = new List<Type>();
             var foundTypeClasses2 = new List<Type>();
@@ -678,18 +687,20 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if the WorldUtils, content type property map dictionary contains all required keys and correct values.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? WorldUtilsContentTypePropertyMapDictionaryCheck()
         {
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .First(a => a.GetName().Name == nameof(ProgressAdventure));
 
             // get all classes that directly implement BaseContent directly
             var baseContentType1 = typeof(TerrainContent);
             var huh = paAssembly.GetTypes().Where(t => t.BaseType == baseContentType1);
             var filteredTypes1 = paAssembly.GetTypes()
-                .Where(type => !type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType1);
+                .Where(type => type is { IsAbstract: false, IsInterface: false } && type.BaseType == baseContentType1);
             var baseContentType2 = typeof(StructureContent);
             var filteredTypes2 = paAssembly.GetTypes()
-                .Where(type => !type.IsAbstract && !type.IsInterface && type.BaseType == baseContentType2);
+                .Where(type => type is { IsAbstract: false, IsInterface: false } && type.BaseType == baseContentType2);
 
             var requiredKeys1 = filteredTypes1.ToList();
             var requiredKeys2 = filteredTypes2.ToList();
@@ -706,7 +717,7 @@ namespace ProgressAdventureTests
                 return new TestResultDTO(LogSeverity.FAIL, $"\n\tExeption because of (outdated?) test structure in {nameof(WorldUtils)}: " + ex);
             }
 
-            if (WorldUtilsContentTypePropertyMapDictionaryCheckPrivate(requiredKeys1, checkedDictionary1) is TestResultDTO result1)
+            if (WorldUtilsContentTypePropertyMapDictionaryCheckPrivate(requiredKeys1, checkedDictionary1) is { } result1)
             {
                 return result1;
             }
@@ -719,9 +730,10 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if all material enums values can be turned into material items.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? AllMaterialItemTypesExistAndLoadable()
         {
-            var itemAmount = 3;
+            const int itemAmount = 3;
 
             var allItems = new List<MaterialItem>();
 
@@ -785,7 +797,6 @@ namespace ProgressAdventureTests
                 }
 
                 errorMessages.Add($"Original item, and item loaded from json are not the same for \"{item.Type}\"");
-                continue;
             }
             if (errorMessages.Count != 0)
             {
@@ -798,9 +809,10 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if all item IDs can be turned into compound items.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? AllCompoundItemTypesExistAndLoadable()
         {
-            var itemAmount = 3;
+            const int itemAmount = 3;
 
             var allItems = new List<CompoundItem>();
 
@@ -883,6 +895,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if all entities have a type name, and can be loaded from json.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? AllEntitiesLoadable()
         {
             RandomStates.Initialize();
@@ -906,7 +919,7 @@ namespace ProgressAdventureTests
             // check if entity exists and loadable from jsom
             var errorMessages = new List<string>();
 
-            var testSaveName = "test save";
+            const string testSaveName = "test save";
             (long, long)? nullTestPos = null;
             var testPos = (15, 38);
             var testPos2 = (68, 29);
@@ -925,7 +938,7 @@ namespace ProgressAdventureTests
                     continue;
                 }
 
-                var defEntityJson = new JsonDictionary()
+                var defEntityJson = new JsonDictionary
                 {
                     ["type"] = entityType,
                 };
@@ -999,8 +1012,8 @@ namespace ProgressAdventureTests
                     (
                         (loadedEntity.TryGetInventory() is null && entity.TryGetInventory() is null) ||
                         (
-                            loadedEntity.TryGetInventory() is Inventory loadedInv &&
-                            entity.TryGetInventory() is Inventory entityInv &&
+                            loadedEntity.TryGetInventory() is  { } loadedInv &&
+                            entity.TryGetInventory() is  { } entityInv &&
                             loadedInv.items.SequenceEqual(entityInv.items)
                         )
                     )
@@ -1018,8 +1031,8 @@ namespace ProgressAdventureTests
                 }
 
                 errorMessages.Add($"Original entity, and entity loaded from json are not the same for \"{entity.type}\"");
-                continue;
             }
+            
             if (errorMessages.Count != 0)
             {
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
@@ -1034,6 +1047,7 @@ namespace ProgressAdventureTests
         /// Checks if all objects that implement IJsonConvertable can be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? BasicJsonConvertTest()
         {
             // list of classes that implement "IJsonConvertable<T>"!
@@ -1043,7 +1057,7 @@ namespace ProgressAdventureTests
                 new CompoundItem(ItemType.Weapon.SWORD, [new MaterialItem(Material.CLOTH)]),
                 new Inventory(),
                 new MaterialItem(Material.FLINT),
-                new ActionKey(ActionType.ESCAPE, [new()]),
+                new ActionKey(ActionType.ESCAPE, [new ConsoleKeyInfo()]),
                 new Keybinds(),
                 new Chunk((1, 1)),
                 RandomStates.Initialize(),
@@ -1056,31 +1070,34 @@ namespace ProgressAdventureTests
 
             // get all classes that implement IJsonConvertable<T>
             var jsonConvertableType = typeof(IJsonConvertable<>);
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .First(a => a.GetName().Name == nameof(ProgressAdventure));
             var unfilteredTypes = paAssembly.GetTypes().Where(jsonConvertableType.IsGenericAssignableFromType);
-            var filteredTypes = unfilteredTypes.Where(type => !type.IsAbstract && !type.IsInterface);
+            var filteredTypes = unfilteredTypes
+                .Where(type => type is { IsAbstract: false, IsInterface: false })
+                .ToList();
 
             //check if all mocked classes are correct and present
-            if (filteredTypes.Count() != testObjects.Count)
+            if (filteredTypes.Count != testObjects.Count)
             {
-                var diff = testObjects.Count - filteredTypes.Count();
+                var diff = testObjects.Count - filteredTypes.Count;
                 return new TestResultDTO(LogSeverity.FAIL, $"\n\tThere are {Math.Abs(diff)} {(diff > 0 ? "more" : "less")} test objects in the test objects list than there should be.");
             }
 
             var errorMessages = new List<string>();
             foreach (var testObject in testObjects)
             {
-                if (!filteredTypes.Any(type => type == testObject.GetType()))
+                if (filteredTypes.All(type => type != testObject.GetType()))
                 {
                     errorMessages.Add($"The {testObject.GetType()} type object should not be in the test objects list.");
-                    continue;
                 }
             }
+            
             if (errorMessages.Count != 0)
             {
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages));
             }
-
+            
             //to/from json
             var errorMessages2 = new List<string>();
             foreach (var testObject in testObjects)
@@ -1090,7 +1107,7 @@ namespace ProgressAdventureTests
                 var genericConvertableType = genericConvertableTypes.First(t => t.Name == jsonConvertableType.Name);
                 var method = genericConvertableType?.GetMethod("FromJson", BindingFlags.Static | BindingFlags.Public);
                 var parameters = new object?[] { objJson, PAConstants.SAVE_VERSION, null };
-
+                
                 try
                 {
                     var succObj = method?.Invoke(null, parameters);
@@ -1105,6 +1122,7 @@ namespace ProgressAdventureTests
                     errorMessages2.Add($"FromJson method invokation threw an exception at the {testObject.GetType()} type object.");
                 }
             }
+            
             if (errorMessages2.Count != 0)
             {
                 return new TestResultDTO(LogSeverity.FAIL, "\n\t" + string.Join("\n\t", errorMessages2));
@@ -1117,10 +1135,11 @@ namespace ProgressAdventureTests
         /// Checks if all objects that implement IJsonConvertableExtra can be converted to and from json.<br/>
         /// ONLY CHECKS FOR SUCCESFUL CONVERSION. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES FOR ATTRIBUTES OR NOT!
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? BasicJsonConvertExtraTest()
         {
             // extra data for classes that implement "IJsonConvertableExra<T, TExtra>"!
-            var testConfigFolderName = "test config";
+            const string testConfigFolderName = "test config";
             (long x, long y) testPostition = (1537, 269);
             var testChunkRandom = Chunk.GetChunkRandom(testPostition);
             (long, long)? entityTestPos = (17, 68);
@@ -1250,6 +1269,7 @@ namespace ProgressAdventureTests
         /// <summary>
         /// Checks if all objects that implement IJsonConvertable cab be converted to and from json.
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? ConfigUpdateTest()
         {
             var configFolderPath = Path.Join(PACConstants.ROOT_FOLDER, PAConstants.CONFIGS_FOLDER);
@@ -1266,10 +1286,11 @@ namespace ProgressAdventureTests
         /// Checks if all reference save files can be loaded without errors or warnings.<br/>
         /// ONLY CHECKS FOR SUCCESFUL LOADING. NOT IF THE RESULTING OBJECT HAS THE SAME VALUES!
         /// </summary>
+        [UsedImplicitly]
         public static TestResultDTO? BasicAllMainSaveFileVersionsLoadable()
         {
             // create current refrence save
-            var currentSaveName = "current";
+            const string currentSaveName = "current";
             PATools.DeleteSave(currentSaveName);
             CreateTestSaveData(currentSaveName);
             SaveManager.MakeSave();
@@ -1363,7 +1384,7 @@ namespace ProgressAdventureTests
                 var chunkExtension = chunkFileName is not null ? Path.GetExtension(chunkFileName).ToLower() : null;
                 if (
                     chunkFileName is not null &&
-                    (chunkExtension == $".{PAConstants.SAVE_EXT}" || chunkExtension == $".{PAConstants.OLD_SAVE_EXT}") &&
+                    chunkExtension is $".{PAConstants.SAVE_EXT}" or $".{PAConstants.OLD_SAVE_EXT}" &&
                     chunkFileName.StartsWith($"{PAConstants.CHUNK_FILE_NAME}{PAConstants.CHUNK_FILE_NAME_SEP}")
                 )
                 {
@@ -1379,7 +1400,7 @@ namespace ProgressAdventureTests
                     }
                     PACSingletons.Instance.Logger.Log("Chunk file parse error", $"chunk positions couldn't be extracted from chunk file name: {chunkFileName}", LogSeverity.WARN);
                 }
-                PACSingletons.Instance.Logger.Log("Chunk file parse error", $"file name is not chunk file name", LogSeverity.WARN);
+                PACSingletons.Instance.Logger.Log("Chunk file parse error", "file name is not chunk file name", LogSeverity.WARN);
             }
 
             var success = true;
@@ -1391,7 +1412,7 @@ namespace ProgressAdventureTests
                 loadingText.Display();
                 for (var x = 0; x < chunkNum; x++)
                 {
-                    success &= Chunk.FromFile(existingChunks[x], out _, out _, saveFolderName, true);
+                    success &= Chunk.FromFile(existingChunks[x], out _, out _, saveFolderName);
                     if (!success)
                     {
                         loadingText.StopLoading("DONE!");
@@ -1405,7 +1426,7 @@ namespace ProgressAdventureTests
             {
                 foreach (var chunkPos in existingChunks)
                 {
-                    success &= Chunk.FromFile(chunkPos, out _, out _, saveFolderName, true);
+                    success &= Chunk.FromFile(chunkPos, out _, out _, saveFolderName);
                     if (!success)
                     {
                         return chunkPos;
@@ -1435,7 +1456,7 @@ namespace ProgressAdventureTests
                             ItemUtils.CreateCompoundItem(ItemType.Weapon.SWORD, [Material.STEEL, Material.WOOD], 12),
                             ItemUtils.CreateCompoundItem(ItemType.Weapon.CLUB, [Material.WOOD], 3),
                             ItemUtils.CreateCompoundItem(ItemType.Weapon.ARROW, [Material.FLINT, Material.WOOD], 152),
-                        ])
+                        ]),
                     }
                 )
             );
@@ -1470,7 +1491,7 @@ namespace ProgressAdventureTests
 
             try
             {
-                PAExtras.SaveImporter.ImportSave(saveImportedName);
+                SaveImporter.ImportSave(saveImportedName);
             }
             catch (Exception ex)
             {
@@ -1479,6 +1500,7 @@ namespace ProgressAdventureTests
                     Directory.Delete(saveToImportPath, true);
                     PACSingletons.Instance.Logger.Log("Deleted importable save", $"save name: {saveImportedName}");
                 }
+                
                 if (Directory.Exists(saveImportedPath))
                 {
                     Directory.Delete(saveImportedPath, true);
@@ -1498,6 +1520,7 @@ namespace ProgressAdventureTests
                 File.Delete(saveImportedCompressedPath);
                 PACSingletons.Instance.Logger.Log("Deleted compressed imported save", $"save name: {saveImportedName}");
             }
+            
             ZipFile.CreateFromDirectory(saveImportedPath, saveImportedCompressedPath);
             if (Directory.Exists(saveImportedPath))
             {
@@ -1517,6 +1540,7 @@ namespace ProgressAdventureTests
             {
                 return new TestResultDTO(LogSeverity.FAIL, $"\"{saveName}\" save file loading failed.");
             }
+            
             var wrongChunk = TryParseAllChunksFromFolder(saveName, $"\tChecking ({saveName})...");
             if (wrongChunk is not null)
             {
@@ -1531,7 +1555,8 @@ namespace ProgressAdventureTests
             IDictionary<Type, Dictionary<TileNoiseType, double>> checkedDictionary
         )
         {
-            var paAssembly = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetName().Name == nameof(ProgressAdventure)).First();
+            var paAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .First(a => a.GetName().Name == nameof(ProgressAdventure));
             var errorMessages = new List<string>();
             foreach (var key in requiredKeys)
             {
@@ -1544,7 +1569,6 @@ namespace ProgressAdventureTests
                 if (value is null)
                 {
                     errorMessages.Add($"The value of the dictionary at \"{key}\" is null.");
-                    continue;
                 }
             }
             if (errorMessages.Count != 0)

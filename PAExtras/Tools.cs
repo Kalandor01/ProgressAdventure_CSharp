@@ -176,8 +176,9 @@ namespace PAExtras
                     {
                         chunk.FillChunk();
                     }
-                    PACSingletons.Instance.ConsoleProxy.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round((double)(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1) % (chunkNum / numberOfSaves) / (chunkNum / numberOfSaves) * 100, 1)}%");
-                    if (PACUtils.Mod(((x - minX) / PAConstants.CHUNK_SIZE) + ((y - minY) / PAConstants.CHUNK_SIZE) + 1, chunkNum / numberOfSaves) == 0)
+                    
+                    PACSingletons.Instance.ConsoleProxy.Write($"\r({saveNum}/{numberOfSaves})Filling chunks...{Math.Round(((x - minX) / (double)PAConstants.CHUNK_SIZE + (y - minY) / (double)PAConstants.CHUNK_SIZE + 1) % (chunkNum / (double)numberOfSaves) / (chunkNum / (double)numberOfSaves) * 100, 1)}%");
+                    if (PACUtils.Mod((x - minX) / PAConstants.CHUNK_SIZE + (y - minY) / PAConstants.CHUNK_SIZE + 1, chunkNum / numberOfSaves) == 0)
                     {
                         saveNum++;
                         PACSingletons.Instance.ConsoleProxy.WriteLine($"\r({saveNum}/{numberOfSaves})Filling chunks...DONE!           ");
@@ -229,7 +230,7 @@ namespace PAExtras
         /// <param name="zipFilePath">The path (minus extension) of the zip file to extract.</param>
         /// <param name="destinationFolderPath">The folder to extract the zip file.</param>
         /// <param name="extractToFolder">Whether to create a folder in the destination folder to extract the contents of the zip file to.</param>
-        /// <param name="extraFolderName">The name of the extra folder to generate, if <c>extractToFolder</c> is true. Othervise it's the name of the zip file.</param>
+        /// <param name="extraFolderName">The name of the extra folder to generate, if <paramref name="extractToFolder"/> is true. Othervise it's the name of the zip file.</param>
         /// <param name="overwriteFiles">Whether to overwrite files.</param>
         public static bool Unzip(string zipFilePath, string destinationFolderPath, bool extractToFolder = true, string? extraFolderName = null, bool overwriteFiles = true)
         {
@@ -273,6 +274,7 @@ namespace PAExtras
                     lines.Add($"{saveName}: {PACUtils.MakeDate(backupDate, ".")} {PACUtils.MakeTime(backupDate)}");
                     lines.Add(null);
                 }
+                
                 var option = (int)new UIList(
                     lines, " Backup loading", null, false, true, null, true,
                     consoleProxy: PACSingletons.Instance.ConsoleProxy
@@ -282,15 +284,13 @@ namespace PAExtras
                 {
                     break;
                 }
-                else
+                
+                var (selectedFileName, selectedSaveName, _) = backupFiles[option];
+                Unzip(Path.Join(PAConstants.BACKUPS_FOLDER_PATH, selectedFileName), PAConstants.SAVES_FOLDER_PATH, true, selectedSaveName);
+                PACSingletons.Instance.ConsoleProxy.PressKey($"\n{selectedFileName} loaded!");
+                if (ProgressAdventure.MenuManager.AskYesNoUIQuestion("Do you want to regenerate the save file?"))
                 {
-                    var (fileName, saveName, _) = backupFiles[option];
-                    Unzip(Path.Join(PAConstants.BACKUPS_FOLDER_PATH, fileName), PAConstants.SAVES_FOLDER_PATH, true, saveName);
-                    PACSingletons.Instance.ConsoleProxy.PressKey($"\n{fileName} loaded!");
-                    if (ProgressAdventure.MenuManager.AskYesNoUIQuestion("Do you want to regenerate the save file?"))
-                    {
-                        ProgressAdventure.MenuManager.RegenerateSaveFile(saveName, false);
-                    }
+                    ProgressAdventure.MenuManager.RegenerateSaveFile(selectedSaveName, false);
                 }
             }
         }
@@ -298,7 +298,7 @@ namespace PAExtras
 
         #region Private functions
         /// <summary>
-        /// <c>SaveManager.GetSavesData()</c> for backups.
+        /// <see cref="ProgressAdventure.SaveManager.GetSavesData"/> for backups.
         /// </summary>
         private static List<(string fileName, string saveName, DateTime backupDate)> GetSavesData()
         {
@@ -311,46 +311,48 @@ namespace PAExtras
             var backupPaths = Directory.GetFiles(PAConstants.BACKUPS_FOLDER_PATH);
             foreach (var backupPath in backupPaths)
             {
-                if (Path.GetExtension(backupPath) == "." + PAConstants.BACKUP_EXT)
+                if (Path.GetExtension(backupPath) != "." + PAConstants.BACKUP_EXT)
                 {
-                    var fullBackupName = Path.GetFileNameWithoutExtension(backupPath);
-                    var data = fullBackupName.Split(";");
-                    if (data.Length == 3)
+                    continue;
+                }
+                
+                var fullBackupName = Path.GetFileNameWithoutExtension(backupPath);
+                var data = fullBackupName.Split(";");
+                if (data.Length == 3)
+                {
+                    var dateList = new List<int>();
+                    foreach (var datePart in data[1].Split("-"))
                     {
-                        var dateList = new List<int>();
-                        foreach (var datePart in data[1].Split("-"))
+                        if (int.TryParse(datePart, out var dp))
                         {
-                            if (int.TryParse(datePart, out int dp))
+                            dateList.Add(dp);
+                        }
+                    }
+                    if (dateList.Count == 3)
+                    {
+                        foreach (var datePart in data[2].Split("-"))
+                        {
+                            if (int.TryParse(datePart, out var dp))
                             {
                                 dateList.Add(dp);
                             }
                         }
-                        if (dateList.Count == 3)
+                        if (dateList.Count >= 6)
                         {
-                            foreach (var datePart in data[2].Split("-"))
+                            var mili = 0;
+                            var micro = 0;
+                            if (dateList.Count == 7)
                             {
-                                if (int.TryParse(datePart, out int dp))
-                                {
-                                    dateList.Add(dp);
-                                }
+                                mili = dateList[6] / 1000;
+                                micro = dateList[6] % 1000;
                             }
-                            if (dateList.Count >= 6)
-                            {
-                                int mili = 0;
-                                int micro = 0;
-                                if (dateList.Count == 7)
-                                {
-                                    mili = dateList[6] / 1000;
-                                    micro = dateList[6] % 1000;
-                                }
-                                var date = new DateTime(dateList[0], dateList[1], dateList[2], dateList[3], dateList[4], dateList[5], mili, micro);
-                                backups.Add((fullBackupName, data[0], date));
-                                continue;
-                            }
+                            var date = new DateTime(dateList[0], dateList[1], dateList[2], dateList[3], dateList[4], dateList[5], mili, micro);
+                            backups.Add((fullBackupName, data[0], date));
+                            continue;
                         }
                     }
-                    PACSingletons.Instance.ConsoleProxy.WriteLine($"FILE {fullBackupName}.{PAConstants.BACKUP_EXT} HAS WRONG NAMING FORMAT");
                 }
+                PACSingletons.Instance.ConsoleProxy.WriteLine($"FILE {fullBackupName}.{PAConstants.BACKUP_EXT} HAS WRONG NAMING FORMAT");
             }
             return backups;
         }

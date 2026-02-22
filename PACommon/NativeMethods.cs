@@ -3,7 +3,7 @@ using System.Runtime.Versioning;
 
 namespace PACommon
 {
-    internal partial class NativeMethods
+    internal static partial class NativeMethods
     {
         [SupportedOSPlatform("windows")]
         [LibraryImport("kernel32.dll", SetLastError = true)]
