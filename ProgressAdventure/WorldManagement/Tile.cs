@@ -92,7 +92,7 @@ namespace ProgressAdventure.WorldManagement
             PopulationManager? populationManager = null
         )
         {
-            relativePosition = (Utils.Mod(absoluteX, Constants.CHUNK_SIZE), Utils.Mod(absoluteY, Constants.CHUNK_SIZE));
+            relativePosition = Chunk.GetTilePosition((absoluteX, absoluteY));
             Visited = visited ?? 0;
             if (terrain is not null && structure is not null && populationManager is not null)
             {

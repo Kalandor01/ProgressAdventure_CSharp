@@ -32,17 +32,17 @@ namespace ProgressAdventure
         {
             MenuManager.MainMenu();
             //Settings.UpdateLoggingLevel(0);
-
+            
             //SaveManager.CreateSaveData("test", "me");
-
+            
             //var recipeTreeStr = "[SWORD] base: 2, parts(0 blade(1 5 blade_mold?(7)) 0 hilt(1))";
             //var recipeMiniStr = "2(0(1 5(7))0(1))";
-
-
+            
+            
             //SaveManager.LoadSave("all items + world");
             //MenuManager.InventoryViewer(SaveData.Instance.player.inventory);
-
-
+            
+            
             var backpack = new List<AItem>
             {
                 new CompoundItem(ItemType.Misc.SWORD_BLADE, [new MaterialItem(Material.GOLD, 2.3)], 8),
@@ -55,22 +55,22 @@ namespace ProgressAdventure
                 i => i is CompoundItem ci ? ci.Parts : new List<AItem>(),
                 i => (true, i.MassMultiplier)
             );
-
-
+            
+            
             var h = World.RecalculateChunkFileSizes(Constants.CHUNK_SIZE, 7, "all items + world", "Recalculating chunk sizes...");
-
-
+            
+            
             var inventory = new Inventory(
             [
                 new MaterialItem(Material.WOOD, 620.5),
             ]);
             RecipeCraftableMenu(inventory);
-
+            
             MenuManager.MainMenu();
-
+            
             //EntityUtils.RandomFight(2, 100, 20, includePlayer: false);
         }
-
+        
         private static void RecipeCraftableMenu(Inventory inventory)
         {
             var recipeElements = new List<BaseUI?> { new Toggle() };
@@ -244,7 +244,7 @@ namespace ProgressAdventure
             PACSingletons.Instance.ConsoleProxy.WriteLine(PASingletons.Instance.Localizer.GetLocalizedString(LocalizationKey.DONE_0));
             PACSingletons.Instance.Logger.Log("Finished initialization");
         }
-
+        
         /// <summary>
         /// The error handler, for the preloading.
         /// </summary>
@@ -269,7 +269,7 @@ namespace ProgressAdventure
             }
             while (!exitPreloading);
         }
-
+        
         /// <summary>
         /// The error handler, for the main function.
         /// </summary>
@@ -298,7 +298,7 @@ namespace ProgressAdventure
             }
             while (!exitGame);
         }
-
+        
         private static void Main(string[] args)
         {
             bool exitGame;
@@ -324,7 +324,7 @@ namespace ProgressAdventure
                     
                     restartException = ex;
                 }
-
+                
                 if (restartException is not null)
                 {
                     PACSingletons.Instance.Logger.Log("Instance restart requested", restartException.ToString(), forceLog: true);

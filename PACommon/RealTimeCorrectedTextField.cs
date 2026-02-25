@@ -20,7 +20,7 @@ namespace PACommon
         /// <param name="rawText">The raw user input to correct.</param>
         public delegate string StringCorrectorDelegate(string rawText);
         #endregion
-
+        
         #region Private fields
         /// <summary>
         /// The text to display before the part, where the user inputs the string.
@@ -55,7 +55,7 @@ namespace PACommon
         /// </summary>
         private BaseUIDisplay baseUIDisplay;
         #endregion
-
+        
         #region Public Properties
         /// <summary>
         /// <inheritdoc cref="_preValue" path="//summary"/>
@@ -69,6 +69,7 @@ namespace PACommon
                 UpdateTextField();
             }
         }
+        
         /// <summary>
         /// <inheritdoc cref="_stringCorrector" path="//summary"/>
         /// </summary>
@@ -81,7 +82,7 @@ namespace PACommon
                 UpdateTextField();
             }
         }
-
+        
         /// <summary>
         /// <inheritdoc cref="_postValue" path="//summary"/>
         /// </summary>
@@ -94,7 +95,7 @@ namespace PACommon
                 UpdateTextField();
             }
         }
-
+        
         /// <summary>
         /// <inheritdoc cref="_startingValue" path="//summary"/>
         /// </summary>
@@ -107,7 +108,7 @@ namespace PACommon
                 UpdateTextField();
             }
         }
-
+        
         /// <summary>
         /// <inheritdoc cref="_clearScreen" path="//summary"/>
         /// </summary>
@@ -120,7 +121,7 @@ namespace PACommon
                 UpdateBaseUI();
             }
         }
-
+        
         /// <summary>
         /// <inheritdoc cref="_consoleProxy" path="//summary"/>
         /// </summary>
@@ -134,7 +135,7 @@ namespace PACommon
             }
         }
         #endregion
-
+        
         /// <summary>
         /// <inheritdoc cref="RealTimeCorrectedTextField" path="//summary"/>
         /// </summary>
@@ -158,13 +159,13 @@ namespace PACommon
             _startingValue = startingValue;
             _clearScreen = clearScreen;
             _consoleProxy = consoleProxy ?? PACSingletons.Instance.ConsoleProxy;
-
+            
             _stringCorrector = stringCorrector;
-
+            
             UpdateTextField();
             UpdateBaseUI();
         }
-
+        
         #region Public methods
         /// <summary>
         /// Displays the <see cref="TextField"/>.
@@ -181,7 +182,7 @@ namespace PACommon
             return correctorTextField.Value;
         }
         #endregion
-
+        
         #region Private methods
         /// <summary>
         /// Updates the TextField object.
@@ -206,7 +207,7 @@ namespace PACommon
                 correctorTextField.PostValue = correctorPostValue;
             }
         }
-
+        
         /// <summary>
         /// Updates the BaseUIDisplay object.
         /// </summary>
@@ -223,7 +224,7 @@ namespace PACommon
                 baseUIDisplay.consoleProxy = ConsoleProxy;
             }
         }
-
+        
         private bool StringCorrectorKeyValidator(StringBuilder text, ConsoleKeyInfo? key, int cursorPosition)
         {
             var newText = "";
@@ -239,7 +240,7 @@ namespace PACommon
             {
                 newText = text.ToString().Insert(cursorPosition, key?.KeyChar.ToString() ?? "");
             }
-
+            
             correctorTextField.PostValue = " -> " + StringCorrector(newText);
             return true;
         }

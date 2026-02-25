@@ -119,7 +119,7 @@ namespace ProgressAdventure
                 }
             }
         }
-
+        
         /// <summary>
         /// Creates the data for a new save file, using user input.
         /// </summary>
@@ -130,7 +130,7 @@ namespace ProgressAdventure
                 Tools.CorrectSaveName,
                 clearScreen: false
             ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
-
+            
             var playerName = new RealTimeCorrectedTextField(
                 "What is your name?: ",
                 Tools.CorrectPlayerName,
@@ -138,10 +138,10 @@ namespace ProgressAdventure
             ).GetString(PASingletons.Instance.Settings.Keybinds.KeybindList);
             
             var seedString = GetSeedStringFromUser();
-
+            
             CreateSaveData(displaySaveName, playerName, seedString);
         }
-
+        
         /// <summary>
         /// Loads a save file into the <see cref="SaveData"/> object.
         /// </summary>

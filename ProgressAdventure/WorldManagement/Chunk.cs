@@ -20,7 +20,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// The list of tiles in the chunk.
         /// </summary>
-        public readonly Dictionary<string, Tile> tiles;
+        public readonly Dictionary<(long x, long y), Tile> tiles;
         #endregion
 
         #region Public properties
@@ -37,11 +37,9 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="basePosition">The absolute position of the chunk.</param>
         /// <param name="tiles"><inheritdoc cref="tiles" path="//summary"/></param>
         /// <param name="chunkRandom">The chunk's random generator.</param>
-        public Chunk((long x, long y) basePosition, Dictionary<string, Tile>? tiles = null, SplittableRandom? chunkRandom = null)
+        public Chunk((long x, long y) basePosition, Dictionary<(long x, long y), Tile>? tiles = null, SplittableRandom? chunkRandom = null)
         {
-            var baseX = Utils.FloorRound(basePosition.x, Constants.CHUNK_SIZE);
-            var baseY = Utils.FloorRound(basePosition.y, Constants.CHUNK_SIZE);
-            this.basePosition = (baseX, baseY);
+            this.basePosition = GetChunkPosition(basePosition);
             PACSingletons.Instance.Logger.Log("Creating chunk", $"baseX: {this.basePosition.x} , baseY: {this.basePosition.y}");
             ChunkRandomGenerator = chunkRandom ?? GetChunkRandom(basePosition);
             this.tiles = tiles ?? [];
@@ -56,7 +54,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="position">The position of the tile.</param>
         public Tile? FindTile((long x, long y) position)
         {
-            return FindTile(GetTileDictName(position));
+            return tiles.GetValueOrDefault(GetTilePosition(position));
         }
 
         /// <summary>
@@ -65,14 +63,12 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="absolutePosition">The absolute position of the tile.</param>
         public Tile GenerateTile((long x, long y) absolutePosition)
         {
-            var tileKey = GetTileDictName(absolutePosition);
+            var tilePosition = GetTilePosition(absolutePosition);
             var tile = new Tile(absolutePosition.x, absolutePosition.y, ChunkRandomGenerator);
-            tiles[tileKey] = tile;
-            var posX = Utils.Mod(absolutePosition.x, Constants.CHUNK_SIZE);
-            var posY = Utils.Mod(absolutePosition.y, Constants.CHUNK_SIZE);
+            tiles[tilePosition] = tile;
             PACSingletons.Instance.Logger.Log(
                 "Created tile",
-                $"x: {posX}, y: {posY}, terrain: {PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.TerrainTypeMap[tile.terrain.type].displayName)}, structure: {PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.StructureTypeMap[tile.structure.type].displayName)}, population: {tile.populationManager}",
+                $"x: {tilePosition.x}, y: {tilePosition.y}, terrain: {PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.TerrainTypeMap[tile.terrain.type].displayName)}, structure: {PASingletons.Instance.Localizer.GetLocalizedString(WorldUtils.StructureTypeMap[tile.structure.type].displayName)}, population: {tile.populationManager}",
                 LogSeverity.DEBUG
             );
             return tile;
@@ -118,6 +114,26 @@ namespace ProgressAdventure.WorldManagement
 
         #region Public functions
         /// <summary>
+        /// Converts a position into a chunk base position.
+        /// </summary>
+        /// <param name="position">The position of the <see cref="Chunk"/>.</param>
+        /// <param name="chunkSize">The size of a chunk in tiles.</param>
+        public static (long x, long y) GetChunkPosition((long x, long y) position, int chunkSize = Constants.CHUNK_SIZE)
+        {
+            return (Utils.FloorRound(position.x, chunkSize), Utils.FloorRound(position.y, chunkSize));
+        }
+        
+        /// <summary>
+        /// Converts the position of a tile into its relative position.
+        /// </summary>
+        /// <param name="position">The position of the tile.</param>
+        /// <param name="chunkSize">The size of a chunk in tiles.</param>
+        public static (long x, long y) GetTilePosition((long x, long y) position, int chunkSize = Constants.CHUNK_SIZE)
+        {
+            return (Utils.Mod(position.x, chunkSize), Utils.Mod(position.y, chunkSize));
+        }
+        
+        /// <summary>
         /// Tries to load a Chunk from a chunk file, and return it, if it was successfuly parsed.
         /// </summary>
         /// <param name="position">The position of the chunk.</param>
@@ -137,14 +153,15 @@ namespace ProgressAdventure.WorldManagement
         )
         {
             saveFolderName ??= SaveData.Instance.SaveName;
-            var chunkFileName = GetChunkFileName(position);
+            var chunkPosition = GetChunkPosition(position);
+            var chunkFileName = GetChunkFileName(chunkPosition);
             chunk = null;
-
+            
             var chunkJson = Tools.LoadFileExpected<Chunk>(
                 GetChunkFilePath(chunkFileName, saveFolderName),
                 out isFileInvalid,
                 expected: expected,
-                extraFileInformation: $"x: {Utils.FloorRound(position.x, Constants.CHUNK_SIZE)}, y: {Utils.FloorRound(position.y, Constants.CHUNK_SIZE)}"
+                extraFileInformation: $"x: {chunkPosition.x}, y: {chunkPosition.y}"
             );
 
             if (chunkJson is null)
@@ -171,28 +188,9 @@ namespace ProgressAdventure.WorldManagement
             PACSingletons.Instance.Logger.Log("Loaded chunk from file", $"{chunkFileName}.{Constants.SAVE_EXT}");
             return success;
         }
-
-        /// <summary>
-        /// Generates the chunk random genrator for a chunk.
-        /// </summary>
-        /// <param name="absolutePosition">The absolute position of the chunk.</param>
-        public static SplittableRandom GetChunkRandom((long x, long y) absolutePosition)
-        {
-            return GetChunkRandom(absolutePosition, Constants.CHUNK_SIZE);
-        }
         #endregion
 
         #region Private methods
-        /// <summary>
-        /// Returns the <see cref="Tile"/> if it exists, or null.
-        /// </summary>
-        /// <param name="tileKey">The name of the tile in the distionary.</param>
-        private Tile? FindTile(string tileKey)
-        {
-            tiles.TryGetValue(tileKey, out var tile);
-            return tile;
-        }
-
         /// <summary>
         /// Generates ALL not yet generated tiles.
         /// </summary>
@@ -218,15 +216,6 @@ namespace ProgressAdventure.WorldManagement
 
         #region Private functions
         /// <summary>
-        /// Converts the position of the tile into it's dictionary key name.
-        /// </summary>
-        /// <param name="position">The position of the tile.</param>
-        private static string GetTileDictName((long x, long y) position)
-        {
-            return $"{Utils.Mod(position.x, Constants.CHUNK_SIZE)}_{Utils.Mod(position.y, Constants.CHUNK_SIZE)}";
-        }
-
-        /// <summary>
         /// Gets the path of the chunk file.
         /// </summary>
         /// <param name="chunkFileName">The name of the chunk file.</param>
@@ -244,9 +233,8 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="chunkSize">The chunk size to round the position to.</param>
         public static string GetChunkFileName((long x, long y) absolutePosition, int chunkSize = Constants.CHUNK_SIZE)
         {
-            var baseX = Utils.FloorRound(absolutePosition.x, chunkSize);
-            var baseY = Utils.FloorRound(absolutePosition.y, chunkSize);
-            return $"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}{baseX}{Constants.CHUNK_FILE_NAME_SEP}{baseY}";
+            var chunkPosition = GetChunkPosition(absolutePosition, chunkSize);
+            return $"{Constants.CHUNK_FILE_NAME}{Constants.CHUNK_FILE_NAME_SEP}{chunkPosition.x}{Constants.CHUNK_FILE_NAME_SEP}{chunkPosition.y}";
         }
         
         /// <summary>
@@ -254,11 +242,10 @@ namespace ProgressAdventure.WorldManagement
         /// </summary>
         /// <param name="absolutePosition">The absolute position of the chunk.</param>
         /// <param name="chunkSize">The size of a chunk.</param>
-        internal static SplittableRandom GetChunkRandom((long x, long y) absolutePosition, int chunkSize)
+        public static SplittableRandom GetChunkRandom((long x, long y) absolutePosition, int chunkSize = Constants.CHUNK_SIZE)
         {
-            var posX = Utils.FloorRound(absolutePosition.x, chunkSize);
-            var posY = Utils.FloorRound(absolutePosition.y, chunkSize);
-            var noiseValues = WorldUtils.GetNoiseValues(posX, posY);
+            var chunkPosition = GetChunkPosition(absolutePosition, chunkSize);
+            var noiseValues = WorldUtils.GetNoiseValues(chunkPosition.x, chunkPosition.y);
             var noiseNum = noiseValues.Count;
             const double seedNumSize = 19.0;
             var noiseTenMulti = (int)Math.Floor(seedNumSize / noiseNum);
@@ -313,18 +300,22 @@ namespace ProgressAdventure.WorldManagement
 
             success &= PACTools.TryParseJsonValue<SplittableRandom?>(chunkJson, Constants.JsonKeys.Chunk.CHUNK_RANDOM, out var chunkRandom);
             chunkRandom ??= GetChunkRandom(position);
-            var chunkPos = (Utils.FloorRound(position.x, Constants.CHUNK_SIZE), Utils.FloorRound(position.y, Constants.CHUNK_SIZE));
-
+            
+            var chunkPos = GetChunkPosition(position);
             if (!PACTools.TryParseJsonListValue(chunkJson, Constants.JsonKeys.Chunk.TILES, tileJson =>
-            {
-                if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, isStraigthCast: true))
                 {
-                    success = false;
-                    return (false, default);
-                }
-                success &= PACTools.TryFromJsonExtra(tileJsonValue, (chunkRandom, chunkPos), fileVersion, out Tile? tile);
-                return (tile is not null, tile is null ? default : new KeyValuePair<string, Tile>(GetTileDictName(tile.relativePosition), tile));
-            }, out var tilesKvPair, true))
+                    if (!PACTools.TryCastAnyValueForJsonParsing<Tile, JsonDictionary>(tileJson, out var tileJsonValue, isStraigthCast: true))
+                    {
+                        success = false;
+                        return (false, default);
+                    }
+                    success &= PACTools.TryFromJsonExtra(tileJsonValue, (chunkRandom, chunkPos), fileVersion, out Tile? tile);
+                    return (
+                        tile is not null,
+                        tile is null ? default : new KeyValuePair<(long x, long y), Tile>(GetTilePosition(tile.relativePosition), tile)
+                    );
+                }, out var tilesKvPair, true)
+            )
             {
                 return false;
             }

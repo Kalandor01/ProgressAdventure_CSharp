@@ -1078,7 +1078,7 @@ namespace ProgressAdventure
                 "Question popups",
                 "Other",
                 null,
-                "Back"
+                "Back",
             };
 
             var optionsMenuActions = new List<UIAction?>

@@ -18,7 +18,7 @@ namespace ProgressAdventure.WorldManagement
         /// <summary>
         /// The currently loaded dictionary of chunks.
         /// </summary>
-        public static Dictionary<string, Chunk> Chunks { get; private set; }
+        public static Dictionary<(long x, long y), Chunk> Chunks { get; private set; } = [];
         #endregion
 
         #region "Constructors"
@@ -26,7 +26,7 @@ namespace ProgressAdventure.WorldManagement
         /// <inheritdoc cref="World" path="//summary"/>
         /// </summary>
         /// <param name="chunks">The dictionary of chunks.</param>
-        public static void Initialize(Dictionary<string, Chunk>? chunks = null)
+        public static void Initialize(Dictionary<(long x, long y), Chunk>? chunks = null)
         {
             PACSingletons.Instance.Logger.Log($"{(chunks is null ? "Generating" : "Loading")} world", chunks is null ? null : $"{chunks.Count} chunks");
             Chunks = chunks ?? [];
@@ -40,7 +40,7 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="position">The position of the chunk.</param>
         public static Chunk? FindChunk((long x, long y) position)
         {
-            return FindChunk(GetChunkDictName(position));
+            return Chunks.GetValueOrDefault(Chunk.GetChunkPosition(position));
         }
 
         /// <summary>
@@ -49,9 +49,9 @@ namespace ProgressAdventure.WorldManagement
         /// <param name="position">The position of the chunk.</param>
         public static Chunk GenerateChunk((long x, long y) position)
         {
-            var chunkName = GetChunkDictName(position);
+            var chunkPosition = Chunk.GetChunkPosition(position);
             var chunk = new Chunk(position);
-            Chunks[chunkName] = chunk;
+            Chunks[chunkPosition] = chunk;
             return chunk;
         }
 
@@ -85,22 +85,18 @@ namespace ProgressAdventure.WorldManagement
             {
                 return;
             }
-
+            
             saveFolderName ??= SaveData.Instance.SaveName;
-            Dictionary<string, Chunk> chunkData;
-
+            Dictionary<(long x, long y), Chunk> chunkData;
+            
             // clearing chunks
             if (clearChunks)
             {
-                KeyValuePair<string, Chunk>? playerRefChunkKV = null;
+                KeyValuePair<(long x, long y), Chunk>? playerRefChunkKV = null;
                 (long x, long y)? playerBasePos = null;
                 if (SaveData.Instance.PlayerRef.Position is not null)
                 {
-                    var (x, y) = SaveData.Instance.PlayerRef.Position.Value;
-                    playerBasePos = (
-                        Utils.FloorRound(x, Constants.CHUNK_SIZE),
-                        Utils.FloorRound(y, Constants.CHUNK_SIZE)
-                    );
+                    playerBasePos = Chunk.GetChunkPosition(SaveData.Instance.PlayerRef.Position.Value);
                 }
 
                 chunkData = [];
@@ -122,7 +118,8 @@ namespace ProgressAdventure.WorldManagement
                         {
                             playerRefChunkKV = chunk;
                         }
-
+                        
+                        // TODO: deep copy is slow!
                         var chunkCopy = chunk.DeepCopy();
                         chunkData.Add(chunkCopy.Key, chunkCopy.Value);
                         loadingText.Value = (x + 1) / chunkCount;
@@ -142,7 +139,8 @@ namespace ProgressAdventure.WorldManagement
                         {
                             playerRefChunkKV = chunk;
                         }
-
+                        
+                        // TODO: deep copy is slow!
                         var chunkCopy = chunk.DeepCopy();
                         chunkData.Add(chunkCopy.Key, chunkCopy.Value);
                     }
@@ -205,7 +203,7 @@ namespace ProgressAdventure.WorldManagement
             Chunk.FromFile(position, out var chunk, out isFileInvalid, saveFolderName, false);
             if (chunk is not null)
             {
-                Chunks.Add(GetChunkDictName(position), chunk);
+                Chunks.Add(Chunk.GetChunkPosition(position), chunk);
             }
             return chunk;
         }
@@ -303,7 +301,7 @@ namespace ProgressAdventure.WorldManagement
 
             void AddChunkIfNotLoaded((long x, long y) chunkPos, List<(long x, long y)> corruptedChunks)
             {
-                if (Chunks.ContainsKey(GetChunkDictName(chunkPos)))
+                if (Chunks.ContainsKey(chunkPos))
                 {
                     return;
                 }
@@ -621,25 +619,6 @@ namespace ProgressAdventure.WorldManagement
         #endregion
         
         #region Private functions
-        /// <summary>
-        /// Converts the position of the chunk into it's dictionary key name.
-        /// </summary>
-        /// <param name="position">The position of the <see cref="Chunk"/>.</param>
-        private static string GetChunkDictName((long x, long y) position)
-        {
-            return $"{Utils.FloorRound(position.x, Constants.CHUNK_SIZE)}_{Utils.FloorRound(position.y, Constants.CHUNK_SIZE)}";
-        }
-        
-        /// <summary>
-        /// Returns the <see cref="Chunk"/> if it exists, or null.
-        /// </summary>
-        /// <param name="chunkKey">The name of the chunk in the distionary.</param>
-        private static Chunk? FindChunk(string chunkKey)
-        {
-            Chunks.TryGetValue(chunkKey, out var chunk);
-            return chunk;
-        }
-        
         [GeneratedRegex(@"^chunk_(-?\d+)_(-?\d+)$")]
         private static partial Regex ChunkFileNameRegex();
         #endregion
