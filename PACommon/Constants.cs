@@ -85,5 +85,16 @@ namespace PACommon
         /// </summary>
         public const char ENUM_TREE_DEFAULT_LAYER_SEP_CHAR = '/';
         #endregion
+        
+        #region Native constants
+        internal class NativeConstants
+        {
+            internal const int OUT_FILE_DESCRIPTOR = 0;
+            internal const int CONTROL_DEVICE_GET_SIZE = 0x5413;
+            
+            internal const int LDOPEN_RTLD_NOW = 2;
+            internal const int LDOPEN_RTLD_LAZY = 1;
+        }
+        #endregion
     }
 }

@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Clipboard.CSharp" Version="1.0.1" />
     <PackageReference Include="ConsoleUI" Version="2.1.5" />
     <PackageReference Include="FileManager" Version="2.1.7" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />

@@ -1,9 +1,11 @@
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Clipboard;
 using ConsoleUI;
 using FileManager;
 
@@ -616,7 +618,7 @@ namespace PACommon
             var filter = filters is not null
                 ? string.Join("", filters.Select(filter => $"{filter.displayName}\0{filter.regex}\0"))
                 : "";
-            var ofn = new OpenFileName();
+            var ofn = new NativeStructs.OpenFileName();
             ofn.lStructSize = Marshal.SizeOf(ofn);
             ofn.lpstrFilter = filter;
             ofn.lpstrFile = new string(new char[256]);
@@ -805,6 +807,208 @@ namespace PACommon
                 lastCharWasSep = false;
             }
             return sb.ToString();
+        }
+        
+        /// <summary>
+        /// Tres to get the system clipboard.
+        /// </summary>
+        /// <param name="clipboard">The system clipboard, or an empty clipboard.</param>
+        /// <returns>If the clipboard is fully functional.</returns>
+        public static bool TryGetClipboard(out IClipboard clipboard)
+        {
+            try
+            {
+                clipboard = SystemClipboard.Instance;
+            }
+            catch (Exception ex)
+            {
+                clipboard = new EmptyClipboard();
+                return false;
+            }
+            
+            if (clipboard is UnixClipboard)
+            {
+                clipboard = new UnixClipboardPa();
+            }
+            return true;
+        }
+        
+        /// <summary>
+        /// Returns the full soname of a shared library.
+        /// </summary>
+        /// <param name="soName">The name of the shared library (with extension).</param>
+        /// <returns>The full name of the shared library, or null.</returns>
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("freeBSD")]
+        public static string? GetSoWithSoname(string soName)
+        {
+            var command = $"ldconfig -v | grep -F \"{soName}\"";
+            command = command.Replace("\"","\"\"");
+            
+            var proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "bash",
+                    Arguments = $"-c \"{command}\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                },
+            };
+            
+            string response;
+            try
+            {
+                proc.Start();
+                proc.WaitForExit();
+                response = proc.StandardOutput.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            
+            return response
+                .Split('\n')
+                .Where(s => !string.IsNullOrEmpty(s))
+                .SelectMany(s => s.Split('\t'))
+                .Where(s => !string.IsNullOrEmpty(s))
+                .SelectMany(s => s.Split(' '))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .FirstOrDefault(s => s.StartsWith(soName));
+        }
+        
+        /// <summary>
+        /// Resolves a function like PInvoke.
+        /// </summary>
+        /// <param name="libraryName">The name/path of the library, the function is located in.</param>
+        /// <param name="functionName">The name of the fubction to resolve.</param>
+        /// <typeparam name="T">Type of the function to resolve.</typeparam>
+        /// <returns>The resolved function.</returns>
+        /// <exception cref="Win32Exception">Trown if the resolution failed.</exception>
+        [SupportedOSPlatform("windows")]
+        public static T ResolveDllFunction<T>(string libraryName, string functionName)
+            where T : Delegate
+        {
+            var dllHandle = NativeMethods.LoadLibrary(libraryName);
+            if (dllHandle == nint.Zero)
+            {
+                throw new Win32Exception();
+            }
+            
+            var addr = NativeMethods.GetProcAddress(dllHandle, functionName);
+            if (addr == nint.Zero)
+            {
+                throw new Win32Exception();
+            }
+            
+            return (T)Marshal.GetDelegateForFunctionPointer(addr, typeof(T));
+        }
+        
+        /// <summary>
+        /// Resolves a function like PInvoke.
+        /// </summary>
+        /// <param name="libraryName">The name/path of the library, the function is located in.</param>
+        /// <param name="functionName">The name of the fubction to resolve.</param>
+        /// <typeparam name="T">Type of the function to resolve.</typeparam>
+        /// <returns>The resolved function.</returns>
+        /// <exception cref="InvalidOperationException">Trown if the resolution failed.</exception>
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("freeBSD")]
+        public static T ResolveSoFunction<T>(string libraryName, string functionName)
+            where T : Delegate
+        {
+            var libHandle = NativeMethods.LoadDynamicLibrary(libraryName, Constants.NativeConstants.LDOPEN_RTLD_NOW);
+            if (libHandle == nint.Zero)
+            {
+                throw new InvalidOperationException($"Loading library \"{libraryName}\" failed!");
+            }
+            
+            var addr = NativeMethods.LoadLibrarySymbol(libHandle, functionName);
+            if (addr == nint.Zero)
+            {
+                throw new InvalidOperationException($"Failed to resolve symbol: \"{functionName}\"");
+            }
+            
+            return (T)Marshal.GetDelegateForFunctionPointer(addr, typeof(T));
+        }
+        
+        /// <param name="soName">The name of the shared library (with extension).</param>
+        /// <inheritdoc cref="ResolveSoFunction"/>
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("freeBSD")]
+        public static T ResolveSoFunctionFromSoName<T>(string soName, string functionName)
+            where T : Delegate
+        {
+            var libSoName = GetSoWithSoname("libc.so");
+            return libSoName is not null
+                ? ResolveSoFunction<T>(libSoName, functionName)
+                : throw new InvalidOperationException($"Cannot get the soname of the \"{soName}\" library!");
+        }
+        
+        /// <summary>
+        /// Returns the text from the input buffer.<br/>
+        /// Useful for CLI escape codes that return to the input buffer.
+        /// </summary>
+        /// <returns>All remaining text in the input buffer.</returns>
+        public static string GetStringInInputBuffer()
+        {
+            var keys = new List<char>();
+            while (Console.KeyAvailable)
+            {
+                keys.Add(Console.ReadKey(true).KeyChar);
+            }
+            return new string(keys.ToArray());
+        }
+        
+        private static NativeMethods.ControllDeviceDynamic? _controllDeviceDynamicFunction = null;
+        
+        /// <summary>
+        /// Gets the window size of the console window in pixels.
+        /// </summary>
+        /// <returns>The width and height of the current console window in pixels.</returns>
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("freeBSD")]
+        public static unsafe (ushort x, ushort y)? GetConsoleWindowSize()
+        {
+            NativeStructs.ControlDeviceWinSize size;
+            try
+            {
+                var res = NativeMethods.ControllDevice(
+                    Constants.NativeConstants.OUT_FILE_DESCRIPTOR,
+                    Constants.NativeConstants.CONTROL_DEVICE_GET_SIZE,
+                    (nint)(&size)
+                );
+                return res == 0 ? (size.sizeX, size.sizeY) : null;
+            }
+            catch (Exception ex)
+            {
+                _controllDeviceDynamicFunction ??= ResolveSoFunctionFromSoName<NativeMethods.ControllDeviceDynamic>(
+                    NativeMethods.LINUX_GLIBC,
+                    NativeMethods.LINUX_GLIBC_IOCTL
+                );
+                var res = _controllDeviceDynamicFunction(
+                    Constants.NativeConstants.OUT_FILE_DESCRIPTOR,
+                    Constants.NativeConstants.CONTROL_DEVICE_GET_SIZE,
+                    (nint)(&size)
+                );
+                return res == 0 ? (size.sizeX, size.sizeY) : null;
+            }
+        }
+        
+        /// <summary>
+        /// Displays an image to the terminal using the Kitty image protocol.<br/>
+        /// <see href="https://sw.kovidgoyal.net/kitty/graphics-protocol/"/>
+        /// </summary>
+        /// <param name="imagePath">The path to the image.</param>
+        /// <param name="extraArgs">The extra argumenats to agg to the image display command.</param>
+        public static void DisplayImage(string imagePath, string extraArgs)
+        {
+            var buf = File.ReadAllBytes(imagePath);
+            var imageData = Convert.ToBase64String(buf);
+            Console.Write($"\e_Ga=T,f=100{extraArgs},m=0;{imageData}\e\\");
         }
         #endregion
         
